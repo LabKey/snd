@@ -28,6 +28,7 @@ import org.labkey.remoteapi.query.InsertRowsCommand;
 import org.labkey.remoteapi.query.SaveRowsResponse;
 import org.labkey.remoteapi.query.SelectRowsCommand;
 import org.labkey.remoteapi.query.SelectRowsResponse;
+import org.labkey.remoteapi.query.UpdateRowsCommand;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.TestTimeoutException;
@@ -55,6 +56,7 @@ public class SNDTest extends BaseWebDriverTest
     private static final String EXTCOLTESTDATA1 = "testString 1";
     private static final String EXTCOLTESTDATA2 = "testString 2";
     private static final String EXTCOLTESTDATA3 = "testString 3";
+    private static final String EXTCOLTESTDATA3A = "updated testString 3";
 
     private static final String CREATEDOMAINSAPI = "LABKEY.Domain.create({\n" +
             "   success: this.success,\n" +
@@ -68,6 +70,7 @@ public class SNDTest extends BaseWebDriverTest
     private final Map<String, Object> TEST1ROW1MAP = Maps.of("PkgId", 1001, "Description", "Description 1", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223451b901", "testPkgs", EXTCOLTESTDATA1);
     private final Map<String, Object> TEST1ROW2MAP = Maps.of("PkgId", 1002, "Description", "Description 2", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223751b901", "testPkgs", EXTCOLTESTDATA2);
     private final Map<String, Object> TEST1ROW3MAP = Maps.of("PkgId", 1003, "Description", "Description 3", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223481b901", "testPkgs", EXTCOLTESTDATA3);
+    private final Map<String, Object> TEST1ROW3AMAP = Maps.of("PkgId", 1003, "Description", "Updated Description 3", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223481b901", "testPkgs", EXTCOLTESTDATA3A);
 
 
     @Override
@@ -199,5 +202,29 @@ public class SNDTest extends BaseWebDriverTest
         waitAndClickAndWait(Locator.linkWithText("view data"));
 
         assertTextPresent(EXTCOLTESTDATA1, EXTCOLTESTDATA2, EXTCOLTESTDATA3);
+
+        clickFolder(TEST1SUBFOLDER);
+
+        UpdateRowsCommand updateRowsCommand = new UpdateRowsCommand("snd", "Pkgs");
+        updateRowsCommand.addRow(TEST1ROW3AMAP);
+        resp = updateRowsCommand.execute(cn, getProjectName() + "/" + TEST1SUBFOLDER);
+        assert resp.getRowsAffected().intValue() == 1;
+
+        goToSchemaBrowser();
+        selectQuery("snd", "Pkgs");
+        waitAndClickAndWait(Locator.linkWithText("view data"));
+        assertTextPresent(EXTCOLTESTDATA1, EXTCOLTESTDATA2, EXTCOLTESTDATA3A, "Updated Description 3");
+
+        clickFolder(TEST1SUBFOLDER);
+
+        DeleteRowsCommand deleteRowsCommand = new DeleteRowsCommand("snd", "Pkgs");
+        deleteRowsCommand.addRow(TEST1ROW2MAP);
+        resp = deleteRowsCommand.execute(cn, getProjectName() + "/" + TEST1SUBFOLDER);
+        assert resp.getRowsAffected().intValue() == 1;
+
+        goToSchemaBrowser();
+        selectQuery("snd", "Pkgs");
+        waitAndClickAndWait(Locator.linkWithText("view data"));
+        assertTextNotPresent(EXTCOLTESTDATA2, "Description 2");
     }
 }
