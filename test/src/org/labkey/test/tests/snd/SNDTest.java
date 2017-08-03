@@ -59,8 +59,9 @@ public class SNDTest extends BaseWebDriverTest
     private static final String EXTCOLTESTDATA3A = "updated testString 3";
 
     private static final String CREATEDOMAINSAPI = "LABKEY.Domain.create({\n" +
-            "   success: this.success,\n" +
-            "   failure: this.failure,\n" +
+            "   failure: function (e) {\n" +
+            "        LABKEY.Utils.alert(\"Error\", e.exception);\n" +
+            "    },\n" +
             "   domainGroup: \"test\",\n" +
             "   domainKind: \"SND\",\n" +
             "   module: \"snd\",\n" +
