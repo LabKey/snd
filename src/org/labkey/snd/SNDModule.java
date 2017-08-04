@@ -19,14 +19,16 @@ package org.labkey.snd;
 import org.jetbrains.annotations.NotNull;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
-import org.labkey.api.module.DefaultModule;
-import org.labkey.api.module.ModuleContext;
-import org.labkey.api.view.WebPartFactory;
-import org.labkey.api.snd.SNDDomainKind;
 import org.labkey.api.exp.property.PropertyService;
-import org.labkey.api.query.DefaultSchema;
+import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.Module;
+import org.labkey.api.module.ModuleContext;
+import org.labkey.api.query.DefaultSchema;
 import org.labkey.api.query.QuerySchema;
+import org.labkey.api.services.ServiceRegistry;
+import org.labkey.api.snd.SNDDomainKind;
+import org.labkey.api.snd.SNDService;
+import org.labkey.api.view.WebPartFactory;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -66,6 +68,7 @@ public class SNDModule extends DefaultModule
     {
         addController(SNDController.NAME, SNDController.class);
         PropertyService.get().registerDomainKind(new SNDDomainKind());
+        ServiceRegistry.get().registerService(SNDService.class, SNDServiceImpl.INSTANCE);
     }
 
     @Override
