@@ -37,6 +37,7 @@ import org.labkey.test.pages.snd.BeginPage;
 import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.Maps;
 import org.labkey.test.util.PasswordUtil;
+import org.labkey.test.util.SqlserverOnlyTest;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -47,7 +48,7 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 
 @Category ({CustomModules.class})
-public class SNDTest extends BaseWebDriverTest
+public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 {
     private static final String PROJECTNAME = "SNDTest Project";
     private static final String TEST1SUBFOLDER = "Test1";
