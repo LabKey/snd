@@ -134,6 +134,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     private void doSetup()
     {
         _containerHelper.createProject(getProjectName(), "Collaboration");
+        goToProjectHome();
         _containerHelper.enableModules(Arrays.asList("SND"));
         _containerHelper.createSubfolder(getProjectName(), getProjectName(), TEST1SUBFOLDER, "Collaboration", new String[]{"SND"});
         setupTest1Project();
