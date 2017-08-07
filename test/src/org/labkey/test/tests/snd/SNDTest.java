@@ -78,6 +78,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     @Override
     protected void doCleanup(boolean afterTest) throws TestTimeoutException
     {
+        openProjectMenu();
         if(isTextPresent(PROJECTNAME))
         {
             try
