@@ -16,9 +16,15 @@
 
 package org.labkey.snd;
 
+import org.labkey.api.data.Container;
+import org.labkey.api.data.DbSequence;
+import org.labkey.api.data.DbSequenceManager;
+
 public class SNDManager
 {
     private static final SNDManager _instance = new SNDManager();
+    private static final int _minPkgId = 10000;
+    private static final String SND_DBSEQUENCE_NAME = "org.labkey.snd.api.SNDPackage";
 
     private SNDManager()
     {
@@ -28,5 +34,12 @@ public class SNDManager
     public static SNDManager get()
     {
         return _instance;
+    }
+
+    public Integer generatePackageId(Container c)
+    {
+        DbSequence sequence = DbSequenceManager.get(c, SND_DBSEQUENCE_NAME);
+        sequence.ensureMinimum(_minPkgId);
+        return sequence.next();
     }
 }

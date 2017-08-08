@@ -16,10 +16,16 @@
 
 package org.labkey.snd;
 
+import org.labkey.api.action.ApiAction;
+import org.labkey.api.action.ApiResponse;
+import org.labkey.api.action.ApiSimpleResponse;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
 import org.labkey.api.security.RequiresPermission;
+import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.ReadPermission;
+import org.labkey.api.snd.SNDPackage;
+import org.labkey.api.snd.SNDService;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
 import org.springframework.validation.BindException;
@@ -46,6 +52,74 @@ public class SNDController extends SpringActionController
         public NavTree appendNavTrail(NavTree root)
         {
             return root;
+        }
+    }
+
+    public static class SavePackageForm
+    {
+        private int pkgId;
+        private String description;
+        private boolean active;
+        private boolean repeatable;
+
+        public int getPkgId()
+        {
+            return pkgId;
+        }
+
+        public void setPkgId(int pkgId)
+        {
+            this.pkgId = pkgId;
+        }
+
+        public String getDescription()
+        {
+            return description;
+        }
+
+        public void setDescription(String description)
+        {
+            this.description = description;
+        }
+
+        public boolean isActive()
+        {
+            return active;
+        }
+
+        public void setActive(boolean active)
+        {
+            this.active = active;
+        }
+
+        public boolean isRepeatable()
+        {
+            return repeatable;
+        }
+
+        public void setRepeatable(boolean repeatable)
+        {
+            this.repeatable = repeatable;
+        }
+    }
+
+    @RequiresPermission(AdminPermission.class)
+    public class SavePackageAction extends ApiAction<SavePackageForm>
+    {
+        @Override
+        public ApiResponse execute(SavePackageForm form, BindException errors) throws Exception
+        {
+            SNDPackage pkg = new SNDPackage();
+            pkg.setPkgId(form.getPkgId());
+            pkg.setDescription(form.getDescription());
+            pkg.setActive(form.isActive());
+            pkg.setRepeatable(form.isRepeatable());
+            SNDService.get().savePackage(getViewContext().getContainer(), getUser(), pkg);
+
+//            for (String msg : errMsgs)
+//                errors.reject(ERROR_MSG, msg);
+
+            return new ApiSimpleResponse();
         }
     }
 }

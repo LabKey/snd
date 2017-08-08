@@ -1,9 +1,9 @@
 package org.labkey.api.snd;
 
 import org.jetbrains.annotations.Nullable;
+import org.labkey.api.data.Container;
+import org.labkey.api.security.User;
 import org.labkey.api.services.ServiceRegistry;
-
-import java.util.List;
 
 /**
  * Created by marty on 8/4/2017.
@@ -16,5 +16,5 @@ public interface SNDService
         return ServiceRegistry.get(SNDService.class);
     }
 
-    List<String> savePackage(SNDPackage pkg);
+    void savePackage(Container c, User u, SNDPackage pkg);
 }

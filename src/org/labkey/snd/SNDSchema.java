@@ -18,6 +18,7 @@ package org.labkey.snd;
 
 import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.DbSchemaType;
+import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.dialect.SqlDialect;
 
 public class SNDSchema
@@ -45,5 +46,18 @@ public class SNDSchema
     public SqlDialect getSqlDialect()
     {
         return getSchema().getSqlDialect();
+    }
+
+    public TableInfo getTableInfoPkgs()
+    {
+        return getSchema().getTable("Pkgs");
+    }
+    public TableInfo getTableInfoPkgCategoryJunction()
+    {
+        return getSchema().getTable("PkgCategoryJunction");
+    }
+    public TableInfo getTableInfoPkgCategories()
+    {
+        return getSchema().getTable("PkgCategories");
     }
 }
