@@ -19,6 +19,9 @@ package org.labkey.snd;
 import org.jetbrains.annotations.NotNull;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager.ContainerListener;
+import org.labkey.api.data.DbScope;
+import org.labkey.api.data.SimpleFilter;
+import org.labkey.api.data.Table;
 import org.labkey.api.security.User;
 import java.util.Collections;
 import java.util.Collection;
@@ -35,6 +38,17 @@ public class SNDContainerListener implements ContainerListener
     @Override
     public void containerDeleted(Container c, User user)
     {
+        // This will clean up the SND schema.  We will rely on the exp module to clean up related exp data.
+        DbScope scope = SNDSchema.getInstance().getSchema().getScope();
+        SimpleFilter containerFilter = SimpleFilter.createContainerFilter(c);
+        try (DbScope.Transaction transaction = scope.ensureTransaction())
+        {
+            Table.delete(SNDSchema.getInstance().getTableInfoPkgCategoryJunction(), containerFilter);
+            Table.delete(SNDSchema.getInstance().getTableInfoPkgCategories(), containerFilter);
+            Table.delete(SNDSchema.getInstance().getTableInfoPkgs(), containerFilter);
+
+            transaction.commit();
+        }
     }
 
     @Override
