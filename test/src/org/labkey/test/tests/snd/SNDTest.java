@@ -36,7 +36,6 @@ import org.labkey.test.categories.CustomModules;
 import org.labkey.test.pages.snd.BeginPage;
 import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.Maps;
-import org.labkey.test.util.PasswordUtil;
 import org.labkey.test.util.SqlserverOnlyTest;
 
 import java.io.IOException;
@@ -126,7 +125,6 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         _containerHelper.enableModules(Arrays.asList("SND"));
         _containerHelper.createSubfolder(getProjectName(), getProjectName(), TEST1SUBFOLDER, "Collaboration", new String[]{"SND"});
         setupTest1Project();
-        clickFolder(getProjectName());
     }
 
     private void setupTest1Project()
@@ -149,7 +147,6 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     @Test
     public void testSNDModule()
     {
-        _containerHelper.enableModule("SND");
         BeginPage beginPage = BeginPage.beginAt(this, getProjectName());
         assertEquals(200, getResponseCode());
         final String expectedHello = "Hello, and welcome to the SND module.";
@@ -165,7 +162,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     @Override
     protected String getProjectName()
     {
-        return "SNDTest Project";
+        return PROJECTNAME;
     }
 
     @Override
@@ -175,11 +172,11 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     }
 
     @Test
-    public void testExtensibleColumns() throws IOException, CommandException
+    public void testExtensibleColumns() throws Exception
     {
         clickFolder(TEST1SUBFOLDER);
 
-        Connection cn = new Connection(getBaseURL(), PasswordUtil.getUsername(), PasswordUtil.getPassword());
+        Connection cn = createDefaultConnection(false);
 
         InsertRowsCommand insertRowsCommand = new InsertRowsCommand("snd", "Pkgs");
         insertRowsCommand.addRow(TEST1ROW1MAP);
