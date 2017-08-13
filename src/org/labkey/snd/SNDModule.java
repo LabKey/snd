@@ -47,7 +47,7 @@ public class SNDModule extends DefaultModule
     @Override
     public double getVersion()
     {
-        return 17.21;
+        return 17.22;
     }
 
     @Override
