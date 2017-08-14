@@ -18,6 +18,7 @@ package org.labkey.snd;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DbSchema;
+import org.labkey.api.data.TableInfo;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.security.User;
 
@@ -29,5 +30,142 @@ public class SNDUserSchema extends SimpleUserSchema
         super(name, description, user, container, dbschema);
     }
 
+    public enum TableType
+    {
+        SuperPkgs
+                {
+                    @Override
+                    public TableInfo createTable(SNDUserSchema schema)
+                    {
+                        SimpleUserSchema.SimpleTable<SNDUserSchema> table =
+                                new SimpleUserSchema.SimpleTable<>(
+                                        schema, SNDSchema.getInstance().getTableInfoSuperPkgs()).init();
 
+                        return table;
+                    }
+                },
+        Pkgs
+                {
+                    @Override
+                    public TableInfo createTable(SNDUserSchema schema)
+                    {
+                        SimpleUserSchema.SimpleTable<SNDUserSchema> table =
+                                new SimpleUserSchema.SimpleTable<>(
+                                        schema, SNDSchema.getInstance().getTableInfoPkgs()).init();
+
+                        return table;
+                    }
+                },
+        PkgCategories
+                {
+                    @Override
+                    public TableInfo createTable(SNDUserSchema schema)
+                    {
+                        SimpleUserSchema.SimpleTable<SNDUserSchema> table =
+                                new SimpleUserSchema.SimpleTable<>(
+                                        schema, SNDSchema.getInstance().getTableInfoPkgCategories()).init();
+
+                        return table;
+                    }
+                },
+        PkgCategoryJunction
+                {
+                    @Override
+                    public TableInfo createTable(SNDUserSchema schema)
+                    {
+                        SimpleUserSchema.SimpleTable<SNDUserSchema> table =
+                                new SimpleUserSchema.SimpleTable<>(
+                                        schema, SNDSchema.getInstance().getTableInfoPkgCategoryJunction()).init();
+
+                        return table;
+                    }
+                },
+        ProjectItems
+                {
+                    @Override
+                    public TableInfo createTable(SNDUserSchema schema)
+                    {
+                        SimpleUserSchema.SimpleTable<SNDUserSchema> table =
+                                new SimpleUserSchema.SimpleTable<>(
+                                        schema, SNDSchema.getInstance().getTableInfoProjectItems()).init();
+
+                        return table;
+                    }
+                },
+        Projects
+                {
+                    @Override
+                    public TableInfo createTable(SNDUserSchema schema)
+                    {
+                        SimpleUserSchema.SimpleTable<SNDUserSchema> table =
+                                new SimpleUserSchema.SimpleTable<>(
+                                        schema, SNDSchema.getInstance().getTableInfoProjects()).init();
+
+                        return table;
+                    }
+                },
+        Events
+                {
+                    @Override
+                    public TableInfo createTable(SNDUserSchema schema)
+                    {
+                        SimpleUserSchema.SimpleTable<SNDUserSchema> table =
+                                new SimpleUserSchema.SimpleTable<>(
+                                        schema, SNDSchema.getInstance().getTableInfoEvents()).init();
+
+                        return table;
+                    }
+                },
+        EventNotes
+                {
+                    @Override
+                    public TableInfo createTable(SNDUserSchema schema)
+                    {
+                        SimpleUserSchema.SimpleTable<SNDUserSchema> table =
+                                new SimpleUserSchema.SimpleTable<>(
+                                        schema, SNDSchema.getInstance().getTableInfoEventNotes()).init();
+
+                        return table;
+                    }
+                },
+        CodedEvents
+                {
+                    @Override
+                    public TableInfo createTable(SNDUserSchema schema)
+                    {
+                        SimpleUserSchema.SimpleTable<SNDUserSchema> table =
+                                new SimpleUserSchema.SimpleTable<>(
+                                        schema, SNDSchema.getInstance().getTableInfoCodedEvents()).init();
+
+                        return table;
+                    }
+                };
+
+
+        public abstract TableInfo createTable(SNDUserSchema schema);
+    }
+
+    @Override
+    @Nullable
+    public TableInfo createTable(String name)
+    {
+        if (name != null)
+        {
+            TableType tableType = null;
+            for (TableType t : TableType.values())
+            {
+                // Make the enum name lookup case insensitive
+                if (t.name().equalsIgnoreCase(name.toLowerCase()))
+                {
+                    tableType = t;
+                    break;
+                }
+            }
+            if (tableType != null)
+            {
+                return tableType.createTable(this);
+            }
+        }
+        return null;
+    }
 }

@@ -16,9 +16,11 @@
 
 package org.labkey.snd;
 
+import org.json.JSONObject;
 import org.labkey.api.action.ApiAction;
 import org.labkey.api.action.ApiResponse;
 import org.labkey.api.action.ApiSimpleResponse;
+import org.labkey.api.action.SimpleApiJsonForm;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
 import org.labkey.api.security.RequiresPermission;
@@ -26,7 +28,6 @@ import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.snd.SNDPackage;
 import org.labkey.api.snd.SNDService;
-import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
 import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
@@ -46,7 +47,7 @@ public class SNDController extends SpringActionController
     {
         public ModelAndView getView(Object o, BindException errors) throws Exception
         {
-            return new JspView("/org/labkey/snd/view/hello.jsp");
+            return null;
         }
 
         public NavTree appendNavTrail(NavTree root)
@@ -55,69 +56,23 @@ public class SNDController extends SpringActionController
         }
     }
 
-    public static class SavePackageForm
-    {
-        private int pkgId;
-        private String description;
-        private boolean active;
-        private boolean repeatable;
-
-        public int getPkgId()
-        {
-            return pkgId;
-        }
-
-        public void setPkgId(int pkgId)
-        {
-            this.pkgId = pkgId;
-        }
-
-        public String getDescription()
-        {
-            return description;
-        }
-
-        public void setDescription(String description)
-        {
-            this.description = description;
-        }
-
-        public boolean isActive()
-        {
-            return active;
-        }
-
-        public void setActive(boolean active)
-        {
-            this.active = active;
-        }
-
-        public boolean isRepeatable()
-        {
-            return repeatable;
-        }
-
-        public void setRepeatable(boolean repeatable)
-        {
-            this.repeatable = repeatable;
-        }
-    }
-
     @RequiresPermission(AdminPermission.class)
-    public class SavePackageAction extends ApiAction<SavePackageForm>
+    public class SavePackageAction extends ApiAction<SimpleApiJsonForm>
     {
         @Override
-        public ApiResponse execute(SavePackageForm form, BindException errors) throws Exception
+        public ApiResponse execute(SimpleApiJsonForm form, BindException errors) throws Exception
         {
+            JSONObject json = form.getJsonObject();
             SNDPackage pkg = new SNDPackage();
-            pkg.setPkgId(form.getPkgId());
-            pkg.setDescription(form.getDescription());
-            pkg.setActive(form.isActive());
-            pkg.setRepeatable(form.isRepeatable());
-            SNDService.get().savePackage(getViewContext().getContainer(), getUser(), pkg);
+            if (json.get("PkgId") != null)
+                pkg.setPkgId(json.getInt("PkgId"));
 
-//            for (String msg : errMsgs)
-//                errors.reject(ERROR_MSG, msg);
+            pkg.setDescription(json.getString("Description"));
+            pkg.setActive(json.getBoolean("Active"));
+            pkg.setRepeatable(json.getBoolean("Repeatable"));
+            pkg.setNarrative(json.getString("Narrative"));
+
+            SNDService.get().savePackage(getViewContext().getContainer(), getUser(), pkg);
 
             return new ApiSimpleResponse();
         }

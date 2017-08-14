@@ -1,8 +1,15 @@
 package org.labkey.api.snd;
 
+import org.labkey.api.collections.ArrayListMap;
+import org.labkey.api.data.Container;
 import org.labkey.api.exp.PropertyDescriptor;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by marty on 8/4/2017.
@@ -11,12 +18,13 @@ public class SNDPackage
 {
     private Integer _pkgId;
     private String _description;
+    private String _narrative;
     private boolean _repeatable;
     private boolean _active;
-    private Collection<Integer> _categories;
+    private List<Integer> _categories = Collections.EMPTY_LIST;
     private Collection<PropertyDescriptor> _attributes;
     private Collection<Integer> _subpackages;
-    private Collection<PropertyDescriptor> _extraFields;
+    private Map<String, Object> _extraFields = new HashMap<>();
 
     public Integer getPkgId()
     {
@@ -36,6 +44,16 @@ public class SNDPackage
     public void setDescription(String description)
     {
         this._description = description;
+    }
+
+    public String getNarrative()
+    {
+        return _narrative;
+    }
+
+    public void setNarrative(String narrative)
+    {
+        _narrative = narrative;
     }
 
     public boolean isRepeatable()
@@ -58,12 +76,12 @@ public class SNDPackage
         this._active = active;
     }
 
-    public Collection<Integer> getCategories()
+    public List<Integer> getCategories()
     {
         return _categories;
     }
 
-    public void setCategories(Collection<Integer> categories)
+    public void setCategories(List<Integer> categories)
     {
         this._categories = categories;
     }
@@ -88,13 +106,44 @@ public class SNDPackage
         this._subpackages = subpackages;
     }
 
-    public Collection<PropertyDescriptor> getExtraFields()
+    public Map<String, Object> getExtraFields()
     {
         return _extraFields;
     }
 
-    public void setExtraFields(Collection<PropertyDescriptor> extraFields)
+    public void setExtraFields(Map<String, Object> extraFields)
     {
         this._extraFields = extraFields;
+    }
+
+    public Map<String, Object> getPackageRow(Container c)
+    {
+        Map<String, Object> pkgValues = new ArrayListMap<>();
+        pkgValues.put("PkgId", getPkgId());
+        pkgValues.put("Narrative", getNarrative());
+        pkgValues.put("Description", getDescription());
+        pkgValues.put("Active", isActive());
+        pkgValues.put("Repeatable", isRepeatable());
+        pkgValues.put("Container", c);
+        pkgValues.putAll(getExtraFields());
+
+        return pkgValues;
+    }
+
+    public List<Map<String, Object>> getCategoryRows(Container c)
+    {
+        List<Map<String, Object>> rows = new ArrayList<>();
+        Map<String, Object> row;
+
+        for (Integer categoryId : getCategories())
+        {
+            row = new ArrayListMap<>();
+            row.put("PkgId", getPkgId());
+            row.put("CategoryId", categoryId);
+            row.put("Container", c);
+            rows.add(row);
+        }
+
+        return rows;
     }
 }

@@ -25,6 +25,15 @@ public class SNDSchema
 {
     private static final SNDSchema _instance = new SNDSchema();
     public static final String NAME = "snd";
+    public static final String PKGS_TABLE_NAME = "Pkgs";
+    public static final String PKGCATEGORYJUNCTION_TABLE_NAME = "PkgCategoryJunction";
+    public static final String PKGCATEGORIES_NAME = "PkgCategories";
+    public static final String SUPERPKGS_TABLE_NAME = "SuperPkgs";
+    public static final String EVENTS_TABLE_NAME = "Events";
+    public static final String CODEDEVENTS_TABLE_NAME = "CodedEvents";
+    public static final String EVENTNOTES_TABLE_NAME = "EventNotes";
+    public static final String PROJECTS_TABLE_NAME = "Projects";
+    public static final String PROJECTITEMS_TABLE_NAME = "ProjectItems";
 
     public static SNDSchema getInstance()
     {
@@ -50,14 +59,46 @@ public class SNDSchema
 
     public TableInfo getTableInfoPkgs()
     {
-        return getSchema().getTable("Pkgs");
+        return getSchema().getTable(PKGS_TABLE_NAME);
     }
+
     public TableInfo getTableInfoPkgCategoryJunction()
     {
-        return getSchema().getTable("PkgCategoryJunction");
+        return getSchema().getTable(PKGCATEGORYJUNCTION_TABLE_NAME);
     }
+
     public TableInfo getTableInfoPkgCategories()
     {
-        return getSchema().getTable("PkgCategories");
+        return getSchema().getTable(PKGCATEGORIES_NAME);
+    }
+
+    public TableInfo getTableInfoSuperPkgs()
+    {
+        return getSchema().getTable(SUPERPKGS_TABLE_NAME);
+    }
+
+    public TableInfo getTableInfoEvents()
+    {
+        return getSchema().getTable(EVENTS_TABLE_NAME);
+    }
+
+    public TableInfo getTableInfoCodedEvents()
+    {
+        return getSchema().getTable(CODEDEVENTS_TABLE_NAME);
+    }
+
+    public TableInfo getTableInfoEventNotes()
+    {
+        return getSchema().getTable(EVENTNOTES_TABLE_NAME);
+    }
+
+    public TableInfo getTableInfoProjects()
+    {
+        return getSchema().getTable(PROJECTS_TABLE_NAME);
+    }
+
+    public TableInfo getTableInfoProjectItems()
+    {
+        return getSchema().getTable(PROJECTITEMS_TABLE_NAME);
     }
 }

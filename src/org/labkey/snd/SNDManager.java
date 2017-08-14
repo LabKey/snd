@@ -17,8 +17,25 @@
 package org.labkey.snd;
 
 import org.labkey.api.data.Container;
+import org.labkey.api.data.DbScope;
 import org.labkey.api.data.DbSequence;
 import org.labkey.api.data.DbSequenceManager;
+import org.labkey.api.data.TableInfo;
+import org.labkey.api.query.BatchValidationException;
+import org.labkey.api.query.DuplicateKeyException;
+import org.labkey.api.query.InvalidKeyException;
+import org.labkey.api.query.QueryService;
+import org.labkey.api.query.QueryUpdateService;
+import org.labkey.api.query.QueryUpdateServiceException;
+import org.labkey.api.query.UserSchema;
+import org.labkey.api.query.ValidationException;
+import org.labkey.api.security.User;
+import org.labkey.api.snd.SNDPackage;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class SNDManager
 {
@@ -41,5 +58,64 @@ public class SNDManager
         DbSequence sequence = DbSequenceManager.get(c, SND_DBSEQUENCE_NAME);
         sequence.ensureMinimum(_minPkgId);
         return sequence.next();
+    }
+
+    public void updatePackage(User u, Container c, SNDPackage pkg, BatchValidationException errors)
+    {
+        TableInfo pkgsTable = SNDSchema.getInstance().getTableInfoPkgs();
+        QueryUpdateService pkgQus = pkgsTable.getUpdateService();
+        if (pkgQus == null)
+            throw new IllegalStateException();
+
+        TableInfo pkgCategJuncTable = SNDSchema.getInstance().getTableInfoPkgCategoryJunction();
+        QueryUpdateService pkgCategoryQus = pkgCategJuncTable.getUpdateService();
+        if (pkgCategoryQus == null)
+            throw new IllegalStateException();
+
+        List<Map<String, Object>> pkgRows = new ArrayList<>();
+        pkgRows.add(pkg.getPackageRow(c));
+
+        try (DbScope.Transaction tx = pkgsTable.getSchema().getScope().ensureTransaction())
+        {
+            pkgQus.updateRows(u, c, pkgRows, null, null, null);
+            pkgCategoryQus.updateRows(u, c, pkg.getCategoryRows(c), null, null, null);
+            tx.commit();
+        }
+        catch (QueryUpdateServiceException | BatchValidationException | InvalidKeyException | SQLException e)
+        {
+            errors.addRowError(new ValidationException(e.getMessage()));
+        }
+    }
+
+    public void createNewPackage(User u, Container c, SNDPackage pkg, BatchValidationException errors)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        TableInfo pkgsTable = schema.getTable(SNDSchema.PKGS_TABLE_NAME);
+        QueryUpdateService pkgQus = pkgsTable.getUpdateService();
+        if (pkgQus == null)
+            throw new IllegalStateException();
+
+        TableInfo pkgCategJuncTable = schema.getTable(SNDSchema.PKGCATEGORYJUNCTION_TABLE_NAME);
+        QueryUpdateService pkgCategoryQus = pkgCategJuncTable.getUpdateService();
+        if (pkgCategoryQus == null)
+            throw new IllegalStateException();
+
+        List<Map<String, Object>> pkgRows = new ArrayList<>();
+        pkgRows.add(pkg.getPackageRow(c));
+
+        try (DbScope.Transaction tx = pkgsTable.getSchema().getScope().ensureTransaction())
+        {
+            pkgQus.insertRows(u, c, pkgRows, errors, null, null);
+            pkgCategoryQus.insertRows(u, c, pkg.getCategoryRows(c), errors, null, null);
+            tx.commit();
+        }
+        catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException e)
+        {
+            errors.addRowError(new ValidationException(e.getMessage()));
+        }
+
+        //Domain domain = DomainUtil.createDomain(kindName, newDomain, options, getContainer(), getUser(), domainName, null);
+
     }
 }
