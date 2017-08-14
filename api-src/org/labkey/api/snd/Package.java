@@ -2,7 +2,7 @@ package org.labkey.api.snd;
 
 import org.labkey.api.collections.ArrayListMap;
 import org.labkey.api.data.Container;
-import org.labkey.api.exp.PropertyDescriptor;
+import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,7 +22,7 @@ public class Package
     private boolean _repeatable;
     private boolean _active;
     private List<Integer> _categories = Collections.EMPTY_LIST;
-    private Collection<PropertyDescriptor> _attributes;
+    private Collection<GWTPropertyDescriptor> _attributes;
     private Collection<Integer> _subpackages;
     private Map<String, Object> _extraFields = new HashMap<>();
 
@@ -86,12 +86,12 @@ public class Package
         this._categories = categories;
     }
 
-    public Collection<PropertyDescriptor> getAttributes()
+    public Collection<GWTPropertyDescriptor> getAttributes()
     {
         return _attributes;
     }
 
-    public void setAttributes(Collection<PropertyDescriptor> attributes)
+    public void setAttributes(Collection<GWTPropertyDescriptor> attributes)
     {
         this._attributes = attributes;
     }
