@@ -3,7 +3,7 @@ package org.labkey.snd;
 import org.labkey.api.data.Container;
 import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.security.User;
-import org.labkey.api.snd.SNDPackage;
+import org.labkey.api.snd.Package;
 import org.labkey.api.snd.SNDService;
 import org.labkey.api.util.UnexpectedException;
 
@@ -19,7 +19,7 @@ public class SNDServiceImpl implements SNDService
     }
 
     @Override
-    public void savePackage(Container c, User u, SNDPackage pkg)
+    public void savePackage(Container c, User u, Package pkg)
     {
         BatchValidationException errors = new BatchValidationException();
 

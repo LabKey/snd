@@ -16,5 +16,5 @@ public interface SNDService
         return ServiceRegistry.get(SNDService.class);
     }
 
-    void savePackage(Container c, User u, SNDPackage pkg);
+    void savePackage(Container c, User u, Package pkg);
 }

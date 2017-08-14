@@ -30,7 +30,7 @@ import org.labkey.api.query.QueryUpdateServiceException;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
-import org.labkey.api.snd.SNDPackage;
+import org.labkey.api.snd.Package;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ public class SNDManager
 {
     private static final SNDManager _instance = new SNDManager();
     private static final int _minPkgId = 10000;
-    private static final String SND_DBSEQUENCE_NAME = "org.labkey.snd.api.SNDPackage";
+    private static final String SND_DBSEQUENCE_NAME = "org.labkey.snd.api.Package";
 
     private SNDManager()
     {
@@ -60,7 +60,7 @@ public class SNDManager
         return sequence.next();
     }
 
-    public void updatePackage(User u, Container c, SNDPackage pkg, BatchValidationException errors)
+    public void updatePackage(User u, Container c, Package pkg, BatchValidationException errors)
     {
         TableInfo pkgsTable = SNDSchema.getInstance().getTableInfoPkgs();
         QueryUpdateService pkgQus = pkgsTable.getUpdateService();
@@ -87,7 +87,7 @@ public class SNDManager
         }
     }
 
-    public void createNewPackage(User u, Container c, SNDPackage pkg, BatchValidationException errors)
+    public void createNewPackage(User u, Container c, Package pkg, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 

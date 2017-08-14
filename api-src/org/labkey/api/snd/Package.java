@@ -14,7 +14,7 @@ import java.util.Map;
 /**
  * Created by marty on 8/4/2017.
  */
-public class SNDPackage
+public class Package
 {
     private Integer _pkgId;
     private String _description;

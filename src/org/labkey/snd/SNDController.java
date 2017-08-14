@@ -26,7 +26,7 @@ import org.labkey.api.action.SpringActionController;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.ReadPermission;
-import org.labkey.api.snd.SNDPackage;
+import org.labkey.api.snd.Package;
 import org.labkey.api.snd.SNDService;
 import org.labkey.api.view.NavTree;
 import org.springframework.validation.BindException;
@@ -63,7 +63,7 @@ public class SNDController extends SpringActionController
         public ApiResponse execute(SimpleApiJsonForm form, BindException errors) throws Exception
         {
             JSONObject json = form.getJsonObject();
-            SNDPackage pkg = new SNDPackage();
+            Package pkg = new Package();
             if (json.get("PkgId") != null)
                 pkg.setPkgId(json.getInt("PkgId"));
 
