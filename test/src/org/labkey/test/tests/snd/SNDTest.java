@@ -61,8 +61,19 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
             "   domainGroup: \"test\",\n" +
             "   domainKind: \"SND\",\n" +
             "   module: \"snd\",\n" +
-            "   importData: false\n" +
-            "});\n";
+            "   importData: false,\n" +
+            "   success: onSuccess,\n" +
+            "   failure: onFailure\n" +
+            "});\n" +
+            "function onFailure(e)\n" +
+            "{\n" +
+            "   callback(e.exception);\n" +
+            "}\n" +
+            "\n" +
+            "function onSuccess()\n" +
+            "{\n" +
+            "   callback('Success!');\n" +
+            "}\n";
 
     private final Map<String, Object> TEST1ROW1MAP = Maps.of("PkgId", 1001, "Description", "Description 1", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223451b901", "testPkgs", EXTCOLTESTDATA1);
     private final Map<String, Object> TEST1ROW2MAP = Maps.of("PkgId", 1002, "Description", "Description 2", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223751b901", "testPkgs", EXTCOLTESTDATA2);
@@ -131,7 +142,8 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 
     private void addTestColumns()
     {
-        executeScript(CREATEDOMAINSAPI);
+        String result = (String)executeAsyncScript(CREATEDOMAINSAPI);
+        assertEquals(result,"Success!", result);
     }
 
     @Before
