@@ -17,4 +17,5 @@ public interface SNDService
     }
 
     void savePackage(Container c, User u, Package pkg);
+    void saveSuperPackage(Container c, User u, SuperPackage superPkg);
 }

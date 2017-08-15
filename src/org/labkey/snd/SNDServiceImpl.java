@@ -5,6 +5,7 @@ import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.SNDService;
+import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.util.UnexpectedException;
 
 /**
@@ -36,5 +37,11 @@ public class SNDServiceImpl implements SNDService
 
         if (errors.hasErrors())
             throw new UnexpectedException(errors);
+    }
+
+    @Override
+    public void saveSuperPackage(Container c, User u, SuperPackage superPkg)
+    {
+
     }
 }
