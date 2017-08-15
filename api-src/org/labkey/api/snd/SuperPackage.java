@@ -1,12 +1,14 @@
 package org.labkey.api.snd;
 
+import java.util.List;
+
 /**
  * Created by marty on 8/14/2017.
  */
 public class SuperPackage
 {
     private Integer _superPkgId;
-    private Integer _parentSuperPkgId;
+    private List<Integer> _childPackages;
     private Integer _pkgId;
 
     public Integer getSuperPkgId()
@@ -19,14 +21,14 @@ public class SuperPackage
         _superPkgId = superPkgId;
     }
 
-    public Integer getParentSuperPkgId()
+    public List<Integer> getParentSuperPkgId()
     {
-        return _parentSuperPkgId;
+        return _childPackages;
     }
 
-    public void setParentSuperPkgId(Integer parentSuperPkgId)
+    public void setParentSuperPkgId(List<Integer> childPackages)
     {
-        _parentSuperPkgId = parentSuperPkgId;
+        _childPackages = childPackages;
     }
 
     public Integer getPkgId()

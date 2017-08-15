@@ -21,6 +21,11 @@ import org.labkey.api.data.DbScope;
 import org.labkey.api.data.DbSequence;
 import org.labkey.api.data.DbSequenceManager;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.exp.property.Domain;
+import org.labkey.api.exp.property.DomainKind;
+import org.labkey.api.exp.property.DomainUtil;
+import org.labkey.api.gwt.client.model.GWTDomain;
+import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.DuplicateKeyException;
 import org.labkey.api.query.InvalidKeyException;
@@ -31,6 +36,7 @@ import org.labkey.api.query.UserSchema;
 import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.Package;
+import org.labkey.api.snd.PackageDomainKind;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -60,14 +66,21 @@ public class SNDManager
         return sequence.next();
     }
 
+    private String getPackageName(int id)
+    {
+        return "Package-" + id;
+    }
+
     public void updatePackage(User u, Container c, Package pkg, BatchValidationException errors)
     {
-        TableInfo pkgsTable = SNDSchema.getInstance().getTableInfoPkgs();
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        TableInfo pkgsTable = schema.getTable(SNDSchema.PKGS_TABLE_NAME);
         QueryUpdateService pkgQus = pkgsTable.getUpdateService();
         if (pkgQus == null)
             throw new IllegalStateException();
 
-        TableInfo pkgCategJuncTable = SNDSchema.getInstance().getTableInfoPkgCategoryJunction();
+        TableInfo pkgCategJuncTable = schema.getTable(SNDSchema.PKGCATEGORYJUNCTION_TABLE_NAME);
         QueryUpdateService pkgCategoryQus = pkgCategJuncTable.getUpdateService();
         if (pkgCategoryQus == null)
             throw new IllegalStateException();
@@ -85,6 +98,9 @@ public class SNDManager
         {
             errors.addRowError(new ValidationException(e.getMessage()));
         }
+
+//        String domainURI =
+//        GWTDomain existingDomain = DomainUtil.getDomainDescriptor(u, domainURI, c);
     }
 
     public void createNewPackage(User u, Container c, Package pkg, BatchValidationException errors)
@@ -115,7 +131,14 @@ public class SNDManager
             errors.addRowError(new ValidationException(e.getMessage()));
         }
 
-        //Domain domain = DomainUtil.createDomain(kindName, newDomain, options, getContainer(), getUser(), domainName, null);
+        GWTDomain<GWTPropertyDescriptor> newDomain = new GWTDomain<>();
+        newDomain.setName(getPackageName(pkg.getPkgId()));
+        newDomain.setContainer(c.getId());
+        newDomain.setDescription(pkg.getDescription());
+        newDomain.setFields(pkg.getAttributes());
+
+        DomainKind kind = new PackageDomainKind();
+        Domain domain = DomainUtil.createDomain(kind.getKindName(), newDomain, null, c, u, null, null);
 
     }
 }

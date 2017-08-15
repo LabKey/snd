@@ -26,6 +26,7 @@ import org.labkey.api.module.ModuleContext;
 import org.labkey.api.query.DefaultSchema;
 import org.labkey.api.query.QuerySchema;
 import org.labkey.api.services.ServiceRegistry;
+import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.snd.SNDDomainKind;
 import org.labkey.api.snd.SNDService;
 import org.labkey.api.view.WebPartFactory;
@@ -68,6 +69,7 @@ public class SNDModule extends DefaultModule
     {
         addController(SNDController.NAME, SNDController.class);
         PropertyService.get().registerDomainKind(new SNDDomainKind());
+        PropertyService.get().registerDomainKind(new PackageDomainKind());
         ServiceRegistry.get().registerService(SNDService.class, SNDServiceImpl.INSTANCE);
     }
 

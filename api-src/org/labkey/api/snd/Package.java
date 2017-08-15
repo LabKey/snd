@@ -22,8 +22,8 @@ public class Package
     private boolean _repeatable;
     private boolean _active;
     private List<Integer> _categories = Collections.EMPTY_LIST;
-    private Collection<GWTPropertyDescriptor> _attributes;
-    private Collection<Integer> _subpackages;
+    private List<GWTPropertyDescriptor> _attributes;
+    private List<Integer> _subpackages;
     private Map<String, Object> _extraFields = new HashMap<>();
 
     public Integer getPkgId()
@@ -86,12 +86,12 @@ public class Package
         this._categories = categories;
     }
 
-    public Collection<GWTPropertyDescriptor> getAttributes()
+    public List<GWTPropertyDescriptor> getAttributes()
     {
         return _attributes;
     }
 
-    public void setAttributes(Collection<GWTPropertyDescriptor> attributes)
+    public void setAttributes(List<GWTPropertyDescriptor> attributes)
     {
         this._attributes = attributes;
     }
@@ -101,7 +101,7 @@ public class Package
         return _subpackages;
     }
 
-    public void setSubpackages(Collection<Integer> subpackages)
+    public void setSubpackages(List<Integer> subpackages)
     {
         this._subpackages = subpackages;
     }
