@@ -33,7 +33,6 @@ import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.TestTimeoutException;
 import org.labkey.test.categories.CustomModules;
-import org.labkey.test.pages.snd.BeginPage;
 import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.Maps;
 import org.labkey.test.util.SqlserverOnlyTest;
@@ -59,9 +58,6 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     private static final String EXTCOLTESTDATA3A = "updated testString 3";
 
     private static final String CREATEDOMAINSAPI = "LABKEY.Domain.create({\n" +
-            "   failure: function (e) {\n" +
-            "        LABKEY.Utils.alert(\"Error\", e.exception);\n" +
-            "    },\n" +
             "   domainGroup: \"test\",\n" +
             "   domainKind: \"SND\",\n" +
             "   module: \"snd\",\n" +
@@ -147,10 +143,11 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     @Test
     public void testSNDModule()
     {
-        BeginPage beginPage = BeginPage.beginAt(this, getProjectName());
-        assertEquals(200, getResponseCode());
-        final String expectedHello = "Hello, and welcome to the SND module.";
-        assertEquals("Wrong hello message", expectedHello, beginPage.getHelloMessage());
+        //TODO: Implement this once we get a UI
+//        BeginPage beginPage = BeginPage.beginAt(this, getProjectName());
+//        assertEquals(200, getResponseCode());
+//        final String expectedHello = "Hello, and welcome to the SND module.";
+//        assertEquals("Wrong hello message", expectedHello, beginPage.getHelloMessage());
     }
 
     @Override
@@ -183,7 +180,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         insertRowsCommand.addRow(TEST1ROW2MAP);
         insertRowsCommand.addRow(TEST1ROW3MAP);
         SaveRowsResponse resp = insertRowsCommand.execute(cn, getProjectName() + "/" + TEST1SUBFOLDER);
-        assert resp.getRowsAffected().intValue() == 3;
+        assertEquals(resp.getRowsAffected().intValue(), 3);
 
         goToSchemaBrowser();
         selectQuery("snd", "Pkgs");
@@ -197,7 +194,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         UpdateRowsCommand updateRowsCommand = new UpdateRowsCommand("snd", "Pkgs");
         updateRowsCommand.addRow(TEST1ROW3AMAP);
         resp = updateRowsCommand.execute(cn, getProjectName() + "/" + TEST1SUBFOLDER);
-        assert resp.getRowsAffected().intValue() == 1;
+        assertEquals(resp.getRowsAffected().intValue(), 1);
 
         goToSchemaBrowser();
         selectQuery("snd", "Pkgs");
@@ -209,7 +206,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         DeleteRowsCommand deleteRowsCommand = new DeleteRowsCommand("snd", "Pkgs");
         deleteRowsCommand.addRow(TEST1ROW2MAP);
         resp = deleteRowsCommand.execute(cn, getProjectName() + "/" + TEST1SUBFOLDER);
-        assert resp.getRowsAffected().intValue() == 1;
+        assertEquals(resp.getRowsAffected().intValue(), 1);
 
         goToSchemaBrowser();
         selectQuery("snd", "Pkgs");
