@@ -66,7 +66,7 @@ public class SNDManager
         return sequence.next();
     }
 
-    private String getPackageName(int id)
+    public static String getPackageName(int id)
     {
         return PackageDomainKind.getPackageKindName() + "-" + id;
     }
