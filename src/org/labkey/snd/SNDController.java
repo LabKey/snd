@@ -77,6 +77,17 @@ public class SNDController extends SpringActionController
             pkg.setRepeatable(json.getBoolean("repeatable"));
             pkg.setNarrative(json.getString("narrative"));
 
+            List<Integer> categories = new ArrayList<>();
+            JSONArray jsonCategories = json.getJSONArray("categories");
+            if (null != jsonCategories)
+            {
+                for (int j = 0; j < jsonCategories.length(); j++)
+                {
+                    categories.add(jsonCategories.getInt(j));
+                }
+            }
+            pkg.setCategories(categories);
+
             JSONArray attribs = json.optJSONArray("attributes");
             List<GWTPropertyDescriptor> pds = new ArrayList<>();
 

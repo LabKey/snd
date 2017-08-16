@@ -6,7 +6,6 @@ import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +20,7 @@ public class Package
     private String _narrative;
     private boolean _repeatable;
     private boolean _active;
-    private List<Integer> _categories = Collections.EMPTY_LIST;
+    private List<Integer> _categories = new ArrayList<>();
     private List<GWTPropertyDescriptor> _attributes;
     private List<Integer> _subpackages;
     private Map<String, Object> _extraFields = new HashMap<>();
