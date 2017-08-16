@@ -20,6 +20,8 @@ import org.labkey.api.data.Container;
 import org.labkey.api.data.DbScope;
 import org.labkey.api.data.DbSequence;
 import org.labkey.api.data.DbSequenceManager;
+import org.labkey.api.data.SQLFragment;
+import org.labkey.api.data.SqlExecutor;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.exp.property.DomainUtil;
 import org.labkey.api.gwt.client.model.GWTDomain;
@@ -89,10 +91,15 @@ public class SNDManager
         try (DbScope.Transaction tx = pkgsTable.getSchema().getScope().ensureTransaction())
         {
             pkgQus.updateRows(u, c, pkgRows, null, null, null);
-            pkgCategoryQus.updateRows(u, c, pkg.getCategoryRows(c), null, null, null);
+
+            // For categories delete existing junction relations and add new ones
+            SQLFragment sql = new SQLFragment("DELETE FROM snd.PkgCategoryJunction WHERE PkgId = " + pkg.getPkgId());
+            SqlExecutor sqlex = new SqlExecutor(SNDSchema.getInstance().getSchema());
+            sqlex.execute(sql);
+            pkgCategoryQus.insertRows(u, c, pkg.getCategoryRows(c), errors, null, null);
             tx.commit();
         }
-        catch (QueryUpdateServiceException | BatchValidationException | InvalidKeyException | SQLException e)
+        catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException | InvalidKeyException e)
         {
             errors.addRowError(new ValidationException(e.getMessage()));
         }

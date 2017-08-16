@@ -36,7 +36,9 @@ import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SNDController extends SpringActionController
 {
@@ -77,22 +79,35 @@ public class SNDController extends SpringActionController
             pkg.setRepeatable(json.getBoolean("repeatable"));
             pkg.setNarrative(json.getString("narrative"));
 
-            List<Integer> categories = new ArrayList<>();
+            // Get extra fields
+            JSONObject jsonExtras = json.getJSONObject("extraFields");
+            if (null != jsonExtras)
+            {
+                Map<String, Object> extras = new HashMap<>();
+                for (String s : jsonExtras.keySet())
+                {
+                    extras.put(s, jsonExtras.get(s));
+                }
+                pkg.setExtraFields(extras);
+            }
+
+            // Get categories
             JSONArray jsonCategories = json.getJSONArray("categories");
             if (null != jsonCategories)
             {
+                List<Integer> categories = new ArrayList<>();
                 for (int j = 0; j < jsonCategories.length(); j++)
                 {
                     categories.add(jsonCategories.getInt(j));
                 }
+                pkg.setCategories(categories);
             }
-            pkg.setCategories(categories);
 
+            // Get attributes
             JSONArray attribs = json.optJSONArray("attributes");
-            List<GWTPropertyDescriptor> pds = new ArrayList<>();
-
             if (null != attribs)
             {
+                List<GWTPropertyDescriptor> pds = new ArrayList<>();
                 for (int i = 0; i < attribs.length(); i++)
                 {
                     pds.add(ExperimentService.get().convertJsonToPropertyDescriptor(attribs.getJSONObject(i)));
