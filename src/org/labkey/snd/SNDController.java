@@ -16,6 +16,7 @@
 
 package org.labkey.snd;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.labkey.api.action.ApiAction;
 import org.labkey.api.action.ApiResponse;
@@ -23,6 +24,8 @@ import org.labkey.api.action.ApiSimpleResponse;
 import org.labkey.api.action.SimpleApiJsonForm;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
+import org.labkey.api.exp.api.ExperimentService;
+import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.ReadPermission;
@@ -31,6 +34,9 @@ import org.labkey.api.snd.SNDService;
 import org.labkey.api.view.NavTree;
 import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SNDController extends SpringActionController
 {
@@ -64,13 +70,24 @@ public class SNDController extends SpringActionController
         {
             JSONObject json = form.getJsonObject();
             Package pkg = new Package();
-            if (json.get("PkgId") != null)
-                pkg.setPkgId(json.getInt("PkgId"));
+            pkg.setPkgId(json.optInt("id", 0));
 
-            pkg.setDescription(json.getString("Description"));
-            pkg.setActive(json.getBoolean("Active"));
-            pkg.setRepeatable(json.getBoolean("Repeatable"));
-            pkg.setNarrative(json.getString("Narrative"));
+            pkg.setDescription(json.getString("description"));
+            pkg.setActive(json.getBoolean("active"));
+            pkg.setRepeatable(json.getBoolean("repeatable"));
+            pkg.setNarrative(json.getString("narrative"));
+
+            JSONArray attribs = json.optJSONArray("attributes");
+            List<GWTPropertyDescriptor> pds = new ArrayList<>();
+
+            if (null != attribs)
+            {
+                for (int i = 0; i < attribs.length(); i++)
+                {
+                    pds.add(ExperimentService.get().convertJsonToPropertyDescriptor(attribs.getJSONObject(i)));
+                }
+                pkg.setAttributes(pds);
+            }
 
             SNDService.get().savePackage(getViewContext().getContainer(), getUser(), pkg);
 

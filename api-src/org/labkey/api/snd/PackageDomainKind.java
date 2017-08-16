@@ -1,6 +1,10 @@
 package org.labkey.api.snd;
 
 import org.labkey.api.data.Container;
+import org.labkey.api.exp.XarContext;
+import org.labkey.api.exp.XarFormatException;
+import org.labkey.api.exp.xar.LsidUtils;
+import org.labkey.api.module.SimpleModule;
 import org.labkey.api.query.ExtendedTableDomainKind;
 import org.labkey.api.security.User;
 import org.labkey.api.security.permissions.AdminPermission;
@@ -10,9 +14,11 @@ import org.labkey.api.security.permissions.AdminPermission;
  */
 public class PackageDomainKind extends ExtendedTableDomainKind
 {
-    private final String NAMESPACE_PREFIX = "package";
-    private final String SCHEMA_NAME = "snd";
-    private final String KIND_NAME = "Package";
+    private static final String NAMESPACE_PREFIX = "package";
+    private static final String SCHEMA_NAME = "snd";
+    private static final String KIND_NAME = "Package";
+
+    private static final String DOMAIN_NAMESPACE_PREFIX_TEMPLATE = NAMESPACE_PREFIX + "-${SchemaName}";
 
     @Override
     public boolean canCreateDefinition(User user, Container container)
@@ -20,8 +26,31 @@ public class PackageDomainKind extends ExtendedTableDomainKind
         return container.hasPermission("PackageDomainKind.canCreateDefinition", user, AdminPermission.class);
     }
 
+    public String generateDomainURI(String schemaName, String tableName, Container c, User u)
+    {
+        return getDomainURI(schemaName, tableName, c, u);
+    }
+
+    public static String getDomainURI(String schemaName, String tableName, Container c, User u)
+    {
+        try
+        {
+            XarContext xc = getXarContext(schemaName, tableName, getDomainContainer(c), u);
+            return LsidUtils.resolveLsidFromTemplate(SimpleModule.DOMAIN_LSID_TEMPLATE, xc, DOMAIN_NAMESPACE_PREFIX_TEMPLATE);
+        }
+        catch (XarFormatException xfe)
+        {
+            return null;
+        }
+    }
+
     @Override
     protected String getSchemaName()
+    {
+        return getPackageSchemaName();
+    }
+
+    public static String getPackageSchemaName()
     {
         return SCHEMA_NAME;
     }
@@ -34,6 +63,11 @@ public class PackageDomainKind extends ExtendedTableDomainKind
 
     @Override
     public String getKindName()
+    {
+        return getPackageKindName();
+    }
+
+    public static String getPackageKindName()
     {
         return KIND_NAME;
     }

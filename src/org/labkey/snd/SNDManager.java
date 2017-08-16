@@ -21,8 +21,6 @@ import org.labkey.api.data.DbScope;
 import org.labkey.api.data.DbSequence;
 import org.labkey.api.data.DbSequenceManager;
 import org.labkey.api.data.TableInfo;
-import org.labkey.api.exp.property.Domain;
-import org.labkey.api.exp.property.DomainKind;
 import org.labkey.api.exp.property.DomainUtil;
 import org.labkey.api.gwt.client.model.GWTDomain;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
@@ -68,7 +66,7 @@ public class SNDManager
 
     private String getPackageName(int id)
     {
-        return "Package-" + id;
+        return PackageDomainKind.getPackageKindName() + "-" + id;
     }
 
     public void updatePackage(User u, Container c, Package pkg, BatchValidationException errors)
@@ -99,8 +97,15 @@ public class SNDManager
             errors.addRowError(new ValidationException(e.getMessage()));
         }
 
-//        String domainURI =
-//        GWTDomain existingDomain = DomainUtil.getDomainDescriptor(u, domainURI, c);
+        String domainURI = PackageDomainKind.getDomainURI(PackageDomainKind.getPackageSchemaName(), getPackageName(pkg.getPkgId()), c, u);
+
+        GWTDomain<GWTPropertyDescriptor> updateDomain = new GWTDomain<>();
+        updateDomain.setName(getPackageName(pkg.getPkgId()));
+        updateDomain.setFields(pkg.getAttributes());
+        updateDomain.setDomainURI(domainURI);
+
+        PackageDomainKind kind = new PackageDomainKind();
+        kind.updateDomain(c, u, updateDomain);
     }
 
     public void createNewPackage(User u, Container c, Package pkg, BatchValidationException errors)
@@ -137,8 +142,7 @@ public class SNDManager
         newDomain.setDescription(pkg.getDescription());
         newDomain.setFields(pkg.getAttributes());
 
-        DomainKind kind = new PackageDomainKind();
-        Domain domain = DomainUtil.createDomain(kind.getKindName(), newDomain, null, c, u, null, null);
+        DomainUtil.createDomain(PackageDomainKind.getPackageKindName(), newDomain, null, c, u, null, null);
 
     }
 }
