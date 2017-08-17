@@ -19,10 +19,13 @@ package org.labkey.snd;
 import org.jetbrains.annotations.NotNull;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
+import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.exp.property.PropertyService;
 import org.labkey.api.module.DefaultModule;
 import org.labkey.api.module.Module;
 import org.labkey.api.module.ModuleContext;
+import org.labkey.api.module.SpringModule;
+import org.labkey.api.pipeline.PipelineService;
 import org.labkey.api.query.DefaultSchema;
 import org.labkey.api.query.QuerySchema;
 import org.labkey.api.services.ServiceRegistry;
@@ -30,12 +33,13 @@ import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.snd.SNDDomainKind;
 import org.labkey.api.snd.SNDService;
 import org.labkey.api.view.WebPartFactory;
+import org.labkey.snd.pipeline.SNDDataHandler;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
-public class SNDModule extends DefaultModule
+public class SNDModule extends SpringModule
 {
     public static final String NAME = "SND";
 
@@ -74,7 +78,7 @@ public class SNDModule extends DefaultModule
     }
 
     @Override
-    public void doStartup(ModuleContext moduleContext)
+    protected void startupAfterSpringConfig(ModuleContext moduleContext)
     {
         // add a container listener so we'll know when our container is deleted:
         ContainerManager.addContainerListener(new SNDContainerListener());
@@ -86,6 +90,8 @@ public class SNDModule extends DefaultModule
                 return new SNDUserSchema(SNDSchema.NAME, null, schema.getUser(), schema.getContainer(), SNDSchema.getInstance().getSchema());
             }
         });
+
+        ExperimentService.get().registerExperimentDataHandler(new SNDDataHandler());
     }
 
     @Override
