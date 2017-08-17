@@ -2,9 +2,9 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
            attributeFormDefault="unqualified"
            elementFormDefault="qualified"
-           targetNamespace="http://txbiomed.org/package"
+           targetNamespace="http://txbiomed.org/snd"
            xmlns:dat="http://labkey.org/data/xml"
-           xmlns="http://txbiomed.org/package">
+           xmlns="http://txbiomed.org/snd">
 
     <xs:element name="export">
         <xs:complexType>
@@ -51,7 +51,7 @@
 
     <xs:complexType name="SuperPackagesType">
         <xs:sequence>
-            <xs:element name="superPackage" type="SuperPackageType" minOccurs="1"/>
+            <xs:element name="superPackage" type="SuperPackageType" minOccurs="1" maxOccurs="unbounded"/>
         </xs:sequence>
     </xs:complexType>
 
