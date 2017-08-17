@@ -18,7 +18,10 @@ package org.labkey.snd;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DbSchema;
+import org.labkey.api.data.JdbcType;
+import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.query.ExprColumn;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.security.User;
 
@@ -52,6 +55,19 @@ public class SNDUserSchema extends SimpleUserSchema
                         SimpleUserSchema.SimpleTable<SNDUserSchema> table =
                                 new SimpleUserSchema.SimpleTable<>(
                                         schema, SNDSchema.getInstance().getTableInfoPkgs()).init();
+
+
+                        SQLFragment inUseSql = new SQLFragment();
+                        inUseSql.append("(CASE WHEN EXISTS (SELECT sp.PkgId FROM ");
+                        inUseSql.append(SNDSchema.getInstance().getTableInfoSuperPkgs(), "sp");
+                        inUseSql.append(" JOIN ");
+                        inUseSql.append(SNDSchema.getInstance().getTableInfoCodedEvents(), "ce");
+                        inUseSql.append(" ON sp.SuperPkgId = ce.SuperPkgId");
+                        inUseSql.append(" WHERE " + ExprColumn.STR_TABLE_ALIAS + ".PkgId = sp.PkgId)");
+                        inUseSql.append(" THEN 'true' ELSE 'false' END)");
+                        ExprColumn inUseCol = new ExprColumn(table, "inUse", inUseSql, JdbcType.BOOLEAN);
+                        inUseCol.setHidden(false);
+                        table.addColumn(inUseCol);
 
                         return table;
                     }
