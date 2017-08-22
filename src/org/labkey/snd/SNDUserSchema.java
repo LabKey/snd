@@ -65,8 +65,7 @@ public class SNDUserSchema extends SimpleUserSchema
                         inUseSql.append(" ON sp.SuperPkgId = ce.SuperPkgId");
                         inUseSql.append(" WHERE " + ExprColumn.STR_TABLE_ALIAS + ".PkgId = sp.PkgId)");
                         inUseSql.append(" THEN 'true' ELSE 'false' END)");
-                        ExprColumn inUseCol = new ExprColumn(table, "inUse", inUseSql, JdbcType.BOOLEAN);
-                        inUseCol.setHidden(false);
+                        ExprColumn inUseCol = new ExprColumn(table, "InUse", inUseSql, JdbcType.BOOLEAN);
                         table.addColumn(inUseCol);
 
                         return table;
