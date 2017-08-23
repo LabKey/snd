@@ -24,6 +24,7 @@ public class Package
     private List<GWTPropertyDescriptor> _attributes;
     private List<Integer> _subpackages;
     private Map<String, Object> _extraFields = new HashMap<>();
+    private Integer _qcState;
 
     public Integer getPkgId()
     {
@@ -115,6 +116,16 @@ public class Package
         this._extraFields = extraFields;
     }
 
+    public Integer getQcState()
+    {
+        return _qcState;
+    }
+
+    public void setQcState(Integer qcState)
+    {
+        _qcState = qcState;
+    }
+
     public Map<String, Object> getPackageRow(Container c)
     {
         Map<String, Object> pkgValues = new ArrayListMap<>();
@@ -145,4 +156,10 @@ public class Package
 
         return rows;
     }
+
+//    public JSONObject toJSON()
+//    {
+//        JSONObject json = new JSONObject();
+//        json.put()
+//    }
 }
