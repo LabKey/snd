@@ -22,6 +22,8 @@ import org.labkey.api.snd.Package;
 import org.labkey.api.snd.SNDService;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.util.FileType;
+import org.labkey.api.util.XmlBeansUtil;
+import org.labkey.api.util.XmlValidationException;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.ViewBackgroundInfo;
 import org.labkey.data.xml.ColumnType;
@@ -50,6 +52,9 @@ import java.util.Map;
 public class SNDDataHandler extends AbstractExperimentDataHandler
 {
 
+//    private static final String TABLE_INFO_NS = "dat";
+    private static final String TABLE_INFO_NS_VAL = "http://labkey.org/data/xml";
+
     private static final FileType SND_INPUT = new FileType(".snd.xml");
 
     @Override
@@ -63,6 +68,9 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
     {
         ExportDocument exportDocument;
         String inputFileName = dataFile.getName();
+//        Map addnlNameSpaces = new HashedMap();
+
+//        addnlNameSpaces.put(TABLE_INFO_NS, TABLE_INFO_NS_VAL);
 
         if (SND_INPUT.isType(dataFile))
         {
@@ -78,12 +86,14 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
         {
             XmlOptions options = new XmlOptions();
             options.setDocumentType(ExportDocument.type);
+            options.setValidateStrict();//fails silently if namespace is invalid. However, does throw an error if elements are not prefixed with correct ns.
+//            options.setLoadAdditionalNamespaces(addnlNameSpaces);
             options.setLoadUseXMLReader(SAXParserFactory.newInstance().newSAXParser().getXMLReader());
 
             //parse xml tags and get tokens/auto-generated pojos
             exportDocument = ExportDocument.Factory.parse(in, options);
 
-            //TODO: validate xml  - takes a very long time - do we still want to validate?
+            //TODO: validate xml  - takes a very long time - do we still want to validate this way? Also, Cancelling doesn't Cancel. Is there a better way?
 //            XmlBeansUtil.validateXmlDocument(exportDocument, "Validating " + inputFileName + " against schema.");
         }
         catch (IOException e)
@@ -116,11 +126,10 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
 
         SNDService sndService = SNDService.get();
 
-        //convert auto-generated objects/tokens to SND's Package objects
         for (PackageType packageType : packageArray)
         {
-            Package pkg = parsePackage(packageType);
-            sndService.savePackage(info.getContainer(), info.getUser(), pkg);
+            Package pkg = parsePackage(packageType); //convert auto-generated objects/tokens to SND's Package objects
+            sndService.savePackage(info.getContainer(), info.getUser(), pkg); //save to db
         }
     }
 
@@ -162,10 +171,9 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
         AttributesType attributes = packageType.getAttributes();
         ColumnType[] attributeArray = attributes.getAttributeArray();
 
-        List<GWTPropertyDescriptor> attributesList = null;
+        List<GWTPropertyDescriptor> attributesList = new LinkedList<>();;
         if (attributeArray.length > 1)
         {
-            attributesList = new LinkedList<>();
             for (ColumnType ct : attributeArray)
             {
                 GWTPropertyDescriptor gwtpd = new GWTPropertyDescriptor();
@@ -199,6 +207,9 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
 
                 //scale
                 gwtpd.setScale(ct.getScale());
+
+                //redactedText
+                gwtpd.setRedactedText(ct.getRedactedText());
 
                 //precision
                 int precision = ct.getPrecision();
