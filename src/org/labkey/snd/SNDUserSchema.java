@@ -80,6 +80,14 @@ public class SNDUserSchema extends SimpleUserSchema
                                 new SimpleUserSchema.SimpleTable<>(
                                         schema, SNDSchema.getInstance().getTableInfoPkgCategories()).init();
 
+                        SQLFragment inUseSql = new SQLFragment();
+                        inUseSql.append("(CASE WHEN EXISTS (SELECT PkgId FROM ");
+                        inUseSql.append(SNDSchema.getInstance().getTableInfoPkgCategoryJunction(), "pcj");
+                        inUseSql.append(" WHERE " + ExprColumn.STR_TABLE_ALIAS + ".CategoryId = pcj.CategoryId)");
+                        inUseSql.append(" THEN 'true' ELSE 'false' END)");
+                        ExprColumn inUseCol = new ExprColumn(table, "InUse", inUseSql, JdbcType.BOOLEAN);
+                        table.addColumn(inUseCol);
+
                         return table;
                     }
                 },
