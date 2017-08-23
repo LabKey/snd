@@ -114,7 +114,7 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
         if(null != export)
         {
             parseAndSavePackages(export, info);
-            parseAndSaveSuperPackages(export);
+            parseAndSaveSuperPackages(export, info);
         }
     }
 
@@ -243,14 +243,15 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
         return attributesList;
     }
 
-    private void parseAndSaveSuperPackages(ExportDocument.Export export)
+    private void parseAndSaveSuperPackages(ExportDocument.Export export, @NotNull ViewBackgroundInfo info)
     {
         SuperPackagesType superPackagesType = export.getSuperPackages();
         SuperPackageType[] superPackageArray = superPackagesType.getSuperPackageArray();
+        SNDService sndService = SNDService.get();
         for(SuperPackageType superPackageType : superPackageArray)
         {
             SuperPackage superPackage = parseSuperPackage(superPackageType);
-            //TODO: Save
+            sndService.saveSuperPackage(info.getContainer(), info.getUser(), superPackage);
         }
     }
 
