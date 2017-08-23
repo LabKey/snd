@@ -37,9 +37,11 @@ import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.PackageDomainKind;
+import org.labkey.api.snd.SuperPackage;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -104,18 +106,21 @@ public class SNDManager
             errors.addRowError(new ValidationException(e.getMessage()));
         }
 
-        String domainURI = PackageDomainKind.getDomainURI(PackageDomainKind.getPackageSchemaName(), getPackageName(pkg.getPkgId()), c, u);
+        if(!errors.hasErrors())
+        {
+            String domainURI = PackageDomainKind.getDomainURI(PackageDomainKind.getPackageSchemaName(), getPackageName(pkg.getPkgId()), c, u);
 
-        GWTDomain<GWTPropertyDescriptor> updateDomain = new GWTDomain<>();
-        updateDomain.setName(getPackageName(pkg.getPkgId()));
-        updateDomain.setFields(pkg.getAttributes());
-        updateDomain.setDomainURI(domainURI);
+            GWTDomain<GWTPropertyDescriptor> updateDomain = new GWTDomain<>();
+            updateDomain.setName(getPackageName(pkg.getPkgId()));
+            updateDomain.setFields(pkg.getAttributes());
+            updateDomain.setDomainURI(domainURI);
 
-        PackageDomainKind kind = new PackageDomainKind();
-        kind.updateDomain(c, u, updateDomain);
+            PackageDomainKind kind = new PackageDomainKind();
+            kind.updateDomain(c, u, updateDomain);
+        }
     }
 
-    public void createNewPackage(User u, Container c, Package pkg, BatchValidationException errors)
+    public void createPackage(User u, Container c, Package pkg, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -143,13 +148,86 @@ public class SNDManager
             errors.addRowError(new ValidationException(e.getMessage()));
         }
 
-        GWTDomain<GWTPropertyDescriptor> newDomain = new GWTDomain<>();
-        newDomain.setName(getPackageName(pkg.getPkgId()));
-        newDomain.setContainer(c.getId());
-        newDomain.setDescription(pkg.getDescription());
-        newDomain.setFields(pkg.getAttributes());
+        if(!errors.hasErrors())
+        {
+            GWTDomain<GWTPropertyDescriptor> newDomain = new GWTDomain<>();
+            newDomain.setName(getPackageName(pkg.getPkgId()));
+            newDomain.setContainer(c.getId());
+            newDomain.setDescription(pkg.getDescription());
+            newDomain.setFields(pkg.getAttributes());
 
-        DomainUtil.createDomain(PackageDomainKind.getPackageKindName(), newDomain, null, c, u, null, null);
+            DomainUtil.createDomain(PackageDomainKind.getPackageKindName(), newDomain, null, c, u, null, null);
+        }
+    }
 
+    public void createSuperPackage(User u, Container c, SuperPackage superPkg, BatchValidationException errors)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        TableInfo superPkgsTable = schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME);
+        QueryUpdateService superPkgQus = superPkgsTable.getUpdateService();
+        if (superPkgQus == null)
+            throw new IllegalStateException();
+
+        List<Map<String, Object>> superPkgRows = new ArrayList<>();
+        superPkgRows.add(superPkg.getSuperPackageRow(c));
+
+        try (DbScope.Transaction tx = superPkgsTable.getSchema().getScope().ensureTransaction())
+        {
+            superPkgQus.insertRows(u, c, superPkgRows, errors, null, null);
+            tx.commit();
+        }
+        catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException e)
+        {
+            errors.addRowError(new ValidationException(e.getMessage()));
+        }
+    }
+
+    public List<Package> getPackages(Container c, User u, List<Integer> pkgIds, BatchValidationException errors)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        TableInfo pkgsTable = schema.getTable(SNDSchema.PKGS_TABLE_NAME);
+        QueryUpdateService pkgQus = pkgsTable.getUpdateService();
+        if (pkgQus == null)
+            throw new IllegalStateException();
+
+        List<Map<String, Object>> rows = null;
+        List<Map<String, Object>> keys = new ArrayList<>();
+        Map<String, Object> key;
+        for (Integer pkgId : pkgIds)
+        {
+            key = new HashMap<>();
+            key.put("PkgId", pkgId);
+            keys.add(key);
+        }
+
+        List<Package> packages = new ArrayList<>();
+        try
+        {
+            rows = pkgQus.getRows(u, c, keys);
+        }
+        catch (InvalidKeyException | QueryUpdateServiceException | SQLException e)
+        {
+            errors.addRowError(new ValidationException(e.getMessage()));
+        }
+
+        if(!errors.hasErrors() && rows != null && !rows.isEmpty())
+        {
+            Package pkg;
+            for (Map<String,Object> row : rows)
+            {
+                pkg = new Package();
+                pkg.setPkgId((Integer)row.get("PkgId"));
+                pkg.setDescription((String)row.get("Description"));
+                pkg.setActive((boolean)row.get("Active"));
+                pkg.setRepeatable((boolean)row.get("Repeatable"));
+                pkg.setNarrative((String)row.get("Narrative"));
+                pkg.setQcState((Integer)row.get("QcState"));
+                packages.add(pkg);
+            }
+        }
+
+        return packages;
     }
 }

@@ -44,7 +44,7 @@ public class SNDServiceImpl implements SNDService
             if(null == pkg.getPkgId())
                 pkg.setPkgId(SNDManager.get().generatePackageId(c));
 
-            SNDManager.get().createNewPackage(u, c, pkg, errors);
+            SNDManager.get().createPackage(u, c, pkg, errors);
         }
 
         if (errors.hasErrors())
@@ -54,6 +54,11 @@ public class SNDServiceImpl implements SNDService
     @Override
     public void saveSuperPackage(Container c, User u, SuperPackage superPkg)
     {
+        BatchValidationException errors = new BatchValidationException();
 
+        //SNDManager.get().createSuperPackage(u, c, superPkg, errors);
+
+        if (errors.hasErrors())
+            throw new UnexpectedException(errors);
     }
 }

@@ -1,6 +1,10 @@
 package org.labkey.api.snd;
 
+import org.labkey.api.collections.ArrayListMap;
+import org.labkey.api.data.Container;
+
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by marty on 8/14/2017.
@@ -39,5 +43,15 @@ public class SuperPackage
     public void setPkgId(Integer pkgId)
     {
         _pkgId = pkgId;
+    }
+
+    public Map<String, Object> getSuperPackageRow(Container c)
+    {
+        Map<String, Object> superPkgValues = new ArrayListMap<>();
+        superPkgValues.put("SuperPkgId", getSuperPkgId());
+        superPkgValues.put("ParentSuperPkgId", getParentSuperPkgId());
+        superPkgValues.put("PkgId", getPkgId());
+
+        return superPkgValues;
     }
 }
