@@ -22,6 +22,7 @@ import org.labkey.api.data.DbSequence;
 import org.labkey.api.data.DbSequenceManager;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SqlExecutor;
+import org.labkey.api.data.SqlSelector;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.exp.property.DomainUtil;
 import org.labkey.api.gwt.client.model.GWTDomain;
@@ -41,6 +42,7 @@ import org.labkey.api.snd.SuperPackage;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -183,6 +185,28 @@ public class SNDManager
         }
     }
 
+    private List<GWTPropertyDescriptor> getPackageAttributes(Container c, User u, int pkgId)
+    {
+        String uri = PackageDomainKind.getDomainURI(SNDSchema.NAME, getPackageName(pkgId), c, u);
+        GWTDomain<GWTPropertyDescriptor> domain = DomainUtil.getDomainDescriptor(u, uri, c);
+        if(domain != null)
+            return domain.getFields();
+
+        return Collections.emptyList();
+    }
+
+
+    private List<Integer> getPackageCategories(Container c, User u, int pkgId)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT CategoryId FROM ");
+        sql.append(schema.getTable(SNDSchema.PKGCATEGORYJUNCTION_TABLE_NAME), "c");
+        sql.append(" WHERE Container = ? AND PkgId = ?").add(c).add(pkgId);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+        return selector.getArrayList(Integer.class);
+    }
+
     public List<Package> getPackages(Container c, User u, List<Integer> pkgIds, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -218,12 +242,15 @@ public class SNDManager
             for (Map<String,Object> row : rows)
             {
                 pkg = new Package();
-                pkg.setPkgId((Integer)row.get("PkgId"));
-                pkg.setDescription((String)row.get("Description"));
-                pkg.setActive((boolean)row.get("Active"));
-                pkg.setRepeatable((boolean)row.get("Repeatable"));
-                pkg.setNarrative((String)row.get("Narrative"));
-                pkg.setQcState((Integer)row.get("QcState"));
+                pkg.setPkgId((Integer)row.get(Package.PKG_ID));
+                pkg.setDescription((String)row.get(Package.PKG_DESCRIPTION));
+                pkg.setActive((boolean)row.get(Package.PKG_ACTIVE));
+                pkg.setRepeatable((boolean)row.get(Package.PKG_REPEATABLE));
+                pkg.setNarrative((String)row.get(Package.PKG_NARRATIVE));
+                pkg.setQcState((Integer)row.get(Package.PKG_QCSTATE));
+                pkg.setCategories(getPackageCategories(c, u, pkg.getPkgId()));
+                pkg.setAttributes(getPackageAttributes(c, u, pkg.getPkgId()));
+
                 packages.add(pkg);
             }
         }
