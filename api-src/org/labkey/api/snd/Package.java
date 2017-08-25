@@ -1,8 +1,11 @@
 package org.labkey.api.snd;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.labkey.api.collections.ArrayListMap;
 import org.labkey.api.data.Container;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
+import org.labkey.api.gwt.client.model.GWTPropertyValidator;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,10 +24,18 @@ public class Package
     private boolean _repeatable;
     private boolean _active;
     private List<Integer> _categories = new ArrayList<>();
-    private List<GWTPropertyDescriptor> _attributes;
+    private List<GWTPropertyDescriptor> _attributes = new ArrayList<>();
     private List<Integer> _subpackages;
     private Map<String, Object> _extraFields = new HashMap<>();
     private Integer _qcState;
+
+    public static final String PKGID_COL = "pkgId";
+    public static final String DESCRIPTION_COL = "description";
+    public static final String ACTIVE_COL = "active";
+    public static final String REPEATABLE_COL = "repeatable";
+    public static final String QCSTATE_COL = "qcState";
+    public static final String NARRATIVE_COL = "narrative";
+    public static final String CONTAINER_COL = "container";
 
     public Integer getPkgId()
     {
@@ -129,12 +140,13 @@ public class Package
     public Map<String, Object> getPackageRow(Container c)
     {
         Map<String, Object> pkgValues = new ArrayListMap<>();
-        pkgValues.put("PkgId", getPkgId());
-        pkgValues.put("Narrative", getNarrative());
-        pkgValues.put("Description", getDescription());
-        pkgValues.put("Active", isActive());
-        pkgValues.put("Repeatable", isRepeatable());
-        pkgValues.put("Container", c);
+        pkgValues.put(PKGID_COL, getPkgId());
+        pkgValues.put(NARRATIVE_COL, getNarrative());
+        pkgValues.put(DESCRIPTION_COL, getDescription());
+        pkgValues.put(ACTIVE_COL, isActive());
+        pkgValues.put(REPEATABLE_COL, isRepeatable());
+        pkgValues.put(QCSTATE_COL, getQcState());
+        pkgValues.put(CONTAINER_COL, c);
         pkgValues.putAll(getExtraFields());
 
         return pkgValues;
@@ -148,18 +160,74 @@ public class Package
         for (Integer categoryId : getCategories())
         {
             row = new ArrayListMap<>();
-            row.put("PkgId", getPkgId());
-            row.put("CategoryId", categoryId);
-            row.put("Container", c);
+            row.put(PKGID_COL, getPkgId());
+            row.put("categoryId", categoryId);
+            row.put(CONTAINER_COL, c);
             rows.add(row);
         }
 
         return rows;
     }
 
-//    public JSONObject toJSON()
-//    {
-//        JSONObject json = new JSONObject();
-//        json.put()
-//    }
+    public JSONArray convertPropertyValidatorsToJson(GWTPropertyDescriptor pd)
+    {
+        JSONArray json = new JSONArray();
+        JSONObject obj;
+        for (GWTPropertyValidator pv : pd.getPropertyValidators())
+        {
+            obj = new JSONObject();
+            obj.put("name", pv.getName());
+            obj.put("description", pv.getDescription());
+            obj.put("type", pv.getType().getTypeName());
+            obj.put("expression", pv.getExpression());
+            obj.put("errorMessage", pv.getErrorMessage());
+            json.put(obj);
+        }
+
+        return json;
+    }
+
+    public JSONObject convertPropertyDescriptorToJson(GWTPropertyDescriptor pd)
+    {
+        JSONObject json = new JSONObject();
+        json.put("name", pd.getName());
+        json.put("rangeURI", pd.getRangeURI());
+        json.put("required", pd.isRequired());
+        json.put("label", pd.getLabel());
+        json.put("scale", pd.getScale());
+        json.put("format", pd.getFormat());
+        json.put("lookupSchema", pd.getLookupSchema());
+        json.put("lookupQuery", pd.getLookupQuery());
+        json.put("validators", convertPropertyValidatorsToJson(pd));
+
+        return json;
+    }
+
+    public JSONObject toJSON(Container c)
+    {
+        JSONObject json = new JSONObject();
+        json.put(PKGID_COL, getPkgId());
+        json.put(DESCRIPTION_COL, getDescription());
+        json.put(REPEATABLE_COL, isRepeatable());
+        json.put(ACTIVE_COL, isActive());
+        json.put(NARRATIVE_COL, getNarrative());
+        json.put(QCSTATE_COL, getQcState());
+        json.put(CONTAINER_COL, c.getId());
+
+        JSONArray categories = new JSONArray();
+        for (Integer categoryId : getCategories())
+        {
+            categories.put(categoryId);
+        }
+        json.put("categories", categories);
+
+        JSONArray attributes = new JSONArray();
+        for (GWTPropertyDescriptor pd : getAttributes())
+        {
+            attributes.put(convertPropertyDescriptorToJson(pd));
+        }
+        json.put("attributes", attributes);
+
+        return json;
+    }
 }

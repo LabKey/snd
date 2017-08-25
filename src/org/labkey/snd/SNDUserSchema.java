@@ -52,23 +52,7 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema)
                     {
-                        SimpleUserSchema.SimpleTable<SNDUserSchema> table =
-                                new SimpleUserSchema.SimpleTable<>(
-                                        schema, SNDSchema.getInstance().getTableInfoPkgs()).init();
-
-
-                        SQLFragment inUseSql = new SQLFragment();
-                        inUseSql.append("(CASE WHEN EXISTS (SELECT sp.PkgId FROM ");
-                        inUseSql.append(SNDSchema.getInstance().getTableInfoSuperPkgs(), "sp");
-                        inUseSql.append(" JOIN ");
-                        inUseSql.append(SNDSchema.getInstance().getTableInfoCodedEvents(), "ce");
-                        inUseSql.append(" ON sp.SuperPkgId = ce.SuperPkgId");
-                        inUseSql.append(" WHERE " + ExprColumn.STR_TABLE_ALIAS + ".PkgId = sp.PkgId)");
-                        inUseSql.append(" THEN 'true' ELSE 'false' END)");
-                        ExprColumn inUseCol = new ExprColumn(table, "InUse", inUseSql, JdbcType.BOOLEAN);
-                        table.addColumn(inUseCol);
-
-                        return table;
+                        return new PackageTable(schema, SNDSchema.getInstance().getTableInfoPkgs()).init();
                     }
                 },
         PkgCategories

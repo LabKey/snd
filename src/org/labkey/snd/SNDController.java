@@ -33,6 +33,7 @@ import org.labkey.api.snd.Package;
 import org.labkey.api.snd.SNDService;
 import org.labkey.api.view.NavTree;
 import org.springframework.validation.BindException;
+import org.springframework.validation.Errors;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.ArrayList;
@@ -118,6 +119,45 @@ public class SNDController extends SpringActionController
             SNDService.get().savePackage(getViewContext().getContainer(), getUser(), pkg);
 
             return new ApiSimpleResponse();
+        }
+    }
+
+    @RequiresPermission(AdminPermission.class)
+    public class GetPackagesAction extends ApiAction<SimpleApiJsonForm>
+    {
+        @Override
+        public void validateForm(SimpleApiJsonForm form, Errors errors)
+        {
+            JSONObject json = form.getJsonObject();
+            JSONArray pkgIds = json.getJSONArray("packages");
+            if (pkgIds == null)
+                errors.reject(ERROR_MSG, "Package IDs not defined.");
+        }
+
+        @Override
+        public ApiResponse execute(SimpleApiJsonForm form, BindException errors) throws Exception
+        {
+            JSONObject json = form.getJsonObject();
+            JSONArray pkgIds = json.getJSONArray("packages");
+            ApiSimpleResponse response = new ApiSimpleResponse();
+
+            List<Package> pkgs = null;
+            List<Integer> ids = new ArrayList<>();
+            for (int j = 0; j < pkgIds.length(); j++)
+            {
+                ids.add(pkgIds.getInt(j));
+            }
+
+            pkgs = SNDService.get().getPackages(getViewContext().getContainer(), getUser(), ids);
+
+            JSONArray jsonOut = new JSONArray();
+            for (Package pkg : pkgs)
+            {
+                jsonOut.put(pkg.toJSON(getViewContext().getContainer()));
+            }
+
+            response.put("json", jsonOut);
+            return response;
         }
     }
 }

@@ -11,6 +11,8 @@ import org.labkey.api.snd.SNDService;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.util.UnexpectedException;
 
+import java.util.List;
+
 /**
  * Created by marty on 8/4/2017.
  */
@@ -60,5 +62,17 @@ public class SNDServiceImpl implements SNDService
 
         if (errors.hasErrors())
             throw new UnexpectedException(errors);
+    }
+
+    @Override
+    public List<Package> getPackages(Container c, User u, List<Integer> pkgIds)
+    {
+        BatchValidationException errors = new BatchValidationException();
+
+        List<Package> pkgs = SNDManager.get().getPackages(c, u, pkgIds, errors);
+        if (errors.hasErrors())
+            throw new UnexpectedException(errors);
+
+        return pkgs;
     }
 }
