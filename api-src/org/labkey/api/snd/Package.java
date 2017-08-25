@@ -29,15 +29,13 @@ public class Package
     private Map<String, Object> _extraFields = new HashMap<>();
     private Integer _qcState;
 
-    public static final String PKG_ID = "pkgId";
-    public static final String PKG_DESCRIPTION = "description";
-    public static final String PKG_ACTIVE = "active";
-    public static final String PKG_REPEATABLE = "repeatable";
-    public static final String PKG_QCSTATE = "qcState";
-    public static final String PKG_NARRATIVE = "narrative";
-    public static final String PKG_CONTAINER = "container";
-    public static final String PKG_CATEGORIES = "categories";
-    public static final String PKG_ATTRIBUTES = "attributes";
+    public static final String PKGID_COL = "pkgId";
+    public static final String DESCRIPTION_COL = "description";
+    public static final String ACTIVE_COL = "active";
+    public static final String REPEATABLE_COL = "repeatable";
+    public static final String QCSTATE_COL = "qcState";
+    public static final String NARRATIVE_COL = "narrative";
+    public static final String CONTAINER_COL = "container";
 
     public Integer getPkgId()
     {
@@ -142,13 +140,13 @@ public class Package
     public Map<String, Object> getPackageRow(Container c)
     {
         Map<String, Object> pkgValues = new ArrayListMap<>();
-        pkgValues.put(PKG_ID, getPkgId());
-        pkgValues.put(PKG_NARRATIVE, getNarrative());
-        pkgValues.put(PKG_DESCRIPTION, getDescription());
-        pkgValues.put(PKG_ACTIVE, isActive());
-        pkgValues.put(PKG_REPEATABLE, isRepeatable());
-        pkgValues.put(PKG_QCSTATE, getQcState());
-        pkgValues.put(PKG_CONTAINER, c);
+        pkgValues.put(PKGID_COL, getPkgId());
+        pkgValues.put(NARRATIVE_COL, getNarrative());
+        pkgValues.put(DESCRIPTION_COL, getDescription());
+        pkgValues.put(ACTIVE_COL, isActive());
+        pkgValues.put(REPEATABLE_COL, isRepeatable());
+        pkgValues.put(QCSTATE_COL, getQcState());
+        pkgValues.put(CONTAINER_COL, c);
         pkgValues.putAll(getExtraFields());
 
         return pkgValues;
@@ -162,9 +160,9 @@ public class Package
         for (Integer categoryId : getCategories())
         {
             row = new ArrayListMap<>();
-            row.put(PKG_ID, getPkgId());
+            row.put(PKGID_COL, getPkgId());
             row.put("categoryId", categoryId);
-            row.put(PKG_CONTAINER, c);
+            row.put(CONTAINER_COL, c);
             rows.add(row);
         }
 
@@ -208,33 +206,27 @@ public class Package
     public JSONObject toJSON(Container c)
     {
         JSONObject json = new JSONObject();
-        json.put(PKG_ID, getPkgId());
-        json.put(PKG_DESCRIPTION, getDescription());
-        json.put(PKG_REPEATABLE, isRepeatable());
-        json.put(PKG_ACTIVE, isActive());
-        json.put(PKG_NARRATIVE, getNarrative());
-        json.put(PKG_QCSTATE, getQcState());
-        json.put(PKG_CONTAINER, c.getId());
+        json.put(PKGID_COL, getPkgId());
+        json.put(DESCRIPTION_COL, getDescription());
+        json.put(REPEATABLE_COL, isRepeatable());
+        json.put(ACTIVE_COL, isActive());
+        json.put(NARRATIVE_COL, getNarrative());
+        json.put(QCSTATE_COL, getQcState());
+        json.put(CONTAINER_COL, c.getId());
 
         JSONArray categories = new JSONArray();
-        if(getCategories() != null)
+        for (Integer categoryId : getCategories())
         {
-            for (Integer categoryId : getCategories())
-            {
-                categories.put(categoryId);
-            }
-            json.put(PKG_CATEGORIES, categories);
+            categories.put(categoryId);
         }
+        json.put("categories", categories);
 
         JSONArray attributes = new JSONArray();
-        if(getAttributes() != null)
+        for (GWTPropertyDescriptor pd : getAttributes())
         {
-            for (GWTPropertyDescriptor pd : getAttributes())
-            {
-                attributes.put(convertPropertyDescriptorToJson(pd));
-            }
-            json.put(PKG_ATTRIBUTES, attributes);
+            attributes.put(convertPropertyDescriptorToJson(pd));
         }
+        json.put("attributes", attributes);
 
         return json;
     }
