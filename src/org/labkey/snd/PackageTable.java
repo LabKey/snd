@@ -42,15 +42,26 @@ public class PackageTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
     {
         super.init();
 
+        SQLFragment hasDataSql = new SQLFragment();
+        hasDataSql.append("(CASE WHEN EXISTS (SELECT sp.PkgId FROM ");
+        hasDataSql.append(SNDSchema.getInstance().getTableInfoSuperPkgs(), "sp");
+        hasDataSql.append(" JOIN ");
+        hasDataSql.append(SNDSchema.getInstance().getTableInfoCodedEvents(), "ce");
+        hasDataSql.append(" ON sp.SuperPkgId = ce.SuperPkgId");
+        hasDataSql.append(" WHERE " + ExprColumn.STR_TABLE_ALIAS + ".PkgId = sp.PkgId)");
+        hasDataSql.append(" THEN 'true' ELSE 'false' END)");
+        ExprColumn hasDataCol = new ExprColumn(this, "HasEvent", hasDataSql, JdbcType.BOOLEAN);
+        addColumn(hasDataCol);
+
         SQLFragment inUseSql = new SQLFragment();
         inUseSql.append("(CASE WHEN EXISTS (SELECT sp.PkgId FROM ");
         inUseSql.append(SNDSchema.getInstance().getTableInfoSuperPkgs(), "sp");
         inUseSql.append(" JOIN ");
-        inUseSql.append(SNDSchema.getInstance().getTableInfoCodedEvents(), "ce");
-        inUseSql.append(" ON sp.SuperPkgId = ce.SuperPkgId");
+        inUseSql.append(SNDSchema.getInstance().getTableInfoProjectItems(), "pi");
+        inUseSql.append(" ON sp.SuperPkgId = pi.SuperPkgId");
         inUseSql.append(" WHERE " + ExprColumn.STR_TABLE_ALIAS + ".PkgId = sp.PkgId)");
         inUseSql.append(" THEN 'true' ELSE 'false' END)");
-        ExprColumn inUseCol = new ExprColumn(this, "HasData", inUseSql, JdbcType.BOOLEAN);
+        ExprColumn inUseCol = new ExprColumn(this, "HasProject", inUseSql, JdbcType.BOOLEAN);
         addColumn(inUseCol);
 
         return this;
@@ -77,15 +88,15 @@ public class PackageTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
         @Override
         protected Map<String, Object> deleteRow(User user, Container container, Map<String, Object> oldRowMap) throws QueryUpdateServiceException, SQLException, InvalidKeyException
         {
-            int pkgId = (Integer)oldRowMap.get("PkgId");
-            if(SNDManager.get().isInUse(container, user, pkgId))
+            int pkgId = (Integer) oldRowMap.get("PkgId");
+            if (SNDManager.get().isInUse(container, user, pkgId))
                 throw new QueryUpdateServiceException("Package in use, cannot delete.");
 
             SNDManager.get().deletePackageCategories(container, user, pkgId);
 
             String domainName = SNDManager.getPackageName(pkgId);
             Domain domain = PropertyService.get().getDomain(getDomainContainer(container), PackageDomainKind.getDomainURI(SNDSchema.NAME, domainName, container, user));
-            if(domain == null)
+            if (domain == null)
                 throw new QueryUpdateServiceException("Package domain not found.");
 
             try

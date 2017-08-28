@@ -6,7 +6,8 @@
         <column name="Repeatable"/>
         <column name="QcState" />
         <column name="ObjectId" />
-        <column name="HasData" />
+        <column name="HasEvent" />
+        <column name="HasProject" />
         <column name="Narrative" />
         <column name="Container" />
         <column name="Created" />

@@ -126,7 +126,7 @@ public class SNDManager
             errors.addRowError(new ValidationException(e.getMessage()));
         }
 
-        if(!errors.hasErrors())
+        if (!errors.hasErrors())
         {
             String domainURI = PackageDomainKind.getDomainURI(PackageDomainKind.getPackageSchemaName(), getPackageName(pkg.getPkgId()), c, u);
 
@@ -168,7 +168,7 @@ public class SNDManager
             errors.addRowError(new ValidationException(e.getMessage()));
         }
 
-        if(!errors.hasErrors())
+        if (!errors.hasErrors())
         {
             GWTDomain<GWTPropertyDescriptor> newDomain = new GWTDomain<>();
             newDomain.setName(getPackageName(pkg.getPkgId()));
@@ -207,7 +207,7 @@ public class SNDManager
     {
         String uri = PackageDomainKind.getDomainURI(SNDSchema.NAME, getPackageName(pkgId), c, u);
         GWTDomain<GWTPropertyDescriptor> domain = DomainUtil.getDomainDescriptor(u, uri, c);
-        if(domain != null)
+        if (domain != null)
             return domain.getFields();
 
         return Collections.emptyList();
@@ -254,18 +254,18 @@ public class SNDManager
             errors.addRowError(new ValidationException(e.getMessage()));
         }
 
-        if(!errors.hasErrors() && rows != null && !rows.isEmpty())
+        if (!errors.hasErrors() && rows != null && !rows.isEmpty())
         {
             Package pkg;
-            for (Map<String,Object> row : rows)
+            for (Map<String, Object> row : rows)
             {
                 pkg = new Package();
-                pkg.setPkgId((Integer)row.get(Package.PKG_ID));
-                pkg.setDescription((String)row.get(Package.PKG_DESCRIPTION));
-                pkg.setActive((boolean)row.get(Package.PKG_ACTIVE));
-                pkg.setRepeatable((boolean)row.get(Package.PKG_REPEATABLE));
-                pkg.setNarrative((String)row.get(Package.PKG_NARRATIVE));
-                pkg.setQcState((Integer)row.get(Package.PKG_QCSTATE));
+                pkg.setPkgId((Integer) row.get(Package.PKG_ID));
+                pkg.setDescription((String) row.get(Package.PKG_DESCRIPTION));
+                pkg.setActive((boolean) row.get(Package.PKG_ACTIVE));
+                pkg.setRepeatable((boolean) row.get(Package.PKG_REPEATABLE));
+                pkg.setNarrative((String) row.get(Package.PKG_NARRATIVE));
+                pkg.setQcState((Integer) row.get(Package.PKG_QCSTATE));
                 pkg.setCategories(getPackageCategories(c, u, pkg.getPkgId()));
                 pkg.setAttributes(getPackageAttributes(c, u, pkg.getPkgId()));
 
