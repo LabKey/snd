@@ -18,10 +18,7 @@ package org.labkey.snd;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DbSchema;
-import org.labkey.api.data.JdbcType;
-import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.TableInfo;
-import org.labkey.api.query.ExprColumn;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.security.User;
 
@@ -52,7 +49,7 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema)
                     {
-                        return new PackageTable(schema, SNDSchema.getInstance().getTableInfoPkgs()).init();
+                        return new PackagesTable(schema, SNDSchema.getInstance().getTableInfoPkgs()).init();
                     }
                 },
         PkgCategories
@@ -60,19 +57,8 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema)
                     {
-                        SimpleUserSchema.SimpleTable<SNDUserSchema> table =
-                                new SimpleUserSchema.SimpleTable<>(
-                                        schema, SNDSchema.getInstance().getTableInfoPkgCategories()).init();
+                        return new CategoriesTable(schema, SNDSchema.getInstance().getTableInfoPkgCategories()).init();
 
-                        SQLFragment inUseSql = new SQLFragment();
-                        inUseSql.append("(CASE WHEN EXISTS (SELECT PkgId FROM ");
-                        inUseSql.append(SNDSchema.getInstance().getTableInfoPkgCategoryJunction(), "pcj");
-                        inUseSql.append(" WHERE " + ExprColumn.STR_TABLE_ALIAS + ".CategoryId = pcj.CategoryId)");
-                        inUseSql.append(" THEN 'true' ELSE 'false' END)");
-                        ExprColumn inUseCol = new ExprColumn(table, "InUse", inUseSql, JdbcType.BOOLEAN);
-                        table.addColumn(inUseCol);
-
-                        return table;
                     }
                 },
         PkgCategoryJunction

@@ -3,11 +3,14 @@ package org.labkey.snd;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.JdbcType;
 import org.labkey.api.data.SQLFragment;
+import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.data.TableSelector;
 import org.labkey.api.exp.DomainNotFoundException;
 import org.labkey.api.exp.property.Domain;
 import org.labkey.api.exp.property.PropertyService;
 import org.labkey.api.query.ExprColumn;
+import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.InvalidKeyException;
 import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.QueryUpdateServiceException;
@@ -17,12 +20,14 @@ import org.labkey.api.security.User;
 import org.labkey.api.snd.PackageDomainKind;
 
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by marty on 8/23/2017.
  */
-public class PackageTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
+public class PackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
 {
 
     /**
@@ -32,7 +37,7 @@ public class PackageTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
      * @param schema
      * @param table
      */
-    public PackageTable(SNDUserSchema schema, TableInfo table)
+    public PackagesTable(SNDUserSchema schema, TableInfo table)
     {
         super(schema, table);
     }
@@ -67,10 +72,21 @@ public class PackageTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
         return this;
     }
 
+    protected boolean isPackageInUse(Container c, User u, int pkgId)
+    {
+        Set<String> cols = new HashSet<>();
+        cols.add("HasEvent");
+        cols.add("HasProject");
+        TableSelector ts = new TableSelector(this, cols, new SimpleFilter(FieldKey.fromString("PkgId"), pkgId), null);
+        Map<String, Object> ret = ts.getMap();
+
+        return Boolean.parseBoolean((String) ret.get("HasEvent")) | Boolean.parseBoolean((String) ret.get("HasProject"));
+    }
+
     @Override
     public QueryUpdateService getUpdateService()
     {
-        return new PackageTable.UpdateService(this);
+        return new PackagesTable.UpdateService(this);
     }
 
     protected class UpdateService extends SimpleQueryUpdateService
@@ -89,7 +105,7 @@ public class PackageTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
         protected Map<String, Object> deleteRow(User user, Container container, Map<String, Object> oldRowMap) throws QueryUpdateServiceException, SQLException, InvalidKeyException
         {
             int pkgId = (Integer) oldRowMap.get("PkgId");
-            if (SNDManager.get().isInUse(container, user, pkgId))
+            if (isPackageInUse(container, user, pkgId))
                 throw new QueryUpdateServiceException("Package in use, cannot delete.");
 
             SNDManager.get().deletePackageCategories(container, user, pkgId);

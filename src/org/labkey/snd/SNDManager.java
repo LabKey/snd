@@ -21,17 +21,14 @@ import org.labkey.api.data.DbScope;
 import org.labkey.api.data.DbSequence;
 import org.labkey.api.data.DbSequenceManager;
 import org.labkey.api.data.SQLFragment;
-import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.SqlExecutor;
 import org.labkey.api.data.SqlSelector;
 import org.labkey.api.data.TableInfo;
-import org.labkey.api.data.TableSelector;
 import org.labkey.api.exp.property.DomainUtil;
 import org.labkey.api.gwt.client.model.GWTDomain;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.DuplicateKeyException;
-import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.InvalidKeyException;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.query.QueryUpdateService;
@@ -76,16 +73,6 @@ public class SNDManager
     public static String getPackageName(int id)
     {
         return PackageDomainKind.getPackageKindName() + "-" + id;
-    }
-
-    public boolean isInUse(Container c, User u, int pkgId)
-    {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
-
-        TableInfo pkgsTable = schema.getTable(SNDSchema.PKGS_TABLE_NAME);
-        TableSelector ts = new TableSelector(pkgsTable, Collections.singleton("HasData"), new SimpleFilter(FieldKey.fromString("PkgId"), pkgId), null);
-        Boolean[] ret = ts.getArray(Boolean.class);
-        return ret[0];
     }
 
     public void deletePackageCategories(Container c, User u, int pkgId)
