@@ -113,7 +113,8 @@ public class SNDManager
             errors.addRowError(new ValidationException(e.getMessage()));
         }
 
-        if (!errors.hasErrors())
+        // If package is in use (either assigned to an event or project) then do not update the domain
+        if (!errors.hasErrors() && !((PackagesTable)pkgsTable).isPackageInUse(pkg.getPkgId()))
         {
             String domainURI = PackageDomainKind.getDomainURI(PackageDomainKind.getPackageSchemaName(), getPackageName(pkg.getPkgId()), c, u);
 

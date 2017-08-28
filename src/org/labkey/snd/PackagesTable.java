@@ -72,7 +72,7 @@ public class PackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
         return this;
     }
 
-    protected boolean isPackageInUse(Container c, User u, int pkgId)
+    public boolean isPackageInUse(int pkgId)
     {
         Set<String> cols = new HashSet<>();
         cols.add("HasEvent");
@@ -105,7 +105,7 @@ public class PackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
         protected Map<String, Object> deleteRow(User user, Container container, Map<String, Object> oldRowMap) throws QueryUpdateServiceException, SQLException, InvalidKeyException
         {
             int pkgId = (Integer) oldRowMap.get("PkgId");
-            if (isPackageInUse(container, user, pkgId))
+            if (isPackageInUse(pkgId))
                 throw new QueryUpdateServiceException("Package in use, cannot delete.");
 
             SNDManager.get().deletePackageCategories(container, user, pkgId);
