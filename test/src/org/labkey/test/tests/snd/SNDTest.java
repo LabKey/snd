@@ -33,6 +33,7 @@ import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.TestTimeoutException;
 import org.labkey.test.categories.CustomModules;
+import org.labkey.test.components.CustomizeView;
 import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.Maps;
 import org.labkey.test.util.SqlserverOnlyTest;
@@ -198,6 +199,13 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         selectQuery("snd", "Pkgs");
         assertTextPresent(PKGSTESTCOL);
         waitAndClickAndWait(Locator.linkWithText("view data"));
+
+        CustomizeView customizeViewHelper = new CustomizeView(this);
+
+        customizeViewHelper.openCustomizeViewPanel();
+        customizeViewHelper.addColumn("testPkgs");
+        customizeViewHelper.clickViewGrid();
+        waitForText("grid view is unsaved.");
 
         assertTextPresent(EXTCOLTESTDATA1, EXTCOLTESTDATA2, EXTCOLTESTDATA3);
 
