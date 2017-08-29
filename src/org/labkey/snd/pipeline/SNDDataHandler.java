@@ -163,8 +163,8 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
         AttributesType attributes = packageType.getAttributes();
         ColumnType[] attributeArray = attributes.getAttributeArray();
 
-        List<GWTPropertyDescriptor> attributesList = new LinkedList<>();;
-        if (attributeArray.length > 1)
+        List<GWTPropertyDescriptor> attributesList = new LinkedList<>();
+        if (attributeArray.length > 0)
         {
             for (ColumnType ct : attributeArray)
             {
