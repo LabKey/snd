@@ -240,11 +240,13 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
         SuperPackagesType superPackagesType = export.getSuperPackages();
         SuperPackageType[] superPackageArray = superPackagesType.getSuperPackageArray();
         SNDService sndService = SNDService.get();
+        List<SuperPackage> superPackages = new LinkedList<>();
         for(SuperPackageType superPackageType : superPackageArray)
         {
             SuperPackage superPackage = parseSuperPackage(superPackageType);
-            sndService.saveSuperPackage(info.getContainer(), info.getUser(), superPackage);
+            superPackages.add(superPackage);
         }
+        sndService.saveSuperPackage(info.getContainer(), info.getUser(), superPackages);
     }
 
     private SuperPackage parseSuperPackage(SuperPackageType superPackageType)
