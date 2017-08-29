@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<export xmlns="http://txbiomed.org/snd" xmlns:dat="http://labkey.org/data/xml">
+    <packages>
+        <package id="2" description="Vitals" repeatable="true" displayable="true" usda-category="U">
+            <narrative>Check Vitals Test</narrative>
+            <attributes>
+                <attribute columnName="vital1">
+                    <dat:datatype>string</dat:datatype>
+                    <dat:nullable>false</dat:nullable>
+                    <dat:columnTitle>Vital 1</dat:columnTitle>
+                    <dat:defaultValue>Default 1</dat:defaultValue>
+                    <dat:inputType>select</dat:inputType>
+                    <dat:redactedText>veterinarian</dat:redactedText>
+                    <dat:fk>
+                        <dat:fkTable>table1</dat:fkTable>
+                        <dat:fkColumnName>title</dat:fkColumnName>
+                        <dat:fkDbSchema>snd</dat:fkDbSchema>
+                    </dat:fk>
+                </attribute>
+                <attribute columnName="vital2">
+                    <dat:datatype>double</dat:datatype>
+                    <dat:nullable>true</dat:nullable>
+                    <dat:columnTitle>Vital 2</dat:columnTitle>
+                    <dat:precision>2</dat:precision>
+                    <dat:inputType>text</dat:inputType>
+                    <dat:validator>
+                        <dat:name>Range</dat:name>
+                        <dat:typeURI>urn:lsid:labkey.com:PropertyValidator:range</dat:typeURI>
+                        <dat:expression>~lte=109&amp;~gte=80.0000</dat:expression>
+                    </dat:validator>
+                </attribute>
+            </attributes>
+        </package>
+    </packages>
+    <superPackages>
+        <superPackage superPkgId="2" pkgId="5">
+            <children/>
+        </superPackage>
+    </superPackages>
+</export>

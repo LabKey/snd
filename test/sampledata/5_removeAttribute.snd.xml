@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<export xmlns="http://txbiomed.org/snd" xmlns:dat="http://labkey.org/data/xml">
+    <packages>
+        <package id="1" description="Therapy" repeatable="true" displayable="false" usda-category="U">
+            <narrative>Therapy started</narrative>
+            <attributes>
+                <attribute columnName="therapyA">
+                    <dat:datatype>string</dat:datatype>
+                    <dat:nullable>false</dat:nullable>
+                    <dat:columnTitle>Therapy A</dat:columnTitle>
+                    <dat:defaultValue>Drug A</dat:defaultValue>
+                </attribute>
+            </attributes>
+        </package>
+        <package id="2" description="Vitals" repeatable="true" displayable="true" usda-category="U">
+            <narrative>Check Vitals</narrative>
+            <attributes>
+                <attribute columnName="vital1">
+                    <dat:datatype>string</dat:datatype>
+                    <dat:nullable>false</dat:nullable>
+                    <dat:columnTitle>Vital 1</dat:columnTitle>
+                    <dat:defaultValue>Default 1</dat:defaultValue>
+                    <dat:inputType>select</dat:inputType>
+                    <dat:redactedText>veterinarian</dat:redactedText>
+                    <dat:fk>
+                        <dat:fkTable>table1</dat:fkTable>
+                        <dat:fkColumnName>title</dat:fkColumnName>
+                        <dat:fkDbSchema>snd</dat:fkDbSchema>
+                    </dat:fk>
+                </attribute>
+                <!-- Removed attribute 'vital2' -->
+            </attributes>
+        </package>
+    </packages>
+    <superPackages>
+        <superPackage superPkgId="1" pkgId="1">
+            <children/>
+        </superPackage>
+        <superPackage superPkgId="2" pkgId="5">
+            <children/>
+        </superPackage>
+    </superPackages>
+</export>
