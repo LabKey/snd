@@ -51,10 +51,7 @@ import java.util.Map;
  */
 public class SNDDataHandler extends AbstractExperimentDataHandler
 {
-
-//    private static final String TABLE_INFO_NS = "dat";
-    private static final String TABLE_INFO_NS_VAL = "http://labkey.org/data/xml";
-
+    private static final Logger _log = Logger.getLogger(SNDDataHandler.class);
     private static final FileType SND_INPUT = new FileType(".snd.xml");
 
     @Override
@@ -68,9 +65,6 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
     {
         ExportDocument exportDocument;
         String inputFileName = dataFile.getName();
-//        Map addnlNameSpaces = new HashedMap();
-
-//        addnlNameSpaces.put(TABLE_INFO_NS, TABLE_INFO_NS_VAL);
 
         if (SND_INPUT.isType(dataFile))
         {
@@ -84,30 +78,28 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
         //read xml data
         try(FileInputStream in = FileUtils.openInputStream(dataFile))
         {
-            XmlOptions options = new XmlOptions();
-            options.setDocumentType(ExportDocument.type);
-            options.setValidateStrict();//fails silently if namespace is invalid. However, does throw an error if elements are not prefixed with correct ns.
-//            options.setLoadAdditionalNamespaces(addnlNameSpaces);
-            options.setLoadUseXMLReader(SAXParserFactory.newInstance().newSAXParser().getXMLReader());
+            XmlOptions options = XmlBeansUtil.getDefaultParseOptions();
+            options.setValidateStrict();
 
             //parse xml tags and get tokens/auto-generated pojos
             exportDocument = ExportDocument.Factory.parse(in, options);
 
-            //TODO: validate xml  - takes a very long time - do we still want to validate this way? Also, Cancelling doesn't Cancel. Is there a better way?
-//            XmlBeansUtil.validateXmlDocument(exportDocument, "Validating " + inputFileName + " against schema.");
+            _log.info("Starting xml Validation");
+            XmlBeansUtil.validateXmlDocument(exportDocument, "Validating " + inputFileName + " against schema.");
+            _log.info("End xml Validation");
         }
         catch (IOException e)
         {
             throw new ExperimentException("Error reading input file '" + inputFileName +"'", e);
         }
-        catch (XmlException | SAXException | ParserConfigurationException e)
+        catch (XmlException e)
         {
             throw new ExperimentException("Could not parse input file '" + inputFileName +"'", e);
         }
-//        catch (XmlValidationException e)
-//        {
-//            throw new ExperimentException("Invalid XML file " + inputFileName, e);
-//        }
+        catch (XmlValidationException e)
+        {
+            throw new ExperimentException("Invalid XML file " + inputFileName, e);
+        }
 
         ExportDocument.Export export = exportDocument.getExport();
 

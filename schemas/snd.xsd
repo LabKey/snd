@@ -22,7 +22,7 @@
     </xs:complexType>
 
     <xs:complexType name="PackageType">
-        <xs:sequence maxOccurs="1">
+        <xs:sequence minOccurs="0" maxOccurs="1">
             <xs:element name="narrative" type="xs:string"/>
             <xs:element name="attributes" type="AttributesType" />
         </xs:sequence>
@@ -35,7 +35,7 @@
 
     <xs:complexType name="AttributesType">
         <xs:sequence>
-            <xs:element name="attribute" type="dat:ColumnType" maxOccurs="unbounded"/>
+            <xs:element name="attribute" type="dat:ColumnType" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
     </xs:complexType>
 
@@ -56,17 +56,17 @@
     </xs:complexType>
 
     <xs:complexType name="SuperPackageType">
-        <xs:sequence>
+        <xs:all>
             <xs:element name="children" type="ChildrenType" minOccurs="0" maxOccurs="1" />
-        </xs:sequence>
+        </xs:all>
         <xs:attribute name="superPkgId" type="xs:int" use="required"/>
         <xs:attribute name="pkgId" type="xs:int"/>
     </xs:complexType>
 
     <xs:complexType name="ChildrenType">
-        <xs:all>
-            <xs:element name="child" type="ChildType" />
-        </xs:all>
+        <xs:sequence>
+            <xs:element name="child" type="ChildType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
     </xs:complexType>
 
     <xs:complexType name="ChildType">
