@@ -58,7 +58,7 @@ const store = storeCreator(
 jQuery(() => {
     ReactDom.render(
         <Provider store={store}>
-            <div>
+            <div className="container">
                 { /* ConnectedRouter will use the store from Provider automatically */ }
                 <ConnectedRouter history={history}>
                     <div>

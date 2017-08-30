@@ -17,15 +17,29 @@ import { routerReducer } from 'react-router-redux';
 import { combineReducers } from 'redux';
 import { reducer as formReducer } from 'redux-form';
 
+import { packages } from '../containers/Packages/reducer'
+import { PackagesModel } from '../containers/Packages/model'
+
 
 export interface APP_STATE_PROPS {
+    packages: PackagesModel
 
+
+    form: any
+    router: any
 }
 
 export const reducers = combineReducers({
+    packages,
+
     form: formReducer,
     router: routerReducer,
 });
 
 
 
+// packages
+// categories
+// app
+// user
+// wizards
