@@ -32,11 +32,11 @@ export const Routes: Array<RouteProps> = [
         path: '/packages',
     },
 
-    // {
-    //     component: PackageForm,
-    //     exact: true,
-    //     path: '/packages/new',
-    // },
+    {
+        component: PackageForm,
+        exact: true,
+        path: '/packages/new',
+    },
 
     {
         component: PackageForm,
@@ -44,17 +44,17 @@ export const Routes: Array<RouteProps> = [
         path: '/packages/edit/:id',
     },
 
-    // {
-    //     component: PackageViewer,
-    //     exact: true,
-    //     path: '/packages/view/:id',
-    // },
+    {
+        component: PackageForm,
+        exact: true,
+        path: '/packages/view/:id',
+    },
 
-    // {
-    //     component: PackageViewer,
-    //     exact: true,
-    //     path: '/packages/clone/:id',
-    // },
+    {
+        component: PackageForm,
+        exact: true,
+        path: '/packages/clone/:id',
+    },
 
     {
         component: EditCategories,

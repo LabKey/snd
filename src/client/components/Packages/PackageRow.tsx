@@ -1,5 +1,5 @@
 import * as React from 'react';
-
+import { Link } from 'react-router-dom'
 
 import { QueryPackageModel } from '../../containers/Packages/model'
 
@@ -38,9 +38,15 @@ export class PackageRow extends React.Component<PackageRowProps, PackageViewerSt
         return (
             <div className="package_viewer__result clearfix" style={resultStyle}>
                 <div className="result-icons pull-left">
-                    <i className="fa fa-eye" style={resultIconStyle}/>
-                    <i className="fa fa-pencil" style={resultIconStyle}/>
-                    <i className="fa fa-files-o" style={resultIconStyle}/>
+                    <Link to={'packages/view/' + PkgId.value}>
+                        <i className="fa fa-eye" style={resultIconStyle}/>
+                    </Link>
+                    <Link to={'packages/edit/' + PkgId.value}>
+                        <i className="fa fa-pencil" style={resultIconStyle}/>
+                    </Link>
+                    <Link to={'packages/clone/' + PkgId.value}>
+                        <i className="fa fa-files-o" style={resultIconStyle}/>
+                    </Link>
                 </div>
                 <div className="pull-left" style={{marginLeft: '20px'}}>
                     {[PkgId.value, Description.value].join(' - ')}

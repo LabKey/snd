@@ -69,7 +69,6 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
 
     render() {
 
-        console.log(this.props.packageModel)
         return (
             <div>
 
