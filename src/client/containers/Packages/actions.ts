@@ -1,7 +1,8 @@
 import { PKG_TYPES } from './constants'
 import { PackageModel, PackagesModel } from './model'
 
-import { labkeyAjax, selectRows } from '../../utils/query'
+import { labkeyAjax, selectRows } from '../../query/actions'
+import { LabKeyQueryResponse } from '../../query/model'
 
 export function getPackage(id: string | number) {
     return (dispatch, getState) => {
@@ -88,37 +89,6 @@ export function filterPackages(input: string) {
     };
 }
 
-
-
-
-
-
-
-export interface LabKeyQueryRowPropertyProps {
-    displayValue?: string
-    url?: string
-    value: any
-}
-
-interface LabKeyQueryResponse {
-    columnModel?: Array<{
-        align: string,
-        dataIndex: string,
-        editable: boolean,
-        header: string,
-        hidden: boolean,
-        required: boolean,
-        scale: number,
-        sortable: boolean,
-        width: number
-    }>
-    metaData?: {[key: string]: any}
-    queryName: string
-    rowCount: number
-    rows: Array<{data: {[key: string]: any}}>
-    schemaKey: {name: string, parent: any}
-    schemaName: Array<string> | string
-}
 
 interface PackageQueryResponse {
     json: Array<PackageModel>

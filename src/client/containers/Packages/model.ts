@@ -1,4 +1,4 @@
-import { LabKeyQueryRowPropertyProps } from '../../utils/constants'
+import { LabKeyQueryRowPropertyProps } from '../../query/model'
 
 
 interface PackagesModelProps {

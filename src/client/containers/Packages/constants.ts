@@ -1,5 +1,3 @@
-
-
 const PKG_PREFIX = 'packages/';
 
 export const PKG_TYPES = {

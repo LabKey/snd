@@ -12,6 +12,7 @@ import { APP_STATE_PROPS } from '../../../reducers/index'
 import * as actions from '../actions'
 import { QueryPackageModel, PackagesModel } from '../model'
 import { PackageRow } from '../../../components/Packages/PackageRow'
+import { querySelectRows } from '../../../query/actions'
 
 interface PackageViewerOwnProps extends RouteComponentProps<{}> {}
 
@@ -51,6 +52,7 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, Packa
     componentDidMount() {
         const { dispatch } = this.props;
         // investigate mapDispatchToProps
+        dispatch(querySelectRows('snd', 'pkgs'));
         dispatch(actions.getPackages());
     }
 
@@ -137,7 +139,7 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, Packa
                 <div className="row" style={{padding: '20px 0 0'}}>
                     <div className="package-viewer__header clearfix" style={{paddingBottom: '20px'}}>
                         <div className="col-sm-3 col-md-2" style={buttonStyle}>
-                            <Link to="/newPackage">
+                            <Link to="/packages/new">
                                 <Button>New Package</Button>
                             </Link>
                         </div>
