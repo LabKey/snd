@@ -158,13 +158,15 @@ public class SNDManager
 
         if (!errors.hasErrors())
         {
-            GWTDomain<GWTPropertyDescriptor> newDomain = new GWTDomain<>();
-            newDomain.setName(getPackageName(pkg.getPkgId()));
-            newDomain.setContainer(c.getId());
-            newDomain.setDescription(pkg.getDescription());
-            newDomain.setFields(pkg.getAttributes());
+            String domainURI = PackageDomainKind.getDomainURI(PackageDomainKind.getPackageSchemaName(), getPackageName(pkg.getPkgId()), c, u);
+            GWTDomain<GWTPropertyDescriptor> domain = DomainUtil.getDomainDescriptor(u, domainURI, c);
 
-            DomainUtil.createDomain(PackageDomainKind.getPackageKindName(), newDomain, null, c, u, null, null);
+            if (domain == null)
+                throw new IllegalStateException("Cannot save package attributes. Domain not found.");
+
+            domain.setFields(pkg.getAttributes());
+            PackageDomainKind kind = new PackageDomainKind();
+            kind.updateDomain(c, u, domain);
         }
     }
 
