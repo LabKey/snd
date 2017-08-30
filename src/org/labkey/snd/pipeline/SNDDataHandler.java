@@ -35,10 +35,7 @@ import org.txbiomed.snd.PackagesType;
 import org.txbiomed.snd.SuperPackageType;
 import org.txbiomed.snd.SuperPackagesType;
 import org.txbiomed.snd.USDACategoryType;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParserFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -246,7 +243,7 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
             SuperPackage superPackage = parseSuperPackage(superPackageType);
             superPackages.add(superPackage);
         }
-        sndService.saveSuperPackage(info.getContainer(), info.getUser(), superPackages);
+        sndService.saveSuperPackages(info.getContainer(), info.getUser(), superPackages);
     }
 
     private SuperPackage parseSuperPackage(SuperPackageType superPackageType)

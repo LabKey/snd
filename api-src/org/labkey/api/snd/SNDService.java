@@ -19,6 +19,6 @@ public interface SNDService
     }
 
     void savePackage(Container c, User u, Package pkg);
-    void saveSuperPackage(Container c, User u, List<SuperPackage> superPkgs);
+    void saveSuperPackages(Container c, User u, List<SuperPackage> superPkgs);
     List<Package> getPackages(Container c, User u, List<Integer> pkgIds);
 }

@@ -54,7 +54,7 @@ public class SNDServiceImpl implements SNDService
     }
 
     @Override
-    public void saveSuperPackage(Container c, User u, List<SuperPackage> superPkgs)
+    public void saveSuperPackages(Container c, User u, List<SuperPackage> superPkgs)
     {
         BatchValidationException errors = new BatchValidationException();
 
