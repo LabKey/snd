@@ -10,6 +10,12 @@ export function filterPackages(input: string) {
     };
 }
 
+export function toggleDrafts() {
+    return {
+        type: PKG_TYPES.PACKAGES_TOGGLE_DRAFTS
+    };
+}
+
 export function packagesInit(model: PackagesModel, dataResponse: QueryModel) {
     return {
         type: PKG_TYPES.PACKAGES_INIT,

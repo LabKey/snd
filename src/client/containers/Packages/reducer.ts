@@ -50,20 +50,25 @@ export const packages = handleActions({
 
         if (input && input !== '') {
             const filtered = filterPackages(input, dataIds, data);
-            if (filtered.length) {
-                filteredActive = filtered.filter((id) => {
-                    return active.indexOf(id) !== -1;
-                });
+            filteredActive = filtered.filter((id) => {
+                return active.indexOf(id) !== -1;
+            });
 
-                filteredDrafts = filtered.filter((id) => {
-                    return drafts.indexOf(id) !== -1;
-                });
-            }
+            filteredDrafts = filtered.filter((id) => {
+                return drafts.indexOf(id) !== -1;
+            });
         }
 
         return new PackagesModel(Object.assign({}, state, {
             filteredActive,
             filteredDrafts
+        }));
+    },
+
+    [PKG_TYPES.PACKAGES_TOGGLE_DRAFTS]: (state: PackagesModel) => {
+
+        return new PackagesModel(Object.assign({}, state, {
+            showDrafts: !state.showDrafts
         }));
     },
 

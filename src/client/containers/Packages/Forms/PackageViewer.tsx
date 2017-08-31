@@ -1,15 +1,10 @@
 import * as React from 'react';
-import { Button, DropdownButton, MenuItem, Panel } from 'react-bootstrap';
-
-import { Link, RouteComponentProps } from 'react-router-dom'
-
+import { Panel } from 'react-bootstrap';
+import { RouteComponentProps } from 'react-router-dom'
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
-import { CSSProperties } from "react";
 
-
-import { PackageSearchInput, PackageSearchResults } from './PackageSearch'
-import * as actions from '../actions'
+import { PackageSearchInput, PackageSearchResults, PackageViewerInput } from './PackageSearch'
 import { SND_PKG_QUERY, SND_PKG_SCHEMA } from '../constants'
 import { PackagesModel } from '../model'
 import { PackageRow } from '../../../components/Packages/PackageRow'
@@ -65,7 +60,7 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, {}> {
     }
 
     render() {
-        const { data, filteredActive, filteredDrafts } = this.props.packagesModel;
+        const { data, filteredActive, filteredDrafts, isInit, showDrafts } = this.props.packagesModel;
 
         return (
             <Panel>
@@ -75,15 +70,18 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, {}> {
                     <div style={{borderBottom: '1px solid black', margin: '0 15px'}}/>
 
                     <div className="col-sm-12 package-viewer__results">
-                        <div className="package_viewer__results--drafts">
-                            <h4>Drafts</h4>
-                            <div className="package_viewer__results-container">
-                                <PackageSearchResults
-                                    data={data}
-                                    dataIds={filteredDrafts}
-                                    rowRenderer={PackageRow}/>
+                        {showDrafts ?
+                            <div className="package_viewer__results--drafts">
+                                <h4>Drafts</h4>
+                                <div className="package_viewer__results-container">
+                                    <PackageSearchResults
+                                        data={data}
+                                        dataIds={filteredDrafts}
+                                        isLoaded={isInit}
+                                        rowRenderer={PackageRow}/>
+                                </div>
                             </div>
-                        </div>
+                        : null}
 
                         <div className="package_viewer__results--active clearfix">
                             <h4>Active</h4>
@@ -91,6 +89,7 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, {}> {
                                 <PackageSearchResults
                                     data={data}
                                     dataIds={filteredActive}
+                                    isLoaded={isInit}
                                     rowRenderer={PackageRow}/>
                             </div>
                         </div>
@@ -102,132 +101,3 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, {}> {
 }
 
 export const PackageViewer = connect<any, any, PackageViewerProps>(mapStateToProps)(PackageViewerImpl);
-
-
-interface PackageViewerInputProps {
-    dispatch?: Dispatch<{}>
-}
-
-interface PackageViewerInputStateProps {
-    input?: string
-    showDrafts?: boolean
-}
-
-export class PackageViewerInputImpl extends React.Component<PackageViewerInputProps, PackageViewerInputStateProps> {
-
-    private timer: number = 0;
-    private inputRef: HTMLInputElement;
-
-    constructor(props?: any) {
-        super(props);
-
-        this.state = {
-            input: '',
-            showDrafts: false
-        }
-    }
-
-    handleClear() {
-        const { dispatch } = this.props;
-
-        this.setInput('');
-        this.inputRef.focus();
-        dispatch(actions.filterPackages(''));
-    }
-
-    handleInputChange(evt: React.ChangeEvent<HTMLInputElement>) {
-        const { dispatch } = this.props;
-        const input = evt.currentTarget.value;
-
-        this.setInput(input);
-
-        clearTimeout(this.timer);
-
-        this.timer = setTimeout(() => {
-            this.timer = null;
-
-            dispatch(actions.filterPackages(input))
-        }, 50);
-    }
-
-    setInput(input: string) {
-        this.setState({input});
-    }
-
-    toggleDrafts(evt: React.MouseEvent<any>) {
-        const { showDrafts } = this.state;
-
-        evt.preventDefault();
-
-        this.setState({
-            showDrafts: !showDrafts
-        });
-    }
-
-    render() {
-        const { input, showDrafts } = this.state;
-        // todo: add css style sheet and webpack support
-
-        const buttonStyle = {
-            padding: '2.5px 15px',
-        };
-
-        const searchStyle = {
-            borderRadius: '4px',
-            padding: '5px 5px 5px 25px',
-            fontSize: '1.1em',
-            width: '100%'
-        };
-
-        const iconStyle: CSSProperties = {
-            position: 'absolute',
-            left: '21px',
-            fontSize: '1.1em',
-            top: '8px'
-        };
-
-        const clearStyle: CSSProperties = {
-            position: 'absolute',
-            cursor: 'pointer',
-            right: '21px',
-            fontSize: '1.1em',
-            top: '8px',
-            color: 'lightgray'
-        };
-
-        return(
-            <div className="package-viewer__header clearfix" style={{paddingBottom: '20px'}}>
-                <div className="col-sm-3 col-md-2" style={buttonStyle}>
-                    <Link to="/packages/new">
-                        <Button>New Package</Button>
-                    </Link>
-                </div>
-                <div className="col-sm-6 col-md-8" style={{position: 'relative'}}>
-                    <i className="fa fa-search" style={iconStyle}/>
-                    <i className="fa fa-times-circle" style={clearStyle} onClick={() => this.handleClear()}/>
-                    <input
-                        name="packageSearch"
-                        onChange={(evt) => this.handleInputChange(evt)}
-                        ref={(el) => this.inputRef = el}
-                        style={searchStyle}
-                        type="text"
-                        value={input}/>
-                </div>
-                <div className="col-sm-3 col-md-2" style={buttonStyle}>
-                    <div className="pull-right">
-                        <DropdownButton id="package-actions" title="Options">
-                            <MenuItem>Edit Categories</MenuItem>
-                            <MenuItem>Edit Projects</MenuItem>
-                        </DropdownButton>
-                    </div>
-                </div>
-                <div className="col-xs-12" style={{margin: '25px 0 10px', cursor: 'pointer'}} onClick={(evt) => this.toggleDrafts(evt)}>
-                    <input type="checkbox" checked={showDrafts} onClick={(evt) => this.toggleDrafts(evt)}/> Show drafts
-                </div>
-            </div>
-        )
-    }
-}
-
-const PackageViewerInputWrap = (props: PackageViewerInputProps & Dispatch<{}>) => <PackageViewerInputImpl {...props}/>;
-export const PackageViewerInput = connect()(PackageViewerInputWrap);

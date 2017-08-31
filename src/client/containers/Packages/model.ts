@@ -14,6 +14,7 @@ interface PackagesModelProps {
     isInit?: boolean
     message: string
     packageCount: number
+    showDrafts?: boolean
 }
 
 export const defaultPackagesModel: PackagesModelProps = {
@@ -26,7 +27,8 @@ export const defaultPackagesModel: PackagesModelProps = {
     isError: false,
     isInit: false,
     message: undefined,
-    packageCount: 0
+    packageCount: 0,
+    showDrafts: false
 };
 
 // may make more sense for this to be in wizards/packages/packageSearch?
@@ -41,6 +43,7 @@ export class PackagesModel implements PackagesModelProps {
     isInit?: boolean;
     message: string;
     packageCount: number;
+    showDrafts?: boolean;
 
     constructor(values: PackagesModelProps = defaultPackagesModel) {
         Object.keys(values).forEach(key => {
@@ -50,6 +53,10 @@ export class PackagesModel implements PackagesModelProps {
 
     init(data: QueryModel) {
         return actions.packagesInit(this, data);
+    }
+
+    toggleDrafts() {
+        return actions.toggleDrafts();
     }
 }
 

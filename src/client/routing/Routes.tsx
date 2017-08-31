@@ -4,10 +4,8 @@ import { RouteComponentProps } from 'react-router-dom';
 
 import { EditCategories } from '../containers/Categories/Forms/Edit'
 import { LandingPage } from '../containers/LandingPage/LandingPage'
-import { PackageViewer } from '../containers/Packages/Forms/PackageViewer'
-import { NewPackage } from '../containers/Packages/Forms/NewPackage'
-
 import { PackageForm } from '../containers/Packages/Forms/PackageForm'
+import { PackageViewer } from '../containers/Packages/Forms/PackageViewer'
 
 import { NotFound } from '../components/NotFound/NotFound'
 
