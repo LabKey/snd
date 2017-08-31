@@ -143,7 +143,7 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
         Map<String, Object> extraFields = new HashedMap();
 
         //usda-category
-        extraFields.put("usda-category", usdaCategoryVal);
+        extraFields.put("usdaCode", usdaCategoryVal);
         pkg.setExtraFields(extraFields);
 
         //narrative
