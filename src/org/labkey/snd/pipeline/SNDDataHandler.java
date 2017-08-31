@@ -135,7 +135,7 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
         //repeatable
         pkg.setRepeatable(packageType.getRepeatable());
 
-        //displayable //TODO: keep 'active' or change to 'displayable'?
+        //displayable
         pkg.setActive(packageType.getDisplayable());
 
         /* extra field(s)*/
