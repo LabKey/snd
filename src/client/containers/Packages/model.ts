@@ -1,4 +1,6 @@
-import { LabKeyQueryRowPropertyProps } from '../../query/model'
+import { LabKeyQueryRowPropertyProps, QueryModel } from '../../query/model'
+
+import * as actions from './actions'
 
 
 interface PackagesModelProps {
@@ -11,9 +13,7 @@ interface PackagesModelProps {
     hasInput?: boolean
 
     isError: boolean
-    isLoaded: boolean
-    isLoading: boolean
-
+    isInit?: boolean
     message: string
     packageCount: number
     packageData: {[key: string]: PackageModel}
@@ -30,8 +30,7 @@ export const defaultPackagesModel: PackagesModelProps = {
     filteredDrafts: [],
     hasInput: false,
     isError: false,
-    isLoaded: false,
-    isLoading: false,
+    isInit: false,
     message: undefined,
     packageCount: 0,
     packageData: {},
@@ -39,6 +38,7 @@ export const defaultPackagesModel: PackagesModelProps = {
     packageLoading: false
 };
 
+// may make more sense for this to be in wizards/packages/packageSearch?
 export class PackagesModel implements PackagesModelProps {
     active: Array<any>;
     data: {[key: string]: any};
@@ -48,19 +48,22 @@ export class PackagesModel implements PackagesModelProps {
     filteredDrafts?: Array<any>;
     hasInput?: boolean;
     isError: boolean;
-    isLoaded: boolean;
-    isLoading: boolean;
+    isInit?: boolean;
     message: string;
     packageCount: number;
     packageData: {[key: string]: PackageModel};
 
-    packageLoaded: boolean
-    packageLoading: boolean
+    packageLoaded: boolean;
+    packageLoading: boolean;
 
     constructor(values: PackagesModelProps = defaultPackagesModel) {
         Object.keys(values).forEach(key => {
             this[key] = values[key];
         });
+    }
+
+    init(data: QueryModel) {
+        return actions.packagesInit(this, data);
     }
 }
 

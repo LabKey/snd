@@ -1,27 +1,14 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom'
 
-import { QueryPackageModel } from '../../containers/Packages/model'
+import { LabKeyQueryRowPropertyProps } from '../../query/model'
 
 interface PackageRowProps {
-    pkg?: QueryPackageModel
+    data: {[key: string]: LabKeyQueryRowPropertyProps}
+    dataId: number
 }
 
-
-interface PackageViewerStateProps {
-    showDrafts: boolean
-}
-
-
-export class PackageRow extends React.Component<PackageRowProps, PackageViewerStateProps> {
-
-    constructor(props?: PackageRowProps) {
-        super(props);
-
-        this.state = {
-            showDrafts: false
-        }
-    }
+export class PackageRow extends React.Component<PackageRowProps, {}> {
 
     render() {
         const resultStyle = {
@@ -33,8 +20,9 @@ export class PackageRow extends React.Component<PackageRowProps, PackageViewerSt
             cursor: 'pointer'
         };
 
-        const { Description, PkgId } = this.props.pkg;
+        const { Description, PkgId } = this.props.data;
 
+        // todo: URLs should be more resilient
         return (
             <div className="package_viewer__result clearfix" style={resultStyle}>
                 <div className="result-icons pull-left">

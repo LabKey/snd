@@ -21,18 +21,38 @@ export const packages = handleActions({
         }));
     },
 
-    [PKG_TYPES.PACKAGES_LOADED]: (state: PackagesModel) => {
+    [PKG_TYPES.PACKAGE_INIT]: (state: PackagesModel, action: any) => {
+        const { dataResponse, model } = action;
+        const { data, dataCount, dataIds } = dataResponse;
+
+        let active = [],
+            ids = [],
+            drafts = [];
+        const packagesData = dataIds.reduce((prev, next: number) => {
+            const packageData = data[next];
+            const id = packageData.PkgId.value;
+            ids.push(id);
+            prev[id] = new QueryPackageModel(packageData);
+            // // should filter on hasEvent or Active?
+            if (packageData.Active.value === true) {
+                active.push(id);
+            }
+            else {
+                drafts.push(id);
+            }
+
+            return prev;
+        }, {});
 
         return new PackagesModel(Object.assign({}, state, {
-            isLoaded: true,
-            isLoading: false
-        }));
-    },
-
-    [PKG_TYPES.PACKAGES_LOADING]: (state: PackagesModel) => {
-        return new PackagesModel(Object.assign({}, state, {
-            isLoaded: false,
-            isLoading: true
+            active,
+            data: packagesData,
+            dataIds: ids,
+            drafts,
+            isInit: true,
+            filteredActive: active,
+            filteredDrafts: drafts,
+            packageCount: dataCount
         }));
     },
 

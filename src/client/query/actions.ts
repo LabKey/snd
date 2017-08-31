@@ -36,6 +36,13 @@ export function queryError(schemaQuery: string, error: any) {
     };
 }
 
+export function queryInitialize(schemaQuery: string) {
+    return {
+        type: QUERY_TYPES.QUERY_INIT,
+        schemaQuery
+    };
+}
+
 export function queryInvalidate(schemaQuery: string) {
     return {
         type: QUERY_TYPES.QUERY_INVALIDATE,
@@ -66,16 +73,22 @@ export function querySuccess(schemaQuery: string, response) {
 }
 
 export function querySelectRows(schemaName: string, queryName: string, params?: {[key: string]: any}) {
-    return (dispatch) => {
+    return (dispatch, getState) => {
         const schemaQuery: string = resolveKey(schemaName, queryName);
+        const model = getState().queries.data[schemaQuery];
+
+        if (!model) {
+            dispatch(queryInitialize(schemaQuery));
+        }
+
         dispatch(queryLoading(schemaQuery));
 
         return selectRows(schemaName, queryName, params).then((response: LabKeyQueryResponse) => {
-           dispatch(queryLoaded(schemaQuery));
 
            const { id } = response.metaData;
            if (id) {
                 dispatch(querySuccess(schemaQuery, response));
+                dispatch(queryLoaded(schemaQuery));
            }
            else {
                throw new Error([schemaName, queryName].join(' ') + 'Response does not include id column');

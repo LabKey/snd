@@ -41,17 +41,18 @@ export interface LabKeyQueryResponse {
 
 
 export interface QueryModelProps {
-    schema: string
-    query: string
+    schema?: string
+    query?: string
 
-    data: {[key: string]: LabKeyQueryRowPropertyProps}
-    dataCount: number
-    dataIds: Array<number>
+    data?: {[key: string]: LabKeyQueryRowPropertyProps}
+    dataCount?: number
+    dataIds?: Array<number>
     filters?: Array<any> // define filter type
     isError?: boolean
     isLoaded?: boolean
     isLoading?: boolean
     message?: string
+    metaData?: LabKeyQueryMetaDataProps
 }
 
 const defaultQueryModel: QueryModelProps = {
@@ -66,20 +67,22 @@ const defaultQueryModel: QueryModelProps = {
     isLoaded: false,
     isLoading: false,
     message: undefined,
+    metaData: {} as LabKeyQueryMetaDataProps
 };
 
 export class QueryModel implements QueryModelProps {
-    schema: string;
-    query: string;
+    schema?: string;
+    query?: string;
 
-    data: {[key: string]: LabKeyQueryRowPropertyProps};
-    dataCount: number;
-    dataIds: Array<number>;
+    data?: {[key: string]: LabKeyQueryRowPropertyProps};
+    dataCount?: number;
+    dataIds?: Array<number>;
     filters?: Array<any>; // define filter type
     isError?: boolean;
     isLoaded?: boolean;
     isLoading?: boolean;
     message?: string;
+    metaData?: LabKeyQueryMetaDataProps;
 
     constructor(values: QueryModelProps = defaultQueryModel) {
         const data: QueryModelProps = Object.assign({}, defaultQueryModel, values);

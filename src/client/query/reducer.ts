@@ -15,6 +15,18 @@ export const queries = handleActions({
         return state;
     },
 
+    [QUERY_TYPES.QUERY_INIT]: (state: QueryModelsContainer, action: any) => {
+        const { schemaQuery } = action;
+
+        const model = new QueryModel({
+            schema: actions.getSchemaName(schemaQuery),
+            query: actions.getQueryName(schemaQuery)
+        });
+
+        const updatedState = Object.assign({}, state, {data: {[schemaQuery]: model}});
+        return new QueryModelsContainer(updatedState);
+    },
+
     [QUERY_TYPES.QUERY_INVALIDATE]: (state: QueryModelsContainer, action: any) => {
         const { schemaQuery } = action;
         const { loadedQueries, loadingQueries } = state;
@@ -33,7 +45,18 @@ export const queries = handleActions({
         let loaded = addQuery(schemaQuery, loadedQueries),
             loading = removeQuery(schemaQuery, loadingQueries);
 
-        const updatedState = Object.assign({}, state, {loadedQueries: loaded, loadingQueries: loading});
+        const model = new QueryModel(Object.assign({}, state.data[schemaQuery], {
+            isLoaded: true,
+            isLoading: false
+        }));
+
+        const updatedData = Object.assign({}, state.data, {[schemaQuery]: model});
+
+        const updatedState = Object.assign({}, state, {
+            data: updatedData,
+            loadedQueries: loaded,
+            loadingQueries: loading
+        });
         return new QueryModelsContainer(updatedState);
     },
 
@@ -44,7 +67,18 @@ export const queries = handleActions({
         let loaded = removeQuery(schemaQuery, loadedQueries),
             loading = addQuery(schemaQuery, loadingQueries);
 
-        const updatedState = Object.assign({}, state, {loadedQueries: loaded, loadingQueries: loading});
+        const model = new QueryModel(Object.assign({}, state.data[schemaQuery], {
+            isLoaded: false,
+            isLoading: true
+        }));
+
+        const updatedData = Object.assign({}, state.data, {[schemaQuery]: model});
+
+        const updatedState = Object.assign({}, state, {
+            data: updatedData,
+            loadedQueries: loaded,
+            loadingQueries: loading
+        });
         return new QueryModelsContainer(updatedState);
     },
 
@@ -63,14 +97,12 @@ export const queries = handleActions({
 
         }, {});
 
-        const queryModel = new QueryModel({
-            schema: actions.getSchemaName(schemaQuery),
-            query: actions.getQueryName(schemaQuery),
-
+        const queryModel = new QueryModel(Object.assign({}, state.data[schemaQuery], {
             data,
             dataIds,
-            dataCount: response.rowCount
-        });
+            dataCount: response.rowCount,
+            metaData: response.metaData
+        }));
 
         const updatedState = Object.assign({}, state, {data: {[schemaQuery]: queryModel}});
         return new QueryModelsContainer(updatedState);
