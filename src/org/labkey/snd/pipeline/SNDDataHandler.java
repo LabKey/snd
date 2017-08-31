@@ -224,8 +224,8 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
                     gwtPropertyValidator.setType(org.labkey.api.gwt.client.model.PropertyValidatorType.getType(lsid.getObjectId()));//typeURI
 
                     gwtPropertyValidatorList.add(gwtPropertyValidator);
+                    gwtpd.setPropertyValidators(gwtPropertyValidatorList);
                 }
-
                 attributesList.add(gwtpd);
             }
         }
