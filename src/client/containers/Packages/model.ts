@@ -10,15 +10,10 @@ interface PackagesModelProps {
     drafts: Array<any>
     filteredActive?: Array<any>
     filteredDrafts?: Array<any>
-    hasInput?: boolean
-
     isError: boolean
     isInit?: boolean
     message: string
     packageCount: number
-    packageData: {[key: string]: PackageModel}
-    packageLoaded: boolean
-    packageLoading: boolean
 }
 
 export const defaultPackagesModel: PackagesModelProps = {
@@ -28,14 +23,10 @@ export const defaultPackagesModel: PackagesModelProps = {
     drafts: [],
     filteredActive: [],
     filteredDrafts: [],
-    hasInput: false,
     isError: false,
     isInit: false,
     message: undefined,
-    packageCount: 0,
-    packageData: {},
-    packageLoaded: false,
-    packageLoading: false
+    packageCount: 0
 };
 
 // may make more sense for this to be in wizards/packages/packageSearch?
@@ -46,15 +37,10 @@ export class PackagesModel implements PackagesModelProps {
     drafts: Array<any>;
     filteredActive?: Array<any>;
     filteredDrafts?: Array<any>;
-    hasInput?: boolean;
     isError: boolean;
     isInit?: boolean;
     message: string;
     packageCount: number;
-    packageData: {[key: string]: PackageModel};
-
-    packageLoaded: boolean;
-    packageLoading: boolean;
 
     constructor(values: PackagesModelProps = defaultPackagesModel) {
         Object.keys(values).forEach(key => {
@@ -120,85 +106,6 @@ export class QueryPackageModel implements QueryPackageModelProps {
     links: any;
 
     constructor(values: QueryPackageModelProps = defaultQueryPackageModel) {
-        Object.keys(values).forEach(key => {
-            this[key] = values[key];
-        });
-    }
-}
-
-interface PackageModelValidatorProps {
-    description: string
-    errorMessage: string
-    expression: string
-    name: string
-    type: string
-}
-
-interface PackageModelAttributeProps {
-    format: string
-    label: string
-    lookupQuery: string
-    lookupSchema: string
-    name: string
-    rangeURI: string
-    required: boolean
-    scale: number
-    validators: Array<PackageModelValidatorProps>
-}
-
-interface PackageModelProps {
-    active: boolean
-    attributes: Array<PackageModelAttributeProps>
-    categories: Array<number>
-    container: string
-    description: string
-    narrative: string
-    pkgId: number
-    qcState: any
-    repeatable: boolean
-}
-
-export const defaultPackageModel = {
-    active: false,
-    attributes: [],
-    categories: [],
-    container: undefined,
-    description: undefined,
-    narrative: undefined,
-    pkgId: 0,
-    qcState: null,
-    repeatable: false
-};
-
-export class PackageModel implements PackageModelProps {
-
-    active: boolean;
-    attributes: Array<{
-        format: string;
-        label: string;
-        lookupQuery: string;
-        lookupSchema: string;
-        name: string;
-        rangeURI: string;
-        required: boolean;
-        scale: number;
-        validators: Array<{
-            description: string;
-            errorMessage: string;
-            expression: string;
-            name: string;
-            type: string;
-        }>;
-    }>;
-    categories: Array<number>;
-    container: string;
-    description: string;
-    narrative: string;
-    pkgId: number;
-    qcState: any;
-    repeatable: boolean;
-
-    constructor(values: PackageModelProps = defaultPackageModel) {
         Object.keys(values).forEach(key => {
             this[key] = values[key];
         });

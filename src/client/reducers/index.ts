@@ -17,15 +17,18 @@ import { routerReducer } from 'react-router-redux';
 import { combineReducers } from 'redux';
 import { reducer as formReducer } from 'redux-form';
 
-import { queries } from '../query/reducer'
-import { QueryModelsContainer } from '../query/model'
 import { packages } from '../containers/Packages/reducer'
 import { PackagesModel } from '../containers/Packages/model'
 
+import { queries } from '../query/reducer'
+import { QueryModelsContainer } from '../query/model'
+
+import { WizardsReducer, WizardReducerProps } from '../containers/Wizards/reducer'
 
 export interface APP_STATE_PROPS {
     packages: PackagesModel
     queries: QueryModelsContainer
+    wizards: WizardReducerProps
 
     form: any
     router: any
@@ -34,15 +37,8 @@ export interface APP_STATE_PROPS {
 export const reducers = combineReducers({
     packages,
     queries,
+    wizards: WizardsReducer,
 
     form: formReducer,
     router: routerReducer,
 });
-
-
-
-// packages
-// categories
-// app
-// user
-// wizards

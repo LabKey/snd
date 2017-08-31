@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button, DropdownButton, SplitButton, MenuItem, Panel } from 'react-bootstrap';
+import { Button, DropdownButton, MenuItem, Panel } from 'react-bootstrap';
 
 import { Link, RouteComponentProps } from 'react-router-dom'
 
@@ -8,15 +8,15 @@ import { Dispatch } from 'redux';
 import { CSSProperties } from "react";
 
 
-import { APP_STATE_PROPS } from '../../../reducers/index'
+import { PackageSearchInput, PackageSearchResults } from './PackageSearch'
 import * as actions from '../actions'
-import { QueryPackageModel, PackagesModel } from '../model'
 import { SND_PKG_QUERY, SND_PKG_SCHEMA } from '../constants'
+import { PackagesModel } from '../model'
 import { PackageRow } from '../../../components/Packages/PackageRow'
 import { querySelectRows, resolveKey } from '../../../query/actions'
 import { QueryModel } from '../../../query/model'
+import { APP_STATE_PROPS } from '../../../reducers/index'
 
-import { PackageSearchInput, PackageSearchResults } from './PackageSearch'
 
 interface PackageViewerOwnProps extends RouteComponentProps<{}> {}
 
@@ -56,17 +56,16 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, {}> {
 
     componentWillReceiveProps(nextProps?: PackageViewerProps) {
         const { dispatch, packagesData, packagesModel } = nextProps;
-        const pDataExists = (packagesData && packagesData.isLoaded);
-        const pModelExists = (packagesModel && packagesModel.isInit);
+        const dataExists = (packagesData && packagesData.isLoaded);
+        const modelExists = (packagesModel && packagesModel.isInit);
 
-        if (pDataExists && !pModelExists) {
+        if (dataExists && !modelExists) {
             dispatch(packagesModel.init(packagesData));
         }
     }
 
     render() {
         const { data, filteredActive, filteredDrafts } = this.props.packagesModel;
-        // todo: add css style sheet and webpack support
 
         return (
             <Panel>
@@ -166,6 +165,9 @@ export class PackageViewerInputImpl extends React.Component<PackageViewerInputPr
     }
 
     render() {
+        const { input, showDrafts } = this.state;
+        // todo: add css style sheet and webpack support
+
         const buttonStyle = {
             padding: '2.5px 15px',
         };
@@ -192,8 +194,6 @@ export class PackageViewerInputImpl extends React.Component<PackageViewerInputPr
             top: '8px',
             color: 'lightgray'
         };
-
-        const { input, showDrafts } = this.state;
 
         return(
             <div className="package-viewer__header clearfix" style={{paddingBottom: '20px'}}>
