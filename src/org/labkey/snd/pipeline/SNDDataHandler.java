@@ -1,6 +1,5 @@
 package org.labkey.snd.pipeline;
 
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.apache.xmlbeans.XmlException;
@@ -39,6 +38,7 @@ import org.txbiomed.snd.USDACategoryType;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -107,13 +107,16 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
         }
     }
 
-    private void parseAndSavePackages(ExportDocument.Export export, @NotNull ViewBackgroundInfo info)
+    private void parseAndSavePackages(@NotNull ExportDocument.Export export, @NotNull ViewBackgroundInfo info)
     {
         //get Package nodes
         PackagesType packages = export.getPackages();
         PackageType[] packageArray = packages.getPackageArray();
 
         SNDService sndService = SNDService.get();
+
+        if (null == sndService)
+            throw new IllegalStateException("No SNDService!");
 
         for (PackageType packageType : packageArray)
         {
@@ -140,7 +143,7 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
 
         /* extra field(s)*/
         USDACategoryType.Enum usdaCategoryVal = packageType.getUsdaCategory();
-        Map<String, Object> extraFields = new HashedMap();
+        Map<String, Object> extraFields = new HashMap();
 
         //usda-category
         extraFields.put("usdaCode", usdaCategoryVal);
@@ -161,78 +164,75 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
         ColumnType[] attributeArray = attributes.getAttributeArray();
 
         List<GWTPropertyDescriptor> attributesList = new LinkedList<>();
-        if (attributeArray.length > 0)
+        for (ColumnType ct : attributeArray)
         {
-            for (ColumnType ct : attributeArray)
+            GWTPropertyDescriptor gwtpd = new GWTPropertyDescriptor();
+
+            //columnName
+            gwtpd.setName(ct.getColumnName());
+
+            //rangeURI
+            String rangeURI = ct.getRangeURI();
+            if (null != rangeURI)
+                gwtpd.setRangeURI(rangeURI);
+            else
+                gwtpd.setRangeURI("http://www.w3.org/2001/XMLSchema#" + ct.getDatatype());
+
+            //nullable
+            gwtpd.setRequired(ct.getNullable());
+
+            //columnTitle
+            gwtpd.setLabel(ct.getColumnTitle());
+
+            //defaultValue
+            gwtpd.setDefaultValue(ct.getDefaultValue());
+
+            //fk
+            ColumnType.Fk fk = ct.getFk();
+            if (null != fk)
             {
-                GWTPropertyDescriptor gwtpd = new GWTPropertyDescriptor();
-
-                //columnName
-                gwtpd.setName(ct.getColumnName());
-
-                //rangeURI
-                String rangeURI = ct.getRangeURI();
-                if (null != rangeURI)
-                    gwtpd.setRangeURI(rangeURI);
-                else
-                    gwtpd.setRangeURI("http://www.w3.org/2001/XMLSchema#" + ct.getDatatype());
-
-                //nullable
-                gwtpd.setRequired(ct.getNullable());
-
-                //columnTitle
-                gwtpd.setLabel(ct.getColumnTitle());
-
-                //defaultValue
-                gwtpd.setDefaultValue(ct.getDefaultValue());
-
-                //fk
-                ColumnType.Fk fk = ct.getFk();
-                if(null != fk)
-                {
-                    gwtpd.setLookupQuery(fk.getFkTable());
-                    gwtpd.setLookupSchema(fk.getFkDbSchema());
-                }
-
-                //scale
-                gwtpd.setScale(ct.getScale());
-
-                //redactedText
-                gwtpd.setRedactedText(ct.getRedactedText());
-
-                //precision
-                int precision = ct.getPrecision();
-                if (precision >= 1)
-                {
-                    StringBuilder pr = new StringBuilder("0.");
-                    for (int i = 0; i < precision; i++)
-                        pr.append("#");
-
-                    gwtpd.setFormat(pr.toString());
-                }
-
-                //validator
-                PropertyValidatorType validator = ct.getValidator();
-                if(null != validator)
-                {
-                    GWTPropertyValidator gwtPropertyValidator = new GWTPropertyValidator();
-                    List<GWTPropertyValidator> gwtPropertyValidatorList = new LinkedList<>();
-                    gwtPropertyValidator.setName(validator.getName()); //name
-                    gwtPropertyValidator.setExpression(validator.getExpression()); //expression
-
-                    Lsid lsid = new Lsid(validator.getTypeURI());
-                    gwtPropertyValidator.setType(org.labkey.api.gwt.client.model.PropertyValidatorType.getType(lsid.getObjectId()));//typeURI
-
-                    gwtPropertyValidatorList.add(gwtPropertyValidator);
-                    gwtpd.setPropertyValidators(gwtPropertyValidatorList);
-                }
-                attributesList.add(gwtpd);
+                gwtpd.setLookupQuery(fk.getFkTable());
+                gwtpd.setLookupSchema(fk.getFkDbSchema());
             }
+
+            //scale
+            gwtpd.setScale(ct.getScale());
+
+            //redactedText
+            gwtpd.setRedactedText(ct.getRedactedText());
+
+            //precision
+            int precision = ct.getPrecision();
+            if (precision >= 1)
+            {
+                StringBuilder pr = new StringBuilder("0.");
+                for (int i = 0; i < precision; i++)
+                    pr.append("#");
+
+                gwtpd.setFormat(pr.toString());
+            }
+
+            //validator
+            PropertyValidatorType validator = ct.getValidator();
+            if (null != validator)
+            {
+                GWTPropertyValidator gwtPropertyValidator = new GWTPropertyValidator();
+                List<GWTPropertyValidator> gwtPropertyValidatorList = new LinkedList<>();
+                gwtPropertyValidator.setName(validator.getName()); //name
+                gwtPropertyValidator.setExpression(validator.getExpression()); //expression
+
+                Lsid lsid = new Lsid(validator.getTypeURI());
+                gwtPropertyValidator.setType(org.labkey.api.gwt.client.model.PropertyValidatorType.getType(lsid.getObjectId()));//typeURI
+
+                gwtPropertyValidatorList.add(gwtPropertyValidator);
+                gwtpd.setPropertyValidators(gwtPropertyValidatorList);
+            }
+            attributesList.add(gwtpd);
         }
         return attributesList;
     }
 
-    private void parseAndSaveSuperPackages(ExportDocument.Export export, @NotNull ViewBackgroundInfo info)
+    private void parseAndSaveSuperPackages(@NotNull ExportDocument.Export export, @NotNull ViewBackgroundInfo info)
     {
         SuperPackagesType superPackagesType = export.getSuperPackages();
         SuperPackageType[] superPackageArray = superPackagesType.getSuperPackageArray();
@@ -256,6 +256,12 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
     }
 
     @Override
+    public Priority getPriority(ExpData data)
+    {
+        return (null != data && null != data.getDataFileUrl() && SND_INPUT.isType(data.getDataFileUrl()) ? Priority.MEDIUM : null);
+    }
+
+    @Override
     public @Nullable ActionURL getContentURL(ExpData data)
     {
         return null;
@@ -271,11 +277,5 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
     public void runMoved(ExpData newData, Container container, Container targetContainer, String oldRunLSID, String newRunLSID, User user, int oldDataRowID) throws ExperimentException
     {
 
-    }
-
-    @Override
-    public Priority getPriority(ExpData data)
-    {
-        return (null != data && null != data.getDataFileUrl() && SND_INPUT.isType(data.getDataFileUrl()) ? Priority.MEDIUM : null);
     }
 }
