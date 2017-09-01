@@ -48,7 +48,6 @@ import java.util.Map;
  */
 public class SNDDataHandler extends AbstractExperimentDataHandler
 {
-    private static final Logger _log = Logger.getLogger(SNDDataHandler.class);
     private static final FileType SND_INPUT = new FileType(".snd.xml");
 
     @Override
@@ -81,9 +80,9 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
             //parse xml tags and get tokens/auto-generated pojos
             exportDocument = ExportDocument.Factory.parse(in, options);
 
-            _log.info("Starting xml Validation");
+            log.info("Starting xml Validation");
             XmlBeansUtil.validateXmlDocument(exportDocument, "Validating " + inputFileName + " against schema.");
-            _log.info("End xml Validation");
+            log.info("End xml Validation");
         }
         catch (IOException e)
         {
@@ -102,12 +101,12 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
 
         if(null != export)
         {
-            parseAndSavePackages(export, info);
-            parseAndSaveSuperPackages(export, info);
+            parseAndSavePackages(export, info, log);
+            parseAndSaveSuperPackages(export, info, log);
         }
     }
 
-    private void parseAndSavePackages(@NotNull ExportDocument.Export export, @NotNull ViewBackgroundInfo info)
+    private void parseAndSavePackages(@NotNull ExportDocument.Export export, @NotNull ViewBackgroundInfo info, Logger log)
     {
         //get Package nodes
         PackagesType packages = export.getPackages();
@@ -122,6 +121,7 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
         {
             Package pkg = parsePackage(packageType); //convert auto-generated objects/tokens to SND's Package objects
             sndService.savePackage(info.getContainer(), info.getUser(), pkg); //save to db
+            log.info("Saving package: " + packageType.getId() + "-" + packageType.getDescription());
         }
     }
 
@@ -232,8 +232,9 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
         return attributesList;
     }
 
-    private void parseAndSaveSuperPackages(@NotNull ExportDocument.Export export, @NotNull ViewBackgroundInfo info)
+    private void parseAndSaveSuperPackages(@NotNull ExportDocument.Export export, @NotNull ViewBackgroundInfo info, Logger log)
     {
+        log.info("Saving super packages");
         SuperPackagesType superPackagesType = export.getSuperPackages();
         SuperPackageType[] superPackageArray = superPackagesType.getSuperPackageArray();
         SNDService sndService = SNDService.get();
