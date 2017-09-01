@@ -143,7 +143,7 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
 
         /* extra field(s)*/
         USDACategoryType.Enum usdaCategoryVal = packageType.getUsdaCategory();
-        Map<String, Object> extraFields = new HashMap();
+        Map<String, Object> extraFields = new HashMap<>();
 
         //usda-category
         extraFields.put("usdaCode", usdaCategoryVal);
@@ -238,6 +238,9 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
         SuperPackagesType superPackagesType = export.getSuperPackages();
         SuperPackageType[] superPackageArray = superPackagesType.getSuperPackageArray();
         SNDService sndService = SNDService.get();
+        if (null == sndService)
+            throw new IllegalStateException("No SNDService!");
+
         List<SuperPackage> superPackages = new LinkedList<>();
         for(SuperPackageType superPackageType : superPackageArray)
         {

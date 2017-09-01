@@ -16,6 +16,7 @@
 
 package org.labkey.snd;
 
+import org.jetbrains.annotations.NotNull;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DbScope;
 import org.labkey.api.data.DbSequence;
@@ -77,24 +78,38 @@ public class SNDManager
 
     public void deletePackageCategories(Container c, User u, int pkgId)
     {
-        SQLFragment sql = new SQLFragment("DELETE FROM snd.PkgCategoryJunction WHERE PkgId = " + pkgId);
+        SQLFragment sql = new SQLFragment("DELETE FROM snd.PkgCategoryJunction WHERE PkgId = " + pkgId + " AND Container = " + c.getId());
         SqlExecutor sqlex = new SqlExecutor(SNDSchema.getInstance().getSchema());
         sqlex.execute(sql);
+    }
+
+    private TableInfo getTableInfo(@NotNull UserSchema schema, @NotNull String table)
+    {
+        TableInfo tableInfo = schema.getTable(table);
+        if (tableInfo == null)
+            throw new IllegalStateException(table + " TableInfo not found");
+
+        return tableInfo;
+    }
+
+    private QueryUpdateService getQueryUpdateService(@NotNull TableInfo table)
+    {
+        QueryUpdateService qus = table.getUpdateService();
+        if (qus == null)
+            throw new IllegalStateException(table.getName() + " query update service");
+
+        return qus;
     }
 
     public void updatePackage(User u, Container c, Package pkg, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
-        TableInfo pkgsTable = schema.getTable(SNDSchema.PKGS_TABLE_NAME);
-        QueryUpdateService pkgQus = pkgsTable.getUpdateService();
-        if (pkgQus == null)
-            throw new IllegalStateException();
+        TableInfo pkgsTable = getTableInfo(schema, SNDSchema.PKGS_TABLE_NAME);
+        QueryUpdateService pkgQus = getQueryUpdateService(pkgsTable);
 
-        TableInfo pkgCategJuncTable = schema.getTable(SNDSchema.PKGCATEGORYJUNCTION_TABLE_NAME);
-        QueryUpdateService pkgCategoryQus = pkgCategJuncTable.getUpdateService();
-        if (pkgCategoryQus == null)
-            throw new IllegalStateException();
+        TableInfo pkgCategJuncTable = getTableInfo(schema, SNDSchema.PKGCATEGORYJUNCTION_TABLE_NAME);
+        QueryUpdateService pkgCategoryQus = getQueryUpdateService(pkgCategJuncTable);
 
         List<Map<String, Object>> pkgRows = new ArrayList<>();
         pkgRows.add(pkg.getPackageRow(c));
@@ -132,15 +147,11 @@ public class SNDManager
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
-        TableInfo pkgsTable = schema.getTable(SNDSchema.PKGS_TABLE_NAME);
-        QueryUpdateService pkgQus = pkgsTable.getUpdateService();
-        if (pkgQus == null)
-            throw new IllegalStateException();
+        TableInfo pkgsTable = getTableInfo(schema, SNDSchema.PKGS_TABLE_NAME);
+        QueryUpdateService pkgQus = getQueryUpdateService(pkgsTable);
 
-        TableInfo pkgCategJuncTable = schema.getTable(SNDSchema.PKGCATEGORYJUNCTION_TABLE_NAME);
-        QueryUpdateService pkgCategoryQus = pkgCategJuncTable.getUpdateService();
-        if (pkgCategoryQus == null)
-            throw new IllegalStateException();
+        TableInfo pkgCategJuncTable = getTableInfo(schema, SNDSchema.PKGCATEGORYJUNCTION_TABLE_NAME);
+        QueryUpdateService pkgCategoryQus = getQueryUpdateService(pkgCategJuncTable);
 
         List<Map<String, Object>> pkgRows = new ArrayList<>();
         pkgRows.add(pkg.getPackageRow(c));
@@ -174,10 +185,8 @@ public class SNDManager
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
-        TableInfo superPkgsTable = schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME);
-        QueryUpdateService superPkgQus = superPkgsTable.getUpdateService();
-        if (superPkgQus == null)
-            throw new IllegalStateException();
+        TableInfo superPkgsTable = getTableInfo(schema, SNDSchema.SUPERPKGS_TABLE_NAME);
+        QueryUpdateService superPkgQus = getQueryUpdateService(superPkgsTable);
 
         List<Map<String, Object>> superPkgRows = new ArrayList<>();
         superPkgRows.add(superPkg.getSuperPackageRow(c));
@@ -219,10 +228,8 @@ public class SNDManager
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
-        TableInfo pkgsTable = schema.getTable(SNDSchema.PKGS_TABLE_NAME);
-        QueryUpdateService pkgQus = pkgsTable.getUpdateService();
-        if (pkgQus == null)
-            throw new IllegalStateException();
+        TableInfo pkgsTable = getTableInfo(schema, SNDSchema.PKGS_TABLE_NAME);
+        QueryUpdateService pkgQus = getQueryUpdateService(pkgsTable);
 
         List<Map<String, Object>> rows = null;
         List<Map<String, Object>> keys = new ArrayList<>();
