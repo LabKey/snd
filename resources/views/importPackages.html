@@ -24,6 +24,7 @@
             protocolName: protocolName,
             xmlParameters: xmlParameters_stub,
             saveProtocol: true,
+            pipelineDescription: "SND Import (" + selectedFileNames + ")" ,
             successCallback: function() { window.location = LABKEY.ActionURL.buildURL("pipeline-status", "showList.view") }
         };
 
