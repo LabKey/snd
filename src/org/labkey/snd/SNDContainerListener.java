@@ -45,6 +45,12 @@ public class SNDContainerListener implements ContainerListener
         {
             Table.delete(SNDSchema.getInstance().getTableInfoPkgCategoryJunction(), containerFilter);
             Table.delete(SNDSchema.getInstance().getTableInfoPkgCategories(), containerFilter);
+            Table.delete(SNDSchema.getInstance().getTableInfoCodedEvents(), containerFilter);
+            Table.delete(SNDSchema.getInstance().getTableInfoEventNotes(), containerFilter);
+            Table.delete(SNDSchema.getInstance().getTableInfoEvents(), containerFilter);
+            Table.delete(SNDSchema.getInstance().getTableInfoProjectItems(), containerFilter);
+            Table.delete(SNDSchema.getInstance().getTableInfoProjects(), containerFilter);
+            Table.delete(SNDSchema.getInstance().getTableInfoSuperPkgs(), containerFilter);
             Table.delete(SNDSchema.getInstance().getTableInfoPkgs(), containerFilter);
 
             transaction.commit();
