@@ -52,6 +52,7 @@ import static org.junit.Assert.assertEquals;
 @Category ({CustomModules.class})
 public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 {
+    {setIsBootstrapWhitelisted(true);}
     private static final String PROJECTNAME = "SNDTest Project";
     private static final String TEST1SUBFOLDER = "Test1";
     private static final String TEST1PATH = PROJECTNAME + "/" + TEST1SUBFOLDER;
@@ -482,7 +483,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         customizeViewHelper.openCustomizeViewPanel();
         customizeViewHelper.addColumn("testPkgs");
         customizeViewHelper.clickViewGrid();
-        waitForText("grid view is unsaved.");
+        waitForText("This grid view has been modified.");
 
         assertTextPresent(EXTCOLTESTDATA1, EXTCOLTESTDATA2, EXTCOLTESTDATA3);
 
@@ -547,21 +548,21 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         //confirm package currently has no event
         goToSchemaBrowser();
         dataRegionTable = viewQueryData("snd", "Pkgs");
-        assertEquals("Has event not false","false",dataRegionTable.getDataAsText(0,8));
-        assertEquals("Has project not false","false",dataRegionTable.getDataAsText(0,9));
+        assertEquals("Has event not false","false",dataRegionTable.getDataAsText(0,"Has Event"));
+        assertEquals("Has project not false","false",dataRegionTable.getDataAsText(0,"Has Project"));
 
         //create event
         runScript(ADDEVENT);
         goToSchemaBrowser();
         dataRegionTable = viewQueryData("snd", "Pkgs");
-        assertEquals("Has event not true","true",dataRegionTable.getDataAsText(0,8));
-        assertEquals("Has project not false","false",dataRegionTable.getDataAsText(0,9));
+        assertEquals("Has event not true","true",dataRegionTable.getDataAsText(0,"Has Event"));
+        assertEquals("Has project not false","false",dataRegionTable.getDataAsText(0,"Has Project"));
 
         //add package to project
         runScript(ADDPACKAGETOPROJECT);
         goToSchemaBrowser();
         dataRegionTable = viewQueryData("snd", "Pkgs");
-        assertEquals("Has event not true","true",dataRegionTable.getDataAsText(0,8));
-        assertEquals("Has project not true","true",dataRegionTable.getDataAsText(0,9));
+        assertEquals("Has event not true","true",dataRegionTable.getDataAsText(0,"Has Event"));
+        assertEquals("Has project not true","true",dataRegionTable.getDataAsText(0,"Has Project"));
     }
 }
