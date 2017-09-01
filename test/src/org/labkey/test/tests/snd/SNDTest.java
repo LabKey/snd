@@ -16,6 +16,8 @@
 
 package org.labkey.test.tests.snd;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -34,6 +36,7 @@ import org.labkey.test.Locator;
 import org.labkey.test.TestTimeoutException;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.components.CustomizeView;
+import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.Maps;
 import org.labkey.test.util.SqlserverOnlyTest;
@@ -58,7 +61,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     private static final String EXTCOLTESTDATA3 = "testString 3";
     private static final String EXTCOLTESTDATA3A = "updated testString 3";
 
-    private static final String CREATEDOMAINSAPI = "LABKEY.Domain.create({\n" +
+    private static final String CREATEDOMAINSAPI ="LABKEY.Domain.create({\n" +
             "   domainGroup: \"test\",\n" +
             "   domainKind: \"SND\",\n" +
             "   module: \"snd\",\n" +
@@ -75,6 +78,280 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
             "{\n" +
             "   callback('Success!');\n" +
             "}\n";
+
+
+    private static final String SAVEPACKAGEAPI = "LABKEY.Ajax.request({ \n" +
+"    method: 'POST',                                                                                     \n" +
+"            url: LABKEY.ActionURL.buildURL('snd', 'savePackage.api'),                                   \n" +
+"            success: function(){ callback('Success!'); },                                               \n" +
+"    failure: function(e){ callback(e.responseText); },                                                  \n" +
+"    jsonData: {                                                                                         \n" +
+"        //'id': 10027,                                                                                  \n" +
+"        'description': 'My package description2',                                                       \n" +
+"                'active': true,                                                                         \n" +
+"                'repeatable': true,                                                                     \n" +
+"                'narrative': 'This is a narrative',                                                     \n" +
+"                'categories': [102, 103],                                                               \n" +
+"        'subpackages': [],                                                                              \n" +
+"        'extraFields': {'UsdaCode':'B'},                                                                \n" +
+"        'attributes': [{                                                                                \n" +
+"            'name': 'SNDName',                                                                          \n" +
+"                    'label': 'Name',                                                                    \n" +
+"                   'rangeURI': 'http://www.w3.org/2001/XMLSchema#string',                               \n" +
+"                    'required': false,                                                                  \n" +
+"                    'scale': 500,                                                                       \n" +
+"                    'validators': [{                                                                    \n" +
+"                'name': 'SNDLength',                                                                    \n" +
+"                        'description': 'This will check the length of the field',                       \n" +
+"                        'type': 'length',                                                               \n" +
+"                        'expression': '~gte=1&amp;~lte=400',                                            \n" +
+"                        'errorMessage': 'This value must be between 1 and 400 characters long'          \n" +
+"            }]                                                                                          \n" +
+"        },{                                                                                             \n" +
+"            'name': 'SNDUser',                                                                          \n" +
+"                    'label': 'User',                                                                    \n" +
+"                   'rangeURI': 'http://www.w3.org/2001/XMLSchema#int',                                  \n" +
+"                    'required': true,                                                                   \n" +
+"                    'lookupSchema': 'core',                                                             \n" +
+"                    'lookupQuery': 'Principals'                                                         \n" +
+"        },{                                                                                             \n" +
+"            'name': 'SNDAge',                                                                           \n" +
+"                    'label': 'Age',                                                                     \n" +
+"                   'rangeURI': 'http://www.w3.org/2001/XMLSchema#double',                               \n" +
+"                    'format': '0.##',                                                                   \n" +
+"                    'validators': [{                                                                    \n" +
+"                'name': 'SNDRange',                                                                     \n" +
+"                        'description': 'This will check the range of the field',                        \n" +
+"                        'type': 'range',                                                                \n" +
+"                        'expression': '~gte=1&amp;~lte=100',                                            \n" +
+"                        'errorMessage': 'No centenarians allowed'                                       \n" +
+"            }]                                                                                          \n" +
+"        }]                                                                                              \n" +
+"    }                                                                                                   \n" +
+"})";
+
+    private static final String GETPACKAGEAPI = "LABKEY.Ajax.request({  \n" +
+            "                    method: 'POST',                                                   \n" +
+            "    url: LABKEY.ActionURL.buildURL('snd', 'getPackages.api'),                         \n" +
+            "    success: function(data, a, b, c, d){                                              \n" +
+            "                        callback(JSON.stringify(JSON.parse(data.response).json[0]));  \n" +
+            "},                                                                                    \n" +
+            "    failure: function(e){ callback(e.responseText); },                                \n" +
+            "    jsonData: {'packages':['10001']}                                                  \n" +
+            "});";
+
+    private static final String ADDEVENT = "" +
+            "	LABKEY.Query.insertRows({                                                                                                             " +
+            "		containerPath: '" + PROJECTNAME + "',                                                                                                         " +
+            "		schemaName: 'snd',                                                                                                               " +
+            "		queryName: 'SuperPkgs',                                                                                                                 " +
+            "		rows:                                                                                                                        " +
+            "        [{                                                       \n" +
+            "    'PkgId': 10001,                                              \n" +
+            "    'SuperPkgId': 10001,                                         \n" +
+            "    'SuperPkgPath': 'test'                                       \n" +
+            "}],                                                              \n" +
+            "    successCallback: function(data){                             \n" +
+            "        createEvent(10001);                                      \n" +
+            "    },                                                           \n" +
+            "    failureCallback: function(e){                                \n" +
+            "        callback(e.exception);                                   \n" +
+            "    }                                                            \n" +
+            "	});                                                           \n"+
+            "function createEvent(id){" +
+            "    LABKEY.Query.insertRows({                                    \n" +
+            "            containerPath: '" + PROJECTNAME + "',                \n" +
+            "            schemaName: 'snd',                                   \n" +
+            "            queryName: 'Events',                                 \n" +
+            "            rows: [{                                             \n" +
+            "        'EventId': id,                                           \n" +
+            "                'Id': 1,"                                            +
+            "                'Date': new Date()                               \n" +
+            "    }],                                                          \n" +
+            "    successCallback: function(data){                             \n" +
+            "        createCodedEvent(id);                                    \n" +
+            "    },                                                           \n" +
+            "    failureCallback: function(e){                                \n" +
+            "        callback(e.exception);                                   \n" +
+            "    }                                                            \n" +
+            "	});"                                                              +
+            "}                                                                \n" +
+            "function createCodedEvent(id){" +
+            "    LABKEY.Query.insertRows({                                    \n" +
+            "            containerPath: '" + PROJECTNAME + "',                \n" +
+            "            schemaName: 'snd',                                   \n" +
+            "            queryName: 'CodedEvents',                            \n" +
+            "            rows: [{                                             \n" +
+            "        'EventId': id,                                           \n" +
+            "                'SuperPkgId': id                                 \n" +
+            "    }],                                                          \n" +
+            "    successCallback: function(data){                             \n" +
+            "        callback('Success!');                                    \n" +
+            "    },                                                           \n" +
+            "    failureCallback: function(e){                                \n" +
+            "        callback(e.exception);                                   \n" +
+            "    }                                                            \n" +
+            "	});                                                           \n" +
+            "}                                                                \n"
+;
+    private static final String ADDPACKAGETOPROJECT ="" +
+            "	LABKEY.Query.insertRows({                                                                                                             "+
+            "		containerPath: '"+ PROJECTNAME + "',                                                                                                         "+
+            "		schemaName: 'snd',                                                                                                               "+
+            "		queryName: 'Projects',                                                                                                                 "+
+            "		rows:                                                                                                                        "+
+            "                [{                                                 \n" +
+            "                'ProjectId': 10001,                                \n" +
+            "        'RevisionNum': 1,                                          \n" +
+            "        'ReferenceId': 1,                                          \n" +
+            "        'StartDate': new Date(),                                   \n" +
+            "			'Description': 'Description for package-' + 10001,      \n" +
+            "        'ObjectId': '657b0012-c94e-4cfb-b4a7-499a57c' + 10001      \n" +
+            "}],                                                                \n" +
+            "    successCallback: function(data){                               \n" +
+            "        createProjectItem(10001);                                  \n" +
+            "    },                                                             \n" +
+            "    failureCallback: function(e){                                  \n" +
+            "        callback(e.exception);                                     \n" +
+            "    }                                                              \n" +
+            "    });                                                            \n" +
+            "                                                                   \n" +
+            "                                                                   \n" +
+            "        function createProjectItem(id) {                           \n" +
+            "	LABKEY.Query.insertRows({                                        "+
+            "		containerPath: '"+ PROJECTNAME + "',                         "+
+            "		schemaName: 'snd',                                           "+
+            "		queryName: 'ProjectItems',                                   "+
+            "		rows:                                                        "+
+            "        [{                                                          \n" +
+        "            'ProjectItemId': id,                                        \n" +
+        "            'ParentObjectId': '657b0012-c94e-4cfb-b4a7-499a57c' + id,   \n" +
+        "            'SuperPkgId': id,                                           \n" +
+        "            'Active': true                                              \n" +
+            "}],                                                                 \n" +
+        "    successCallback: function(data){                                    \n" +
+        "        callback('Success!');                                           \n" +
+        "    },                                                                  \n" +
+        "    failureCallback: function(e){                                       \n" +
+        "        callback(e.exception);     \n" +
+        "    }                                                                 \n" +
+        "	});                                                                 \n" +
+        "}                                                                     \n" +
+        "                                                                      \n";
+
+    // The concept here was to include the entire set of scripts and call each as a test.
+    // It was a challenge to debug the js issues but may still be worth pursing.
+    private static final String APISCRIPTS =
+        "var container = '"+ PROJECTNAME +"';                                                                                                     "+
+        "                                                                                                                                         "+
+        "function populateCategories() {                                                                                                          "+
+        "	LABKEY.Query.insertRows({                                                                                                             "+
+        "             containerPath: container,                                                                                                   "+
+        "             schemaName: 'snd',                                                                                                          "+
+        "             queryName: 'PkgCategories',                                                                                                 "+
+        "             rows: [{                                                                                                                    "+
+        "				'CategoryId':  100,                                                                                                       "+
+        "				'Description':  'Surgery',                                                                                                "+
+        "				'Active': true,                                                                                                           "+
+        "				'Comment': 'This is a surgery'                                                                                            "+
+        "				},{                                                                                                                       "+
+        "				'CategoryId':  101,                                                                                                       "+
+        "				'Description':  'Blood Draw',                                                                                             "+
+        "				'Active': true,                                                                                                           "+
+        "				'Comment': 'This is a blood draw'                                                                                         "+
+        "				},{                                                                                                                       "+
+        "				'CategoryId':  102,                                                                                                       "+
+        "				'Description':  'Weight',                                                                                                 "+
+        "				'Active': true,                                                                                                           "+
+        "				'Comment': 'This is a weight'                                                                                             "+
+        "				},{                                                                                                                       "+
+        "				'CategoryId':  103,                                                                                                       "+
+        "				'Description':  'Vitals',                                                                                                 "+
+        "				'Active': true,                                                                                                           "+
+        "				'Comment': 'This is vitals'                                                                                               "+
+        "			}],                                                                                                                           "+
+        "			successCallback: function(data){                                                                                              "+
+        "				callback('Success!');                                                            "+
+        "			},                                                                                                                            "+
+        "			failureCallback: function(e){                                                                                                 "+
+        "				callback(e.exception);                                                                                     "+
+        "			}                                                                                                                             "+
+        "	});                                                                                                                                   "+
+        "}                                                                                                                                        "+
+        "                                                                                                                                         ";
+
+    //        "function myGetPackage() {                                                                                                                "+
+//        "	var package = prompt('Enter package id');                                                                                             "+
+//        "                                                                                                                                         "+
+//        "	if (package != null || package != '') {                                                                                               "+
+//        "		LABKEY.Ajax.request({                                                                                                             "+
+//        "			method: 'POST',                                                                                                               "+
+//        "			url: LABKEY.ActionURL.buildURL('snd', 'getPackages.api'),                                                                     "+
+//        "			success: function(data, a, b, c, d){                                                                                          "+
+//        "				//Ext4.Msg.alert('Success',JSON.stringify(JSON.parse(data.response).json[0]));                                            "+
+//        "				codeMirrorWindow('Package JSON', JSON.stringify(JSON.parse(data.response).json[0]), 'application/json');                  "+
+//        "			},                                                                                                                            "+
+//        "			failure: function(e){ Ext4.Msg.alert('Failure',e.responseText); },                                                            "+
+//        "			jsonData: {'packages':[package]}                                                                                              "+
+//        "		});                                                                                                                               "+
+//        "	}                                                                                                                                     "+
+//        "}                                                                                                                                        "+
+//        "                                                                                                                                         "+
+//        "function mySavePackage() {                                                                                                               "+
+//        "	LABKEY.Ajax.request({                                                                                                                 "+
+//        "		method: 'POST',                                                                                                                   "+
+//        "		url: LABKEY.ActionURL.buildURL('snd', 'savePackage.api'),                                                                         "+
+//        "		success: function(){ callback('Success!'); },                                                   "+
+//        "		failure: function(e){ callback(e.responseText); },                                                                "+
+//        "		jsonData: {                                                                                                                       "+
+//        "			//'id': 10001,                                                                                                                "+
+//        "			'description': 'My package description2',                                                                                     "+
+//        "			'active': true,                                                                                                               "+
+//        "			'repeatable': true,                                                                                                           "+
+//        "			'narrative': 'This is a narrative',                                                                                           "+
+//        "			'categories': [102, 103],                                                                                                     "+
+//        "			'subpackages': [],                                                                                                            "+
+//        "			'extraFields': {'UsdaCode':'B'},                                                                                              "+
+//        "			'attributes': [{                                                                                                              "+
+//        "				'name': 'SNDName',                                                                                                        "+
+//        "				'label': 'Name',                                                                                                          "+
+//        "				'rangeURI': 'http://www.w3.org/2001/XMLSchema#string',                                                                    "+
+//        "				'required': false,                                                                                                        "+
+//        "				'scale': 500,                                                                                                             "+
+//        "				'validators': [{                                                                                                          "+
+//        "					'name': 'SNDLength',                                                                                                  "+
+//        "					'description': 'This will check the length of the field',                                                             "+
+//        "					'type': 'length',                                                                                                     "+
+//        "					'expression': '~gte=1&amp;~lte=400',                                                                                  "+
+//        "					'errorMessage': 'This value must be between 1 and 400 characters long'                                                "+
+//        "				}]                                                                                                                        "+
+//        "			},{                                                                                                                           "+
+//        "				'name': 'SNDUser',                                                                                                        "+
+//        "				'label': 'User',                                                                                                          "+
+//        "				'rangeURI': 'http://www.w3.org/2001/XMLSchema#int',                                                                       "+
+//        "				'required': true,                                                                                                         "+
+//        "				'lookupSchema': 'core',                                                                                                   "+
+//        "				'lookupQuery': 'Principals'                                                                                               "+
+//        "			},{                                                                                                                           "+
+//        "				'name': 'SNDAge',                                                                                                         "+
+//        "				'label': 'Age',                                                                                                           "+
+//        "				'rangeURI': 'http://www.w3.org/2001/XMLSchema#double',                                                                    "+
+//        "				'format': '0.##',                                                                                                         "+
+//        "				'validators': [{                                                                                                          "+
+//        "					'name': 'SNDRange',                                                                                                   "+
+//        "					'description': 'This will check the range of the field',                                                              "+
+//        "					'type': 'range',                                                                                                      "+
+//        "					'expression': '~gte=1&amp;~lte=100',                                                                                  "+
+//        "					'errorMessage': 'No centenarians allowed'                                                                             "+
+//        "				}]                                                                                                                        "+
+//        "			}]                                                                                                                            "+
+//        "		}                                                                                                                                 "+
+//        "	});                                                                                                                                   "+
+//        "}                                                                                                                                        ";
+
+    private static final String CREATECATEGORIESAPI = APISCRIPTS + " populateCategories();";
+//    private static final String SAVEPACKAGEAPI = APISCRIPTS + " mySavePackage():";
+
 
     private final Map<String, Object> TEST1ROW1MAP = Maps.of("PkgId", 1001, "Description", "Description 1", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223451b901", "testPkgs", EXTCOLTESTDATA1);
     private final Map<String, Object> TEST1ROW2MAP = Maps.of("PkgId", 1002, "Description", "Description 2", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223751b901", "testPkgs", EXTCOLTESTDATA2);
@@ -138,13 +415,13 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     private void setupTest1Project()
     {
         clickFolder(TEST1SUBFOLDER);
-        addTestColumns();
+        runScript(CREATEDOMAINSAPI);
     }
 
-    private void addTestColumns()
+    private void runScript(String script)
     {
-        String result = (String)executeAsyncScript(CREATEDOMAINSAPI);
-        assertEquals(result,"Success!", result);
+        String result = (String) executeAsyncScript(script);
+        assertEquals(result, "Success!", result);
     }
 
     @Before
@@ -232,5 +509,59 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         selectQuery("snd", "Pkgs");
         waitAndClickAndWait(Locator.linkWithText("view data"));
         assertTextNotPresent(EXTCOLTESTDATA2, "Description 2");
+    }
+
+    @Test
+    public void testPackageApis()
+    {   DataRegionTable dataRegionTable;
+        //insert package categories
+        runScript(CREATECATEGORIESAPI);
+        goToProjectHome();
+        goToSchemaBrowser();
+        dataRegionTable = viewQueryData("snd", "PkgCategories");
+        assertEquals("Wrong count of categories",4,dataRegionTable.getDataRowCount());
+
+        //insert package
+        runScript(SAVEPACKAGEAPI);
+        goToSchemaBrowser();
+        dataRegionTable = viewQueryData("snd", "Pkgs");
+        assertEquals("Wrong count of categories",1,dataRegionTable.getDataRowCount());
+
+        //get package json
+        String result = (String) executeAsyncScript(GETPACKAGEAPI);
+        JSONObject resultAsJson = new JSONObject(result);
+        assertEquals("Wrong narrative","This is a narrative", resultAsJson.getString("narrative"));
+
+        JSONArray attributes = resultAsJson.getJSONArray("attributes");
+        assertEquals("Wrong attribute count",3,attributes.length());
+
+        JSONArray categories = resultAsJson.getJSONArray("categories");
+        assertEquals("Wrong category count",2,categories.length());
+        assertEquals("Wrong category ",102,categories.getInt(0));
+        assertEquals("Wrong category ",103,categories.getInt(1));
+
+
+        JSONArray validators = attributes.getJSONObject(0).getJSONArray("validators");
+        assertEquals("Wrong validator count",1,validators.length());
+
+        //confirm package currently has no event
+        goToSchemaBrowser();
+        dataRegionTable = viewQueryData("snd", "Pkgs");
+        assertEquals("Has event not false","false",dataRegionTable.getDataAsText(0,8));
+        assertEquals("Has project not false","false",dataRegionTable.getDataAsText(0,9));
+
+        //create event
+        runScript(ADDEVENT);
+        goToSchemaBrowser();
+        dataRegionTable = viewQueryData("snd", "Pkgs");
+        assertEquals("Has event not true","true",dataRegionTable.getDataAsText(0,8));
+        assertEquals("Has project not false","false",dataRegionTable.getDataAsText(0,9));
+
+        //add package to project
+        runScript(ADDPACKAGETOPROJECT);
+        goToSchemaBrowser();
+        dataRegionTable = viewQueryData("snd", "Pkgs");
+        assertEquals("Has event not true","true",dataRegionTable.getDataAsText(0,8));
+        assertEquals("Has project not true","true",dataRegionTable.getDataAsText(0,9));
     }
 }
