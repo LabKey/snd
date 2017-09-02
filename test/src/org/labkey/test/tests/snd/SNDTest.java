@@ -33,6 +33,7 @@ import org.labkey.remoteapi.query.SelectRowsResponse;
 import org.labkey.remoteapi.query.UpdateRowsCommand;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
+import org.labkey.test.TestFileUtils;
 import org.labkey.test.TestTimeoutException;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.components.CustomizeView;
@@ -41,6 +42,7 @@ import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.Maps;
 import org.labkey.test.util.SqlserverOnlyTest;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -353,12 +355,21 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     private static final String CREATECATEGORIESAPI = APISCRIPTS + " populateCategories();";
 //    private static final String SAVEPACKAGEAPI = APISCRIPTS + " mySavePackage():";
 
-
     private final Map<String, Object> TEST1ROW1MAP = Maps.of("PkgId", 1001, "Description", "Description 1", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223451b901", "testPkgs", EXTCOLTESTDATA1);
     private final Map<String, Object> TEST1ROW2MAP = Maps.of("PkgId", 1002, "Description", "Description 2", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223751b901", "testPkgs", EXTCOLTESTDATA2);
     private final Map<String, Object> TEST1ROW3MAP = Maps.of("PkgId", 1003, "Description", "Description 3", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223481b901", "testPkgs", EXTCOLTESTDATA3);
     private final Map<String, Object> TEST1ROW3AMAP = Maps.of("PkgId", 1003, "Description", "Updated Description 3", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223481b901", "testPkgs", EXTCOLTESTDATA3A);
 
+    //Sample files for import to be used in this order
+    private static final File INITIAL_IMPORT_FILE = TestFileUtils.getSampleData("snd/pipeline/import/1_initial.snd.xml");
+    private static final File CHANGE_NARRATIVE_FILE = TestFileUtils.getSampleData("snd/pipeline/import/2_changeNarrative.snd.xml");
+    private static final File INSERT_PACKAGE_FILE = TestFileUtils.getSampleData("snd/pipeline/import/3_insertPackage.snd.xml");
+    private static final File ADD_ATTRIBUTE_FILE = TestFileUtils.getSampleData("snd/pipeline/import/4_addAttribute.snd.xml");
+    private static final File REMOVE_ATTRIBUTE_FILE= TestFileUtils.getSampleData("snd/pipeline/import/5_removeAttribute.snd.xml");
+    private static final File REMOVE_ALL_ATTRIBUTES_FILE = TestFileUtils.getSampleData("snd/pipeline/import/6_removeAllAttributes.snd.xml");
+
+    private static final int IMPORT_WAIT_TIME = 30 * 1000;  // limit of 30 secs
+    private int EXPECTED_IMPORT_JOBS = 1;
 
     @Override
     protected void doCleanup(boolean afterTest) throws TestTimeoutException
@@ -564,5 +575,127 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         dataRegionTable = viewQueryData("snd", "Pkgs");
         assertEquals("Has event not true","true",dataRegionTable.getDataAsText(0,"Has Event"));
         assertEquals("Has project not true","true",dataRegionTable.getDataAsText(0,"Has Project"));
+    }
+
+    @Test
+    public void testSNDImport() throws Exception
+    {
+        //go to SND Project
+        clickProject(PROJECTNAME);
+
+        //set pipeline root
+        setPipelineRoot(INITIAL_IMPORT_FILE.getParentFile().getAbsolutePath());
+
+        //go to Pipeline module
+        goToModule("Pipeline");
+
+        //import 1_initial.snd.xml
+        clickButton("Process and Import Data", defaultWaitForPage);
+        _fileBrowserHelper.checkFileBrowserFileCheckbox(INITIAL_IMPORT_FILE.getName());
+        _fileBrowserHelper.selectImportDataAction("SND document import");
+        waitForPipelineJobsToComplete(EXPECTED_IMPORT_JOBS, "SND Import ("+INITIAL_IMPORT_FILE+")", false, IMPORT_WAIT_TIME);
+
+        //go to grid view for snd.pkg
+        goToSchemaBrowser();
+        selectQuery("snd", "Pkgs");
+        waitAndClickAndWait(Locator.linkWithText("view data"));
+
+        DataRegionTable results = new DataRegionTable("query", getDriver());
+        assertEquals("Wrong row count in snd.Pkgs",1, results.getDataRowCount());
+
+        List<List<String>> rows = results.getRows("PkgId", "Description", "Active", "Repeatable", "Narrative");
+        List<String> row_expected = Arrays.asList("2", "Vitals", "true", "true", "Check Vitals Test");
+        assertEquals("Initial package insert - data not as expected in snd.Pkgs", row_expected, rows.get(0));
+
+        //TODO: Uncomment below and test for validity - I was unable to test since these tables are not exposed yet
+//        //DomainDescriptor
+//        Connection conn = new Connection(WebTestHelper.getBaseURL(), PasswordUtil.getUsername(), PasswordUtil.getPassword());
+//        SelectRowsCommand selectFromDomainDescriptor = new SelectRowsCommand("exp", "DomainDescriptor");
+//        selectFromDomainDescriptor.addFilter(new Filter("Name", "Package-1", Filter.Operator.EQUAL));
+//        SelectRowsResponse resp = selectFromDomainDescriptor.execute(conn, getContainerPath());
+//        assertEquals("exp.DomainDescriptor does not contain a row where Name equals Package-1", 1, resp.getRows().size());
+//
+//        Map<String, Object> domainDescriptorRow = resp.getRows().get(0);
+//        int domainId = (int) domainDescriptorRow.get("DomainId");
+//
+//        //PropertyDomain
+//        SelectRowsCommand selectFromPropertyDomain = new SelectRowsCommand("exp", "PropertyDomain");
+//        selectFromPropertyDomain.addFilter(new Filter("DomainId", domainId, Filter.Operator.EQUAL));
+//        resp = selectFromPropertyDomain.execute(conn, getContainerPath());
+//        assertEquals("exp.PropertyDomain does not contain a row with expected DomainId " + domainId, 1, resp.getRows().size());
+//
+//        Map<String, Object> propertyDomain= resp.getRows().get(0);
+//        int propertyId = (int) propertyDomain.get("PropertyId");
+//
+//        //PropertyDescriptor
+//        SelectRowsCommand selectFromPropertyDescriptor = new SelectRowsCommand("exp", "PropertyDescriptor");
+//        selectFromPropertyDescriptor.addFilter(new Filter("PropertyId", propertyId, Filter.Operator.EQUAL));
+//        resp = selectFromPropertyDescriptor.execute(conn, getContainerPath());
+//        assertEquals("exp.PropertyDescriptor does not contain a row with expected Propertyid " + propertyId, 1, resp.getRows().size());
+
+        //import 2_changeNarrative.snd.xml
+        goToModule("Pipeline");
+        clickButton("Process and Import Data", defaultWaitForPage);
+        _fileBrowserHelper.checkFileBrowserFileCheckbox(CHANGE_NARRATIVE_FILE.getName());
+        _fileBrowserHelper.selectImportDataAction("SND document import");
+        waitForPipelineJobsToComplete(++EXPECTED_IMPORT_JOBS, "SND Import ("+CHANGE_NARRATIVE_FILE+")", false, IMPORT_WAIT_TIME);
+
+        //go to grid view
+        goToSchemaBrowser();
+        selectQuery("snd", "Pkgs");
+        waitAndClickAndWait(Locator.linkWithText("view data"));
+
+        results = new DataRegionTable("query", getDriver());
+        rows = results.getRows("PkgId", "Description", "Active", "Repeatable", "Narrative");
+        row_expected = Arrays.asList("2", "Vitals", "true", "true", "Check Vitals");
+        assertEquals("Updated narrative - data not as expected in snd.Pkgs", row_expected, rows.get(0));
+
+        //import 3_insertPackage.snd.xml
+        goToModule("Pipeline");
+        clickButton("Process and Import Data", defaultWaitForPage);
+        _fileBrowserHelper.checkFileBrowserFileCheckbox(INSERT_PACKAGE_FILE.getName());
+        _fileBrowserHelper.selectImportDataAction("SND document import");
+        waitForPipelineJobsToComplete(++EXPECTED_IMPORT_JOBS, "SND Import ("+INSERT_PACKAGE_FILE+")", false, IMPORT_WAIT_TIME);
+
+        // go to grid view
+        goToSchemaBrowser();
+        selectQuery("snd", "Pkgs");
+        waitAndClickAndWait(Locator.linkWithText("view data"));
+
+        results = new DataRegionTable("query", getDriver());
+        assertEquals("Wrong row count in snd.Pkgs",2, results.getDataRowCount());
+
+        rows = results.getRows("PkgId", "Description", "Active", "Repeatable", "Narrative");
+        row_expected = Arrays.asList("1", "Therapy", "false", "true", "Therapy started");
+        assertEquals("New Package inserted - data not as expected in snd.Pkgs", row_expected, rows.get(0));
+
+        //import 4_addAttribute.snd.xml
+        goToModule("Pipeline");
+        clickButton("Process and Import Data", defaultWaitForPage);
+        _fileBrowserHelper.checkFileBrowserFileCheckbox(ADD_ATTRIBUTE_FILE.getName());
+        _fileBrowserHelper.selectImportDataAction("SND document import");
+        waitForPipelineJobsToComplete(++EXPECTED_IMPORT_JOBS, "SND Import ("+ADD_ATTRIBUTE_FILE+")", false, IMPORT_WAIT_TIME);
+
+        //go to grid view
+        //TODO: Test attribute addition in exp tables (not exposed yet)
+
+        //import 5_removeAttribute.snd.xml
+        goToModule("Pipeline");
+        clickButton("Process and Import Data", defaultWaitForPage);
+        _fileBrowserHelper.checkFileBrowserFileCheckbox(REMOVE_ATTRIBUTE_FILE.getName());
+        _fileBrowserHelper.selectImportDataAction("SND document import");
+        waitForPipelineJobsToComplete(++EXPECTED_IMPORT_JOBS, "SND Import ("+REMOVE_ATTRIBUTE_FILE+")", false, IMPORT_WAIT_TIME);
+
+        //go to grid view
+        //TODO: Test attribute removal in exp tables (not exposed yet)
+
+        //import 6_removeAllAttributes.snd.xml
+        goToModule("Pipeline");
+        clickButton("Process and Import Data", defaultWaitForPage);
+        _fileBrowserHelper.checkFileBrowserFileCheckbox(REMOVE_ALL_ATTRIBUTES_FILE.getName());
+        _fileBrowserHelper.selectImportDataAction("SND document import");
+        waitForPipelineJobsToComplete(++EXPECTED_IMPORT_JOBS, "SND Import ("+REMOVE_ALL_ATTRIBUTES_FILE+")", true, IMPORT_WAIT_TIME);
+
+        checkExpectedErrors(1);
     }
 }
