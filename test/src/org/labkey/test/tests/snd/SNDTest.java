@@ -30,6 +30,7 @@ import org.labkey.remoteapi.query.InsertRowsCommand;
 import org.labkey.remoteapi.query.SaveRowsResponse;
 import org.labkey.remoteapi.query.SelectRowsCommand;
 import org.labkey.remoteapi.query.SelectRowsResponse;
+import org.labkey.remoteapi.query.TruncateTableCommand;
 import org.labkey.remoteapi.query.UpdateRowsCommand;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
@@ -697,5 +698,22 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         waitForPipelineJobsToComplete(++EXPECTED_IMPORT_JOBS, "SND Import ("+REMOVE_ALL_ATTRIBUTES_FILE+")", true, IMPORT_WAIT_TIME);
 
         checkExpectedErrors(1);
+
+        truncateSndPkg();
+
+        //TODO: once exp tables are exposed - do a full cleanup from snd.pkgs, exp.DomainDescriptor, exp.PropertyDomain, exp.PropertyDescriptor
+    }
+
+    private void truncateSndPkg() throws Exception
+    {
+        //cleanup - truncate snd.pkgs
+        Connection conn = createDefaultConnection(false);
+        TruncateTableCommand command = new TruncateTableCommand("snd", "Pkgs");
+        command.execute(conn, getProjectName());
+
+        conn = createDefaultConnection(false);
+        SelectRowsCommand selectRowsCommand = new SelectRowsCommand("snd", "Pkgs");
+        SelectRowsResponse selectRowsResponse = selectRowsCommand.execute(conn, getProjectName());
+        assertEquals("Zero row count expected after truncating snd.Pkgs", 0, selectRowsResponse.getRows().size());
     }
 }
