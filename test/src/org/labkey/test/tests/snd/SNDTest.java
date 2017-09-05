@@ -20,6 +20,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.remoteapi.CommandException;
@@ -438,12 +439,15 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     }
 
     @Before
-    public void preTest()
+    public void preTest() throws Exception
     {
         goToProjectHome();
+        truncateSndPkg();
+
+        //TODO: once exp tables are exposed - do a full cleanup from snd.pkgs, exp.DomainDescriptor, exp.PropertyDomain, exp.PropertyDescriptor
     }
 
-    @Test
+    @Test @Ignore
     public void testSNDModule()
     {
         //TODO: Implement this once we get a UI
@@ -698,10 +702,6 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         waitForPipelineJobsToComplete(++EXPECTED_IMPORT_JOBS, "SND Import ("+REMOVE_ALL_ATTRIBUTES_FILE+")", true, IMPORT_WAIT_TIME);
 
         checkExpectedErrors(1);
-
-        truncateSndPkg();
-
-        //TODO: once exp tables are exposed - do a full cleanup from snd.pkgs, exp.DomainDescriptor, exp.PropertyDomain, exp.PropertyDescriptor
     }
 
     private void truncateSndPkg() throws Exception
