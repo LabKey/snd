@@ -554,8 +554,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 
         JSONArray categories = resultAsJson.getJSONArray("categories");
         assertEquals("Wrong category count",2,categories.length());
-        assertEquals("Wrong category ",102,categories.getInt(0));
-        assertEquals("Wrong category ",103,categories.getInt(1));
+        assertEquals("Wrong categories", Arrays.asList(102, 103), Arrays.asList(categories.toArray()));
 
 
         JSONArray validators = attributes.getJSONObject(0).getJSONArray("validators");
@@ -569,15 +568,15 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 
         //create event
         runScript(ADDEVENT);
-        goToSchemaBrowser();
-        dataRegionTable = viewQueryData("snd", "Pkgs");
+        refresh();
+        dataRegionTable = new DataRegionTable("query",this);
         assertEquals("Has event not true","true",dataRegionTable.getDataAsText(0,"Has Event"));
         assertEquals("Has project not false","false",dataRegionTable.getDataAsText(0,"Has Project"));
 
         //add package to project
         runScript(ADDPACKAGETOPROJECT);
-        goToSchemaBrowser();
-        dataRegionTable = viewQueryData("snd", "Pkgs");
+        refresh();
+        dataRegionTable = new DataRegionTable("query",this);
         assertEquals("Has event not true","true",dataRegionTable.getDataAsText(0,"Has Event"));
         assertEquals("Has project not true","true",dataRegionTable.getDataAsText(0,"Has Project"));
     }
