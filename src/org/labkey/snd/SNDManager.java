@@ -78,8 +78,10 @@ public class SNDManager
 
     public void deletePackageCategories(Container c, User u, int pkgId)
     {
-        SQLFragment sql = new SQLFragment("DELETE FROM snd.PkgCategoryJunction WHERE PkgId = " + pkgId);
-//        SQLFragment sql = new SQLFragment("DELETE FROM snd.PkgCategoryJunction WHERE PkgId = " + pkgId + " AND Container = " + c.getId());
+        SQLFragment sql = new SQLFragment("DELETE FROM " + SNDSchema.getInstance().getTableInfoPkgCategoryJunction());
+        sql.append(" WHERE PkgId = ? AND Container = ? ");
+        sql.add(pkgId).add(c);
+
         SqlExecutor sqlex = new SqlExecutor(SNDSchema.getInstance().getSchema());
         sqlex.execute(sql);
     }
