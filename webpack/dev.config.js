@@ -5,6 +5,7 @@
  */
 const path = require("path");
 const webpack = require("webpack");
+const combineLoaders = require('webpack-combine-loaders');
 
 module.exports = {
     context: path.resolve(__dirname, '..'),
@@ -18,6 +19,12 @@ module.exports = {
         ]
     },
 
+    output: {
+        path: path.resolve(__dirname, '../resources/web/snd/'),
+        publicPath: 'http://localhost:3000/',
+        filename: '[name].js'
+    },
+
     externals: {
         'react/addons': true,
         'react/lib/ExecutionEnvironment': true,
@@ -29,14 +36,22 @@ module.exports = {
             {
                 test: /\.tsx?$/,
                 loaders: ['babel-loader', 'ts-loader']
+            },
+            {
+                test: /\.css$/,
+                loader: combineLoaders([
+                    {
+                        loader: 'style-loader'
+                    }, {
+                        loader: 'css-loader',
+                        query: {
+                            modules: true,
+                            localIdentName: '[name]__[local]___[hash:base64:5]'
+                        }
+                    }
+                ])
             }
         ]
-    },
-
-    output: {
-        path: path.resolve(__dirname, '../resources/web/snd/'),
-        publicPath: 'http://localhost:3000/',
-        filename: '[name].js'
     },
 
     plugins: [

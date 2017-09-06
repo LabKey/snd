@@ -9,6 +9,7 @@ import { APP_STATE_PROPS } from '../../../reducers/index'
 import * as actions from '../../Wizards/Packages/actions'
 import { PackageModel } from '../../Wizards/Packages/model'
 
+const styles = require<any>('./PackageForm.css');
 
 interface PackageFormOwnProps extends RouteComponentProps<{id: string}> {}
 
@@ -114,7 +115,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                     </div>
                 </div>
                 <div className="row clearfix">
-                    <div className="col-sm-12" style={{marginTop: '10px'}}>
+                    <div className={"col-sm-12 " + styles['margin-top']}>
                         <strong>Attributes <i className="fa fa-refresh"/></strong>
                     </div>
                 </div>
@@ -131,28 +132,28 @@ function parsePackageHeader(pathName: string, id) {
     switch (pathName) {
         case 'view':
             return (
-                <div style={{borderBottom: '1px solid black'}}>
+                <div className={styles['header--border__bottom']}>
                     <h4>View Package - {id}</h4>
                 </div>
             );
 
         case 'edit':
             return (
-                <div style={{borderBottom: '1px solid black'}}>
+                <div className={styles['header--border__bottom']}>
                     <h4>Edit Package - {id}</h4>
                 </div>
             );
 
         case 'clone':
             return (
-                <div style={{borderBottom: '1px solid black'}}>
+                <div className={styles['header--border__bottom']}>
                     <h4>New Package - Clone of {id}</h4>
                 </div>
             );
 
         case 'new':
             return (
-                <div style={{borderBottom: '1px solid black'}}>
+                <div className={styles['header--border__bottom']}>
                     <h4>New Package</h4>
                 </div>
             );

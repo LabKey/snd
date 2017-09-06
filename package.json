@@ -67,9 +67,7 @@
   },
   "author": "joshd@labkey.com",
   "license": "ISC",
-  "bugs": {
-
-  },
+  "bugs": {},
   "homepage": "https://github.com/LabKey",
   "dependencies": {
     "@types/react": "15.6.0",
@@ -111,6 +109,7 @@
     "babel-preset-react-hmre": "1.1.1",
     "better-npm-run": "0.0.15",
     "cors": "2.8.4",
+    "css-loader": "0.28.7",
     "enzyme": "2.9.1",
     "express": "4.15.3",
     "express-http-proxy": "1.0.6",
@@ -122,10 +121,12 @@
     "redux-devtools-extension": "2.13.2",
     "redux-mock-store": "1.2.3",
     "rimraf": "2.6.1",
+    "style-loader": "0.18.2",
     "ts-jest": "20.0.7",
     "ts-loader": "2.3.2",
     "typescript": "2.4.2",
     "webpack": "3.4.1",
+    "webpack-combine-loaders": "^2.0.3",
     "webpack-dev-middleware": "1.11.0",
     "webpack-hot-middleware": "2.18.2"
   }
