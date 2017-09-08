@@ -18,25 +18,9 @@ import { combineReducers } from 'redux';
 import { reducer as formReducer } from 'redux-form';
 
 import { packages } from '../containers/Packages/reducer'
-import { PackagesModel } from '../containers/Packages/model'
-
 import { user } from '../containers/SignIn/reducer'
-import { UserModel } from '../containers/SignIn/model'
-
+import { WizardsReducer } from '../containers/Wizards/reducer'
 import { queries } from '../query/reducer'
-import { QueryModelsContainer } from '../query/model'
-
-import { WizardsReducer, WizardReducerProps } from '../containers/Wizards/reducer'
-
-export interface APP_STATE_PROPS {
-    packages: PackagesModel
-    queries: QueryModelsContainer
-    user: UserModel
-    wizards: WizardReducerProps
-
-    form: any
-    router: any
-}
 
 export const reducers = combineReducers({
     packages,

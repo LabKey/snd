@@ -7,7 +7,6 @@ import { UserModel } from '../SignIn/model'
 import { SignIn } from '../SignIn/SignIn'
 
 import { Routes } from '../../routing/Routes'
-import { APP_STATE_PROPS } from '../../reducers/index'
 
 interface AppOwnProps extends RouteComponentProps<{}> {}
 interface AppStateProps {
@@ -23,6 +22,7 @@ function mapStateToProps(state: APP_STATE_PROPS) {
         user: state.user
     }
 }
+
 export class AppImpl extends React.Component<AppProps, any> {
     render() {
         const { user } = this.props;

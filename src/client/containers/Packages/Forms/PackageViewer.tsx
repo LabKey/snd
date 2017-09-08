@@ -10,8 +10,6 @@ import { PackagesModel } from '../model'
 import { PackageRow } from '../../../components/Packages/PackageRow'
 import { querySelectRows, resolveKey } from '../../../query/actions'
 import { QueryModel } from '../../../query/model'
-import { APP_STATE_PROPS } from '../../../reducers/index'
-
 
 interface PackageViewerOwnProps extends RouteComponentProps<{}> {}
 

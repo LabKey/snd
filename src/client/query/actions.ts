@@ -122,7 +122,7 @@ export function selectRows(schemaName: string, queryName: string, params?: {[key
         return LABKEY.Query.selectRows({
             schemaName,
             queryName,
-            ...params,
+            params,
             requiredVersion: 17.1, // newer?
             success: (data: LabKeyQueryResponse) => {
                 resolve(data);

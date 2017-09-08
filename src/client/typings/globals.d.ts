@@ -13,11 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-declare var LABKEY: any;
-declare var window: Window;
+import { PackagesModel } from '../containers/Packages/model'
+import { UserModel } from '../containers/SignIn/model'
+import { WizardReducerProps } from '../containers/Wizards/reducer'
+import { QueryModelsContainer } from '../query/model'
 
-declare var require: {
-    <T>(path: string): T;
-    (paths: string[], callback: (...modules: any[]) => void): void;
-    ensure: (paths: string[], callback: (require: <T>(path: string) => T) => void) => void;
-};
+declare global {
+
+    interface APP_STATE_PROPS {
+        packages: PackagesModel
+        queries: QueryModelsContainer
+        user: UserModel
+        wizards: WizardReducerProps
+
+        form: any
+        router: any
+    }
+
+    const LABKEY: any;
+
+    const require: {
+        <T>(path: string): T;
+        (paths: string[], callback: (...modules: any[]) => void): void;
+        ensure: (paths: string[], callback: (require: <T>(path: string) => T) => void) => void;
+    };
+}
+
+export {}

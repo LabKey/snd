@@ -65,10 +65,13 @@ export const packages = handleActions({
         }));
     },
 
-    [PKG_TYPES.PACKAGES_TOGGLE_DRAFTS]: (state: PackagesModel) => {
+    [PKG_TYPES.PACKAGES_TOGGLE_DRAFTS]: (state: PackagesModel, action: any) => {
+        const { toggled } = action;
+
+        const showDrafts = toggled && typeof toggled === 'boolean' ? toggled : !state.showDrafts;
 
         return new PackagesModel(Object.assign({}, state, {
-            showDrafts: !state.showDrafts
+            showDrafts
         }));
     },
 

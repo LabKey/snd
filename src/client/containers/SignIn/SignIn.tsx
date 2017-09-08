@@ -57,8 +57,6 @@ class SignInImpl extends React.Component<SignInProps, any> {
     render() {
         const { handleSubmit, valid } = this.props;
 
-        // todo: successful signin will not correctly display in labkey header
-        // until page is refreshed
         return (
             <Panel>
                 <form onSubmit={handleSubmit(this.handleValidSubmit)}>

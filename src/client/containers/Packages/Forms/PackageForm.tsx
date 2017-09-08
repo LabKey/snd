@@ -4,10 +4,9 @@ import { connect } from 'react-redux';
 import { Dispatch } from 'redux'
 import { FormProps, Field, reduxForm } from 'redux-form';
 
-import { APP_STATE_PROPS } from '../../../reducers/index'
-
 import { PackageModel } from '../../Wizards/Packages/model'
-
+import { PACKAGE_VIEW } from './PackageFormContainer'
+import { PackageIdInput } from '../../../components/Form/PackageIdInput'
 import { TextArea } from '../../../components/Form/TextArea'
 import { TextInput } from '../../../components/Form/TextInput'
 import { Attributes } from '../../../components/Form/Attributes'
@@ -18,7 +17,7 @@ const styles = require<any>('./PackageForm.css');
 interface PackageFormOwnProps {
     handleNarrativeChange?: (val) => void
     model?: PackageModel
-    readOnly?: boolean
+    view?: PACKAGE_VIEW
 }
 
 interface PackageFormState extends FormProps<any, any, any> {
@@ -57,17 +56,17 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
     }
 
     renderAttributes() {
-        const { model } = this.props;
+        const { model, view } = this.props;
         if (model) {
             const { attributes, narrative } = model;
-            return <Attributes attributes={attributes} narrative={narrative}/>
+            return <Attributes attributes={attributes} narrative={narrative} readOnly={view === PACKAGE_VIEW.VIEW}/>
         }
 
         return null;
     }
 
     render() {
-        const { model, readOnly } = this.props;
+        const { view } = this.props;
 
         return (
             <div>
@@ -85,14 +84,14 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                             <div className="row clearfix">
                                 <div className="col-xs-2">
                                     <Field
-                                        component={TextInput}
-                                        disabled={readOnly}
+                                        component={PackageIdInput}
+                                        view={view}
                                         name='pkgId'/>
                                 </div>
                                 <div className="col-xs-10">
                                     <Field
                                         component={TextInput}
-                                        disabled={readOnly}
+                                        disabled={view === PACKAGE_VIEW.VIEW}
                                         name='description'/>
                                 </div>
                             </div>
@@ -105,7 +104,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                                 <div className="col-xs-12">
                                     <Field
                                         component={TextArea}
-                                        disabled={readOnly}
+                                        disabled={view === PACKAGE_VIEW.VIEW}
                                         name='narrative'
                                         onChange={this.handleNarrativeChange}
                                         rows={6}/>
@@ -117,16 +116,14 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                         </div>
                     </div>
                 </form>
-
-                    <div className="row clearfix">
-                        <div className={"col-sm-12 " + styles['margin-top']}>
-                            <strong>Attributes <i className="fa fa-refresh" style={{cursor: 'pointer'}}/></strong>
-                        </div>
-                        <div className={"col-sm-12 " + styles['margin-top']}>
-                            {this.renderAttributes()}
-                        </div>
+                <div className="row clearfix">
+                    <div className={"col-sm-12 " + styles['margin-top']}>
+                        <strong>Attributes <i className="fa fa-refresh" style={{cursor: 'pointer'}}/></strong>
                     </div>
-
+                    <div className={"col-sm-12 " + styles['margin-top']}>
+                        {this.renderAttributes()}
+                    </div>
+                </div>
             </div>
         )
     }

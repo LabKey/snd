@@ -1,72 +1,14 @@
 import * as React from 'react';
 
 import { connect } from 'react-redux';
-import { FormProps, Field, FieldArray, reduxForm, WrappedFieldArrayProps } from 'redux-form';
+import { FormProps, Field } from 'redux-form';
 
-import { APP_STATE_PROPS } from '../../reducers/index'
 
 import { CheckboxInput } from './Checkbox'
 import { DataTypeSelect } from './DataTypeSelect'
 import { LookupKeyInput } from './LookupKeyInput'
 import { NumericInput } from './NumericInput'
 import { TextInput } from './TextInput'
-
-
-interface AttributesGridOwnProps {
-    attributes: any
-    narrative: any
-}
-
-interface AttributesGridState extends FormProps<any, any, any> {}
-
-interface AttributesGridStateProps {
-
-}
-
-type AttributesGridProps = AttributesGridOwnProps & AttributesGridState;
-
-function mapStateToProps(state: APP_STATE_PROPS, ownProps: AttributesGridOwnProps): AttributesGridState {
-
-    return {
-        initialValues: {
-            attributes: ownProps.attributes
-        }
-    };
-}
-
-export class AttributesGridImpl extends React.Component<AttributesGridProps, AttributesGridStateProps> {
-
-    constructor(props?: AttributesGridProps) {
-        super(props);
-
-    }
-
-    render() {
-
-        const { attributes, narrative } = this.props;
-
-        return (
-            <div>
-                <form>
-                    <div className="table-responsive">
-                        <table className='table table-striped table-bordered'>
-                            <AttributesGridHeader/>
-                            <AttributesGridBody attributes={attributes} narrative={narrative}/>
-                        </table>
-                    </div>
-
-                </form>
-            </div>
-        )
-    }
-}
-
-const AttributesGridForm = reduxForm({
-    enableReinitialize: true,
-    form: 'attributesGrid'
-})(AttributesGridImpl);
-
-export const Attributes = connect<AttributesGridStateProps, any, AttributesGridOwnProps>(mapStateToProps)(AttributesGridForm);
 
 interface AttributeColumnProps {
     disabled?: boolean
@@ -154,7 +96,7 @@ class AttributesGridBody extends React.Component<AttributesGridOwnProps, any> {
     }
 
     render() {
-        const { attributes } = this.props;
+        const { attributes, readOnly } = this.props;
         if (attributes && attributes.length) {
             return (
                 <tbody>
@@ -168,7 +110,7 @@ class AttributesGridBody extends React.Component<AttributesGridOwnProps, any> {
                                                 attribute={attribute}
                                                 attributeId={i}
                                                 component={col.inputComponent}
-                                                disabled={col.disabled}
+                                                disabled={col.disabled || readOnly}
                                                 name={`attributes[${i}][${col.label + i}]`}/>
                                         </td>
                                     )
@@ -183,3 +125,53 @@ class AttributesGridBody extends React.Component<AttributesGridOwnProps, any> {
         return <tbody/>;
     }
 }
+
+interface AttributesGridOwnProps {
+    attributes: any
+    narrative: any
+    readOnly?: boolean
+}
+
+interface AttributesGridState extends FormProps<any, any, any> {}
+
+interface AttributesGridStateProps {
+
+}
+
+type AttributesGridProps = AttributesGridOwnProps & AttributesGridState;
+
+function mapStateToProps(state: APP_STATE_PROPS, ownProps: AttributesGridOwnProps): AttributesGridState {
+
+    return {
+
+    };
+}
+
+export class AttributesGridImpl extends React.Component<AttributesGridProps, AttributesGridStateProps> {
+
+    constructor(props?: AttributesGridProps) {
+        super(props);
+
+    }
+
+    render() {
+
+        const { attributes, narrative, readOnly } = this.props;
+
+        return (
+            <div>
+                <form>
+                    <div className="table-responsive">
+                        <table className='table table-striped table-bordered'>
+                            <AttributesGridHeader/>
+                            <AttributesGridBody attributes={attributes} narrative={narrative} readOnly={readOnly}/>
+                        </table>
+                    </div>
+
+                </form>
+            </div>
+        )
+    }
+}
+
+export const Attributes = connect<AttributesGridStateProps, any, AttributesGridOwnProps>(mapStateToProps)(AttributesGridImpl);

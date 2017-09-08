@@ -9,7 +9,6 @@ import { Dispatch } from 'redux'
 import * as actions from '../actions'
 import { PackagesModel } from '../model'
 import { LabKeyQueryRowPropertyProps } from '../../../query/model'
-import { APP_STATE_PROPS } from '../../../reducers/index'
 
 interface PackageSearchInputProps {
     inputRenderer?: React.ComponentClass<{}>
@@ -198,7 +197,6 @@ export class PackageViewerInputImpl extends React.Component<PackageViewerInputPr
     toggleDrafts(evt: React.MouseEvent<any>) {
         const { dispatch, model } = this.props;
 
-        evt.preventDefault();
         dispatch(model.toggleDrafts())
     }
 
@@ -261,7 +259,7 @@ export class PackageViewerInputImpl extends React.Component<PackageViewerInputPr
                     </div>
                 </div>
                 <div className="col-xs-12" style={{margin: '25px 0 10px', cursor: 'pointer'}} onClick={(evt) => this.toggleDrafts(evt)}>
-                    <input type="checkbox" checked={showDrafts} onClick={(evt) => this.toggleDrafts(evt)}/> Show drafts
+                    <input type="checkbox" checked={showDrafts}/> Show drafts
                 </div>
             </div>
         )

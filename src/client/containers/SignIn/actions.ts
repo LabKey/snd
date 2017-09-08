@@ -60,6 +60,10 @@ export function signInRequestAction(values: SignInProps): (dispatch: Dispatch<{}
     return (dispatch) => {
         return makeSignInRequest(values).then(result => {
             dispatch(successSignIn(result));
+
+            // todo: successful signin will not correctly display in labkey header
+            // until page is refreshed
+            window.location.reload();
         }).catch(error => {
             // handle sign in error
         });

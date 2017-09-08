@@ -6,13 +6,19 @@ import { RouteComponentProps } from 'react-router-dom'
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 
-import { APP_STATE_PROPS } from '../../../reducers/index'
 import * as actions from '../../Wizards/Packages/actions'
-import { PackageModel, PackageWizardModel } from '../../Wizards/Packages/model'
+import { PackageWizardModel } from '../../Wizards/Packages/model'
 
 import { ConnectedPackageForm } from './PackageForm'
 
 const styles = require<any>('./PackageForm.css');
+
+export enum PACKAGE_VIEW {
+    CLONE,
+    EDIT,
+    NEW,
+    VIEW
+}
 
 interface PackageFormContainerOwnProps extends RouteComponentProps<{id: string}> {}
 
@@ -22,9 +28,7 @@ interface PackageFormContainerState {
     model?: PackageWizardModel
 }
 
-interface PackageFormContainerStateProps {
-
-}
+interface PackageFormContainerStateProps {}
 
 type PackageFormContainerProps = PackageFormContainerOwnProps & PackageFormContainerState;
 
@@ -41,7 +45,7 @@ function mapStateToProps(state: APP_STATE_PROPS, ownProps: PackageFormContainerO
 export class PackageFormContainerImpl extends React.Component<PackageFormContainerProps, PackageFormContainerStateProps> {
 
     private panelHeader: React.ReactNode = null;
-    private view: string = undefined;
+    private view: PACKAGE_VIEW;
 
     constructor(props?: PackageFormContainerProps) {
         super(props);
@@ -51,8 +55,28 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
 
         const parts = path.split('/');
         if (parts && parts[2]) {
-            this.view = parts[2];
-            this.panelHeader = parsePackageHeader(parts[2], id);
+            const view = parts[2];
+
+            switch (view) {
+                case 'view':
+                    this.view = PACKAGE_VIEW.VIEW;
+                    break;
+
+                case 'edit':
+                    this.view = PACKAGE_VIEW.EDIT;
+                    break;
+
+                case 'clone':
+                    this.view = PACKAGE_VIEW.CLONE;
+                    break;
+
+                case 'new':
+                    this.view = PACKAGE_VIEW.NEW;
+                    break;
+            }
+
+
+            this.panelHeader = parsePackageHeader(this.view, id);
         }
 
         this.handleNarrativeChange = this.handleNarrativeChange.bind(this);
@@ -77,7 +101,11 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
 
     handleNarrativeChange(value) {
         const { dispatch, model } = this.props;
-        dispatch(model.saveNarrative(value));
+        if (model) {
+            // this will break without model i.e. view === 'new'
+            // need to add init model functionality and include getPackage into that function instead
+            dispatch(model.saveNarrative(value));
+        }
     }
 
     render() {
@@ -85,17 +113,15 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
 
         let body = null;
 
-        console.log(this.props)
-        if (model && model.packageLoaded && this.view !== 'new') {
-            const modelData = this.view !== 'new' ? model.data : undefined;
-            body = <ConnectedPackageForm handleNarrativeChange={this.handleNarrativeChange} model={modelData} readOnly={this.view === 'view'}/>;
+        if (model && model.packageLoaded && this.view !== PACKAGE_VIEW.NEW) {
+            body = <ConnectedPackageForm handleNarrativeChange={this.handleNarrativeChange} model={model.data} view={this.view}/>;
             return (
                 <Panel header={this.panelHeader}>
                     {body}
                 </Panel>
             )
         }
-        else if (this.view === 'new') {
+        else if (this.view === PACKAGE_VIEW.NEW) {
             body = <ConnectedPackageForm handleNarrativeChange={this.handleNarrativeChange}/>;
         }
 
@@ -113,31 +139,31 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
 
 export const PackageFormContainer = connect<any, any, PackageFormContainerProps>(mapStateToProps)(PackageFormContainerImpl);
 
-function parsePackageHeader(pathName: string, id) {
+function parsePackageHeader(view: PACKAGE_VIEW, id) {
 
-    switch (pathName) {
-        case 'view':
+    switch (view) {
+        case PACKAGE_VIEW.VIEW:
             return (
                 <div className={styles['header--border__bottom']}>
                     <h4>View Package - {id}</h4>
                 </div>
             );
 
-        case 'edit':
+        case PACKAGE_VIEW.EDIT:
             return (
                 <div className={styles['header--border__bottom']}>
                     <h4>Edit Package - {id}</h4>
                 </div>
             );
 
-        case 'clone':
+        case PACKAGE_VIEW.CLONE:
             return (
                 <div className={styles['header--border__bottom']}>
                     <h4>New Package - Clone of {id}</h4>
                 </div>
             );
 
-        case 'new':
+        case PACKAGE_VIEW.NEW:
             return (
                 <div className={styles['header--border__bottom']}>
                     <h4>New Package</h4>
