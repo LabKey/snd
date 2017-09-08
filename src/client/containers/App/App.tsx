@@ -1,22 +1,40 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { Dispatch } from 'redux'
 import { Route, RouteComponentProps, RouteProps, Switch } from 'react-router-dom';
 
+import { UserModel } from '../SignIn/model'
+import { SignIn } from '../SignIn/SignIn'
+
 import { Routes } from '../../routing/Routes'
+import { APP_STATE_PROPS } from '../../reducers/index'
 
 interface AppOwnProps extends RouteComponentProps<{}> {}
-interface AppStateProps {}
+interface AppStateProps {
+    dispatch?: Dispatch<any>
+    user?: UserModel
+}
 
 type AppProps = AppOwnProps & AppStateProps;
 
 
-function mapStateToProps(state: any) {
+function mapStateToProps(state: APP_STATE_PROPS) {
     return {
-
+        user: state.user
     }
 }
 export class AppImpl extends React.Component<AppProps, any> {
     render() {
+        const { user } = this.props;
+
+        if (!user.isSignedIn) {
+            return (
+                <div>
+                    <SignIn/>
+                </div>
+            );
+        }
+
         return (
             <div>
                 <Switch>

@@ -117,7 +117,6 @@ export class PackageSearchResults extends React.Component<PackageSearchResultsPr
 
 export class DefaultInput extends React.Component<any, any> {
     render() {
-        console.log('default input', this.props)
         return(
             <div>
 
@@ -131,7 +130,6 @@ export class DefaultInput extends React.Component<any, any> {
 
 export class DefaultRowRenderer extends React.Component<any, any> {
     render() {
-        console.log('default row', this.props)
         return(
             <div>
 

@@ -1,22 +1,28 @@
 import * as React from 'react';
-import { Panel } from 'react-bootstrap'
-import { RouteComponentProps } from 'react-router-dom'
-
+import { ControlLabel } from 'react-bootstrap'
 import { connect } from 'react-redux';
-import { Dispatch } from 'redux';
+import { Dispatch } from 'redux'
+import { FormProps, Field, reduxForm } from 'redux-form';
 
 import { APP_STATE_PROPS } from '../../../reducers/index'
-import * as actions from '../../Wizards/Packages/actions'
+
 import { PackageModel } from '../../Wizards/Packages/model'
+
+import { TextArea } from '../../../components/Form/TextArea'
+import { TextInput } from '../../../components/Form/TextInput'
+import { Attributes } from '../../../components/Form/Attributes'
+
 
 const styles = require<any>('./PackageForm.css');
 
-interface PackageFormOwnProps extends RouteComponentProps<{id: string}> {}
+interface PackageFormOwnProps {
+    handleNarrativeChange?: (val) => void
+    model?: PackageModel
+    readOnly?: boolean
+}
 
-interface PackageFormState {
+interface PackageFormState extends FormProps<any, any, any> {
     dispatch?: Dispatch<any>
-
-    packageModel?: PackageModel
 }
 
 interface PackageFormStateProps {
@@ -25,140 +31,110 @@ interface PackageFormStateProps {
 
 type PackageFormProps = PackageFormOwnProps & PackageFormState;
 
-
-
-function mapStateToProps(state: APP_STATE_PROPS, ownProps: PackageFormOwnProps) {
-    const { id } = ownProps.match.params;
+function mapStateToProps(state: APP_STATE_PROPS, ownProps: PackageFormOwnProps): PackageFormState {
 
     return {
-        packageModel: state.wizards.packages.packageData[id]
+        initialValues: ownProps.model
     };
 }
 
 export class PackageFormImpl extends React.Component<PackageFormProps, PackageFormStateProps> {
 
-    private timer: number = 0;
-    private panelHeader: React.ReactNode = null;
-    private view: string = undefined;
-
     constructor(props?: PackageFormProps) {
         super(props);
 
-        const { path } = props.match;
-        const { id } = props.match.params;
+        this.handleNarrativeChange = this.handleNarrativeChange.bind(this);
+    }
 
-        const parts = path.split('/');
-        if (parts && parts[2]) {
-            this.view = parts[2];
-            this.panelHeader = parsePackageHeader(parts[2], id);
+    handleNarrativeChange(event: React.ChangeEvent<HTMLTextAreaElement>) {
+        const { handleNarrativeChange } = this.props;
+        const value = event.currentTarget.value;
+
+        if (value && handleNarrativeChange && typeof handleNarrativeChange === 'function') {
+            handleNarrativeChange(value);
         }
 
-        this.state = {
-            showDrafts: false
+    }
+
+    renderAttributes() {
+        const { model } = this.props;
+        if (model) {
+            const { attributes, narrative } = model;
+            return <Attributes attributes={attributes} narrative={narrative}/>
         }
-    }
 
-    componentDidMount() {
-        this.getPackage(this.props);
-    }
-
-    componentWillUnmount() {
-        clearTimeout(this.timer);
-    }
-
-    componentWillReceiveProps(nextProps?: PackageFormProps) {
-        this.getPackage(nextProps);
-    }
-
-    getPackage(props?: PackageFormProps) {
-        const { dispatch, packageModel } = props;
-        const { id } = props.match.params;
-
-        if (id && !packageModel) {
-            dispatch(actions.fetchPackage(id));
-        }
+        return null;
     }
 
     render() {
+        const { model, readOnly } = this.props;
 
-        // todo: will be own components/parsers
         return (
-            <Panel header={this.panelHeader}>
-                <div className="row clearfix">
-                    <div className="col-sm-8">
-                        <div className="row clearfix">
-                            <div className="col-xs-2">
-                                <strong>Package Id</strong>
+            <div>
+                <form>
+                    <div className="row clearfix">
+                        <div className="col-sm-8">
+                            <div className="row clearfix">
+                                <div className="col-xs-2">
+                                    <ControlLabel>Package Id</ControlLabel>
+                                </div>
+                                <div className="col-xs-10">
+                                    <ControlLabel>Description</ControlLabel>
+                                </div>
                             </div>
-                            <div className="col-xs-10">
-                                <strong>Description</strong>
+                            <div className="row clearfix">
+                                <div className="col-xs-2">
+                                    <Field
+                                        component={TextInput}
+                                        disabled={readOnly}
+                                        name='pkgId'/>
+                                </div>
+                                <div className="col-xs-10">
+                                    <Field
+                                        component={TextInput}
+                                        disabled={readOnly}
+                                        name='description'/>
+                                </div>
+                            </div>
+                            <div className={"row clearfix " + styles['margin-top']}>
+                                <div className="col-xs-12">
+                                    <ControlLabel>Narrative</ControlLabel>
+                                </div>
+                            </div>
+                            <div className="row clearfix">
+                                <div className="col-xs-12">
+                                    <Field
+                                        component={TextArea}
+                                        disabled={readOnly}
+                                        name='narrative'
+                                        onChange={this.handleNarrativeChange}
+                                        rows={6}/>
+                                </div>
                             </div>
                         </div>
-                        <div className="row clearfix">
-                            <div className="col-xs-2">
-                                <input type="text" style={{width: '100%'}}/>
-                            </div>
-                            <div className="col-xs-10">
-                                <input type="text" style={{width: '100%'}}/>
-                            </div>
-                        </div>
-                        <div className="row clearfix">
-                            <div className="col-xs-12">
-                                <strong>Narrative</strong>
-                            </div>
-                        </div>
-                        <div className="row clearfix">
-                            <div className="col-xs-12">
-                                <textarea style={{width: '100%'}} rows={5}/>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="row clearfix">
-                    <div className={"col-sm-12 " + styles['margin-top']}>
-                        <strong>Attributes <i className="fa fa-refresh"/></strong>
-                    </div>
-                </div>
+                        <div className="col-sm-4">
 
-            </Panel>
+                        </div>
+                    </div>
+                </form>
+
+                    <div className="row clearfix">
+                        <div className={"col-sm-12 " + styles['margin-top']}>
+                            <strong>Attributes <i className="fa fa-refresh" style={{cursor: 'pointer'}}/></strong>
+                        </div>
+                        <div className={"col-sm-12 " + styles['margin-top']}>
+                            {this.renderAttributes()}
+                        </div>
+                    </div>
+
+            </div>
         )
     }
 }
 
-export const PackageForm = connect<any, any, PackageFormProps>(mapStateToProps)(PackageFormImpl);
+const PackageForm = reduxForm({
+    enableReinitialize: true,
+    form: 'packageForm'
+})(PackageFormImpl);
 
-function parsePackageHeader(pathName: string, id) {
-
-    switch (pathName) {
-        case 'view':
-            return (
-                <div className={styles['header--border__bottom']}>
-                    <h4>View Package - {id}</h4>
-                </div>
-            );
-
-        case 'edit':
-            return (
-                <div className={styles['header--border__bottom']}>
-                    <h4>Edit Package - {id}</h4>
-                </div>
-            );
-
-        case 'clone':
-            return (
-                <div className={styles['header--border__bottom']}>
-                    <h4>New Package - Clone of {id}</h4>
-                </div>
-            );
-
-        case 'new':
-            return (
-                <div className={styles['header--border__bottom']}>
-                    <h4>New Package</h4>
-                </div>
-            );
-
-        default:
-            return null;
-    }
-}
+export const ConnectedPackageForm = connect<PackageFormStateProps, any, PackageFormOwnProps>(mapStateToProps)(PackageForm);

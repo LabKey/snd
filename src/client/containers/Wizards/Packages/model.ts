@@ -13,15 +13,45 @@ interface PackageModelValidatorProps {
 }
 
 interface PackageModelAttributeProps {
-    format: string
-    label: string
-    lookupQuery: string
-    lookupSchema: string
-    name: string
-    rangeURI: string
-    required: boolean
-    scale: number
-    validators: Array<PackageModelValidatorProps>
+    format?: string
+    label?: string
+    lookupQuery?: string
+    lookupSchema?: string
+    name?: string
+    rangeURI?: string
+    required?: boolean
+    scale?: number
+    validators?: Array<PackageModelValidatorProps>
+}
+
+const defaultPackageModelAttribute: PackageModelAttributeProps = {
+    format: undefined,
+    label: undefined,
+    lookupQuery: undefined,
+    lookupSchema: undefined,
+    name: undefined,
+    rangeURI: undefined,
+    required: false,
+    scale: 0,
+    validators: Array<PackageModelValidatorProps>(),
+};
+export class PackageModelAttribute implements PackageModelAttributeProps {
+
+    format: string;
+    label: string;
+    lookupQuery: string;
+    lookupSchema: string;
+    name: string;
+    rangeURI: string;
+    required: boolean;
+    scale: number;
+    validators: Array<PackageModelValidatorProps>;
+
+    constructor(values: PackageModelAttributeProps = defaultPackageModelAttribute) {
+        Object.keys(values).forEach(key => {
+            this[key] = values[key];
+        });
+    }
 }
 
 interface PackageModelProps {
@@ -67,7 +97,7 @@ export class PackageModel implements PackageModelProps {
 }
 
 interface PackageWizardModelProps {
-    data?: {[key: string]: PackageModel};
+    data?: PackageModel;
     isActive?: boolean;
     isError?: boolean;
     message?: string;
@@ -78,7 +108,7 @@ interface PackageWizardModelProps {
 }
 
 export const defaultPackageWizardModel: PackageWizardModelProps = {
-    data: {},
+    data: new PackageModel(),
     isActive: false,
     isError: false,
     message: undefined,
@@ -89,7 +119,7 @@ export const defaultPackageWizardModel: PackageWizardModelProps = {
 };
 
 export class PackageWizardModel implements PackageWizardModelProps {
-    data?: {[key: string]: PackageModel};
+    data?: PackageModel;
     isActive?: boolean;
     isError?: boolean;
     message?: string;
@@ -110,6 +140,11 @@ export class PackageWizardModel implements PackageWizardModelProps {
 
     loading() {
         return actions.packageLoading(this);
+    }
+
+    saveNarrative(narrative: string) {
+        return actions.saveNarrative(this, narrative);
+
     }
 
     setError(error) {

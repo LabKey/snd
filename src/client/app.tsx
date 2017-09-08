@@ -21,12 +21,10 @@ import * as ReactDom from 'react-dom';
 // Redux
 import { applyMiddleware, compose, createStore } from 'redux';
 import { Provider } from 'react-redux';
-/* eslint-disable no-unused-vars*/
 import { composeWithDevTools } from 'redux-devtools-extension';
 
 // Routing
 import { createBrowserHistory, createHashHistory } from 'history';
-/* eslint-enable no-unused-vars*/
 import { Route } from 'react-router-dom';
 import { ConnectedRouter, routerMiddleware } from 'react-router-redux';
 

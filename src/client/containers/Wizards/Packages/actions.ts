@@ -1,7 +1,7 @@
 import { PKG_WIZARD_TYPES } from './constants'
 import { PackageModel, PackageWizardModel } from './model'
 
-import { labkeyAjax } from '../../../query/actions'
+import { labkeyAjax, querySelectRows } from '../../../query/actions'
 
 export function fetchPackage(id: string | number) {
     return (dispatch, getState) => {
@@ -22,8 +22,9 @@ export function fetchPackage(id: string | number) {
                 null,
                 {"packages":[id]}
             ).then((response: PackageQueryResponse) => {
-                // cannot set loaded as there could be more packages
                 dispatch(packageModel.loaded());
+
+                packageModel = getState().wizards.packages.packageData[id];
                 dispatch(packageModel.success(response));
             }).catch((error) => {
                 // set error
@@ -71,7 +72,23 @@ export function packageSuccess(model: PackageWizardModel, response: PackageQuery
     };
 }
 
+export function saveNarrative(model: PackageWizardModel, narrative: string) {
+    return {
+        type: PKG_WIZARD_TYPES.SAVE_NARRATIVE,
+        model,
+        narrative
+    }
 
+}
+
+export function parseNarrativeKeywords(narrative): Array<string> {
+    const keywords = narrative.match(/[^{}]+(?=})/g);
+    if (keywords && keywords.length) {
+        return keywords;
+    }
+
+    return [];
+}
 
 interface PackageQueryResponse {
     json: Array<PackageModel>

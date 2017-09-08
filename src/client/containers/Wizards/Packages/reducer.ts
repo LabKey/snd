@@ -1,7 +1,15 @@
 import { handleActions } from 'redux-actions';
 
 import { PKG_WIZARD_TYPES } from './constants'
-import { defaultPackageWizardModel, PackageModel, PackageWizardModel, PackageWizardContainer } from './model'
+import {
+    defaultPackageWizardModel,
+    PackageModelAttribute,
+    PackageModel,
+    PackageWizardModel,
+    PackageWizardContainer
+} from './model'
+
+import * as actions from './actions'
 
 
 export const packages = handleActions({
@@ -52,16 +60,40 @@ export const packages = handleActions({
         const { json } = response;
         const pkgId = model.packageId;
 
-        const data = json.reduce((prev, next: PackageModel) => {
-            const id = next.pkgId;
-            prev[id] = new PackageModel(next);
+        let data = json.find((d) => {
+            return d.pkgId = pkgId;
+        });
 
-            return prev;
-        }, {});
+        data.attributes = data.attributes.map((attribute, i) => {
+            return Object.keys(attribute).reduce((prev, next) => {
+                prev[next + i] = attribute[next];
+                return prev;
+            }, {});
+        });
 
 
         const successModel = new PackageWizardModel(Object.assign({}, model, {
-            data: Object.assign({}, state.packageData[pkgId].data, data)
+            data: new PackageModel(Object.assign({}, state.packageData[pkgId].data, data))
+        }));
+
+        return new PackageWizardContainer(Object.assign({}, state, {packageData: {
+            [successModel.packageId]: successModel
+        }}));
+    },
+
+    [PKG_WIZARD_TYPES.SAVE_NARRATIVE]: (state: PackageWizardContainer, action: any) => {
+        const { model, narrative } = action;
+        const parsedNarrative = actions.parseNarrativeKeywords(narrative);
+
+        let data = Object.assign({}, model.data, {narrative});
+
+        data.attributes = parsedNarrative.map((keyword, i) => {
+            return new PackageModelAttribute({['name' + i]: keyword});
+        });
+
+        //return state;
+        const successModel = new PackageWizardModel(Object.assign({}, model, {
+            data: new PackageModel(Object.assign({}, state.packageData[model.packageId].data, data))
         }));
 
         return new PackageWizardContainer(Object.assign({}, state, {packageData: {

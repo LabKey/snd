@@ -4,7 +4,7 @@ import { RouteComponentProps } from 'react-router-dom';
 
 import { EditCategories } from '../containers/Categories/Forms/Edit'
 import { LandingPage } from '../containers/LandingPage/LandingPage'
-import { PackageForm } from '../containers/Packages/Forms/PackageForm'
+import { PackageFormContainer } from '../containers/Packages/Forms/PackageFormContainer'
 import { PackageViewer } from '../containers/Packages/Forms/PackageViewer'
 
 import { NotFound } from '../components/NotFound/NotFound'
@@ -31,25 +31,25 @@ export const Routes: Array<RouteProps> = [
     },
 
     {
-        component: PackageForm,
+        component: PackageFormContainer,
         exact: true,
         path: '/packages/new',
     },
 
     {
-        component: PackageForm,
+        component: PackageFormContainer,
         exact: true,
         path: '/packages/edit/:id',
     },
 
     {
-        component: PackageForm,
+        component: PackageFormContainer,
         exact: true,
         path: '/packages/view/:id',
     },
 
     {
-        component: PackageForm,
+        component: PackageFormContainer,
         exact: true,
         path: '/packages/clone/:id',
     },
