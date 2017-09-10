@@ -10,6 +10,8 @@ import * as actions from '../actions'
 import { PackagesModel } from '../model'
 import { LabKeyQueryRowPropertyProps } from '../../../query/model'
 
+const styles = require<any>('./PackageSearch.css');
+
 interface PackageSearchInputProps {
     inputRenderer?: React.ComponentClass<{}>
     showInput?: boolean
@@ -205,61 +207,34 @@ export class PackageViewerInputImpl extends React.Component<PackageViewerInputPr
         const { showDrafts } = this.props.model;
         // todo: add css style sheet and webpack support
 
-        const buttonStyle = {
-            padding: '2.5px 15px',
-        };
-
-        const searchStyle = {
-            borderRadius: '4px',
-            padding: '5px 5px 5px 25px',
-            fontSize: '1.1em',
-            width: '100%'
-        };
-
-        const iconStyle: CSSProperties = {
-            position: 'absolute',
-            left: '21px',
-            fontSize: '1.1em',
-            top: '8px'
-        };
-
-        const clearStyle: CSSProperties = {
-            position: 'absolute',
-            cursor: 'pointer',
-            right: '21px',
-            fontSize: '1.1em',
-            top: '8px',
-            color: 'lightgray'
-        };
-
         return(
-            <div className="package-viewer__header clearfix" style={{paddingBottom: '20px'}}>
-                <div className="col-sm-3 col-md-2" style={buttonStyle}>
+            <div className="package-viewer__header clearfix" style={{paddingBottom: '20px', paddingTop: '10px'}}>
+                <div className={"col-sm-3 col-md-2 " + styles['packages-button']} >
                     <Link to="/packages/new">
-                        <Button>New Package</Button>
+                        <Button className={styles["packages-new_pkg_btn"]}>New Package</Button>
                     </Link>
                 </div>
                 <div className="col-sm-6 col-md-8" style={{position: 'relative'}}>
-                    <i className="fa fa-search" style={iconStyle}/>
-                    <i className="fa fa-times-circle" style={clearStyle} onClick={() => this.handleClear()}/>
+                    <i className={"fa fa-search " + styles['packages-icon']}/>
+                    <i className={"fa fa-times-circle " + styles['packages-clear']} onClick={() => this.handleClear()}/>
                     <input
                         name="packageSearch"
                         onChange={(evt) => this.handleInputChange(evt)}
                         ref={(el) => this.inputRef = el}
-                        style={searchStyle}
+                        className={styles["packages-search"]}
                         type="text"
                         value={input}/>
                 </div>
-                <div className="col-sm-3 col-md-2" style={buttonStyle}>
-                    <div className="pull-right">
-                        <DropdownButton id="package-actions" title="Options">
+                <div className="col-sm-3 col-md-2 packages-button-style" >
+                    <div className={styles["packages-options"]}>
+                        <DropdownButton id="package-actions" title="Options" style={{width: '105px'}} pullRight={true}>
                             <MenuItem>Edit Categories</MenuItem>
                             <MenuItem>Edit Projects</MenuItem>
                         </DropdownButton>
                     </div>
                 </div>
-                <div className="col-xs-12" style={{margin: '25px 0 10px', cursor: 'pointer'}} onClick={(evt) => this.toggleDrafts(evt)}>
-                    <input type="checkbox" checked={showDrafts}/> Show drafts
+                <div className={"col-xs-12 " + styles["packages-show_drafts"]} onClick={(evt) => this.toggleDrafts(evt)}>
+                    <input type="checkbox" checked={showDrafts} readOnly/> Show drafts
                 </div>
             </div>
         )

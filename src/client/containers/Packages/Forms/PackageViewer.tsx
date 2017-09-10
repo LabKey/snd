@@ -67,7 +67,7 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, {}> {
 
                     <div style={{borderBottom: '1px solid black', margin: '0 15px'}}/>
 
-                    <div className="col-sm-12 package-viewer__results">
+                    <div className="col-sm-12 package-viewer__results" style={{margin: '0 0 0 2%'}}>
                         {showDrafts ?
                             <div className="package_viewer__results--drafts">
                                 <h4>Drafts</h4>

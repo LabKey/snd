@@ -1,0 +1,44 @@
+
+.packages-button {
+    padding: 2.5px 15px;
+}
+
+.packages-search {
+    border-radius: 4px;
+    padding: 5px 5px 5px 25px;
+    font-size: 1.1em;
+    width: 100%;
+}
+
+.packages-icon {
+    position: absolute;
+    left: 21px;
+    font-size: 1.1em;
+    top: 8px
+}
+
+.packages-clear {
+    position: absolute;
+    cursor: pointer;
+    right: 21px;
+    fontSize: 1.1em;
+    top: 8px;
+    color: lightgray;
+}
+
+.packages-new_pkg_btn {
+    float: left;
+    margin: 0 0 0 20%;
+}
+
+.packages-options {
+    float: right;
+    margin: 0 20% 0 0;
+}
+
+.packages-show_drafts {
+    margin: 25px 3% 10px;
+    cursor: pointer;
+    width: 150px;
+
+}

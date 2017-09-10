@@ -85,7 +85,7 @@ function filterPackages(input: string, dataIds: Array<number> , data: {[key: str
         if (pkg) {
             return (
                 pkg.Description &&
-                pkg.Description.value.indexOf(input) !== -1
+                pkg.Description.value.toLowerCase().indexOf(input.toLowerCase()) !== -1
             ) || (
                 pkg.PkgId &&
                 pkg.PkgId.value.toString().indexOf(input) !== -1
