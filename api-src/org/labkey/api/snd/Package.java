@@ -26,7 +26,7 @@ public class Package
     private List<Integer> _categories = new ArrayList<>();
     private List<GWTPropertyDescriptor> _attributes = new ArrayList<>();
     private List<Integer> _subpackages;
-    private Map<String, Object> _extraFields = new HashMap<>();
+    private Map<GWTPropertyDescriptor, Object> _extraFields = new HashMap<>();
     private Integer _qcState;
 
     public static final String PKG_ID = "pkgId";
@@ -119,12 +119,12 @@ public class Package
         this._subpackages = subpackages;
     }
 
-    public Map<String, Object> getExtraFields()
+    public Map<GWTPropertyDescriptor, Object> getExtraFields()
     {
         return _extraFields;
     }
 
-    public void setExtraFields(Map<String, Object> extraFields)
+    public void setExtraFields(Map<GWTPropertyDescriptor, Object> extraFields)
     {
         this._extraFields = extraFields;
     }
@@ -149,7 +149,12 @@ public class Package
         pkgValues.put(PKG_REPEATABLE, isRepeatable());
         pkgValues.put(PKG_QCSTATE, getQcState());
         pkgValues.put(PKG_CONTAINER, c);
-        pkgValues.putAll(getExtraFields());
+
+        Map<GWTPropertyDescriptor, Object> extras = getExtraFields();
+        for (GWTPropertyDescriptor gpd : extras.keySet())
+        {
+            pkgValues.put(gpd.getName(), extras.get(gpd));
+        }
 
         return pkgValues;
     }
@@ -234,6 +239,21 @@ public class Package
                 attributes.put(convertPropertyDescriptorToJson(pd));
             }
             json.put(PKG_ATTRIBUTES, attributes);
+        }
+
+        JSONArray extras = new JSONArray();
+        Map<GWTPropertyDescriptor, Object> extraFields = getExtraFields();
+        if(extraFields != null)
+        {
+            JSONObject jsonExtra;
+            for (GWTPropertyDescriptor extraPd : extraFields.keySet())
+            {
+                jsonExtra = convertPropertyDescriptorToJson(extraPd);
+                jsonExtra.put("value", extraFields.get(extraPd));
+                extras.put(jsonExtra);
+            }
+
+            json.put("extraFields", extras);
         }
 
         return json;

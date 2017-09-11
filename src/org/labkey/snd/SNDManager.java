@@ -39,6 +39,7 @@ import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.PackageDomainKind;
+import org.labkey.api.snd.SNDDomainKind;
 import org.labkey.api.snd.SuperPackage;
 
 import java.sql.SQLException;
@@ -227,6 +228,16 @@ public class SNDManager
         return selector.getArrayList(Integer.class);
     }
 
+    private List<GWTPropertyDescriptor> getPackageExtraFields(Container c, User u)
+    {
+        String uri = SNDDomainKind.getDomainURI(SNDSchema.NAME, SNDSchema.PKGS_TABLE_NAME, c, u);
+        GWTDomain<GWTPropertyDescriptor> domain = DomainUtil.getDomainDescriptor(u, uri, c);
+        if (domain != null)
+            return domain.getFields();
+
+        return Collections.emptyList();
+    }
+
     public List<Package> getPackages(Container c, User u, List<Integer> pkgIds, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -268,6 +279,14 @@ public class SNDManager
                 pkg.setQcState((Integer) row.get(Package.PKG_QCSTATE));
                 pkg.setCategories(getPackageCategories(c, u, pkg.getPkgId()));
                 pkg.setAttributes(getPackageAttributes(c, u, pkg.getPkgId()));
+
+                List<GWTPropertyDescriptor> extraFields = getPackageExtraFields(c, u);
+                Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
+                for (GWTPropertyDescriptor extraField : extraFields)
+                {
+                    extras.put(extraField, row.get(extraField.getName()));
+                }
+                pkg.setExtraFields(extras);
 
                 packages.add(pkg);
             }

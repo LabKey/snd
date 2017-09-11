@@ -143,10 +143,13 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
 
         /* extra field(s)*/
         USDACategoryType.Enum usdaCategoryVal = packageType.getUsdaCategory();
-        Map<String, Object> extraFields = new HashMap<>();
+        Map<GWTPropertyDescriptor, Object> extraFields = new HashMap<>();
 
         //usda-category
-        extraFields.put("usdaCode", usdaCategoryVal);
+        GWTPropertyDescriptor gwtpd = new GWTPropertyDescriptor();
+        gwtpd.setName("usdaCode");
+        gwtpd.setRangeURI("http://www.w3.org/2001/XMLSchema#string");
+        extraFields.put(gwtpd, usdaCategoryVal);
         pkg.setExtraFields(extraFields);
 
         //narrative

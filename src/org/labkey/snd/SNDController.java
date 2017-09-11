@@ -81,13 +81,15 @@ public class SNDController extends SpringActionController
             pkg.setNarrative(json.getString("narrative"));
 
             // Get extra fields
-            JSONObject jsonExtras = json.getJSONObject("extraFields");
+            JSONArray jsonExtras = json.optJSONArray("extraFields");
             if (null != jsonExtras)
             {
-                Map<String, Object> extras = new HashMap<>();
-                for (String s : jsonExtras.keySet())
+                Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
+                JSONObject extra;
+                for (int e = 0; e < jsonExtras.length(); e++)
                 {
-                    extras.put(s, jsonExtras.get(s));
+                    extra = jsonExtras.getJSONObject(e);
+                    extras.put(ExperimentService.get().convertJsonToPropertyDescriptor(extra), extra.get("value"));
                 }
                 pkg.setExtraFields(extras);
             }
