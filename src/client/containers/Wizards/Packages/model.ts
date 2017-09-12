@@ -55,15 +55,15 @@ export class PackageModelAttribute implements PackageModelAttributeProps {
 }
 
 interface PackageModelProps {
-    active: boolean
-    attributes: Array<PackageModelAttributeProps>
-    categories: Array<number>
-    container: string
-    description: string
-    narrative: string
+    active?: boolean
+    attributes?: Array<PackageModelAttributeProps>
+    categories?: Array<number>
+    container?: string
+    description?: string
+    narrative?: string
     pkgId: number
-    qcState: any
-    repeatable: boolean
+    qcState?: any
+    repeatable?: boolean
 }
 
 export const defaultPackageModel = {
@@ -73,7 +73,7 @@ export const defaultPackageModel = {
     container: undefined,
     description: undefined,
     narrative: undefined,
-    pkgId: 0,
+    pkgId: undefined,
     qcState: null,
     repeatable: false
 };
@@ -113,7 +113,7 @@ export const defaultPackageWizardModel: PackageWizardModelProps = {
     isError: false,
     message: undefined,
     packageCount: 0,
-    packageId: 0,
+    packageId: undefined,
     packageLoaded: false,
     packageLoading: false
 };
@@ -144,7 +144,6 @@ export class PackageWizardModel implements PackageWizardModelProps {
 
     saveNarrative(narrative: string) {
         return actions.saveNarrative(this, narrative);
-
     }
 
     setError(error) {

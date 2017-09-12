@@ -1,4 +1,5 @@
 import { handleActions } from 'redux-actions';
+import { reducer as formReducer } from 'redux-form'
 
 import { PKG_WIZARD_TYPES } from './constants'
 import {
@@ -8,9 +9,6 @@ import {
     PackageWizardModel,
     PackageWizardContainer
 } from './model'
-
-import * as actions from './actions'
-
 
 export const packages = handleActions({
 
@@ -82,16 +80,14 @@ export const packages = handleActions({
     },
 
     [PKG_WIZARD_TYPES.SAVE_NARRATIVE]: (state: PackageWizardContainer, action: any) => {
-        const { model, narrative } = action;
-        const parsedNarrative = actions.parseNarrativeKeywords(narrative);
+        const { model, narrative, parsedNarrative } = action;
 
         let data = Object.assign({}, model.data, {narrative});
 
         data.attributes = parsedNarrative.map((keyword, i) => {
-            return new PackageModelAttribute({['name' + i]: keyword});
+            return new PackageModelAttribute({['name_' + i]: keyword});
         });
 
-        //return state;
         const successModel = new PackageWizardModel(Object.assign({}, model, {
             data: new PackageModel(Object.assign({}, state.packageData[model.packageId].data, data))
         }));
@@ -102,3 +98,38 @@ export const packages = handleActions({
     },
 
 }, new PackageWizardContainer());
+
+const formReducerMiddleware = formReducer as any;
+export const packageFormReducerPlugin = formReducerMiddleware.plugin({
+    packageForm: (state, action) => {
+        switch(action.type) {
+
+            case PKG_WIZARD_TYPES.SAVE_NARRATIVE:
+
+                const currentAttributes = action.model.data.attributes;
+                const updatedAttributes = action.parsedNarrative;
+
+                if (currentAttributes.length !== updatedAttributes.length) {
+
+                    let attributes = updatedAttributes.reduce((prev, next, i) => {
+                        prev[i] = Object.assign({}, state.values.attributes[i], {
+                            ['name_' + i]: updatedAttributes[i]
+                        });
+                        return prev;
+                    }, {});
+
+                    return {
+                        ...state,
+                        values: {
+                            ...state.values,
+                            attributes // set attribute value based on newly updated narrative
+                        },
+                    };
+                }
+
+                return state;
+            default:
+                return state;
+        }
+    }
+});

@@ -3,7 +3,6 @@ import { handleActions } from 'redux-actions';
 import { PKG_TYPES } from './constants'
 import { QueryPackageModel, PackagesModel } from './model'
 
-
 export const packages = handleActions({
 
     [PKG_TYPES.PACKAGES_INIT]: (state: PackagesModel, action: any) => {

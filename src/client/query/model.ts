@@ -18,9 +18,51 @@ interface LabKeyQueryColumnModelProps {
     width: number
 }
 
-interface LabKeyQueryMetaDataProps {
+interface LabKeyQueryFieldProps {
+    align: string
+    autoIncrement: boolean
+    calculated: boolean
+    caption: string
+    cols: number
+    conceptURI: any
+    defaultScale: string
+    defaultValue: any
+    dimension: boolean
+    excludeFromShifting: boolean
+    facetingBehaviorType: string
+    fieldKey: {
+        name: string
+        parent: any
+    }
+    friendlyType: string
+    hidden: boolean
+    inputType: string
+    jsonType: string
+    keyField: boolean
+    measure: boolean
+    mvEnabled: boolean
+    nullable: boolean
+    phi: string
+    protected: boolean
+    readOnly: boolean
+    recommendedVariable: boolean
+    scale: number
+    selectable: boolean
+    shortCaption: string
+    shownInDetailsView: boolean
+    shownInInsertView: boolean
+    shownInUpdateView: boolean
+    sortable: boolean
+    sqlType: string
+    type: string
+    userEditable: boolean
+    versionField: boolean
+    width: number
+}
+
+export interface LabKeyQueryMetaDataProps {
     description: string
-    fields: Array<any>
+    fields: Array<LabKeyQueryFieldProps>
     id: string
     importMessage: string
     importTemplates: Array<{label: string, url: string}>
@@ -90,22 +132,59 @@ export class QueryModel implements QueryModelProps {
             this[key] = values[key];
         });
     }
+
+    getColumn(columnName: string) {
+        if (this.metaData) {
+            return this.metaData.fields.filter((field: LabKeyQueryFieldProps) => {
+                if (field.fieldKey && field.fieldKey.name) {
+                    return field.fieldKey.name === columnName;
+                }
+            });
+        }
+
+        return [];
+    }
+
+    getKeyColumn(): Array<LabKeyQueryFieldProps> {
+        if (this.metaData) {
+            return this.metaData.fields.filter((field: LabKeyQueryFieldProps) => {
+                return field.keyField;
+            });
+        }
+
+        return [];
+    }
+
+    // TODO: add a fetch for LABKEY.Query.getQueryDetails and populate a queryInfo field instead of metaData
+    getVisibleColumns(): Array<LabKeyQueryFieldProps> {
+        if (this.metaData) {
+            return this.metaData.fields.filter((field: LabKeyQueryFieldProps) => {
+                return field.shownInDetailsView;
+            });
+        }
+
+        return [];
+    }
+
+    getVisibleColumnNames(): Array<string> {
+        return this.getVisibleColumns().map(col => col.caption);
+    }
 }
 
 export interface QueryModelsProps {
-    data: {[key: string]: QueryModel}
+    models: {[key: string]: QueryModel}
     loadedQueries: Array<string>
     loadingQueries: Array<string>
 }
 
 const defaultQueryModelsContainer: QueryModelsProps = {
-    data: {},
+    models: {},
     loadedQueries: [],
-    loadingQueries: []
+    loadingQueries: [],
 };
 
 export class QueryModelsContainer implements QueryModelsProps {
-    data: {[key: string]: QueryModel};
+    models: {[key: string]: QueryModel};
     loadedQueries: Array<string>;
     loadingQueries: Array<string>;
 
@@ -114,4 +193,34 @@ export class QueryModelsContainer implements QueryModelsProps {
             this[key] = values[key];
         });
     }
+}
+
+interface SchemaQueryProps {
+    schemaName: string
+    queryName: string
+    viewName?: string
+}
+
+export class SchemaQuery implements SchemaQueryProps {
+    schemaName: string;
+    queryName: string;
+    viewName?: string;
+
+    static create(schemaName: string, queryName: string, viewName?: string): SchemaQuery {
+        return new SchemaQuery({schemaName, queryName, viewName});
+    }
+
+    constructor(values: SchemaQueryProps) {
+        Object.keys(values).forEach(key => {
+            this[key] = values[key];
+        });
+    }
+
+    resolveKey(): string {
+        return [this.schemaName, this.queryName].join('|').toLowerCase();
+    }
+}
+
+function resolveKey(schema: string, query: string): string {
+    return [schema, query].join('|').toLowerCase();
 }

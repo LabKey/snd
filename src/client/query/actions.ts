@@ -1,34 +1,7 @@
 import { QUERY_TYPES } from './constants'
-import { LabKeyQueryResponse } from './model'
+import { LabKeyQueryResponse, QueryModel, SchemaQuery } from './model'
 
-
-export function resolveKey(schema: string, query: string): string {
-    return [schema, query].join('|').toLowerCase();
-}
-
-export function getSchemaName(schemaQuery: string) {
-    if (schemaQuery) {
-        const splitSchemaQuery = schemaQuery.split('|');
-        if (splitSchemaQuery && splitSchemaQuery.length === 2) {
-            return splitSchemaQuery[0];
-        }
-    }
-
-    return undefined;
-}
-
-export function getQueryName(schemaQuery: string) {
-    if (schemaQuery) {
-        const splitSchemaQuery = schemaQuery.split('|');
-        if (splitSchemaQuery && splitSchemaQuery.length === 2) {
-            return splitSchemaQuery[1];
-        }
-    }
-
-    return undefined;
-}
-
-export function queryError(schemaQuery: string, error: any) {
+export function queryError(schemaQuery: SchemaQuery, error: any) {
     return {
         type: QUERY_TYPES.QUERY_ERROR,
         error,
@@ -36,35 +9,54 @@ export function queryError(schemaQuery: string, error: any) {
     };
 }
 
-export function queryInitialize(schemaQuery: string) {
-    return {
-        type: QUERY_TYPES.QUERY_INIT,
-        schemaQuery
-    };
+function shouldSearch(model: QueryModel): boolean {
+
+    const { dataCount, isLoaded, isLoading } = model;
+
+    return !dataCount && !isLoaded && !isLoading;
 }
 
-export function queryInvalidate(schemaQuery: string) {
+export function queryInitialize(schemaQuery: SchemaQuery): (dispatch, getState) => any {
+    return (dispatch, getState: () => APP_STATE_PROPS) => {
+        let model: QueryModel = getState().queries.models[schemaQuery.resolveKey()];
+
+        if (!model) {
+            dispatch({
+                type: QUERY_TYPES.QUERY_INIT,
+                schemaQuery
+            });
+        }
+
+        model = getState().queries.models[schemaQuery.resolveKey()];
+
+        if (shouldSearch(model)) {
+            dispatch(querySelectRows(schemaQuery.schemaName, schemaQuery.queryName));
+        }
+    }
+}
+
+export function queryInvalidate(schemaQuery: SchemaQuery) {
     return {
         type: QUERY_TYPES.QUERY_INVALIDATE,
         schemaQuery
     };
 }
 
-export function queryLoaded(schemaQuery: string) {
+export function queryLoaded(schemaQuery: SchemaQuery) {
     return {
         type: QUERY_TYPES.QUERY_LOADED,
         schemaQuery
     };
 }
 
-export function queryLoading(schemaQuery: string) {
+export function queryLoading(schemaQuery: SchemaQuery) {
     return {
         type: QUERY_TYPES.QUERY_LOADING,
         schemaQuery
     };
 }
 
-export function querySuccess(schemaQuery: string, response) {
+export function querySuccess(schemaQuery: SchemaQuery, response) {
     return {
         type: QUERY_TYPES.QUERY_SUCCESS,
         response,
@@ -73,9 +65,9 @@ export function querySuccess(schemaQuery: string, response) {
 }
 
 export function querySelectRows(schemaName: string, queryName: string, params?: {[key: string]: any}) {
-    return (dispatch, getState) => {
-        const schemaQuery: string = resolveKey(schemaName, queryName);
-        const model = getState().queries.data[schemaQuery];
+    return (dispatch, getState: () => APP_STATE_PROPS) => {
+        const schemaQuery: SchemaQuery = SchemaQuery.create(schemaName, queryName);
+        const model = getState().queries.models[schemaQuery.resolveKey()];
 
         if (!model) {
             dispatch(queryInitialize(schemaQuery));

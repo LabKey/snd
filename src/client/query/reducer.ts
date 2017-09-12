@@ -1,10 +1,11 @@
 import { QUERY_TYPES } from './constants'
 import { handleActions } from 'redux-actions';
 
-import { QueryModel, QueryModelsContainer } from './model'
-import * as actions from './actions'
-
-
+import {
+    QueryModel,
+    QueryModelsContainer,
+    SchemaQuery
+} from './model'
 
 export const queries = handleActions({
 
@@ -19,11 +20,11 @@ export const queries = handleActions({
         const { schemaQuery } = action;
 
         const model = new QueryModel({
-            schema: actions.getSchemaName(schemaQuery),
-            query: actions.getQueryName(schemaQuery)
+            schema: schemaQuery.schemaName,
+            query: schemaQuery.queryName
         });
 
-        const updatedState = Object.assign({}, state, {data: {[schemaQuery]: model}});
+        const updatedState = Object.assign({}, state, {models: {[schemaQuery.resolveKey()]: model}});
         return new QueryModelsContainer(updatedState);
     },
 
@@ -45,15 +46,15 @@ export const queries = handleActions({
         let loaded = addQuery(schemaQuery, loadedQueries),
             loading = removeQuery(schemaQuery, loadingQueries);
 
-        const model = new QueryModel(Object.assign({}, state.data[schemaQuery], {
+        const model = new QueryModel(Object.assign({}, state.models[schemaQuery.resolveKey()], {
             isLoaded: true,
             isLoading: false
         }));
 
-        const updatedData = Object.assign({}, state.data, {[schemaQuery]: model});
+        const updatedModels = Object.assign({}, state.models, {[schemaQuery.resolveKey()]: model});
 
         const updatedState = Object.assign({}, state, {
-            data: updatedData,
+            models: updatedModels,
             loadedQueries: loaded,
             loadingQueries: loading
         });
@@ -67,15 +68,15 @@ export const queries = handleActions({
         let loaded = removeQuery(schemaQuery, loadedQueries),
             loading = addQuery(schemaQuery, loadingQueries);
 
-        const model = new QueryModel(Object.assign({}, state.data[schemaQuery], {
+        const model = new QueryModel(Object.assign({}, state.models[schemaQuery.resolveKey()], {
             isLoaded: false,
             isLoading: true
         }));
 
-        const updatedData = Object.assign({}, state.data, {[schemaQuery]: model});
+        const updatedModels = Object.assign({}, state.models, {[schemaQuery.resolveKey()]: model});
 
         const updatedState = Object.assign({}, state, {
-            data: updatedData,
+            models: updatedModels,
             loadedQueries: loaded,
             loadingQueries: loading
         });
@@ -97,31 +98,31 @@ export const queries = handleActions({
 
         }, {});
 
-        const queryModel = new QueryModel(Object.assign({}, state.data[schemaQuery], {
+        const queryModel = new QueryModel(Object.assign({}, state.models[schemaQuery.resolveKey()], {
             data,
             dataIds,
             dataCount: response.rowCount,
             metaData: response.metaData
         }));
 
-        const updatedState = Object.assign({}, state, {data: {[schemaQuery]: queryModel}});
+        const updatedState = Object.assign({}, state, {models: {[schemaQuery.resolveKey()]: queryModel}});
         return new QueryModelsContainer(updatedState);
     },
 
 }, new QueryModelsContainer());
 
 
-function addQuery(query, queries: Array<string>): Array<string> {
-    if (queries && Array.isArray(queries) && queries.indexOf(query) === -1) {
-        return queries.concat(query);
+function addQuery(schemaQuery: SchemaQuery, queries: Array<string>): Array<string> {
+    if (queries && Array.isArray(queries) && queries.indexOf(schemaQuery.resolveKey()) === -1) {
+        return queries.concat(schemaQuery.resolveKey());
     }
 
     return [];
 }
 
-function removeQuery(query, queries: Array<string>): Array<string> {
-    if (queries && Array.isArray(queries) && queries.indexOf(query) !== -1) {
-        return queries.filter((q) => q !== query);
+function removeQuery(schemaQuery: SchemaQuery, queries: Array<string>): Array<string> {
+    if (queries && Array.isArray(queries) && queries.indexOf(schemaQuery.resolveKey()) !== -1) {
+        return queries.filter((q) => q !== schemaQuery.resolveKey());
     }
 
     return queries;

@@ -5,9 +5,10 @@ import { RouteComponentProps } from 'react-router-dom';
 import { EditCategories } from '../containers/Categories/Forms/Edit'
 import { LandingPage } from '../containers/LandingPage/LandingPage'
 import { PackageFormContainer } from '../containers/Packages/Forms/PackageFormContainer'
-import { PackageViewer } from '../containers/Packages/Forms/PackageViewer'
+import { PackageSearch } from '../containers/Packages/Forms/PackageSearch'
 
 import { NotFound } from '../components/NotFound/NotFound'
+import { Crumb } from '../components/Crumb/Crumb'
 
 
 export interface RouteProps {
@@ -25,7 +26,7 @@ export const Routes: Array<RouteProps> = [
     },
 
     {
-        component: PackageViewer,
+        component: PackageSearch,
         exact: true,
         path: '/packages',
     },
@@ -69,4 +70,23 @@ export const Routes: Array<RouteProps> = [
     {
         component: NotFound
     }
+];
+
+export const CrumbRoutes: Array<RouteProps> = [
+    {
+        component: null,
+        exact: true,
+        path: '/',
+    },
+
+    {
+        component: null,
+        exact: true,
+        path: '/packages',
+    },
+
+    {
+        component: Crumb,
+        path: '/*',
+    },
 ];

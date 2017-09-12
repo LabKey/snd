@@ -1,71 +1,120 @@
 import * as React from 'react';
-import { Panel } from 'react-bootstrap';
-import { RouteComponentProps } from 'react-router-dom'
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 
-import { PackageSearchInput, PackageSearchResults, PackageViewerInput } from './PackageSearch'
-import { SND_PKG_QUERY, SND_PKG_SCHEMA } from '../constants'
+import { PackageSearchInput } from '../../../components/Packages/PackageSearchInput'
+import { PackageSearchResults } from '../../../components/Packages/PackageSearchResults'
+import * as actions from '../actions'
 import { PackagesModel } from '../model'
-import { PackageRow } from '../../../components/Packages/PackageRow'
-import { querySelectRows, resolveKey } from '../../../query/actions'
+
 import { QueryModel } from '../../../query/model'
 
-interface PackageViewerOwnProps extends RouteComponentProps<{}> {}
+
+interface PackageViewerOwnProps {
+    model?: QueryModel
+}
 
 interface PackageViewerState {
     dispatch?: Dispatch<any>
 
-    packagesData?: QueryModel
     packagesModel?: PackagesModel
 }
 
+interface PackageViewerStateProps {
+    input?: string
+}
 
 type PackageViewerProps = PackageViewerOwnProps & PackageViewerState;
-
-const resolvedSNDKey = resolveKey(SND_PKG_SCHEMA, SND_PKG_QUERY);
 
 function mapStateToProps(state: APP_STATE_PROPS) {
 
     return {
-        packagesData: state.queries.data[resolvedSNDKey],
         packagesModel: state.packages
     };
 }
 
-export class PackageViewerImpl extends React.Component<PackageViewerProps, {}> {
+export class PackageViewerImpl extends React.Component<PackageViewerProps, PackageViewerStateProps> {
 
-    constructor(props?: PackageViewerProps) {
+    private timer: number = 0;
+    private inputRef: HTMLInputElement;
+
+    constructor(props: PackageViewerProps) {
         super(props);
+
+        this.state = {
+            input: ''
+        };
+
+        this.handleClear = this.handleClear.bind(this);
+        this.handleInputChange = this.handleInputChange.bind(this);
+        this.toggleDrafts = this.toggleDrafts.bind(this);
     }
 
     componentDidMount() {
-        const { dispatch, packagesModel } = this.props;
-        if (!packagesModel || (packagesModel && !packagesModel.isInit)) {
-            dispatch(querySelectRows(SND_PKG_SCHEMA, SND_PKG_QUERY));
+        const { dispatch, model, packagesModel } = this.props;
+        if (model && model.isLoaded && !packagesModel) {
+            dispatch(packagesModel.init(model));
         }
-        // investigate mapDispatchToProps
+        // add mapDispatchToProps
     }
 
     componentWillReceiveProps(nextProps?: PackageViewerProps) {
-        const { dispatch, packagesData, packagesModel } = nextProps;
-        const dataExists = (packagesData && packagesData.isLoaded);
+        const { dispatch, model, packagesModel } = nextProps;
+        const dataExists = (model && model.isLoaded);
         const modelExists = (packagesModel && packagesModel.isInit);
 
         if (dataExists && !modelExists) {
-            dispatch(packagesModel.init(packagesData));
+            dispatch(packagesModel.init(model));
         }
     }
 
+    handleClear() {
+        const { dispatch } = this.props;
+
+        this.setInput('');
+
+        this.inputRef.focus();
+        dispatch(actions.filterPackages(''));
+    }
+
+    handleInputChange(evt: React.ChangeEvent<HTMLInputElement>) {
+        const { dispatch } = this.props;
+        const input = evt.currentTarget.value;
+
+        this.setInput(input);
+
+        clearTimeout(this.timer);
+        this.timer = setTimeout(() => {
+            this.timer = null;
+
+            dispatch(actions.filterPackages(input))
+        }, 50);
+    }
+
+    setInput(input: string) {
+        this.setState({input});
+    }
+
+    toggleDrafts() {
+        const { dispatch, packagesModel } = this.props;
+        dispatch(packagesModel.toggleDrafts())
+    }
+
     render() {
-        const { data, filteredActive, filteredDrafts, isInit, showDrafts } = this.props.packagesModel;
 
-        return (
-            <Panel>
+        if (this.props.packagesModel) {
+            const { data, filteredActive, filteredDrafts, isInit, showDrafts } = this.props.packagesModel;
+            const { input } = this.state;
+
+            return (
                 <div className="row" style={{padding: '20px 0'}}>
-                    <PackageSearchInput inputRenderer={PackageViewerInput}/>
-
-                    <div style={{borderBottom: '1px solid black', margin: '0 15px'}}/>
+                    <PackageSearchInput
+                        handleClear={this.handleClear}
+                        handleInputChange={this.handleInputChange}
+                        input={input}
+                        inputRef={(el) => this.inputRef = el}
+                        showDrafts={showDrafts}
+                        toggleDrafts={this.toggleDrafts}/>
 
                     <div className="col-sm-12 package-viewer__results" style={{margin: '0 0 0 2%'}}>
                         {showDrafts ?
@@ -75,11 +124,10 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, {}> {
                                     <PackageSearchResults
                                         data={data}
                                         dataIds={filteredDrafts}
-                                        isLoaded={isInit}
-                                        rowRenderer={PackageRow}/>
+                                        isLoaded={isInit}/>
                                 </div>
                             </div>
-                        : null}
+                            : null}
 
                         <div className="package_viewer__results--active clearfix">
                             <h4>Active</h4>
@@ -87,14 +135,15 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, {}> {
                                 <PackageSearchResults
                                     data={data}
                                     dataIds={filteredActive}
-                                    isLoaded={isInit}
-                                    rowRenderer={PackageRow}/>
+                                    isLoaded={isInit}/>
                             </div>
                         </div>
                     </div>
                 </div>
-            </Panel>
-        )
+            )
+        }
+
+        return <div>Loading...</div>;
     }
 }
 

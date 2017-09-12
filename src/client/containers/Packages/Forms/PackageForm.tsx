@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { ControlLabel } from 'react-bootstrap'
+import { Button, ControlLabel } from 'react-bootstrap'
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux'
-import { FormProps, Field, reduxForm } from 'redux-form';
+import { Form, FormProps, Field, reduxForm, initialize } from 'redux-form';
 
 import { PackageModel } from '../../Wizards/Packages/model'
 import { PACKAGE_VIEW } from './PackageFormContainer'
@@ -11,11 +11,34 @@ import { TextArea } from '../../../components/Form/TextArea'
 import { TextInput } from '../../../components/Form/TextInput'
 import { Attributes } from '../../../components/Form/Attributes'
 
-
 const styles = require<any>('./PackageForm.css');
+
+const buttons = [
+    {
+        action: 'cancel',
+        label: 'Cancel',
+        type: 'button'
+    },
+    {
+        action: 'saveDraft',
+        label: 'Save as Draft',
+        type: 'submit'
+    },
+    {
+        action: 'submitReview',
+        label: 'Submit for Review',
+        type: 'submit'
+    },
+    {
+        action: 'submitFinal',
+        label: 'Submit Final',
+        type: 'submit'
+    },
+];
 
 interface PackageFormOwnProps {
     handleNarrativeChange?: (val) => void
+    handleFormSubmit?: any
     model?: PackageModel
     view?: PACKAGE_VIEW
 }
@@ -43,6 +66,27 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         super(props);
 
         this.handleNarrativeChange = this.handleNarrativeChange.bind(this);
+        this.submit = this.submit.bind(this);
+    }
+
+    handleButtonAction(action: string) {
+        const { dispatch, model } = this.props;
+        switch (action) {
+            case 'cancel':
+                break;
+
+            case 'saveDraft':
+                break;
+
+            case 'submitReview':
+                break;
+
+            case 'submitFinal':
+                break;
+
+            default:
+                return false;
+        }
     }
 
     handleNarrativeChange(event: React.ChangeEvent<HTMLTextAreaElement>) {
@@ -65,12 +109,38 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         return null;
     }
 
-    render() {
+    renderButtons() {
         const { view } = this.props;
+
+        if (view !== PACKAGE_VIEW.VIEW) {
+            // Todo enable/disable depending on form state
+            return (
+                <div className="btn-group pull-right">
+                    {buttons.map((button, i) => {
+                        return (
+                            <Button
+                                key={i}
+                                type={button.type}>
+                                {button.label}
+                            </Button>
+                        );
+                    })}
+                </div>
+            );
+        }
+    }
+
+    submit(values) {
+        const { handleFormSubmit } = this.props;
+        handleFormSubmit(values);
+    }
+
+    render() {
+        const { handleSubmit, view } = this.props;
 
         return (
             <div>
-                <form>
+                <form onSubmit={handleSubmit(this.submit)}>
                     <div className="row clearfix">
                         <div className="col-sm-8">
                             <div className="row clearfix">
@@ -107,6 +177,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                                         disabled={view === PACKAGE_VIEW.VIEW}
                                         name='narrative'
                                         onChange={this.handleNarrativeChange}
+                                        required={true}
                                         rows={6}/>
                                 </div>
                             </div>
@@ -115,23 +186,28 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
 
                         </div>
                     </div>
+
+                    <div className="row clearfix">
+                        <div className={"col-sm-12 " + styles['margin-top']}>
+                            <strong>Attributes <i className="fa fa-refresh" style={{cursor: 'pointer'}}/></strong>
+                        </div>
+                        <div className={"col-sm-12 " + styles['margin-top']}>
+                            {this.renderAttributes()}
+                        </div>
+                        <div className="col-sm-12">
+                            {this.renderButtons()}
+                        </div>
+                    </div>
                 </form>
-                <div className="row clearfix">
-                    <div className={"col-sm-12 " + styles['margin-top']}>
-                        <strong>Attributes <i className="fa fa-refresh" style={{cursor: 'pointer'}}/></strong>
-                    </div>
-                    <div className={"col-sm-12 " + styles['margin-top']}>
-                        {this.renderAttributes()}
-                    </div>
-                </div>
             </div>
         )
     }
 }
 
-const PackageForm = reduxForm({
+const WrappedPackageForm = reduxForm({
     enableReinitialize: true,
+    keepDirtyOnReinitialize: true,
     form: 'packageForm'
 })(PackageFormImpl);
 
-export const ConnectedPackageForm = connect<PackageFormStateProps, any, PackageFormOwnProps>(mapStateToProps)(PackageForm);
+export const PackageForm = connect<PackageFormStateProps, any, PackageFormOwnProps>(mapStateToProps)(WrappedPackageForm);

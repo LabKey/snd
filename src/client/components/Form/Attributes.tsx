@@ -1,6 +1,5 @@
 import * as React from 'react';
 
-import { connect } from 'react-redux';
 import { FormProps, Field } from 'redux-form';
 
 
@@ -12,10 +11,11 @@ import { TextInput } from './TextInput'
 
 interface AttributeColumnProps {
     disabled?: boolean
+    inputComponent?: any
     label?: string
     name: string
-    inputComponent?: any
 }
+
 const ATTRIBUTE_COLUMNS: Array<AttributeColumnProps> = [
     {
         disabled: true,
@@ -29,10 +29,9 @@ const ATTRIBUTE_COLUMNS: Array<AttributeColumnProps> = [
         inputComponent: LookupKeyInput
     },
     {
-        label: 'dataType',
+        label: 'rangeURI',
         name: 'Data Type',
         inputComponent: DataTypeSelect
-
     },
     {
         label: 'label',
@@ -111,7 +110,7 @@ class AttributesGridBody extends React.Component<AttributesGridOwnProps, any> {
                                                 attributeId={i}
                                                 component={col.inputComponent}
                                                 disabled={col.disabled || readOnly}
-                                                name={`attributes[${i}][${col.label + i}]`}/>
+                                                name={`attributes[${i}][${[col.label, i].join('_')}]`}/>
                                         </td>
                                     )
                                 })}
@@ -140,14 +139,7 @@ interface AttributesGridStateProps {
 
 type AttributesGridProps = AttributesGridOwnProps & AttributesGridState;
 
-function mapStateToProps(state: APP_STATE_PROPS, ownProps: AttributesGridOwnProps): AttributesGridState {
-
-    return {
-
-    };
-}
-
-export class AttributesGridImpl extends React.Component<AttributesGridProps, AttributesGridStateProps> {
+export class Attributes extends React.Component<AttributesGridProps, AttributesGridStateProps> {
 
     constructor(props?: AttributesGridProps) {
         super(props);
@@ -160,18 +152,14 @@ export class AttributesGridImpl extends React.Component<AttributesGridProps, Att
 
         return (
             <div>
-                <form>
-                    <div className="table-responsive">
-                        <table className='table table-striped table-bordered'>
-                            <AttributesGridHeader/>
-                            <AttributesGridBody attributes={attributes} narrative={narrative} readOnly={readOnly}/>
-                        </table>
-                    </div>
-
-                </form>
+                <div className="table-responsive">
+                    <table className='table table-striped table-bordered'>
+                        <AttributesGridHeader/>
+                        <AttributesGridBody attributes={attributes} narrative={narrative} readOnly={readOnly}/>
+                    </table>
+                </div>
             </div>
         )
     }
 }
 
-export const Attributes = connect<AttributesGridStateProps, any, AttributesGridOwnProps>(mapStateToProps)(AttributesGridImpl);

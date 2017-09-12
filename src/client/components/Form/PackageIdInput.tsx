@@ -8,15 +8,19 @@ interface PackageIdInputProps {
 }
 
 export const PackageIdInput = (field: WrappedFieldProps<{}> & PackageIdInputProps) => {
-    const { input, view } = field;
-    const value = view === PACKAGE_VIEW.CLONE ? '' : input.value;
+    const { view } = field;
+
+    let value;
+    if (view === PACKAGE_VIEW.CLONE || view === PACKAGE_VIEW.NEW) {
+        value = '';
+    }
 
     return (
         <div className="input-row">
             <input
                 {...field.input}
                 className="form-control"
-                disabled={view === PACKAGE_VIEW.EDIT || view === PACKAGE_VIEW.VIEW}
+                disabled
                 required
                 type="text"
                 value={value}/>

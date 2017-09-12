@@ -1,44 +1,41 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom'
-import { Tooltip, OverlayTrigger } from 'react-bootstrap'
-import { LabKeyQueryRowPropertyProps } from '../../query/model'
+import { OverlayTrigger, Tooltip, TooltipProps } from 'react-bootstrap'
+import { QueryPackageModel } from '../../containers/Packages/model'
 
 const styles = require<any>('./PackageRow.css');
 
 interface PackageRowProps {
-    data: {[key: string]: LabKeyQueryRowPropertyProps}
+    data: QueryPackageModel
     dataId: number
 }
 
 export class PackageRow extends React.Component<PackageRowProps, {}> {
 
+    static generateToolTip(tooltip: string, id: string): React.ReactElement<TooltipProps> {
+        return <Tooltip id={id}>{tooltip}</Tooltip>;
+    }
+
     render() {
-        const resultStyle = {
-            padding: '3px 10px',
-
-        };
-
         const { Description, PkgId } = this.props.data;
-
-        let tooltip = (tooltip: string) => {return <Tooltip id={PkgId.value}>{tooltip}</Tooltip>};
 
         // todo: URLs should be more resilient
         return (
             <div className={"package_viewer__result clearfix " + styles["package-row"]}>
                 <div className="result-icons pull-left">
-                    <OverlayTrigger overlay={tooltip("View")} placement="top">
-                        <Link to={'packages/view/' + PkgId.value}>
-                            <i className={"fa fa-eye " + styles["package-row_icon"]}/>
+                    <OverlayTrigger overlay={PackageRow.generateToolTip('View', PkgId.value)} placement="top">
+                        <Link to={'/packages/view/' + PkgId.value} className={styles["package-row_icon"]}>
+                            <i className={"fa fa-eye"}/>
                         </Link>
                     </OverlayTrigger>
-                    <OverlayTrigger overlay={tooltip("Edit")} placement="top">
-                        <Link to={'packages/edit/' + PkgId.value}>
-                            <i className={"fa fa-pencil " + styles["package-row_icon"]}/>
+                    <OverlayTrigger overlay={PackageRow.generateToolTip('Edit', PkgId.value)} placement="top">
+                        <Link to={'/packages/edit/' + PkgId.value} className={styles["package-row_icon"]}>
+                            <i className="fa fa-pencil"/>
                         </Link>
                     </OverlayTrigger>
-                    <OverlayTrigger overlay={tooltip("Clone")} placement="top">
-                        <Link to={'packages/clone/' + PkgId.value}>
-                            <i className={"fa fa-files-o " + styles["package-row_icon"]}/>
+                    <OverlayTrigger overlay={PackageRow.generateToolTip('Clone', PkgId.value)} placement="top">
+                        <Link to={'/packages/clone/' + PkgId.value} className={styles["package-row_icon"]}>
+                            <i className="fa fa-files-o"/>
                         </Link>
                     </OverlayTrigger>
                 </div>

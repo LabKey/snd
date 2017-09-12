@@ -15,11 +15,11 @@
  */
 import { routerReducer } from 'react-router-redux';
 import { combineReducers } from 'redux';
-import { reducer as formReducer } from 'redux-form';
 
 import { packages } from '../containers/Packages/reducer'
 import { user } from '../containers/SignIn/reducer'
 import { WizardsReducer } from '../containers/Wizards/reducer'
+import { packageFormReducerPlugin } from '../containers/Wizards/Packages/reducer'
 import { queries } from '../query/reducer'
 
 export const reducers = combineReducers({
@@ -28,6 +28,6 @@ export const reducers = combineReducers({
     user,
     wizards: WizardsReducer,
 
-    form: formReducer,
+    form: packageFormReducerPlugin,
     router: routerReducer,
 });

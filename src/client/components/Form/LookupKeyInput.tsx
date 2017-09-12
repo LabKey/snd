@@ -2,9 +2,10 @@ import * as React from 'react';
 import { WrappedFieldProps } from 'redux-form';
 
 interface LookupKeyInputProps {
-    disabled?: boolean
     attribute?: any
     attributeId?: any
+    disabled?: boolean
+    required?: boolean
 }
 
 export const LookupKeyInput = (field: WrappedFieldProps<{}> & LookupKeyInputProps) => {
@@ -25,7 +26,7 @@ export const LookupKeyInput = (field: WrappedFieldProps<{}> & LookupKeyInputProp
                 {...field.input}
                 className="form-control"
                 disabled={field.disabled === true}
-                required
+                required={field.required === true}
                 type="text"
                 value={value}/>
             {field.meta.touched && field.meta.error ?

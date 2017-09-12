@@ -1,7 +1,6 @@
 import * as React from 'react';
-import { Panel } from 'react-bootstrap'
+import { Button, Panel } from 'react-bootstrap'
 import { RouteComponentProps } from 'react-router-dom'
-
 
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
@@ -9,7 +8,7 @@ import { Dispatch } from 'redux';
 import * as actions from '../../Wizards/Packages/actions'
 import { PackageWizardModel } from '../../Wizards/Packages/model'
 
-import { ConnectedPackageForm } from './PackageForm'
+import { PackageForm } from './PackageForm'
 
 const styles = require<any>('./PackageForm.css');
 
@@ -20,11 +19,35 @@ export enum PACKAGE_VIEW {
     VIEW
 }
 
+const Buttons = [
+    {
+        action: 'cancel',
+        label: 'Cancel',
+        type: 'button'
+    },
+    {
+        action: 'saveDraft',
+        label: 'Save as Draft',
+        type: 'submit'
+    },
+    {
+        action: 'submitReview',
+        label: 'Submit for Review',
+        type: 'submit'
+    },
+    {
+        action: 'submitFinal',
+        label: 'Submit Final',
+        type: 'submit'
+    },
+];
+
 interface PackageFormContainerOwnProps extends RouteComponentProps<{id: string}> {}
 
 interface PackageFormContainerState {
     dispatch?: Dispatch<any>
 
+    id: string
     model?: PackageWizardModel
 }
 
@@ -36,9 +59,17 @@ type PackageFormContainerProps = PackageFormContainerOwnProps & PackageFormConta
 
 function mapStateToProps(state: APP_STATE_PROPS, ownProps: PackageFormContainerOwnProps) {
     const { id } = ownProps.match.params;
+    let pkgId;
+    if (id) {
+        pkgId = id;
+    }
+    else {
+        pkgId = 'newPackage';
+    }
 
     return {
-        model: state.wizards.packages.packageData[id]
+        id: pkgId,
+        model: state.wizards.packages.packageData[pkgId]
     };
 }
 
@@ -50,8 +81,8 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
     constructor(props?: PackageFormContainerProps) {
         super(props);
 
+        const { id } = props;
         const { path } = props.match;
-        const { id } = props.match.params;
 
         const parts = path.split('/');
         if (parts && parts[2]) {
@@ -76,62 +107,77 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
             }
 
 
-            this.panelHeader = parsePackageHeader(this.view, id);
+            this.panelHeader = resolvePackageHeader(this.view, id);
         }
 
         this.handleNarrativeChange = this.handleNarrativeChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
     }
 
     componentDidMount() {
-        this.getPackage(this.props);
+        this.initModel(this.props);
     }
 
     componentWillReceiveProps(nextProps?: PackageFormContainerProps) {
-        this.getPackage(nextProps);
+        this.initModel(nextProps);
     }
 
-    getPackage(props?: PackageFormContainerProps) {
-        const { dispatch, model } = props;
-        const { id } = props.match.params;
+    initModel(props: PackageFormContainerProps) {
+        const { dispatch, id } = props;
 
-        if (id && !model) {
-            dispatch(actions.fetchPackage(id));
+        dispatch(actions.init(id, this.view));
+    }
+
+    handleButtonAction(action: string) {
+        const { dispatch, history, model } = this.props;
+        switch (action) {
+            case 'cancel':
+                history.goBack();
+                break;
+
+            case 'saveDraft':
+                break;
+
+            case 'submitReview':
+                break;
+
+            case 'submitFinal':
+                break;
+
+            default:
+                return false;
         }
+    }
+
+    handleSubmit(values) {
+        return actions.save(values);
     }
 
     handleNarrativeChange(value) {
         const { dispatch, model } = this.props;
         if (model) {
-            // this will break without model i.e. view === 'new'
-            // need to add init model functionality and include getPackage into that function instead
             dispatch(model.saveNarrative(value));
         }
     }
 
-    render() {
+    renderBody() {
         const { model } = this.props;
 
-        let body = null;
-
-        if (model && model.packageLoaded && this.view !== PACKAGE_VIEW.NEW) {
-            body = <ConnectedPackageForm handleNarrativeChange={this.handleNarrativeChange} model={model.data} view={this.view}/>;
-            return (
-                <Panel header={this.panelHeader}>
-                    {body}
-                </Panel>
-            )
-        }
-        else if (this.view === PACKAGE_VIEW.NEW) {
-            body = <ConnectedPackageForm handleNarrativeChange={this.handleNarrativeChange}/>;
+        if (model && model.packageLoaded) {
+            return <PackageForm
+                        handleFormSubmit={this.handleSubmit}
+                        handleNarrativeChange={this.handleNarrativeChange}
+                        model={model.data}
+                        view={this.view}/>;
         }
 
-        else {
-            body = <div>Loading...</div>;
-        }
+        return <div>Loading...</div>;
+    }
 
+    render() {
         return (
             <Panel header={this.panelHeader}>
-                {body}
+                {this.renderBody()}
             </Panel>
         )
     }
@@ -139,7 +185,7 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
 
 export const PackageFormContainer = connect<any, any, PackageFormContainerProps>(mapStateToProps)(PackageFormContainerImpl);
 
-function parsePackageHeader(view: PACKAGE_VIEW, id) {
+function resolvePackageHeader(view: PACKAGE_VIEW, id) {
 
     switch (view) {
         case PACKAGE_VIEW.VIEW:
