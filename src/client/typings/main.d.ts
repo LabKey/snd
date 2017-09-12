@@ -14,5 +14,4 @@
  * limitations under the License.
  */
 /* App globals */
-/// <reference path="moment.d.ts" />
 /// <reference path="globals.d.ts" />
