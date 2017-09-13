@@ -114,6 +114,7 @@ interface QuerySearchWrapperOwnProps {
 
     name?: string
     schemaQuery: SchemaQuery
+    value?: Array<any>
     // todo: support filters, etc
 }
 
@@ -160,7 +161,7 @@ export class QuerySearchWrapperImpl extends React.Component<QuerySearchWrapperPr
         this.state = {
             data: [],
             input: '',
-            selected: []
+            selected: props.value
         };
 
         this.handleClear = this.handleClear.bind(this);
@@ -176,10 +177,11 @@ export class QuerySearchWrapperImpl extends React.Component<QuerySearchWrapperPr
     }
 
     componentWillReceiveProps(nextProps?: QuerySearchWrapperProps) {
-        const { model } = nextProps;
+        const { model, value } = nextProps;
         if (model && model.dataIds) {
             this.setState({
-                data: model.dataIds
+                data: model.dataIds,
+                selected: value
             });
         }
     }

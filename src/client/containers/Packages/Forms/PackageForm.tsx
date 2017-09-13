@@ -219,7 +219,8 @@ export class PackageFormImpl extends React.Component<PackageFormProps, {}> {
                             <QuerySearch
                                 handleChange={handleFieldChange}
                                 name='categories'
-                                schemaQuery={CAT_SQ}/>
+                                schemaQuery={CAT_SQ}
+                                value={model.categories}/>
                         </div>
                     </div>
 
