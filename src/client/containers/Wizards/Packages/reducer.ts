@@ -70,6 +70,12 @@ export const packages = handleActions({
             }, {});
         });
 
+        data.extraFields = data.extraFields.map((extra, i) => {
+            return Object.keys(extra).reduce((prev, next) => {
+                prev[next + i] = extra[next];
+                return prev;
+            }, {});
+        });
 
         const modelData = new PackageModel(Object.assign({}, state.packageData[pkgId].data, data));
         const successModel = new PackageWizardModel(Object.assign({}, model, {

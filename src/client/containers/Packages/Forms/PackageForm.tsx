@@ -9,6 +9,7 @@ import { PackageIdInput } from '../../../components/Form/PackageIdInput'
 import { TextArea } from '../../../components/Form/TextArea'
 import { TextInput } from '../../../components/Form/TextInput'
 import { Attributes } from '../../../components/Form/Attributes'
+import { ExtraFields} from '../../../components/Form/ExtraFields'
 
 import { QuerySearch } from '../../../query/QuerySearchInput'
 import { SchemaQuery } from '../../../query/model'
@@ -119,6 +120,16 @@ export class PackageFormImpl extends React.Component<PackageFormProps, {}> {
         }
     }
 
+    renderExtraFields() {
+        const { model, view } = this.props;
+        if (model) {
+            const { extraFields } = model;
+            return <ExtraFields extraFields={extraFields} disabled={view === PACKAGE_VIEW.VIEW} />
+        }
+
+        return null;
+    }
+
     renderAttributes() {
         const { model, view } = this.props;
         if (model) {
@@ -215,12 +226,22 @@ export class PackageFormImpl extends React.Component<PackageFormProps, {}> {
                                 </div>
                             </div>
                         </div>
-                        <div className="col-sm-4" style={{height: '220px'}}>
-                            <QuerySearch
-                                handleChange={handleFieldChange}
-                                name='categories'
-                                schemaQuery={CAT_SQ}
-                                value={model.categories}/>
+                        <div className="col-sm-4">
+                            <div className="row col-sm-12">
+                                {this.renderExtraFields()}
+                            </div>
+                            <div className="row col-sm-12">
+                                <div className={"row clearfix col-xs-12 " + styles['margin-top']}>
+                                    <ControlLabel>Categories</ControlLabel >
+                                </div>
+                                <div className="row col-xs-12">
+                                    <QuerySearch
+                                        handleChange={handleFieldChange}
+                                        name='categories'
+                                        schemaQuery={CAT_SQ}
+                                        value={model.categories}/>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

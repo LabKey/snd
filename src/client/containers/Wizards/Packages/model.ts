@@ -17,6 +17,7 @@ interface PackageModelAttributeProps {
     label?: string
     lookupQuery?: string
     lookupSchema?: string
+    lookupValues?: Array<string>
     name?: string
     rangeURI?: string
     required?: boolean | 'on'
@@ -30,6 +31,7 @@ export const defaultPackageModelAttribute: PackageModelAttributeProps = {
     label: undefined,
     lookupQuery: undefined,
     lookupSchema: undefined,
+    lookupValues: undefined,
     name: undefined,
     rangeURI: undefined,
     required: false,
@@ -42,6 +44,7 @@ export class PackageModelAttribute implements PackageModelAttributeProps {
     label: string;
     lookupQuery: string;
     lookupSchema: string;
+    lookupValues: Array<string>;
     name: string;
     rangeURI: string;
     required: boolean | 'on';
@@ -62,6 +65,7 @@ interface PackageModelProps {
     categories?: Array<number>
     container?: string
     description?: string
+    extraFields?: Array<PackageModelAttributeProps>
     narrative?: string
     pkgId?: number
     qcState?: any
@@ -74,6 +78,7 @@ export const defaultPackageModel = {
     categories: [],
     container: undefined,
     description: undefined,
+    extraFields: [],
     narrative: undefined,
     pkgId: undefined,
     qcState: null,
@@ -86,6 +91,7 @@ export class PackageModel implements PackageModelProps {
     categories?: Array<number>;
     container?: string;
     description?: string;
+    extraFields?: Array<PackageModelAttributeProps>;
     narrative?: string;
     pkgId?: number;
     qcState?: any;
@@ -104,7 +110,7 @@ interface PackageSubmissionModelProps extends PackageModel {
     categories?: Array<number>;
     container?: string;
     description?: string;
-    extraFields?: {[key: string]: any};
+    extraFields?: Array<PackageModelAttributeProps>;
     id?: number;
     narrative?: string;
     pkgId?: number;
@@ -119,7 +125,7 @@ export class PackageSubmissionModel implements PackageSubmissionModelProps {
     categories: Array<number>;
     container?: string;
     description?: string;
-    extraFields?: {[key: string]: any};
+    extraFields?: Array<PackageModelAttributeProps>;
     id?: number;
     narrative?: string;
     pkgId?: number;

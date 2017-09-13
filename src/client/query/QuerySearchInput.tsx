@@ -52,7 +52,7 @@ export class QuerySearchResults extends React.Component<QuerySearchResultsProps,
         // todo: add onHover to change check to x for selected elements
         if (data && dataIds.length) {
             return (
-                <div className='data-search__container' style={{maxHeight: '175px', overflow: 'scroll'}}>
+                <div className='data-search__container' style={{maxHeight: '90px', overflow: 'scroll'}}>
                     {selected.map((id, i) => {
                         return (
                             <ListGroupItem
