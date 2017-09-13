@@ -169,7 +169,7 @@ export function save(pkg: PackageSubmissionModel, onSuccess?: any) {
 }
 
 export function formatPackageValues(model: PackageWizardModel, active: boolean, view: PACKAGE_VIEW): PackageSubmissionModel {
-    const { categories, description, narrative, pkgId, repeatable } = model.data;
+    const { categories, description, extraFields, narrative, pkgId, repeatable } = model.data;
     const id = view !== PACKAGE_VIEW.CLONE ? pkgId : undefined;
 
     const attributes = model.data.attributes.map((attribute, i) => {
@@ -199,7 +199,7 @@ export function formatPackageValues(model: PackageWizardModel, active: boolean, 
         attributes,
         categories,
         description,
-        extraFields: [],
+        extraFields,
         id,
         narrative,
         repeatable,

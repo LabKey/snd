@@ -26,6 +26,7 @@ export class QuerySearchInput extends React.Component<QuerySearchInputProps, {}>
                 <input
                     name="packageSearch"
                     onChange={(evt) => this.props.handleInputChange(evt)}
+                    placeholder='Search...'
                     ref={input}
                     style={{width: '100%'}}
                     type="text"

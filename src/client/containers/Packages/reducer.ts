@@ -44,6 +44,13 @@ export const packages = handleActions({
         return new PackagesModel();
     },
 
+    [PKG_TYPES.PACKAGES_RESET_WARNING]: (state: PackagesModel) => {
+        return new PackagesModel(Object.assign({}, state, {
+            isWarning: false,
+            message: undefined
+        }));
+    },
+
     [PKG_TYPES.PACKAGES_SEARCH_FILTER]: (state: PackagesModel, action: any) => {
         const { active, data, dataIds, drafts } = state;
         const { input } = action;
@@ -75,6 +82,15 @@ export const packages = handleActions({
 
         return new PackagesModel(Object.assign({}, state, {
             showDrafts
+        }));
+    },
+
+    [PKG_TYPES.PACKAGES_WARNING]: (state: PackagesModel, action: any) => {
+        const { message } = action;
+
+        return new PackagesModel(Object.assign({}, state, {
+            isWarning: true,
+            message
         }));
     },
 

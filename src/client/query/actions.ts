@@ -125,3 +125,19 @@ export function selectRows(schemaName: string, queryName: string, params?: {[key
         });
     });
 }
+
+export function deleteRows(schemaName: string, queryName: string, rows: Array<{[key: string]: any}>) {
+    return new Promise((resolve, reject) => {
+        LABKEY.Query.deleteRows({
+            schemaName,
+            queryName,
+            rows,
+            success: (data: LabKeyQueryResponse) => {
+                resolve(data);
+            },
+            failure: (data) => {
+                reject(data);
+            }
+        });
+    });
+};

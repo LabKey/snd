@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Button, Modal } from 'react-bootstrap'
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 
@@ -22,6 +23,7 @@ interface PackageViewerState {
 
 interface PackageViewerStateProps {
     input?: string
+    toRemove?: number
 }
 
 type PackageViewerProps = PackageViewerOwnProps & PackageViewerState;
@@ -42,11 +44,15 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, Packa
         super(props);
 
         this.state = {
-            input: ''
+            input: '',
+            toRemove: undefined
         };
 
+        this.deletePackage = this.deletePackage.bind(this);
         this.handleClear = this.handleClear.bind(this);
+        this.handleDeleteRequest = this.handleDeleteRequest.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
+        this.hideModal = this.hideModal.bind(this);
         this.toggleDrafts = this.toggleDrafts.bind(this);
     }
 
@@ -68,6 +74,12 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, Packa
         }
     }
 
+    deletePackage() {
+        const { dispatch } = this.props;
+        const { toRemove } = this.state;
+        dispatch(actions.deletePackage(toRemove));
+    }
+
     handleClear() {
         const { dispatch } = this.props;
 
@@ -75,6 +87,22 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, Packa
 
         this.inputRef.focus();
         dispatch(actions.filterPackages(''));
+    }
+
+    handleDeleteRequest(rowId) {
+        const { dispatch, packagesModel } = this.props;
+
+        this.setState({
+            toRemove: rowId
+        });
+
+        dispatch(actions.packagesWarning())
+    }
+
+    hideModal() {
+        const { dispatch } = this.props;
+        const { isWarning } = this.props.packagesModel;
+        dispatch(actions.packagesResetWarning())
     }
 
     handleInputChange(evt: React.ChangeEvent<HTMLInputElement>) {
@@ -100,6 +128,27 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, Packa
         dispatch(packagesModel.toggleDrafts())
     }
 
+    renderWarning() {
+        const { isWarning } = this.props.packagesModel;
+        const { toRemove } = this.state;
+
+        if (isWarning) {
+            return (
+                <div className="static-modal">
+                    <Modal onHide={this.hideModal} show={isWarning}>
+                        <Modal.Body>
+                            Are you sure you want to remove package {toRemove}?
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button onClick={this.hideModal}>Cancel</Button>
+                            <Button bsStyle='primary' onClick={this.deletePackage}>Delete Package</Button>
+                        </Modal.Footer>
+                    </Modal>
+                </div>
+            )
+        }
+    }
+
     render() {
 
         if (this.props.packagesModel) {
@@ -108,6 +157,7 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, Packa
 
             return (
                 <div className="row" style={{padding: '20px 0'}}>
+                    {this.renderWarning()}
                     <PackageSearchInput
                         handleClear={this.handleClear}
                         handleInputChange={this.handleInputChange}
@@ -135,7 +185,8 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, Packa
                                 <PackageSearchResults
                                     data={data}
                                     dataIds={filteredActive}
-                                    isLoaded={isInit}/>
+                                    isLoaded={isInit}
+                                    handleDelete={this.handleDeleteRequest}/>
                             </div>
                         </div>
                     </div>

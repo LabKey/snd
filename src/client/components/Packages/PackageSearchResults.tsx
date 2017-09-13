@@ -7,6 +7,7 @@ interface PackageSearchResultsProps {
     data: {[key: string]: QueryPackageModel}
     dataIds: Array<number>
     isLoaded: boolean
+    handleDelete?: (rowId) => any
 }
 
 export class PackageSearchResults extends React.Component<PackageSearchResultsProps, any> {
@@ -18,7 +19,7 @@ export class PackageSearchResults extends React.Component<PackageSearchResultsPr
     };
 
     render() {
-        const { data, dataIds, isLoaded } = this.props;
+        const { data, dataIds, isLoaded, handleDelete } = this.props;
 
         if (isLoaded && data && dataIds.length) {
             return (
@@ -27,7 +28,7 @@ export class PackageSearchResults extends React.Component<PackageSearchResultsPr
                         const rowData: QueryPackageModel = data[d];
                         return (
                             <div key={'data-search__row' + i}>
-                                <PackageRow data={rowData} dataId={d}/>
+                                <PackageRow data={rowData} dataId={d} handleDelete={handleDelete}/>
                             </div>
                         )
                     })}

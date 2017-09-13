@@ -14,6 +14,7 @@ interface PackagesModelProps {
     filteredDrafts?: Array<any>
     isError: boolean
     isInit?: boolean
+    isWarning?: boolean
     message: string
     packageCount: number
     showDrafts?: boolean
@@ -28,6 +29,7 @@ export const defaultPackagesModel: PackagesModelProps = {
     filteredDrafts: [],
     isError: false,
     isInit: false,
+    isWarning: false,
     message: undefined,
     packageCount: 0,
     showDrafts: false
@@ -43,6 +45,7 @@ export class PackagesModel implements PackagesModelProps {
     filteredDrafts?: Array<any>;
     isError: boolean;
     isInit?: boolean;
+    isWarning?: boolean;
     message: string;
     packageCount: number;
     showDrafts?: boolean;
@@ -61,8 +64,6 @@ export class PackagesModel implements PackagesModelProps {
         return actions.toggleDrafts();
     }
 }
-
-
 
 interface QueryPackageModelProps {
     Active: LabKeyQueryRowPropertyProps
