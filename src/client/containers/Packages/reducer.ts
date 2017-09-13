@@ -40,6 +40,10 @@ export const packages = handleActions({
         }));
     },
 
+    [PKG_TYPES.PACKAGES_INVALIDATE]: () => {
+        return new PackagesModel();
+    },
+
     [PKG_TYPES.PACKAGES_SEARCH_FILTER]: (state: PackagesModel, action: any) => {
         const { active, data, dataIds, drafts } = state;
         const { input } = action;

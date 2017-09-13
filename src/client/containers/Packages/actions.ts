@@ -24,3 +24,9 @@ export function packagesInit(model: PackagesModel, dataResponse: QueryModel) {
     };
 }
 
+
+export function packagesInvalidate() {
+    return {
+        type: PKG_TYPES.PACKAGES_INVALIDATE
+    };
+}

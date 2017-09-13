@@ -1,14 +1,15 @@
 import { handleActions } from 'redux-actions';
-import { reducer as formReducer } from 'redux-form'
 
 import { PKG_WIZARD_TYPES } from './constants'
 import {
+    defaultPackageModelAttribute,
     defaultPackageWizardModel,
     PackageModelAttribute,
     PackageModel,
     PackageWizardModel,
     PackageWizardContainer
 } from './model'
+import {PACKAGE_VIEW} from "../../Packages/Forms/PackageFormContainer";
 
 export const packages = handleActions({
 
@@ -54,7 +55,7 @@ export const packages = handleActions({
     },
 
     [PKG_WIZARD_TYPES.PACKAGE_SUCCESS]: (state: PackageWizardContainer, action: any) => {
-        const { model, response } = action;
+        const { model, response, view } = action;
         const { json } = response;
         const pkgId = model.packageId;
 
@@ -64,18 +65,55 @@ export const packages = handleActions({
 
         data.attributes = data.attributes.map((attribute, i) => {
             return Object.keys(attribute).reduce((prev, next) => {
-                prev[next + i] = attribute[next];
+                prev[next] = attribute[next];
                 return prev;
             }, {});
         });
 
 
+        const modelData = new PackageModel(Object.assign({}, state.packageData[pkgId].data, data));
         const successModel = new PackageWizardModel(Object.assign({}, model, {
-            data: new PackageModel(Object.assign({}, state.packageData[pkgId].data, data))
+            data: modelData,
+            formView: view,
+            initialData: modelData,
+            isValid: isFormValid(modelData, modelData, view)
         }));
 
         return new PackageWizardContainer(Object.assign({}, state, {packageData: {
             [successModel.packageId]: successModel
+        }}));
+    },
+
+    [PKG_WIZARD_TYPES.SAVE_FIELD]: (state: PackageWizardContainer, action: any) => {
+        const { model, name, value } = action;
+
+        let data: PackageModel;
+
+        if (name.indexOf('attributes') !== -1) {
+            const parts = name.split('_');
+            const index = parts[1];
+            const attributeField = parts[2];
+
+            let attributes = [].concat(model.data.attributes);
+            attributes[index] = new PackageModelAttribute(
+                Object.assign({}, model.data.attributes[index], {[attributeField]: value})
+            );
+
+            data = new PackageModel(Object.assign({}, model.data, {
+                attributes
+            }));
+        }
+        else {
+            data = new PackageModel(Object.assign({}, model.data, {[name]: value}));
+        }
+
+        const updatedModel = new PackageWizardModel(Object.assign({}, model, {
+            data,
+            isValid: isFormValid(data, model.initialData, model.formView)
+        }));
+
+        return new PackageWizardContainer(Object.assign({}, state, {packageData: {
+            [updatedModel.packageId]: updatedModel
         }}));
     },
 
@@ -84,12 +122,18 @@ export const packages = handleActions({
 
         let data = Object.assign({}, model.data, {narrative});
 
-        data.attributes = parsedNarrative.map((keyword, i) => {
-            return new PackageModelAttribute({['name_' + i]: keyword});
-        });
+        if (parsedNarrative.length !== model.data.attributes.length) {
+            data.attributes = parsedNarrative.map((keyword, i) => {
+                return new PackageModelAttribute(Object.assign({}, defaultPackageModelAttribute,
+                    model.data.attributes[i],
+                    {['name']: keyword}
+                ));
+            });
+        }
 
         const successModel = new PackageWizardModel(Object.assign({}, model, {
-            data: new PackageModel(Object.assign({}, state.packageData[model.packageId].data, data))
+            data: new PackageModel(Object.assign({}, state.packageData[model.packageId].data, data)),
+            isValid: isFormValid(data, model.initialData, model.formView)
         }));
 
         return new PackageWizardContainer(Object.assign({}, state, {packageData: {
@@ -99,37 +143,38 @@ export const packages = handleActions({
 
 }, new PackageWizardContainer());
 
-const formReducerMiddleware = formReducer as any;
-export const packageFormReducerPlugin = formReducerMiddleware.plugin({
-    packageForm: (state, action) => {
-        switch(action.type) {
+function isFormValid(data: PackageModel, initialData: PackageModel, view: PACKAGE_VIEW): boolean {
 
-            case PKG_WIZARD_TYPES.SAVE_NARRATIVE:
+    let isValid: boolean = false;
 
-                const currentAttributes = action.model.data.attributes;
-                const updatedAttributes = action.parsedNarrative;
-
-                if (currentAttributes.length !== updatedAttributes.length) {
-
-                    let attributes = updatedAttributes.reduce((prev, next, i) => {
-                        prev[i] = Object.assign({}, state.values.attributes[i], {
-                            ['name_' + i]: updatedAttributes[i]
-                        });
-                        return prev;
-                    }, {});
-
-                    return {
-                        ...state,
-                        values: {
-                            ...state.values,
-                            attributes // set attribute value based on newly updated narrative
-                        },
-                    };
-                }
-
-                return state;
-            default:
-                return state;
-        }
+    if (!data.description || !data.narrative) {
+        return false;
     }
-});
+
+    if (data.attributes.length > 0) {
+        isValid = data.attributes.every((attribute) => {
+            return !!attribute.name && !!attribute.rangeURI;
+        });
+    }
+
+    if (isValid && view === PACKAGE_VIEW.EDIT) {
+        // need to loop through initialData to compare with currentValues if view === edit
+        return (
+            data.description !== initialData.description ||
+            data.narrative !== initialData.narrative ||
+            data.attributes.some((attribute, i) => {
+                return Object.keys(attribute).findIndex((a) => {
+                    if (initialData.attributes[i]) {
+                        if (attribute[a] || initialData.attributes[i][a]) {
+                            return attribute[a] !== initialData.attributes[i][a];
+                        }
+                        return false;
+                    }
+                    return false;
+                }) !== -1;
+            })
+        )
+    }
+
+    return isValid;
+}

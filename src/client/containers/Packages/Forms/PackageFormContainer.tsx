@@ -49,6 +49,7 @@ interface PackageFormContainerState {
 
     id: string
     model?: PackageWizardModel
+    view?: string
 }
 
 interface PackageFormContainerStateProps {}
@@ -59,6 +60,14 @@ type PackageFormContainerProps = PackageFormContainerOwnProps & PackageFormConta
 
 function mapStateToProps(state: APP_STATE_PROPS, ownProps: PackageFormContainerOwnProps) {
     const { id } = ownProps.match.params;
+    const { path } = ownProps.match;
+
+    const parts = path.split('/');
+    let view;
+    if (parts && parts[2]) {
+        view = parts[2];
+    }
+
     let pkgId;
     if (id) {
         pkgId = id;
@@ -69,7 +78,8 @@ function mapStateToProps(state: APP_STATE_PROPS, ownProps: PackageFormContainerO
 
     return {
         id: pkgId,
-        model: state.wizards.packages.packageData[pkgId]
+        model: state.wizards.packages.packageData[pkgId],
+        view
     };
 }
 
@@ -81,35 +91,31 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
     constructor(props?: PackageFormContainerProps) {
         super(props);
 
-        const { id } = props;
-        const { path } = props.match;
+        const { id, view } = props;
 
-        const parts = path.split('/');
-        if (parts && parts[2]) {
-            const view = parts[2];
+        switch (view) {
+            case 'view':
+                this.view = PACKAGE_VIEW.VIEW;
+                break;
 
-            switch (view) {
-                case 'view':
-                    this.view = PACKAGE_VIEW.VIEW;
-                    break;
+            case 'edit':
+                this.view = PACKAGE_VIEW.EDIT;
+                break;
 
-                case 'edit':
-                    this.view = PACKAGE_VIEW.EDIT;
-                    break;
+            case 'clone':
+                this.view = PACKAGE_VIEW.CLONE;
+                break;
 
-                case 'clone':
-                    this.view = PACKAGE_VIEW.CLONE;
-                    break;
-
-                case 'new':
-                    this.view = PACKAGE_VIEW.NEW;
-                    break;
-            }
-
-
-            this.panelHeader = resolvePackageHeader(this.view, id);
+            case 'new':
+                this.view = PACKAGE_VIEW.NEW;
+                break;
         }
 
+
+        this.panelHeader = resolvePackageHeader(this.view, id);
+
+        this.handleCancel = this.handleCancel.bind(this);
+        this.handleFieldChange = this.handleFieldChange.bind(this);
         this.handleNarrativeChange = this.handleNarrativeChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
     }
@@ -124,33 +130,25 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
 
     initModel(props: PackageFormContainerProps) {
         const { dispatch, id } = props;
-
         dispatch(actions.init(id, this.view));
     }
 
-    handleButtonAction(action: string) {
-        const { dispatch, history, model } = this.props;
-        switch (action) {
-            case 'cancel':
-                history.goBack();
-                break;
-
-            case 'saveDraft':
-                break;
-
-            case 'submitReview':
-                break;
-
-            case 'submitFinal':
-                break;
-
-            default:
-                return false;
-        }
+    handleCancel() {
+        const { history } = this.props;
+        history.goBack();
     }
 
-    handleSubmit(values) {
-        return actions.save(values);
+    handleFieldChange(event) {
+        const { dispatch, model } = this.props;
+        const name = event.currentTarget.name,
+            value = event.currentTarget.value;
+
+        dispatch(model.saveField(name, value));
+    }
+
+    handleSubmit(active: boolean) {
+        const { dispatch, history, model } = this.props;
+        dispatch(model.submitForm(active, history.push));
     }
 
     handleNarrativeChange(value) {
@@ -165,10 +163,13 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
 
         if (model && model.packageLoaded) {
             return <PackageForm
+                        handleCancel={this.handleCancel}
+                        handleFieldChange={this.handleFieldChange}
                         handleFormSubmit={this.handleSubmit}
                         handleNarrativeChange={this.handleNarrativeChange}
+                        isValid={model.isValid}
                         model={model.data}
-                        view={this.view}/>;
+                        view={model.formView}/>;
         }
 
         return <div>Loading...</div>;

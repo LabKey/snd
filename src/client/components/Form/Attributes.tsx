@@ -1,8 +1,5 @@
 import * as React from 'react';
 
-import { FormProps, Field } from 'redux-form';
-
-
 import { CheckboxInput } from './Checkbox'
 import { DataTypeSelect } from './DataTypeSelect'
 import { LookupKeyInput } from './LookupKeyInput'
@@ -14,61 +11,70 @@ interface AttributeColumnProps {
     inputComponent?: any
     label?: string
     name: string
+    required?: boolean
 }
 
 const ATTRIBUTE_COLUMNS: Array<AttributeColumnProps> = [
     {
         disabled: true,
-        label: 'name',
-        name: 'Attribute Key',
-        inputComponent: TextInput
+        inputComponent: TextInput,
+        label: 'Attribute Key',
+        name: 'name',
+        required: true
     },
     {
-        label: 'lookupKey',
-        name: 'Lookup Key',
-        inputComponent: LookupKeyInput
+        inputComponent: LookupKeyInput,
+        label: 'Lookup Key',
+        name: 'lookupKey',
+        required: false
     },
     {
-        label: 'rangeURI',
-        name: 'Data Type',
-        inputComponent: DataTypeSelect
+        inputComponent: DataTypeSelect,
+        label: 'Data Type',
+        name: 'rangeURI',
+        required: true
     },
     {
-        label: 'label',
-        name: 'Label',
-        inputComponent: TextInput
-
+        inputComponent: TextInput,
+        label: 'Label',
+        name: 'label',
+        required: false
     },
     {
-        label: 'min',
-        name: 'Min',
-        inputComponent: NumericInput
+        inputComponent: NumericInput,
+        label: 'Min',
+        name: 'min',
+        required: false
     },
     {
-        label: 'max',
-        name: 'Max',
-        inputComponent: NumericInput
+        inputComponent: NumericInput,
+        label: 'Max',
+        name: 'max',
+        required: false
     },
     {
-        label: 'default',
-        name: 'Default',
-        inputComponent: TextInput
+        inputComponent: TextInput,
+        label: 'Default',
+        name: 'default',
+        required: false
     },
     {
-        label: 'order',
-        name: 'Order',
-        inputComponent: TextInput
+        inputComponent: TextInput,
+        label: 'Order',
+        name: 'order',
+        required: false
     },
     {
-        label: 'required',
-        name: 'Required',
-        inputComponent: CheckboxInput
-
+        inputComponent: CheckboxInput,
+        label: 'Required',
+        name: 'required',
+        required: false
     },
     {
-        label: 'redactedText',
-        name: 'Redacted Text',
-        inputComponent: TextInput
+        inputComponent: TextInput,
+        label: 'Redacted Text',
+        name: 'redactedText',
+        required: false
     }
 ];
 
@@ -79,7 +85,7 @@ const AttributesGridHeader = () => {
                 {ATTRIBUTE_COLUMNS.map((col: AttributeColumnProps, i: number) => {
                     return (
                         <th key={i} style={{whiteSpace: 'nowrap'}}>
-                            <strong>{col.name}</strong>
+                            <strong>{col.label}{col.required ? ' *' : ''}</strong>
                         </th>
                     )
                 })}
@@ -88,14 +94,14 @@ const AttributesGridHeader = () => {
     )
 };
 
-class AttributesGridBody extends React.Component<AttributesGridOwnProps, any> {
+class AttributesGridBody extends React.Component<AttributesGridProps, any> {
     constructor(props) {
         super(props);
 
     }
 
     render() {
-        const { attributes, readOnly } = this.props;
+        const { attributes, handleFieldChange, readOnly } = this.props;
         if (attributes && attributes.length) {
             return (
                 <tbody>
@@ -103,14 +109,18 @@ class AttributesGridBody extends React.Component<AttributesGridOwnProps, any> {
                         return (
                             <tr key={i}>
                                 {ATTRIBUTE_COLUMNS.map((col: AttributeColumnProps, j: number) => {
+                                    const props = {
+                                        attribute,
+                                        attributeId: i,
+                                        disabled: col.disabled || readOnly,
+                                        name: `attributes_${i}_${col.name}`,
+                                        onChange: handleFieldChange,
+                                        value: attribute[col.name],
+                                        required: col.required
+                                    };
                                     return (
                                         <td key={j}>
-                                            <Field
-                                                attribute={attribute}
-                                                attributeId={i}
-                                                component={col.inputComponent}
-                                                disabled={col.disabled || readOnly}
-                                                name={`attributes[${i}][${[col.label, i].join('_')}]`}/>
+                                            {React.createElement(col.inputComponent, props)}
                                         </td>
                                     )
                                 })}
@@ -125,37 +135,27 @@ class AttributesGridBody extends React.Component<AttributesGridOwnProps, any> {
     }
 }
 
-interface AttributesGridOwnProps {
+interface AttributesGridProps {
     attributes: any
+    handleFieldChange?: any
     narrative: any
     readOnly?: boolean
 }
 
-interface AttributesGridState extends FormProps<any, any, any> {}
-
-interface AttributesGridStateProps {
-
-}
-
-type AttributesGridProps = AttributesGridOwnProps & AttributesGridState;
-
-export class Attributes extends React.Component<AttributesGridProps, AttributesGridStateProps> {
-
-    constructor(props?: AttributesGridProps) {
-        super(props);
-
-    }
-
+export class Attributes extends React.Component<AttributesGridProps, {}> {
     render() {
-
-        const { attributes, narrative, readOnly } = this.props;
+        const { attributes, handleFieldChange, narrative, readOnly } = this.props;
 
         return (
             <div>
                 <div className="table-responsive">
                     <table className='table table-striped table-bordered'>
                         <AttributesGridHeader/>
-                        <AttributesGridBody attributes={attributes} narrative={narrative} readOnly={readOnly}/>
+                        <AttributesGridBody
+                            attributes={attributes}
+                            handleFieldChange={handleFieldChange}
+                            narrative={narrative}
+                            readOnly={readOnly}/>
                     </table>
                 </div>
             </div>

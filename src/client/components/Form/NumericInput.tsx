@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { WrappedFieldProps } from 'redux-form';
 
-interface NumericInputProps {
+interface FieldNumericInputProps {
     disabled?: boolean
     required?: boolean
 }
 
-export const NumericInput = (field: WrappedFieldProps<{}> & NumericInputProps) => {
+export const FieldNumericInput = (field: WrappedFieldProps<{}> & FieldNumericInputProps) => {
     return (
         <div className="input-row">
             <input
@@ -20,6 +20,27 @@ export const NumericInput = (field: WrappedFieldProps<{}> & NumericInputProps) =
                     <span>{field.meta.error}</span>
                 </div>
                 : null}
+        </div>
+    );
+};
+
+interface NumericInputProps {
+    disabled?: boolean
+    name?: string
+    onChange?: React.EventHandler<React.ChangeEvent<HTMLInputElement>>
+    required?: boolean
+    value?: number
+}
+
+export const NumericInput = (props: NumericInputProps) => {
+    return (
+        <div className="input-row">
+            <input
+                className="form-control"
+                disabled={props.disabled === true}
+                required={props.disabled === true}
+                type="number"
+                value={props.value}/>
         </div>
     );
 };

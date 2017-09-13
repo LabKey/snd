@@ -1,7 +1,9 @@
-import { LabKeyQueryRowPropertyProps, QueryModel } from '../../query/model'
+import { SND_PKG_QUERY, SND_PKG_SCHEMA } from './constants'
+import { LabKeyQueryRowPropertyProps, QueryModel, SchemaQuery } from '../../query/model'
 
 import * as actions from './actions'
 
+export const schemaQuery = SchemaQuery.create(SND_PKG_SCHEMA, SND_PKG_QUERY);
 
 interface PackagesModelProps {
     active: Array<any>

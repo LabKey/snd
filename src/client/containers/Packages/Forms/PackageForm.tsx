@@ -13,12 +13,13 @@ import { Attributes } from '../../../components/Form/Attributes'
 
 const styles = require<any>('./PackageForm.css');
 
-const buttons = [
-    {
-        action: 'cancel',
-        label: 'Cancel',
-        type: 'button'
-    },
+interface ButtonListProps {
+    action: string
+    disabled?: boolean
+    label: string
+    type: string
+}
+const buttons: Array<ButtonListProps> = [
     {
         action: 'saveDraft',
         label: 'Save as Draft',
@@ -26,19 +27,23 @@ const buttons = [
     },
     {
         action: 'submitReview',
+        disabled: true,
         label: 'Submit for Review',
         type: 'submit'
     },
     {
-        action: 'submitFinal',
-        label: 'Submit Final',
+        action: 'save',
+        label: 'Save',
         type: 'submit'
     },
 ];
 
 interface PackageFormOwnProps {
+    handleCancel?: () => void
+    handleFieldChange?: (event: any) => void
     handleNarrativeChange?: (val) => void
     handleFormSubmit?: any
+    isValid?: boolean
     model?: PackageModel
     view?: PACKAGE_VIEW
 }
@@ -65,6 +70,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
     constructor(props?: PackageFormProps) {
         super(props);
 
+        this.handleCancel = this.handleCancel.bind(this);
         this.handleNarrativeChange = this.handleNarrativeChange.bind(this);
         this.submit = this.submit.bind(this);
     }
@@ -73,20 +79,27 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         const { dispatch, model } = this.props;
         switch (action) {
             case 'cancel':
+                this.handleCancel();
                 break;
 
             case 'saveDraft':
+                this.submit(false);
                 break;
 
             case 'submitReview':
                 break;
 
-            case 'submitFinal':
+            case 'save':
+                this.submit(true);
                 break;
 
             default:
                 return false;
         }
+    }
+
+    handleCancel() {
+        this.props.handleCancel();
     }
 
     handleNarrativeChange(event: React.ChangeEvent<HTMLTextAreaElement>) {
@@ -96,31 +109,39 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         if (value && handleNarrativeChange && typeof handleNarrativeChange === 'function') {
             handleNarrativeChange(value);
         }
-
     }
 
     renderAttributes() {
-        const { model, view } = this.props;
+        const { handleFieldChange, model, view } = this.props;
         if (model) {
             const { attributes, narrative } = model;
-            return <Attributes attributes={attributes} narrative={narrative} readOnly={view === PACKAGE_VIEW.VIEW}/>
+            return <Attributes
+                        attributes={attributes}
+                        handleFieldChange={handleFieldChange}
+                        narrative={narrative}
+                        readOnly={view === PACKAGE_VIEW.VIEW}/>
         }
 
         return null;
     }
 
     renderButtons() {
-        const { view } = this.props;
+        const { isValid, view } = this.props;
 
         if (view !== PACKAGE_VIEW.VIEW) {
             // Todo enable/disable depending on form state
             return (
                 <div className="btn-group pull-right">
-                    {buttons.map((button, i) => {
+                    <Button
+                        onClick={() => this.handleButtonAction('cancel')}>
+                        Cancel
+                    </Button>
+                    {buttons.map((button: ButtonListProps, i: number) => {
                         return (
                             <Button
+                                disabled={button.disabled === true || !isValid}
                                 key={i}
-                                type={button.type}>
+                                onClick={() => this.handleButtonAction(button.action)}>
                                 {button.label}
                             </Button>
                         );
@@ -130,17 +151,19 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         }
     }
 
-    submit(values) {
+    submit(active: boolean = false) {
         const { handleFormSubmit } = this.props;
-        handleFormSubmit(values);
+        event.preventDefault();
+
+        handleFormSubmit(active);
     }
 
     render() {
-        const { handleSubmit, view } = this.props;
+        const { handleFieldChange, model, view } = this.props;
 
         return (
             <div>
-                <form onSubmit={handleSubmit(this.submit)}>
+                <form>
                     <div className="row clearfix">
                         <div className="col-sm-8">
                             <div className="row clearfix">
@@ -153,16 +176,18 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                             </div>
                             <div className="row clearfix">
                                 <div className="col-xs-2">
-                                    <Field
-                                        component={PackageIdInput}
-                                        view={view}
-                                        name='pkgId'/>
+                                    <PackageIdInput
+                                        name='pkgId'
+                                        onChange={handleFieldChange}
+                                        value={model.pkgId}
+                                        view={view}/>
                                 </div>
                                 <div className="col-xs-10">
-                                    <Field
-                                        component={TextInput}
-                                        disabled={view === PACKAGE_VIEW.VIEW}
-                                        name='description'/>
+                                    <TextInput
+                                        name='description'
+                                        onChange={handleFieldChange}
+                                        required
+                                        value={model.description}/>
                                 </div>
                             </div>
                             <div className={"row clearfix " + styles['margin-top']}>
@@ -172,13 +197,13 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                             </div>
                             <div className="row clearfix">
                                 <div className="col-xs-12">
-                                    <Field
-                                        component={TextArea}
+                                    <TextArea
                                         disabled={view === PACKAGE_VIEW.VIEW}
                                         name='narrative'
                                         onChange={this.handleNarrativeChange}
                                         required={true}
-                                        rows={6}/>
+                                        rows={6}
+                                        value={model.narrative}/>
                                 </div>
                             </div>
                         </div>
@@ -204,10 +229,4 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
     }
 }
 
-const WrappedPackageForm = reduxForm({
-    enableReinitialize: true,
-    keepDirtyOnReinitialize: true,
-    form: 'packageForm'
-})(PackageFormImpl);
-
-export const PackageForm = connect<PackageFormStateProps, any, PackageFormOwnProps>(mapStateToProps)(WrappedPackageForm);
+export const PackageForm = connect<PackageFormStateProps, any, PackageFormOwnProps>(mapStateToProps)(PackageFormImpl);

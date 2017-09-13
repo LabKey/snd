@@ -1,5 +1,5 @@
 import * as actions from './actions'
-
+import { PACKAGE_VIEW } from '../../Packages/Forms/PackageFormContainer'
 interface PackageQueryResponse {
     json: Array<PackageModel>
 }
@@ -19,12 +19,13 @@ interface PackageModelAttributeProps {
     lookupSchema?: string
     name?: string
     rangeURI?: string
-    required?: boolean
+    required?: boolean | 'on'
     scale?: number
     validators?: Array<PackageModelValidatorProps>
+    [key: string]: any
 }
 
-const defaultPackageModelAttribute: PackageModelAttributeProps = {
+export const defaultPackageModelAttribute: PackageModelAttributeProps = {
     format: undefined,
     label: undefined,
     lookupQuery: undefined,
@@ -43,9 +44,10 @@ export class PackageModelAttribute implements PackageModelAttributeProps {
     lookupSchema: string;
     name: string;
     rangeURI: string;
-    required: boolean;
+    required: boolean | 'on';
     scale: number;
     validators: Array<PackageModelValidatorProps>;
+    [key: string]: any;
 
     constructor(values: PackageModelAttributeProps = defaultPackageModelAttribute) {
         Object.keys(values).forEach(key => {
@@ -61,7 +63,7 @@ interface PackageModelProps {
     container?: string
     description?: string
     narrative?: string
-    pkgId: number
+    pkgId?: number
     qcState?: any
     repeatable?: boolean
 }
@@ -79,15 +81,15 @@ export const defaultPackageModel = {
 };
 
 export class PackageModel implements PackageModelProps {
-    active: boolean;
-    attributes: Array<PackageModelAttributeProps>;
-    categories: Array<number>;
-    container: string;
-    description: string;
-    narrative: string;
-    pkgId: number;
-    qcState: any;
-    repeatable: boolean;
+    active?: boolean;
+    attributes?: Array<PackageModelAttributeProps>;
+    categories?: Array<number>;
+    container?: string;
+    description?: string;
+    narrative?: string;
+    pkgId?: number;
+    qcState?: any;
+    repeatable?: boolean;
 
     constructor(values: PackageModelProps = defaultPackageModel) {
         Object.keys(values).forEach(key => {
@@ -96,10 +98,49 @@ export class PackageModel implements PackageModelProps {
     }
 }
 
+interface PackageSubmissionModelProps extends PackageModel {
+    active?: boolean;
+    attributes?: Array<PackageModelAttributeProps>;
+    categories?: Array<number>;
+    container?: string;
+    description?: string;
+    extraFields?: {[key: string]: any};
+    id?: number;
+    narrative?: string;
+    pkgId?: number;
+    qcState?: any;
+    repeatable?: boolean;
+    subpackages?: Array<any>;
+}
+
+export class PackageSubmissionModel implements PackageSubmissionModelProps {
+    active?: boolean;
+    attributes?: Array<PackageModelAttributeProps>;
+    categories: Array<number>;
+    container?: string;
+    description?: string;
+    extraFields?: {[key: string]: any};
+    id?: number;
+    narrative?: string;
+    pkgId?: number;
+    qcState?: any;
+    repeatable?: boolean;
+    subpackages?: Array<any>;
+
+    constructor(values: PackageSubmissionModelProps) {
+        Object.keys(values).forEach(key => {
+            this[key] = values[key];
+        });
+    }
+}
+
 interface PackageWizardModelProps {
     data?: PackageModel;
+    formView?: PACKAGE_VIEW;
+    initialData?: PackageModel;
     isActive?: boolean;
     isError?: boolean;
+    isValid?: boolean;
     message?: string;
     packageCount?: number;
     packageId?: number
@@ -109,19 +150,25 @@ interface PackageWizardModelProps {
 
 export const defaultPackageWizardModel: PackageWizardModelProps = {
     data: new PackageModel(),
+    formView: undefined,
+    initialData: new PackageModel(),
     isActive: false,
     isError: false,
+    isValid: false,
     message: undefined,
     packageCount: 0,
     packageId: undefined,
     packageLoaded: false,
-    packageLoading: false
+    packageLoading: false,
 };
 
 export class PackageWizardModel implements PackageWizardModelProps {
     data?: PackageModel;
+    formView?: PACKAGE_VIEW;
+    initialData?: PackageModel;
     isActive?: boolean;
     isError?: boolean;
+    isValid?: boolean;
     message?: string;
     packageCount?: number;
     packageId?: number;
@@ -134,12 +181,20 @@ export class PackageWizardModel implements PackageWizardModelProps {
         });
     }
 
+    formatPackageValues(active: boolean, view?: PACKAGE_VIEW): PackageSubmissionModel {
+        return actions.formatPackageValues(this, active, view);
+    }
+
     loaded() {
         return actions.packageLoaded(this);
     }
 
     loading() {
         return actions.packageLoading(this);
+    }
+
+    saveField(name, value) {
+        return actions.saveField(this, name, value);
     }
 
     saveNarrative(narrative: string) {
@@ -150,8 +205,12 @@ export class PackageWizardModel implements PackageWizardModelProps {
         return actions.packageError(this, error);
     }
 
-    success(response: PackageQueryResponse) {
-        return actions.packageSuccess(this, response);
+    submitForm(active: boolean, onSuccess?: any) {
+        return actions.save(this.formatPackageValues(active, this.formView), onSuccess);
+    }
+
+    success(response: PackageQueryResponse, view: PACKAGE_VIEW) {
+        return actions.packageSuccess(this, response, view);
     }
 }
 
