@@ -10,5 +10,6 @@ export const PKG_TYPES = {
     SET_ACTIVE_PACKAGE: PKG_PREFIX + 'SET_ACTIVE_PACKAGE',
 };
 
-export const SND_PKG_SCHEMA: string = 'snd';
-export const SND_PKG_QUERY: string = 'pkgs';
+export const SND_PKG_SCHEMA: string = 'snd',
+    SND_PKG_QUERY: string = 'pkgs',
+    SND_CATEGORY_QUERY: string = 'pkgCategories';

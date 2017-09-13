@@ -2,7 +2,6 @@ import * as React from 'react';
 import { Button, ControlLabel } from 'react-bootstrap'
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux'
-import { Form, FormProps, Field, reduxForm, initialize } from 'redux-form';
 
 import { PackageModel } from '../../Wizards/Packages/model'
 import { PACKAGE_VIEW } from './PackageFormContainer'
@@ -10,6 +9,12 @@ import { PackageIdInput } from '../../../components/Form/PackageIdInput'
 import { TextArea } from '../../../components/Form/TextArea'
 import { TextInput } from '../../../components/Form/TextInput'
 import { Attributes } from '../../../components/Form/Attributes'
+
+import { QuerySearch } from '../../../query/QuerySearchInput'
+import { SchemaQuery } from '../../../query/model'
+import { SND_CATEGORY_QUERY, SND_PKG_SCHEMA } from '../constants'
+
+const CAT_SQ = SchemaQuery.create(SND_PKG_SCHEMA, SND_CATEGORY_QUERY);
 
 const styles = require<any>('./PackageForm.css');
 
@@ -40,7 +45,7 @@ const buttons: Array<ButtonListProps> = [
 
 interface PackageFormOwnProps {
     handleCancel?: () => void
-    handleFieldChange?: (event: any) => void
+    handleFieldChange?: (name: string, value: any) => void
     handleNarrativeChange?: (val) => void
     handleFormSubmit?: any
     isValid?: boolean
@@ -48,29 +53,20 @@ interface PackageFormOwnProps {
     view?: PACKAGE_VIEW
 }
 
-interface PackageFormState extends FormProps<any, any, any> {
+interface PackageFormState {
     dispatch?: Dispatch<any>
-}
-
-interface PackageFormStateProps {
-
 }
 
 type PackageFormProps = PackageFormOwnProps & PackageFormState;
 
-function mapStateToProps(state: APP_STATE_PROPS, ownProps: PackageFormOwnProps): PackageFormState {
-
-    return {
-        initialValues: ownProps.model
-    };
-}
-
-export class PackageFormImpl extends React.Component<PackageFormProps, PackageFormStateProps> {
+export class PackageFormImpl extends React.Component<PackageFormProps, {}> {
 
     constructor(props?: PackageFormProps) {
         super(props);
 
         this.handleCancel = this.handleCancel.bind(this);
+        this.handleCategoriesChange = this.handleCategoriesChange.bind(this);
+        this.handleFieldChange = this.handleFieldChange.bind(this);
         this.handleNarrativeChange = this.handleNarrativeChange.bind(this);
         this.submit = this.submit.bind(this);
     }
@@ -102,6 +98,18 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         this.props.handleCancel();
     }
 
+    handleCategoriesChange(categories) {
+        console.log(categories)
+    }
+
+    handleFieldChange(event: React.ChangeEvent<any>) {
+        const { handleFieldChange } = this.props;
+        const name = event.currentTarget.name,
+            value = event.currentTarget.value;
+
+        handleFieldChange(name, value);
+    }
+
     handleNarrativeChange(event: React.ChangeEvent<HTMLTextAreaElement>) {
         const { handleNarrativeChange } = this.props;
         const value = event.currentTarget.value;
@@ -112,12 +120,12 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
     }
 
     renderAttributes() {
-        const { handleFieldChange, model, view } = this.props;
+        const { model, view } = this.props;
         if (model) {
             const { attributes, narrative } = model;
             return <Attributes
                         attributes={attributes}
-                        handleFieldChange={handleFieldChange}
+                        handleFieldChange={this.handleFieldChange}
                         narrative={narrative}
                         readOnly={view === PACKAGE_VIEW.VIEW}/>
         }
@@ -165,7 +173,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
             <div>
                 <form>
                     <div className="row clearfix">
-                        <div className="col-sm-8">
+                        <div className="col-sm-8" style={{height: '220px'}}>
                             <div className="row clearfix">
                                 <div className="col-xs-2">
                                     <ControlLabel>Package Id</ControlLabel>
@@ -185,7 +193,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                                 <div className="col-xs-10">
                                     <TextInput
                                         name='description'
-                                        onChange={handleFieldChange}
+                                        onChange={this.handleFieldChange}
                                         required
                                         value={model.description}/>
                                 </div>
@@ -207,8 +215,11 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                                 </div>
                             </div>
                         </div>
-                        <div className="col-sm-4">
-
+                        <div className="col-sm-4" style={{height: '220px'}}>
+                            <QuerySearch
+                                handleChange={handleFieldChange}
+                                name='categories'
+                                schemaQuery={CAT_SQ}/>
                         </div>
                     </div>
 
@@ -229,4 +240,4 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
     }
 }
 
-export const PackageForm = connect<PackageFormStateProps, any, PackageFormOwnProps>(mapStateToProps)(PackageFormImpl);
+export const PackageForm: any = connect()(PackageFormImpl as any); // fix typing

@@ -5,7 +5,6 @@ import { Dispatch } from 'redux'
 
 import * as actions from './actions'
 
-
 import { QueryModel, SchemaQuery } from './model'
 
 
@@ -18,10 +17,6 @@ interface QuerySearchInputProps {
 }
 
 export class QuerySearchInput extends React.Component<QuerySearchInputProps, {}> {
-
-    constructor(props?: QuerySearchInputProps) {
-        super(props);
-    }
 
     render() {
         const { input, inputValue } = this.props;
@@ -45,29 +40,51 @@ interface QuerySearchResultsProps {
     columns?: any
     data?: any
     dataIds?: Array<any>
+    handleSelect?: any
+    selected?: Array<number>
 }
 
 export class QuerySearchResults extends React.Component<QuerySearchResultsProps, {}> {
 
-    constructor(props?: QuerySearchResultsProps) {
-        super(props);
-
-    }
-
     render() {
-        const { columns, data, dataIds } = this.props;
+        const { columns, data, dataIds, selected } = this.props;
 
+        // todo: add onHover to change check to x for selected elements
         if (data && dataIds.length) {
             return (
-                <div className='data-search__container'>
-                    {dataIds.map((id, i) => {
+                <div className='data-search__container' style={{maxHeight: '175px', overflow: 'scroll'}}>
+                    {selected.map((id, i) => {
                         return (
-                            <ListGroupItem className={"data-search__row_" + id} key={id}>
+                            <ListGroupItem
+                                className={"data-search__row_" + id + i}
+                                key={['selected_data', id, i].join('_')}
+                                onClick={() => this.props.handleSelect(id)}>
                                 {columns.map((column, j) => {
                                     const display = data[id][column.fieldKey.name].displayValue ?
                                         data[id][column.fieldKey.name].displayValue :
                                         data[id][column.fieldKey.name].value;
-                                    console.log(display)
+
+                                    return (
+                                        <span key={j}>{display} </span>
+                                    )
+                                })}
+                                <span>
+                                    <i className="fa fa-check"/>
+                                </span>
+                            </ListGroupItem>
+                        )
+                    })}
+                    {dataIds.map((id, i) => {
+                        return (
+                            <ListGroupItem
+                                className={"data-search__row_" + id}
+                                key={['data_option', id, i].join('_')}
+                                onClick={() => this.props.handleSelect(id)}>
+                                {columns.map((column, j) => {
+                                    const display = data[id][column.fieldKey.name].displayValue ?
+                                        data[id][column.fieldKey.name].displayValue :
+                                        data[id][column.fieldKey.name].value;
+
                                     return (
                                         <span key={j}>{display} </span>
                                     )
@@ -95,9 +112,9 @@ export class QuerySearchResults extends React.Component<QuerySearchResultsProps,
 interface QuerySearchWrapperOwnProps {
     handleChange?: any
 
+    name?: string
     schemaQuery: SchemaQuery
     // todo: support filters, etc
-
 }
 
 interface QuerySearchWrapperState {
@@ -110,7 +127,9 @@ interface QuerySearchWrapperDispatch {
 }
 
 interface QuerySearchWrapperStateProps {
+    data?: Array<any>
     input?: string
+    selected?: Array<number>
 }
 
 type QuerySearchWrapperProps = QuerySearchWrapperOwnProps & QuerySearchWrapperState & QuerySearchWrapperDispatch;
@@ -139,11 +158,14 @@ export class QuerySearchWrapperImpl extends React.Component<QuerySearchWrapperPr
         super(props);
 
         this.state = {
-            input: ''
+            data: [],
+            input: '',
+            selected: []
         };
 
         this.handleClear = this.handleClear.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
+        this.handleSelect = this.handleSelect.bind(this);
     }
 
     componentDidMount() {
@@ -151,6 +173,33 @@ export class QuerySearchWrapperImpl extends React.Component<QuerySearchWrapperPr
         if (!model) {
             this.props.initModel(schemaQuery);
         }
+    }
+
+    componentWillReceiveProps(nextProps?: QuerySearchWrapperProps) {
+        const { model } = nextProps;
+        if (model && model.dataIds) {
+            this.setState({
+                data: model.dataIds
+            });
+        }
+    }
+
+    filterResults(input, data, dataIds) {
+        const { selected } = this.state;
+        const columns = this.getColumns().map((col) => col.fieldKey.name);
+
+        return dataIds.filter((id) => {
+            if (selected.indexOf(id) === -1) {
+                if (input) {
+                    return columns.some((col) => {
+                        const value = data[id][col]['value'];
+                        return value.toString().toLowerCase().indexOf(input) !== -1;
+                    });
+                }
+                return true;
+            }
+            return false;
+        });
     }
 
     getColumns() {
@@ -173,8 +222,41 @@ export class QuerySearchWrapperImpl extends React.Component<QuerySearchWrapperPr
         this.setInput(input);
     }
 
+    handleSelect(id: number) {
+        const { handleChange, name, model } = this.props;
+
+        let selected: Array<number>;
+
+        if (this.state.selected.indexOf(id) > -1) {
+            let selectedState = [].concat(this.state.selected);
+            selectedState.splice(selectedState.indexOf(id), 1);
+            selected = selectedState;
+        }
+        else {
+            selected = this.state.selected.concat(id);
+        }
+
+        this.setState({
+            input: '',
+            selected
+        }, () => {
+            this.setState({
+                data: this.filterResults('', model.data, model.dataIds)
+            });
+        });
+
+        if (handleChange && typeof handleChange === 'function') {
+            handleChange(name, selected);
+        }
+    }
+
     setInput(input: string) {
-        this.setState({input});
+        const { model } = this.props;
+
+        this.setState({
+            data: this.filterResults(input, model.data, model.dataIds),
+            input
+        });
     }
 
     render() {
@@ -189,6 +271,7 @@ export class QuerySearchWrapperImpl extends React.Component<QuerySearchWrapperPr
         }
 
         // Needs work for styling, onClick handler, data filter, etc
+        const { data, selected } = this.state;
         const { model } = this.props;
         if (model && model.isLoaded) {
             return (
@@ -199,9 +282,11 @@ export class QuerySearchWrapperImpl extends React.Component<QuerySearchWrapperPr
                         input={(el) => this.input = el}
                         inputValue={this.state.input}/>
                     <QuerySearchResults
+                        columns={this.getColumns()}
                         data={model.data}
-                        dataIds={model.dataIds}
-                        columns={this.getColumns()}/>
+                        dataIds={data}
+                        handleSelect={this.handleSelect}
+                        selected={selected}/>
                 </ListGroup>
             );
         }

@@ -157,6 +157,8 @@ function isFormValid(data: PackageModel, initialData: PackageModel, view: PACKAG
         });
     }
 
+    // add check for updated categories
+
     if (isValid && view === PACKAGE_VIEW.EDIT) {
         // need to loop through initialData to compare with currentValues if view === edit
         return (

@@ -138,10 +138,8 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
         history.goBack();
     }
 
-    handleFieldChange(event) {
+    handleFieldChange(name, value) {
         const { dispatch, model } = this.props;
-        const name = event.currentTarget.name,
-            value = event.currentTarget.value;
 
         dispatch(model.saveField(name, value));
     }

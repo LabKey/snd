@@ -98,6 +98,12 @@ class AttributesGridBody extends React.Component<AttributesGridProps, any> {
     constructor(props) {
         super(props);
 
+        this.handleChange = this.handleChange.bind(this);
+    }
+
+    handleChange(event: React.ChangeEvent<any>) {
+        const { handleFieldChange } = this.props;
+        handleFieldChange(event);
     }
 
     render() {
@@ -114,7 +120,7 @@ class AttributesGridBody extends React.Component<AttributesGridProps, any> {
                                         attributeId: i,
                                         disabled: col.disabled || readOnly,
                                         name: `attributes_${i}_${col.name}`,
-                                        onChange: handleFieldChange,
+                                        onChange: this.handleChange,
                                         value: attribute[col.name],
                                         required: col.required
                                     };
