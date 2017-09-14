@@ -28,6 +28,7 @@ import org.labkey.api.view.ViewBackgroundInfo;
 import org.labkey.data.xml.ColumnType;
 import org.labkey.data.xml.PropertyValidatorType;
 import org.txbiomed.snd.AttributesType;
+import org.txbiomed.snd.ChildType;
 import org.txbiomed.snd.ExportDocument;
 import org.txbiomed.snd.PackageType;
 import org.txbiomed.snd.PackagesType;
@@ -38,6 +39,7 @@ import org.txbiomed.snd.USDACategoryType;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -258,6 +260,18 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
         SuperPackage superPackage = new SuperPackage();
         superPackage.setSuperPkgId(superPackageType.getSuperPkgId());
         superPackage.setPkgId(superPackageType.getPkgId());
+
+        List<SuperPackage> children = new ArrayList<>();
+        SuperPackage child;
+        for (ChildType childType : superPackageType.getChildren().getChildArray())
+        {
+            child = new SuperPackage();
+            child.setPkgId(childType.getPkgId());
+            child.setParentSuperPkgId(superPackage.getSuperPkgId());
+            child.setSuperPkgId(childType.getSuperPkgId());
+            children.add(child);
+        }
+        superPackage.setChildPackages(children);
 
         return  superPackage;
     }

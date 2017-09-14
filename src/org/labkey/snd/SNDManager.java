@@ -185,23 +185,61 @@ public class SNDManager
             kind.updateDomain(c, u, domain);
         }
     }
+    
+    private List<Integer> getSavedSuperPkgs(Container c, User u)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
-    public void createSuperPackage(User u, Container c, SuperPackage superPkg, BatchValidationException errors)
+        SQLFragment sql = new SQLFragment("SELECT SuperPkgId FROM ");
+        sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "s");
+        sql.append(" WHERE Container = ?").add(c);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+        return selector.getArrayList(Integer.class);
+    }
+
+    public void createSuperPackages(User u, Container c, List<SuperPackage> superPkgs, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
         TableInfo superPkgsTable = getTableInfo(schema, SNDSchema.SUPERPKGS_TABLE_NAME);
         QueryUpdateService superPkgQus = getQueryUpdateService(superPkgsTable);
 
-        List<Map<String, Object>> superPkgRows = new ArrayList<>();
-        superPkgRows.add(superPkg.getSuperPackageRow(c));
+        // Flatten packages, combine children and parent in same list
+        List<SuperPackage> flatSuperPackages = new ArrayList<>();
+        for (SuperPackage parent : superPkgs)
+        {
+            flatSuperPackages.add(parent);
+            for (SuperPackage child : parent.getChildPackages())
+            {
+                flatSuperPackages.add(child);
+            }
+        }
+        
+        List<Integer> savedSuperPkgs = getSavedSuperPkgs(c, u);
+        List<Map<String, Object>> updates = new ArrayList<>();
+        List<Map<String, Object>> inserts = new ArrayList<>();
+
+        // Update existing rows and add new rows
+        for (SuperPackage superPkg : flatSuperPackages)
+        {
+            superPkg.setSuperPkgPath(Integer.toString(superPkg.getSuperPkgId()));
+            if (savedSuperPkgs.contains(superPkg.getSuperPkgId()))
+            {
+                updates.add(superPkg.getSuperPackageRow(c));
+            }
+            else
+            {
+                inserts.add(superPkg.getSuperPackageRow(c));
+            }
+        }
 
         try (DbScope.Transaction tx = superPkgsTable.getSchema().getScope().ensureTransaction())
         {
-            superPkgQus.insertRows(u, c, superPkgRows, errors, null, null);
+            superPkgQus.insertRows(u, c, inserts, errors, null, null);
+            superPkgQus.updateRows(u, c, updates, null,null, null);
             tx.commit();
         }
-        catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException e)
+        catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException | InvalidKeyException e)
         {
             errors.addRowError(new ValidationException(e.getMessage()));
         }

@@ -58,7 +58,7 @@ public class SNDServiceImpl implements SNDService
     {
         BatchValidationException errors = new BatchValidationException();
 
-        //SNDManager.get().createSuperPackage(u, c, superPkgs, errors);
+        SNDManager.get().createSuperPackages(u, c, superPkgs, errors);
 
         if (errors.hasErrors())
             throw new UnexpectedException(errors);

@@ -12,8 +12,40 @@ import java.util.Map;
 public class SuperPackage
 {
     private Integer _superPkgId;
-    private List<Integer> _childPackages;
+    private List<SuperPackage> _childPackages;
     private Integer _pkgId;
+    private String _superPkgPath;
+    private Integer _parentSuperPkgId;
+
+    public Integer getParentSuperPkgId()
+    {
+        return _parentSuperPkgId;
+    }
+
+    public void setParentSuperPkgId(Integer parentSuperPkgId)
+    {
+        _parentSuperPkgId = parentSuperPkgId;
+    }
+
+    public List<SuperPackage> getChildPackages()
+    {
+        return _childPackages;
+    }
+
+    public void setChildPackages(List<SuperPackage> childPackages)
+    {
+        _childPackages = childPackages;
+    }
+
+    public String getSuperPkgPath()
+    {
+        return _superPkgPath;
+    }
+
+    public void setSuperPkgPath(String superPkgPath)
+    {
+        _superPkgPath = superPkgPath;
+    }
 
     public Integer getSuperPkgId()
     {
@@ -25,15 +57,6 @@ public class SuperPackage
         _superPkgId = superPkgId;
     }
 
-    public List<Integer> getParentSuperPkgId()
-    {
-        return _childPackages;
-    }
-
-    public void setParentSuperPkgId(List<Integer> childPackages)
-    {
-        _childPackages = childPackages;
-    }
 
     public Integer getPkgId()
     {
@@ -51,6 +74,8 @@ public class SuperPackage
         superPkgValues.put("SuperPkgId", getSuperPkgId());
         superPkgValues.put("ParentSuperPkgId", getParentSuperPkgId());
         superPkgValues.put("PkgId", getPkgId());
+        superPkgValues.put("Container", c);
+        superPkgValues.put("SuperPkgPath", getSuperPkgPath());
 
         return superPkgValues;
     }
