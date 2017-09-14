@@ -143,14 +143,29 @@ public class SNDController extends SpringActionController
             JSONArray pkgIds = json.getJSONArray("packages");
             ApiSimpleResponse response = new ApiSimpleResponse();
 
-            List<Package> pkgs = null;
+            List<Package> pkgs = new ArrayList<>();
             List<Integer> ids = new ArrayList<>();
-            for (int j = 0; j < pkgIds.length(); j++)
-            {
-                ids.add(pkgIds.getInt(j));
-            }
 
-            pkgs = SNDService.get().getPackages(getViewContext().getContainer(), getUser(), ids);
+            if (pkgIds.getInt(0) == -1)
+            {
+                Package newPkg = new Package();
+                newPkg = SNDManager.get().addExtraFields(getViewContext().getContainer(), getUser(), newPkg, null);
+                pkgs.add(newPkg);
+            }
+            else
+            {
+                int id;
+                for (int j = 0; j < pkgIds.length(); j++)
+                {
+                    id = pkgIds.getInt(j);
+                    if (id > -1)
+                        ids.add(id);
+                }
+
+                SNDService sndService = SNDService.get();
+                if (ids.size() > 0 && sndService != null)
+                    pkgs.addAll(sndService.getPackages(getViewContext().getContainer(), getUser(), ids));
+            }
 
             JSONArray jsonOut = new JSONArray();
             for (Package pkg : pkgs)

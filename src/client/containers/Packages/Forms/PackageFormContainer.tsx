@@ -73,7 +73,7 @@ function mapStateToProps(state: APP_STATE_PROPS, ownProps: PackageFormContainerO
         pkgId = id;
     }
     else {
-        pkgId = 'newPackage';
+        pkgId = -1;
     }
 
     return {

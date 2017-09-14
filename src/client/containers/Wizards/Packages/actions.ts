@@ -55,7 +55,7 @@ export function initPackageModel(id) {
 }
 
 function shouldFetch(model: PackageWizardModel, view: PACKAGE_VIEW): boolean {
-    return !model.packageLoaded && !model.packageLoading && view !== PACKAGE_VIEW.NEW;
+    return !model.packageLoaded && !model.packageLoading;
 }
 
 export function packageError(model: PackageWizardModel, error: any) {

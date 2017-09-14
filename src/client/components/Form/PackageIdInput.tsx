@@ -57,7 +57,8 @@ export const PackageIdInput = (props: PackageIdInputProps ) => {
                 onChange={onChange}
                 required
                 type="text"
-                value={value}/>
+                value={value > -1?value:""}
+            />
         </div>
     );
 };

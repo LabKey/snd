@@ -1,16 +1,16 @@
 import * as React from 'react';
 import {ControlLabel} from 'react-bootstrap'
-import {Field} from 'redux-form';
 
 import {PACKAGE_VIEW} from '../../containers/Packages/Forms/PackageFormContainer'
 import {TextInput} from '../../components/Form/TextInput'
-import {ExtraFieldSelect, ExtraFieldSelectInput} from "./ExtraFieldSelect";
+import {ExtraFieldSelectInput} from "./ExtraFieldSelect";
 
 interface ExtraFieldsProps
 {
     disabled?: any
     extraFields?: any
-    name?: any
+    handleFieldChange?: any
+    name?: string
     view?: PACKAGE_VIEW
 }
 
@@ -24,8 +24,8 @@ export class ExtraFields extends React.Component<ExtraFieldsProps, any>
 
     render()
     {
-        const {extraFields, disabled} = this.props;
-        let count = 0;
+        const {extraFields, disabled, handleFieldChange} = this.props;
+        let count = -1;
 
         if (extraFields && extraFields.length)
         {
@@ -34,8 +34,7 @@ export class ExtraFields extends React.Component<ExtraFieldsProps, any>
                 <div className="row clearfix">
                     {extraFields.map((extra) =>
                         {
-                            {/*TODO: Will be removing concatenated zeros soon*/}
-                            let {lookupValues0 : lookupValues, value0 : value, name0 : name} = extra;
+                            let {lookupValues, value, name} = extra;
                             count++;
                             return (
 
@@ -46,17 +45,25 @@ export class ExtraFields extends React.Component<ExtraFieldsProps, any>
                                     {lookupValues ? (
                                             <div className="col-xs-12">
                                                 {React.createElement(ExtraFieldSelectInput,
-                                                    {disabled:disabled,
-                                                    options:lookupValues,
-                                                    val:value}
+                                                    {
+                                                        disabled: disabled,
+                                                        options: lookupValues,
+                                                        handleFieldChange: handleFieldChange,
+                                                        val: value,
+                                                        name: name,
+                                                        index: count
+                                                    }
                                                 )}
                                             </div>
 
                                         ) : (
                                             <div className="col-xs-12">
                                                 {React.createElement(TextInput,
-                                                    {disabled:disabled,
-                                                    value:value}
+                                                    {
+                                                        disabled: disabled,
+                                                        value: value,
+                                                        name: name
+                                                    }
                                                 )}
                                             </div>
                                         )}

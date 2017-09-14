@@ -70,13 +70,6 @@ export const packages = handleActions({
             }, {});
         });
 
-        data.extraFields = data.extraFields.map((extra, i) => {
-            return Object.keys(extra).reduce((prev, next) => {
-                prev[next + i] = extra[next];
-                return prev;
-            }, {});
-        });
-
         const modelData = new PackageModel(Object.assign({}, state.packageData[pkgId].data, data));
         const successModel = new PackageWizardModel(Object.assign({}, model, {
             data: modelData,
@@ -107,6 +100,19 @@ export const packages = handleActions({
 
             data = new PackageModel(Object.assign({}, model.data, {
                 attributes
+            }));
+        }
+        else if (name.indexOf('extraFields') !== -1) {
+            const fieldParts = name.split('_');
+            const fieldIndex = fieldParts[1];
+
+            let extraFields = [].concat(model.data.extraFields);
+            extraFields[fieldIndex] = new PackageModelAttribute(
+                Object.assign({}, model.data.extraFields[fieldIndex], {["value"]: value})
+            );
+
+            data = new PackageModel(Object.assign({}, model.data, {
+                extraFields
             }));
         }
         else {

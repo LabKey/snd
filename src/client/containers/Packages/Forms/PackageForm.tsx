@@ -124,7 +124,11 @@ export class PackageFormImpl extends React.Component<PackageFormProps, {}> {
         const { model, view } = this.props;
         if (model) {
             const { extraFields } = model;
-            return <ExtraFields extraFields={extraFields} disabled={view === PACKAGE_VIEW.VIEW} />
+            return <ExtraFields
+                extraFields={extraFields}
+                disabled={view === PACKAGE_VIEW.VIEW}
+                handleFieldChange={this.handleFieldChange}
+            />
         }
 
         return null;

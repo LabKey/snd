@@ -17,6 +17,7 @@
 package org.labkey.snd;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DbScope;
 import org.labkey.api.data.DbSequence;
@@ -238,6 +239,45 @@ public class SNDManager
         return Collections.emptyList();
     }
 
+    public Package addExtraFields(Container c, User u, Package pkg, @Nullable Map<String, Object> row)
+    {
+        List<GWTPropertyDescriptor> extraFields = getPackageExtraFields(c, u);
+        Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
+        for (GWTPropertyDescriptor extraField : extraFields)
+        {
+            if (row == null)
+            {
+                extras.put(extraField, "");
+            }
+            else
+            {
+                extras.put(extraField, row.get(extraField.getName()));
+            }
+        }
+        pkg.setExtraFields(extras);
+
+        return pkg;
+    }
+
+    private Package createPackage(Container c, User u, Map<String, Object> row)
+    {
+        Package pkg = new Package();
+        if(row != null)
+        {
+            pkg.setPkgId((Integer) row.get(Package.PKG_ID));
+            pkg.setDescription((String) row.get(Package.PKG_DESCRIPTION));
+            pkg.setActive((boolean) row.get(Package.PKG_ACTIVE));
+            pkg.setRepeatable((boolean) row.get(Package.PKG_REPEATABLE));
+            pkg.setNarrative((String) row.get(Package.PKG_NARRATIVE));
+            pkg.setQcState((Integer) row.get(Package.PKG_QCSTATE));
+            pkg.setCategories(getPackageCategories(c, u, pkg.getPkgId()));
+            pkg.setAttributes(getPackageAttributes(c, u, pkg.getPkgId()));
+            addExtraFields(c, u, pkg, row);
+        }
+
+        return pkg;
+    }
+
     public List<Package> getPackages(Container c, User u, List<Integer> pkgIds, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -267,28 +307,9 @@ public class SNDManager
 
         if (!errors.hasErrors() && rows != null && !rows.isEmpty())
         {
-            Package pkg;
             for (Map<String, Object> row : rows)
             {
-                pkg = new Package();
-                pkg.setPkgId((Integer) row.get(Package.PKG_ID));
-                pkg.setDescription((String) row.get(Package.PKG_DESCRIPTION));
-                pkg.setActive((boolean) row.get(Package.PKG_ACTIVE));
-                pkg.setRepeatable((boolean) row.get(Package.PKG_REPEATABLE));
-                pkg.setNarrative((String) row.get(Package.PKG_NARRATIVE));
-                pkg.setQcState((Integer) row.get(Package.PKG_QCSTATE));
-                pkg.setCategories(getPackageCategories(c, u, pkg.getPkgId()));
-                pkg.setAttributes(getPackageAttributes(c, u, pkg.getPkgId()));
-
-                List<GWTPropertyDescriptor> extraFields = getPackageExtraFields(c, u);
-                Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
-                for (GWTPropertyDescriptor extraField : extraFields)
-                {
-                    extras.put(extraField, row.get(extraField.getName()));
-                }
-                pkg.setExtraFields(extras);
-
-                packages.add(pkg);
+                packages.add(createPackage(c, u, row));
             }
         }
 
