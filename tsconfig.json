@@ -10,6 +10,13 @@
   "exclude": [
     "../snd/node_modules",
     "resources"
+  ],
+  "files": [
+    "src/client/typings/main.d.ts",
+    "src/client/app.tsx"
+  ],
+  "include": [
+    "src/client/__tests__/*"
   ]
 }
 
