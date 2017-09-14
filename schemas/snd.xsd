@@ -71,6 +71,7 @@
 
     <xs:complexType name="ChildType">
         <xs:attribute name="superPkgId" type="xs:int"/>
+        <xs:attribute name="pkgId" type="xs:int"/>
     </xs:complexType>
 
 </xs:schema>
