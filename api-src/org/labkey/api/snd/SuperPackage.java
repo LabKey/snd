@@ -1,5 +1,7 @@
 package org.labkey.api.snd;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.labkey.api.collections.ArrayListMap;
 import org.labkey.api.data.Container;
 
@@ -16,6 +18,12 @@ public class SuperPackage
     private Integer _pkgId;
     private String _superPkgPath;
     private Integer _parentSuperPkgId;
+    private String _description;
+
+    public static final String SUPERPKG_ID = "superPkgId";
+    public static final String SUPERPKG_PARENTID = "parentSuperPkgId";
+    public static final String SUPERPKG_PKGID = "pkgId";
+    public static final String SUPERPKG_DESCRIPTION = "description";  // From referenced package
 
     public Integer getParentSuperPkgId()
     {
@@ -30,6 +38,16 @@ public class SuperPackage
     public List<SuperPackage> getChildPackages()
     {
         return _childPackages;
+    }
+
+    public String getDescription()
+    {
+        return _description;
+    }
+
+    public void setDescription(String description)
+    {
+        _description = description;
     }
 
     public void setChildPackages(List<SuperPackage> childPackages)
@@ -78,5 +96,25 @@ public class SuperPackage
         superPkgValues.put("SuperPkgPath", getSuperPkgPath());
 
         return superPkgValues;
+    }
+
+    public JSONObject toJson()
+    {
+        JSONObject json = new JSONObject();
+        json.put(SUPERPKG_ID, getSuperPkgId());
+        json.put(SUPERPKG_PKGID, getPkgId());
+        json.put(SUPERPKG_DESCRIPTION, getDescription());
+
+        JSONArray subPackages = new JSONArray();
+        if (getChildPackages() != null)
+        {
+            for (SuperPackage subPackage : getChildPackages())
+            {
+                subPackages.put(subPackage.toJson());
+            }
+        }
+
+        json.put("subPackages", subPackages);
+        return json;
     }
 }

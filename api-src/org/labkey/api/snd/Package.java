@@ -15,7 +15,6 @@ import org.labkey.api.security.User;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +31,7 @@ public class Package
     private boolean _active;
     private List<Integer> _categories = new ArrayList<>();
     private List<GWTPropertyDescriptor> _attributes = new ArrayList<>();
-    private List<Integer> _subpackages;
+    private List<SuperPackage> _subpackages;
     private Map<GWTPropertyDescriptor, Object> _extraFields = new HashMap<>();
     private Integer _qcState;
 
@@ -45,6 +44,7 @@ public class Package
     public static final String PKG_CONTAINER = "container";
     public static final String PKG_CATEGORIES = "categories";
     public static final String PKG_ATTRIBUTES = "attributes";
+    public static final String PKG_SUBPACKAGES = "subPackages";
 
     public Integer getPkgId()
     {
@@ -116,12 +116,12 @@ public class Package
         this._attributes = attributes;
     }
 
-    public Collection<Integer> getSubpackages()
+    public List<SuperPackage> getSubpackages()
     {
         return _subpackages;
     }
 
-    public void setSubpackages(List<Integer> subpackages)
+    public void setSubpackages(List<SuperPackage> subpackages)
     {
         this._subpackages = subpackages;
     }
@@ -279,6 +279,16 @@ public class Package
                 attributes.put(convertPropertyDescriptorToJson(c, u, pd, false));
             }
             json.put(PKG_ATTRIBUTES, attributes);
+        }
+
+        JSONArray subPackages = new JSONArray();
+        if(getSubpackages() != null)
+        {
+            for (SuperPackage subPackage : getSubpackages())
+            {
+                subPackages.put(subPackage.toJson());
+            }
+            json.put(PKG_SUBPACKAGES, subPackages);
         }
 
         JSONArray extras = new JSONArray();

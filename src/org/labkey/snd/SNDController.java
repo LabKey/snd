@@ -168,9 +168,11 @@ public class SNDController extends SpringActionController
             }
 
             JSONArray jsonOut = new JSONArray();
+            JSONObject jsonObj;
             for (Package pkg : pkgs)
             {
-                jsonOut.put(pkg.toJSON(getViewContext().getContainer(), getUser()));
+                jsonObj = pkg.toJSON(getViewContext().getContainer(), getUser());
+                jsonOut.put(jsonObj);
             }
 
             response.put("json", jsonOut);

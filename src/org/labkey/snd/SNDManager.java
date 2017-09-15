@@ -194,7 +194,6 @@ public class SNDManager
 
         SQLFragment sql = new SQLFragment("SELECT SuperPkgId FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "s");
-        sql.append(" WHERE Container = ?").add(c);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
         return selector.getArrayList(Integer.class);
     }
@@ -299,6 +298,40 @@ public class SNDManager
         return pkg;
     }
 
+    private int getTopLevelSuperPkgId(Container c, User u, int pkgId)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT SuperPkgId FROM ");
+        sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
+        sql.append(" WHERE PkgId = ? AND ParentSuperPkgId IS NULL").add(pkgId);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+        return selector.getArrayList(Integer.class).get(0);
+    }
+
+    private List<SuperPackage> getChildSuperPkgs(Container c, User u, int superPkgId)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.PkgId, p.Description FROM ");
+        sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
+        sql.append(" JOIN ");
+        sql.append(schema.getTable(SNDSchema.PKGS_TABLE_NAME), "p");
+        sql.append(" ON sp.PkgId = p.PkgId");
+        sql.append(" WHERE ParentSuperPkgId = ?").add(superPkgId);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+
+        return selector.getArrayList(SuperPackage.class);
+    }
+
+    public Package addSubPackages(Container c, User u, Package pkg)
+    {
+        int superPkgId = getTopLevelSuperPkgId(c, u, pkg.getPkgId());
+        pkg.setSubpackages(getChildSuperPkgs(c, u, superPkgId));
+
+        return pkg;
+    }
+
     private Package createPackage(Container c, User u, Map<String, Object> row)
     {
         Package pkg = new Package();
@@ -313,6 +346,7 @@ public class SNDManager
             pkg.setCategories(getPackageCategories(c, u, pkg.getPkgId()));
             pkg.setAttributes(getPackageAttributes(c, u, pkg.getPkgId()));
             addExtraFields(c, u, pkg, row);
+            addSubPackages(c, u, pkg);
         }
 
         return pkg;
