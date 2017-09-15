@@ -132,6 +132,30 @@ public class SNDUserSchema extends SimpleUserSchema
 
                         return table;
                     }
+                },
+        Lookups
+                {
+                    @Override
+                    public TableInfo createTable(SNDUserSchema schema)
+                    {
+                        SimpleUserSchema.SimpleTable<SNDUserSchema> table =
+                                new SimpleUserSchema.SimpleTable<>(
+                                        schema, SNDSchema.getInstance().getTableInfoLookups()).init();
+
+                        return table;
+                    }
+                },
+        LookupSets
+                {
+                    @Override
+                    public TableInfo createTable(SNDUserSchema schema)
+                    {
+                        SimpleUserSchema.SimpleTable<SNDUserSchema> table =
+                                new SimpleUserSchema.SimpleTable<>(
+                                        schema, SNDSchema.getInstance().getTableInfoLookupSets()).init();
+
+                        return table;
+                    }
                 };
 
 

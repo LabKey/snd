@@ -52,6 +52,7 @@
             <column columnName="ParentSuperPkgId"/>
             <column columnName="PkgId"/>
             <column columnName="SuperPkgPath"/>
+            <column columnName="SortOrder"/>
             <column columnName="Container"/>
             <column columnName="CreatedBy"/>
             <column columnName="Created"/>
@@ -230,6 +231,56 @@
             <column columnName="EventNoteId"/>
             <column columnName="EventId"/>
             <column columnName="Note"/>
+            <column columnName="Container"/>
+            <column columnName="CreatedBy"/>
+            <column columnName="Created"/>
+            <column columnName="ModifiedBy"/>
+            <column columnName="Modified"/>
+            <column columnName="Lsid">
+                <datatype>lsidtype</datatype>
+                <isReadOnly>true</isReadOnly>
+                <isHidden>true</isHidden>
+                <isUserEditable>false</isUserEditable>
+                <isUnselectable>true</isUnselectable>
+                <fk>
+                    <fkColumnName>ObjectUri</fkColumnName>
+                    <fkTable>Object</fkTable>
+                    <fkDbSchema>exp</fkDbSchema>
+                </fk>
+            </column>
+        </columns>
+    </table>
+    <table tableName="LookupSets" tableDbType="TABLE">
+        <columns>
+            <column columnName="LookupSetId"/>
+            <column columnName="SetName"/>
+            <column columnName="Label"/>
+            <column columnName="Description"/>
+            <column columnName="Container"/>
+            <column columnName="CreatedBy"/>
+            <column columnName="Created"/>
+            <column columnName="ModifiedBy"/>
+            <column columnName="Modified"/>
+            <column columnName="Lsid">
+                <datatype>lsidtype</datatype>
+                <isReadOnly>true</isReadOnly>
+                <isHidden>true</isHidden>
+                <isUserEditable>false</isUserEditable>
+                <isUnselectable>true</isUnselectable>
+                <fk>
+                    <fkColumnName>ObjectUri</fkColumnName>
+                    <fkTable>Object</fkTable>
+                    <fkDbSchema>exp</fkDbSchema>
+                </fk>
+            </column>
+        </columns>
+    </table>
+    <table tableName="Lookups" tableDbType="TABLE">
+        <columns>
+            <column columnName="LookupSetId"/>
+            <column columnName="Value"/>
+            <column columnName="Displayable"/>
+            <column columnName="SortOrder"/>
             <column columnName="Container"/>
             <column columnName="CreatedBy"/>
             <column columnName="Created"/>

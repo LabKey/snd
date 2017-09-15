@@ -56,6 +56,8 @@ public class SNDManager
     private static final int _minPkgId = 10000;
     private static final String SND_DBSEQUENCE_NAME = "org.labkey.snd.api.Package";
 
+    private List<TableInfo> _attributeLookups = new ArrayList<>();
+
     private SNDManager()
     {
         // prevent external construction with a private default constructor
@@ -352,5 +354,31 @@ public class SNDManager
         }
 
         return packages;
+    }
+
+    public void registerAttributeLookups(Container c, User u, String schema, String table)
+    {
+        UserSchema userSchema = QueryService.get().getUserSchema(u, c, schema);
+        if (table == null || table.isEmpty())
+        {
+            _attributeLookups.addAll(userSchema.getTables());
+        }
+        else
+        {
+            _attributeLookups.add(userSchema.getTable(table));
+        }
+    }
+
+    public Map<String, String> getAttributeLookups(Container c, User u)
+    {
+        Map<String, String> tables = new HashMap<>();
+        String key;
+        for (TableInfo ti : _attributeLookups)
+        {
+            key = ti.getSchema().getName() + "." + ti.getName();
+            tables.put(key, ti.getTitle());
+        }
+
+        return tables;
     }
 }

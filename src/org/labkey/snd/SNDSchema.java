@@ -34,6 +34,8 @@ public class SNDSchema
     public static final String EVENTNOTES_TABLE_NAME = "EventNotes";
     public static final String PROJECTS_TABLE_NAME = "Projects";
     public static final String PROJECTITEMS_TABLE_NAME = "ProjectItems";
+    public static final String LOOKUPS_TABLE_NAME = "Lookups";
+    public static final String LOOKUPSETS_TABLE_NAME = "LookupSets";
 
     public static SNDSchema getInstance()
     {
@@ -100,5 +102,15 @@ public class SNDSchema
     public TableInfo getTableInfoProjectItems()
     {
         return getSchema().getTable(PROJECTITEMS_TABLE_NAME);
+    }
+
+    public TableInfo getTableInfoLookups()
+    {
+        return getSchema().getTable(LOOKUPS_TABLE_NAME);
+    }
+
+    public TableInfo getTableInfoLookupSets()
+    {
+        return getSchema().getTable(LOOKUPSETS_TABLE_NAME);
     }
 }

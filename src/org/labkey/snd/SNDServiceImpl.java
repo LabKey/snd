@@ -1,5 +1,6 @@
 package org.labkey.snd;
 
+import com.beust.jcommander.internal.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.exp.property.Domain;
 import org.labkey.api.exp.property.PropertyService;
@@ -12,6 +13,7 @@ import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.util.UnexpectedException;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by marty on 8/4/2017.
@@ -74,5 +76,17 @@ public class SNDServiceImpl implements SNDService
             throw new UnexpectedException(errors);
 
         return pkgs;
+    }
+
+    @Override
+    public void registerAttributeLookup(Container c, User u, String schema, @Nullable String table)
+    {
+        SNDManager.get().registerAttributeLookups(c, u, schema, table);
+    }
+
+    @Override
+    public Map<String, String> getAttributeLookups(Container c, User u)
+    {
+        return SNDManager.get().getAttributeLookups(c, u);
     }
 }
