@@ -37,11 +37,7 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema)
                     {
-                        SimpleUserSchema.SimpleTable<SNDUserSchema> table =
-                                new SimpleUserSchema.SimpleTable<>(
-                                        schema, SNDSchema.getInstance().getTableInfoSuperPkgs()).init();
-
-                        return table;
+                        return new SuperPackagesTable(schema, SNDSchema.getInstance().getTableInfoSuperPkgs()).init();
                     }
                 },
         Pkgs
