@@ -263,12 +263,14 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
 
         List<SuperPackage> children = new ArrayList<>();
         SuperPackage child;
+        int order = 0;  // subpackages ordered by sort order
         for (ChildType childType : superPackageType.getChildren().getChildArray())
         {
             child = new SuperPackage();
             child.setPkgId(childType.getPkgId());
             child.setParentSuperPkgId(superPackage.getSuperPkgId());
             child.setSuperPkgId(childType.getSuperPkgId());
+            child.setSortOrder(order++);
             children.add(child);
         }
         superPackage.setChildPackages(children);
