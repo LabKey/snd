@@ -16,11 +16,20 @@
 package org.labkey.snd;
 
 import org.jetbrains.annotations.Nullable;
+import org.labkey.api.collections.CaseInsensitiveHashMap;
+import org.labkey.api.collections.CaseInsensitiveTreeSet;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DbSchema;
+import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.data.TableSelector;
+import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.security.User;
+
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
 
 public class SNDUserSchema extends SimpleUserSchema
@@ -178,7 +187,63 @@ public class SNDUserSchema extends SimpleUserSchema
             {
                 return tableType.createTable(this);
             }
+            else
+            {
+                Map<String, Map<String, Object>> nameMap = getLookupSets();
+                if (nameMap.containsKey(name))
+                {
+                    TableInfo table = SNDSchema.getInstance().getTableInfoLookups();
+                    return new LookupSetTable(this, table, name, nameMap.get(name)).init();
+                }
+            }
         }
         return null;
+    }
+
+    private Map<String, Map<String, Object>> getLookupSets()
+    {
+        Map<String, Map<String, Object>> nameMap = (Map<String, Map<String, Object>>) SNDManager.get().getCache().get(LookupSetTable.getCacheKey(getContainer()));
+        if (nameMap != null)
+            return nameMap;
+
+        nameMap = new CaseInsensitiveHashMap<>();
+
+        TableSelector ts = new TableSelector(SNDSchema.getInstance().getTableInfoLookupSets(), new SimpleFilter(FieldKey.fromString("container"), getContainer().getId()), null);
+        Map<String, Object>[] rows = ts.getMapArray();
+        if (rows.length > 0)
+        {
+            Set<String> existing = super.getTableNames();
+            for (Map<String, Object> row : rows)
+            {
+                String setname = (String)row.get("SetName");
+                if (setname != null && !existing.contains(setname))
+                    nameMap.put(setname, row);
+            }
+        }
+
+        nameMap = Collections.unmodifiableMap(nameMap);
+        SNDManager.get().getCache().put(LookupSetTable.getCacheKey(getContainer()), nameMap);
+
+        return nameMap;
+    }
+
+    @Override
+    public Set<String> getTableNames()
+    {
+        Set<String> tables = new CaseInsensitiveTreeSet();
+        tables.addAll(getLookupSets().keySet());
+        tables.addAll(super.getTableNames());
+
+        return tables;
+    }
+
+    @Override
+    public synchronized Set<String> getVisibleTableNames()
+    {
+        Set<String> tables = new CaseInsensitiveTreeSet();
+        tables.addAll(super.getVisibleTableNames());
+        tables.addAll(getLookupSets().keySet());
+
+        return tables;
     }
 }

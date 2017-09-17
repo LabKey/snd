@@ -18,6 +18,8 @@ package org.labkey.snd;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.labkey.api.cache.CacheManager;
+import org.labkey.api.cache.StringKeyCache;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DbScope;
 import org.labkey.api.data.DbSequence;
@@ -55,17 +57,23 @@ public class SNDManager
     private static final SNDManager _instance = new SNDManager();
     private static final int _minPkgId = 10000;
     private static final String SND_DBSEQUENCE_NAME = "org.labkey.snd.api.Package";
+    private final StringKeyCache<Object> _cache;
 
     private List<TableInfo> _attributeLookups = new ArrayList<>();
 
     private SNDManager()
     {
-        // prevent external construction with a private default constructor
+        _cache = CacheManager.getStringKeyCache(1000, CacheManager.UNLIMITED, "SNDCache");
     }
 
     public static SNDManager get()
     {
         return _instance;
+    }
+
+    public StringKeyCache getCache()
+    {
+        return _cache;
     }
 
     public Integer generatePackageId(Container c)
@@ -263,7 +271,7 @@ public class SNDManager
 
         SQLFragment sql = new SQLFragment("SELECT CategoryId FROM ");
         sql.append(schema.getTable(SNDSchema.PKGCATEGORYJUNCTION_TABLE_NAME), "c");
-        sql.append(" WHERE Container = ? AND PkgId = ?").add(c).add(pkgId);
+        sql.append(" WHERE PkgId = ?").add(pkgId);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
         return selector.getArrayList(Integer.class);
     }
