@@ -203,7 +203,7 @@ export function formatPackageValues(model: PackageWizardModel, active: boolean, 
         id,
         narrative,
         repeatable,
-        subpackages: [],
+        subPackages: [],
     });
 }
 

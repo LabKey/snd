@@ -168,7 +168,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, {}> {
                 <div className={isReadyOnly ? "col-sm-12" : "col-sm-6"}>
                     <div className={"row clearfix col-xs-12 " + styles['margin-top']}>
                         <ControlLabel>Assigned Packages</ControlLabel >
-                        <SubpackageViewer packageIds={model.subpackages} view={view}/>
+                        <SubpackageViewer packageIds={model.subPackages} view={view}/>
                     </div>
                     <div className={"row clearfix col-xs-12 " + styles['margin-top']}>
                         <ListGroupItem className="data-search__container" style={{height: '90px'}}>

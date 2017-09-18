@@ -134,6 +134,7 @@ interface QuerySuperPackageModelProps {
     SuperPkgPath: LabKeyQueryRowPropertyProps
     SuperPkgId: LabKeyQueryRowPropertyProps
     PkgId: LabKeyQueryRowPropertyProps
+    IsPrimitive: LabKeyQueryRowPropertyProps
     links: any
 }
 
@@ -147,6 +148,7 @@ export const defaultQuerySuperPackageModel: QuerySuperPackageModelProps = {
     SuperPkgPath: undefined,
     SuperPkgId: undefined,
     PkgId: undefined,
+    IsPrimitive: undefined,
     links: undefined
 };
 
@@ -160,6 +162,7 @@ export class QuerySuperPackageModel implements QuerySuperPackageModelProps {
     SuperPkgPath: LabKeyQueryRowPropertyProps;
     SuperPkgId: LabKeyQueryRowPropertyProps;
     PkgId: LabKeyQueryRowPropertyProps;
+    IsPrimitive: LabKeyQueryRowPropertyProps;
     links: any;
 
     constructor(values: QuerySuperPackageModelProps = defaultQuerySuperPackageModel) {

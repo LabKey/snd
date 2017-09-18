@@ -53,6 +53,16 @@ public class SuperPackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSche
         ExprColumn inUseCol = new ExprColumn(this, "HasProject", inUseSql, JdbcType.BOOLEAN);
         addColumn(inUseCol);
 
+        SQLFragment isPrimitiveSql = new SQLFragment();
+        isPrimitiveSql.append("(CASE WHEN NOT EXISTS (SELECT sp.ParentSuperPkgId FROM ");
+        isPrimitiveSql.append(SNDSchema.getInstance().getTableInfoSuperPkgs(), "sp");
+        isPrimitiveSql.append(" WHERE sp.ParentSuperPkgId = " + ExprColumn.STR_TABLE_ALIAS + ".SuperPkgId)");
+        isPrimitiveSql.append(" AND " + ExprColumn.STR_TABLE_ALIAS + ".ParentSuperPkgId IS NULL");
+        isPrimitiveSql.append(" THEN 'true' ELSE 'false' END)");
+        ExprColumn isPrimitiveCol = new ExprColumn(this, "IsPrimitive", isPrimitiveSql, JdbcType.BOOLEAN);
+        isPrimitiveCol.setDescription("A super package with a null ParentSuperPkgId and is not a parent of any other super package.");
+        addColumn(isPrimitiveCol);
+
         return this;
     }
 

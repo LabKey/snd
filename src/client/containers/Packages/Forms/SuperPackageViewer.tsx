@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Checkbox, ListGroupItem } from 'react-bootstrap'
+import { ListGroupItem } from 'react-bootstrap'
 import { connect } from 'react-redux';
 
 import { QueryModel, SchemaQuery } from '../../../query/model'
@@ -19,6 +19,7 @@ interface SuperPackageViewerState {
 
 interface SuperPackageViewerStateProps {
     input?: string
+    primitivesOnly?: boolean
     filteredIds?: Array<number>
 }
 
@@ -42,11 +43,13 @@ export class SuperPackageViewerImpl extends React.Component<SuperPackageViewerPr
 
         this.state = {
             input: '',
+            primitivesOnly: false,
             filteredIds: undefined
         };
 
         this.handleClear = this.handleClear.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
+        this.togglePrimitivesOnly = this.togglePrimitivesOnly.bind(this);
     }
 
     handleClear() {
@@ -67,6 +70,11 @@ export class SuperPackageViewerImpl extends React.Component<SuperPackageViewerPr
         }, 50);
     }
 
+    togglePrimitivesOnly() {
+        const { primitivesOnly } = this.state;
+        this.setState({primitivesOnly: !primitivesOnly});
+    }
+
     updateFilterIds() {
         const { model } = this.props;
         const { input } = this.state;
@@ -74,7 +82,7 @@ export class SuperPackageViewerImpl extends React.Component<SuperPackageViewerPr
 
         if (model != undefined && Array.isArray(model.dataIds) && model.data) {
             filterIds =  model.dataIds.filter((id: number) => {
-                const superPkg: any = model.data[id]; // TODO why doesn't QuerySuperPackageModel work instead of any?
+                const superPkg: any = model.data[id]; // TODO: why doesn't QuerySuperPackageModel work instead of any?
 
                 if (superPkg) {
                     return (
@@ -101,25 +109,26 @@ export class SuperPackageViewerImpl extends React.Component<SuperPackageViewerPr
 
     render() {
         const { model } = this.props;
-        const { input, filteredIds } = this.state;
+        const { input, filteredIds, primitivesOnly } = this.state;
 
         if (model != undefined && model.data != undefined) {
             return (
                 <div>
-                    <ListGroupItem className="col-sm-12" style={{height: '55px'}}>
+                    <ListGroupItem className="col-sm-12">
                         <SearchInput className="col-sm-8"
                             inputRef={(el) => this.inputRef = el}
                             input={input}
                             handleClear={this.handleClear}
                             handleInputChange={this.handleInputChange}
                         />
-                        <Checkbox disabled className="col-sm-4">
-                            Primatives only
-                        </Checkbox>
+                        <div className="col-sm-4" onClick={this.togglePrimitivesOnly}>
+                            <input type="checkbox" style={{marginTop: '10px'}}/> Primitives only
+                        </div>
                     </ListGroupItem>
                     <SuperPackageSearchResults
                         data={model.data}
                         dataIds={Array.isArray(filteredIds) ? filteredIds : model.dataIds}
+                        primitivesOnly={primitivesOnly}
                         isLoaded={model.isLoaded}/>
                 </div>
             )

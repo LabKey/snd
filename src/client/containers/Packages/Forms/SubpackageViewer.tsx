@@ -31,4 +31,4 @@ export class SubpackageViewerImpl extends React.Component<SubpackageViewerProps,
     }
 }
 
-export const SubpackageViewer: any = connect()(SubpackageViewerImpl as any); // TODO fix type
+export const SubpackageViewer = connect<any, any, SubpackageViewerProps>(null)(SubpackageViewerImpl);
