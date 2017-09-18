@@ -146,13 +146,15 @@ public class SNDController extends SpringActionController
             List<Package> pkgs = new ArrayList<>();
             List<Integer> ids = new ArrayList<>();
 
+            // Query on new form to get form metadata
             if (pkgIds.getInt(0) == -1)
             {
                 Package newPkg = new Package();
-                newPkg = SNDManager.get().addExtraFields(getViewContext().getContainer(), getUser(), newPkg, null);
+                newPkg = SNDManager.get().addExtraFieldsToPackage(getViewContext().getContainer(), getUser(), newPkg, null);
+                newPkg = SNDManager.get().addLookupsToPkg(getViewContext().getContainer(), getUser(), newPkg);
                 pkgs.add(newPkg);
             }
-            else
+            else // Existing pkg
             {
                 int id;
                 for (int j = 0; j < pkgIds.length(); j++)

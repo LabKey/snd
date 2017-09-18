@@ -286,7 +286,7 @@ public class SNDManager
         return Collections.emptyList();
     }
 
-    public Package addExtraFields(Container c, User u, Package pkg, @Nullable Map<String, Object> row)
+    public Package addExtraFieldsToPackage(Container c, User u, Package pkg, @Nullable Map<String, Object> row)
     {
         List<GWTPropertyDescriptor> extraFields = getPackageExtraFields(c, u);
         Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
@@ -332,10 +332,42 @@ public class SNDManager
         return selector.getArrayList(SuperPackage.class);
     }
 
-    public Package addSubPackages(Container c, User u, Package pkg)
+    public Package addSubPackagesToPackage(Container c, User u, Package pkg)
     {
         int superPkgId = getTopLevelSuperPkgId(c, u, pkg.getPkgId());
         pkg.setSubpackages(getChildSuperPkgs(c, u, superPkgId));
+
+        return pkg;
+    }
+
+    public Package addLookupsToPkg(Container c, User u, Package pkg)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        Map<String, Map<String, Object>> sndLookups = ((SNDUserSchema)schema).getLookupSets();
+        Map<String, String> lookups = new HashMap<>();
+
+        String key, label;
+        for (String sndLookup : sndLookups.keySet())
+        {
+            key = "snd." + sndLookup;
+            label = ((String)sndLookups.get(sndLookup).get("Label"));
+            if (label != null)
+            {
+                lookups.put(key, label);
+            }
+            else
+            {
+                lookups.put(key, sndLookup);
+            }
+        }
+
+        for (TableInfo ti : _attributeLookups)
+        {
+            key = ti.getSchema().getName() + "." + ti.getName();
+            lookups.put(key, ti.getTitle());
+        }
+
+        pkg.setLookups(lookups);
 
         return pkg;
     }
@@ -353,8 +385,9 @@ public class SNDManager
             pkg.setQcState((Integer) row.get(Package.PKG_QCSTATE));
             pkg.setCategories(getPackageCategories(c, u, pkg.getPkgId()));
             pkg.setAttributes(getPackageAttributes(c, u, pkg.getPkgId()));
-            addExtraFields(c, u, pkg, row);
-            addSubPackages(c, u, pkg);
+            addExtraFieldsToPackage(c, u, pkg, row);
+            addSubPackagesToPackage(c, u, pkg);
+            addLookupsToPkg(c, u, pkg);
         }
 
         return pkg;

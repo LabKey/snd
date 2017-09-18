@@ -200,7 +200,7 @@ public class SNDUserSchema extends SimpleUserSchema
         return null;
     }
 
-    private Map<String, Map<String, Object>> getLookupSets()
+    public Map<String, Map<String, Object>> getLookupSets()
     {
         Map<String, Map<String, Object>> nameMap = (Map<String, Map<String, Object>>) SNDManager.get().getCache().get(LookupSetTable.getCacheKey(getContainer()));
         if (nameMap != null)

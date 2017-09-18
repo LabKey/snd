@@ -33,6 +33,7 @@ public class Package
     private List<GWTPropertyDescriptor> _attributes = new ArrayList<>();
     private List<SuperPackage> _subpackages;
     private Map<GWTPropertyDescriptor, Object> _extraFields = new HashMap<>();
+    private Map<String, String> _lookups = new HashMap<>();
     private Integer _qcState;
 
     public static final String PKG_ID = "pkgId";
@@ -134,6 +135,16 @@ public class Package
     public void setExtraFields(Map<GWTPropertyDescriptor, Object> extraFields)
     {
         this._extraFields = extraFields;
+    }
+
+    public Map<String, String> getLookups()
+    {
+        return _lookups;
+    }
+
+    public void setLookups(Map<String, String> lookups)
+    {
+        _lookups = lookups;
     }
 
     public Integer getQcState()
@@ -305,6 +316,20 @@ public class Package
 
             json.put("extraFields", extras);
         }
+
+        JSONArray lookups = new JSONArray();
+        Map<String, String> lookupMap = getLookups();
+
+        JSONObject jsonLookup;
+        for (String key : lookupMap.keySet())
+        {
+            jsonLookup = new JSONObject();
+            jsonLookup.put("value", key);
+            jsonLookup.put("label", lookupMap.get(key));
+            lookups.put(jsonLookup);
+        }
+
+        json.put("attributeLookups", lookups);
 
         return json;
     }
