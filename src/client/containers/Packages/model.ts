@@ -1,9 +1,11 @@
-import { SND_PKG_QUERY, SND_PKG_SCHEMA } from './constants'
+import {SND_PKG_QUERY, SND_PKG_SCHEMA, SND_CATEGORY_QUERY, SND_SUPER_PKG_QUERY} from './constants'
 import { LabKeyQueryRowPropertyProps, QueryModel, SchemaQuery } from '../../query/model'
 
 import * as actions from './actions'
 
-export const schemaQuery = SchemaQuery.create(SND_PKG_SCHEMA, SND_PKG_QUERY);
+export const pkgSchemaQuery = SchemaQuery.create(SND_PKG_SCHEMA, SND_PKG_QUERY);
+export const superPkgSchemaQuery = SchemaQuery.create(SND_PKG_SCHEMA, SND_SUPER_PKG_QUERY);
+export const catSchemaQuery = SchemaQuery.create(SND_PKG_SCHEMA, SND_CATEGORY_QUERY);
 
 interface PackagesModelProps {
     active: Array<any>
@@ -116,6 +118,51 @@ export class QueryPackageModel implements QueryPackageModelProps {
     links: any;
 
     constructor(values: QueryPackageModelProps = defaultQueryPackageModel) {
+        Object.keys(values).forEach(key => {
+            this[key] = values[key];
+        });
+    }
+}
+
+interface QuerySuperPackageModelProps {
+    Container: LabKeyQueryRowPropertyProps
+    Created: LabKeyQueryRowPropertyProps
+    CreatedBy: LabKeyQueryRowPropertyProps
+    Modified: LabKeyQueryRowPropertyProps
+    ModifiedBy: LabKeyQueryRowPropertyProps
+    ParentSuperPkgId: LabKeyQueryRowPropertyProps
+    SuperPkgPath: LabKeyQueryRowPropertyProps
+    SuperPkgId: LabKeyQueryRowPropertyProps
+    PkgId: LabKeyQueryRowPropertyProps
+    links: any
+}
+
+export const defaultQuerySuperPackageModel: QuerySuperPackageModelProps = {
+    Container: undefined,
+    Created: undefined,
+    CreatedBy: undefined,
+    Modified: undefined,
+    ModifiedBy: undefined,
+    ParentSuperPkgId: undefined,
+    SuperPkgPath: undefined,
+    SuperPkgId: undefined,
+    PkgId: undefined,
+    links: undefined
+};
+
+export class QuerySuperPackageModel implements QuerySuperPackageModelProps {
+    Container: LabKeyQueryRowPropertyProps;
+    Created: LabKeyQueryRowPropertyProps;
+    CreatedBy: LabKeyQueryRowPropertyProps;
+    Modified: LabKeyQueryRowPropertyProps;
+    ModifiedBy: LabKeyQueryRowPropertyProps;
+    ParentSuperPkgId: LabKeyQueryRowPropertyProps;
+    SuperPkgPath: LabKeyQueryRowPropertyProps;
+    SuperPkgId: LabKeyQueryRowPropertyProps;
+    PkgId: LabKeyQueryRowPropertyProps;
+    links: any;
+
+    constructor(values: QuerySuperPackageModelProps = defaultQuerySuperPackageModel) {
         Object.keys(values).forEach(key => {
             this[key] = values[key];
         });

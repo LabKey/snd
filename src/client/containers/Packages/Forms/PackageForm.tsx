@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button, ControlLabel } from 'react-bootstrap'
+import { Button, ControlLabel, ListGroupItem } from 'react-bootstrap'
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux'
 
@@ -10,12 +10,10 @@ import { TextArea } from '../../../components/Form/TextArea'
 import { TextInput } from '../../../components/Form/TextInput'
 import { Attributes } from '../../../components/Form/Attributes'
 import { ExtraFields} from '../../../components/Form/ExtraFields'
-
 import { QuerySearch } from '../../../query/QuerySearchInput'
-import { SchemaQuery } from '../../../query/model'
-import { SND_CATEGORY_QUERY, SND_PKG_SCHEMA } from '../constants'
-
-const CAT_SQ = SchemaQuery.create(SND_PKG_SCHEMA, SND_CATEGORY_QUERY);
+import { SubpackageViewer } from './SubpackageViewer';
+import { SuperPackageViewer } from './SuperPackageViewer';
+import { superPkgSchemaQuery as SUPER_PKG_SQ, catSchemaQuery as CAT_SQ } from '../model'
 
 const styles = require<any>('./PackageForm.css');
 
@@ -148,6 +146,42 @@ export class PackageFormImpl extends React.Component<PackageFormProps, {}> {
         return null;
     }
 
+    renderSubpackages() {
+        const { model, view } = this.props;
+        let isReadyOnly = view == PACKAGE_VIEW.VIEW;
+
+        return (
+            <div className="row clearfix">
+                { !isReadyOnly ?
+                    <div className="col-sm-6">
+                        <div className={"row clearfix col-xs-12 " + styles['margin-top']}>
+                            <ControlLabel>Available Packages</ControlLabel >
+                        </div>
+                        <div className="row col-xs-12">
+                            <QuerySearch schemaQuery={SUPER_PKG_SQ}>
+                                <SuperPackageViewer schemaQuery={SUPER_PKG_SQ}/>
+                            </QuerySearch>
+                        </div>
+                    </div>
+                    : ''
+                }
+                <div className={isReadyOnly ? "col-sm-12" : "col-sm-6"}>
+                    <div className={"row clearfix col-xs-12 " + styles['margin-top']}>
+                        <ControlLabel>Assigned Packages</ControlLabel >
+                        <SubpackageViewer packageIds={model.subpackages} view={view}/>
+                    </div>
+                    <div className={"row clearfix col-xs-12 " + styles['margin-top']}>
+                        <ListGroupItem className="data-search__container" style={{height: '90px'}}>
+                            <div className="data-search__row">
+                                {/*TODO: Narrative will go here.*/}
+                            </div>
+                        </ListGroupItem>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     renderButtons() {
         const { isValid, view } = this.props;
 
@@ -256,7 +290,12 @@ export class PackageFormImpl extends React.Component<PackageFormProps, {}> {
                         <div className={"col-sm-12 " + styles['margin-top']}>
                             {this.renderAttributes()}
                         </div>
-                        <div className="col-sm-12">
+                    </div>
+
+                    {this.renderSubpackages()}
+
+                    <div className="row clearfix">
+                        <div className={"col-sm-12 " + styles['margin-top']}>
                             {this.renderButtons()}
                         </div>
                     </div>

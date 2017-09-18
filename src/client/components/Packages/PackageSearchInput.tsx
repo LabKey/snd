@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import { Button, DropdownButton, MenuItem } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
+import { SearchInput } from "../Search/SearchInput";
 
 const styles = require<any>('../../containers/Packages/Forms/PackageSearch.css');
 
@@ -34,17 +35,13 @@ export class PackageSearchInput extends React.Component<PackageSearchInputProps,
                             <Button className={styles['packages-new_pkg_btn']}>New Package</Button>
                         </Link>
                     </div>
-                    <div className={"col-sm-6 col-md-8"}>
-                        <i className={"fa fa-search " + styles['packages-icon']}/>
-                        <i className={"fa fa-times-circle " + styles['packages-clear']} onClick={handleClear}/>
-                        <input
-                            className={styles['packages-search']}
-                            name="packageSearch"
-                            onChange={handleInputChange}
-                            ref={inputRef}
-                            type="text"
-                            value={input}/>
-                    </div>
+                    <SearchInput
+                        className={"col-sm-6 col-md-8"}
+                        inputRef={inputRef}
+                        input={input}
+                        handleInputChange={handleInputChange}
+                        handleClear={handleClear}
+                    />
                     <div className={"col-sm-3 col-md-2 " + styles['packages-button']}>
                         <div className={styles['packages-options']}>
                             <DropdownButton id="package-actions" title="Options" pullRight style={{width: '105px'}}>

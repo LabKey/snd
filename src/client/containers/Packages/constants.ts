@@ -14,4 +14,5 @@ export const PKG_TYPES = {
 
 export const SND_PKG_SCHEMA: string = 'snd',
     SND_PKG_QUERY: string = 'pkgs',
+    SND_SUPER_PKG_QUERY: string = 'superPkgs',
     SND_CATEGORY_QUERY: string = 'pkgCategories';

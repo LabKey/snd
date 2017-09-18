@@ -5,7 +5,7 @@ import { RouteComponentProps } from 'react-router-dom'
 import { QuerySearch } from '../../../query/QuerySearchInput'
 
 import { PackageViewer } from './PackageViewer'
-import { schemaQuery as PKG_SQ } from '../model'
+import { pkgSchemaQuery as PKG_SQ } from '../model'
 interface PackageSearchOwnProps extends RouteComponentProps<{}> {}
 
 export class PackageSearch extends React.Component<PackageSearchOwnProps, any> {

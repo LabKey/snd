@@ -4,7 +4,7 @@ import { PackageModel, PackageWizardModel, PackageSubmissionModel } from './mode
 import { PACKAGE_VIEW } from '../../Packages/Forms/PackageFormContainer'
 import { labkeyAjax, queryInvalidate } from '../../../query/actions'
 import { packagesInvalidate } from '../../Packages/actions'
-import { schemaQuery as PKG_SQ } from '../../Packages/model'
+import { pkgSchemaQuery as PKG_SQ } from '../../Packages/model'
 
 export function fetchPackage(id: string | number) {
     return labkeyAjax(

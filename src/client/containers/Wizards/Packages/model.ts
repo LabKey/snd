@@ -70,6 +70,7 @@ interface PackageModelProps {
     pkgId?: number
     qcState?: any
     repeatable?: boolean
+    subpackages?: Array<number>
 }
 
 export const defaultPackageModel = {
@@ -82,7 +83,8 @@ export const defaultPackageModel = {
     narrative: undefined,
     pkgId: undefined,
     qcState: null,
-    repeatable: false
+    repeatable: false,
+    subpackages: []
 };
 
 export class PackageModel implements PackageModelProps {
@@ -96,6 +98,7 @@ export class PackageModel implements PackageModelProps {
     pkgId?: number;
     qcState?: any;
     repeatable?: boolean;
+    subpackages?: Array<number>;
 
     constructor(values: PackageModelProps = defaultPackageModel) {
         Object.keys(values).forEach(key => {
@@ -116,7 +119,7 @@ interface PackageSubmissionModelProps extends PackageModel {
     pkgId?: number;
     qcState?: any;
     repeatable?: boolean;
-    subpackages?: Array<any>;
+    subpackages?: Array<number>;
 }
 
 export class PackageSubmissionModel implements PackageSubmissionModelProps {
@@ -131,7 +134,7 @@ export class PackageSubmissionModel implements PackageSubmissionModelProps {
     pkgId?: number;
     qcState?: any;
     repeatable?: boolean;
-    subpackages?: Array<any>;
+    subpackages?: Array<number>;
 
     constructor(values: PackageSubmissionModelProps) {
         Object.keys(values).forEach(key => {

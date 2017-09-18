@@ -1,5 +1,5 @@
 import { PKG_TYPES, SND_PKG_QUERY, SND_PKG_SCHEMA } from './constants'
-import { PackagesModel, schemaQuery as PKG_SQ } from './model'
+import { PackagesModel, pkgSchemaQuery as PKG_SQ } from './model'
 
 import { deleteRows, queryInvalidate } from '../../query/actions'
 import { QueryModel } from '../../query/model'
