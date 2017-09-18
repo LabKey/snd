@@ -314,7 +314,11 @@ public class SNDManager
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" WHERE PkgId = ? AND ParentSuperPkgId IS NULL").add(pkgId);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
-        return selector.getArrayList(Integer.class).get(0);
+
+        if (selector.getArrayList(Integer.class).size() > 0)
+            return selector.getArrayList(Integer.class).get(0);
+        else
+            return -1;
     }
 
     private List<SuperPackage> getChildSuperPkgs(Container c, User u, int superPkgId)
@@ -335,7 +339,8 @@ public class SNDManager
     public Package addSubPackagesToPackage(Container c, User u, Package pkg)
     {
         int superPkgId = getTopLevelSuperPkgId(c, u, pkg.getPkgId());
-        pkg.setSubpackages(getChildSuperPkgs(c, u, superPkgId));
+        if (superPkgId > -1)
+            pkg.setSubpackages(getChildSuperPkgs(c, u, superPkgId));
 
         return pkg;
     }

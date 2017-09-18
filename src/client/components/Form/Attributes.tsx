@@ -107,7 +107,7 @@ class AttributesGridBody extends React.Component<AttributesGridProps, any> {
     }
 
     render() {
-        const { attributes, handleFieldChange, readOnly } = this.props;
+        const { attributes, attributeLookups, handleFieldChange, readOnly } = this.props;
         if (attributes && attributes.length) {
             return (
                 <tbody>
@@ -118,6 +118,7 @@ class AttributesGridBody extends React.Component<AttributesGridProps, any> {
                                     const props = {
                                         attribute,
                                         attributeId: i,
+                                        attributeLookups,
                                         disabled: col.disabled || readOnly,
                                         name: `attributes_${i}_${col.name}`,
                                         onChange: this.handleChange,
@@ -143,6 +144,7 @@ class AttributesGridBody extends React.Component<AttributesGridProps, any> {
 
 interface AttributesGridProps {
     attributes: any
+    attributeLookups?: any
     handleFieldChange?: any
     narrative: any
     readOnly?: boolean
@@ -150,7 +152,7 @@ interface AttributesGridProps {
 
 export class Attributes extends React.Component<AttributesGridProps, {}> {
     render() {
-        const { attributes, handleFieldChange, narrative, readOnly } = this.props;
+        const { attributes, attributeLookups, handleFieldChange, narrative, readOnly } = this.props;
 
         return (
             <div>
@@ -159,6 +161,7 @@ export class Attributes extends React.Component<AttributesGridProps, {}> {
                         <AttributesGridHeader/>
                         <AttributesGridBody
                             attributes={attributes}
+                            attributeLookups={attributeLookups}
                             handleFieldChange={handleFieldChange}
                             narrative={narrative}
                             readOnly={readOnly}/>

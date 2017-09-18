@@ -135,9 +135,10 @@ export class PackageFormImpl extends React.Component<PackageFormProps, {}> {
     renderAttributes() {
         const { model, view } = this.props;
         if (model) {
-            const { attributes, narrative } = model;
+            const { attributes, attributeLookups, narrative } = model;
             return <Attributes
                         attributes={attributes}
+                        attributeLookups={attributeLookups}
                         handleFieldChange={this.handleFieldChange}
                         narrative={narrative}
                         readOnly={view === PACKAGE_VIEW.VIEW}/>

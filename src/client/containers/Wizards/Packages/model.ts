@@ -12,9 +12,15 @@ interface PackageModelValidatorProps {
     type: string
 }
 
+interface PackageModelAttributeLookupProps {
+    value: string
+    label: string
+}
+
 interface PackageModelAttributeProps {
     format?: string
     label?: string
+    lookupKey?: string
     lookupQuery?: string
     lookupSchema?: string
     lookupValues?: Array<string>
@@ -29,6 +35,7 @@ interface PackageModelAttributeProps {
 export const defaultPackageModelAttribute: PackageModelAttributeProps = {
     format: undefined,
     label: undefined,
+    lookupKey: undefined,
     lookupQuery: undefined,
     lookupSchema: undefined,
     lookupValues: undefined,
@@ -42,6 +49,7 @@ export class PackageModelAttribute implements PackageModelAttributeProps {
 
     format: string;
     label: string;
+    lookupKey: string;
     lookupQuery: string;
     lookupSchema: string;
     lookupValues: Array<string>;
@@ -62,6 +70,7 @@ export class PackageModelAttribute implements PackageModelAttributeProps {
 interface PackageModelProps {
     active?: boolean
     attributes?: Array<PackageModelAttributeProps>
+    attributeLookups?: Array<PackageModelAttributeLookupProps>
     categories?: Array<number>
     container?: string
     description?: string
@@ -76,6 +85,7 @@ interface PackageModelProps {
 export const defaultPackageModel = {
     active: false,
     attributes: [],
+    attributeLookups: [],
     categories: [],
     container: undefined,
     description: undefined,
@@ -90,6 +100,7 @@ export const defaultPackageModel = {
 export class PackageModel implements PackageModelProps {
     active?: boolean;
     attributes?: Array<PackageModelAttributeProps>;
+    attributeLookups?: Array<PackageModelAttributeLookupProps>
     categories?: Array<number>;
     container?: string;
     description?: string;
