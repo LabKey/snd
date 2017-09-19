@@ -29,6 +29,8 @@ public class Package
     private String _narrative;
     private boolean _repeatable;
     private boolean _active;
+    private boolean _hasEvent;
+    private boolean _hasProject;
     private List<Integer> _categories = new ArrayList<>();
     private List<GWTPropertyDescriptor> _attributes = new ArrayList<>();
     private List<SuperPackage> _subpackages;
@@ -43,6 +45,9 @@ public class Package
     public static final String PKG_QCSTATE = "qcState";
     public static final String PKG_NARRATIVE = "narrative";
     public static final String PKG_CONTAINER = "container";
+    public static final String PKG_HASEVENT = "hasEvent";
+    public static final String PKG_HASPROJECT = "hasProject";
+
     public static final String PKG_CATEGORIES = "categories";
     public static final String PKG_ATTRIBUTES = "attributes";
     public static final String PKG_SUBPACKAGES = "subPackages";
@@ -97,6 +102,26 @@ public class Package
     public void setActive(boolean active)
     {
         this._active = active;
+    }
+
+    public boolean hasEvent()
+    {
+        return _hasEvent;
+    }
+
+    public void setHasEvent(boolean hasEvent)
+    {
+        _hasEvent = hasEvent;
+    }
+
+    public boolean hasProject()
+    {
+        return _hasProject;
+    }
+
+    public void setHasProject(boolean hasProject)
+    {
+        _hasProject = hasProject;
     }
 
     public List<Integer> getCategories()
@@ -279,6 +304,8 @@ public class Package
         json.put(PKG_REPEATABLE, isRepeatable());
         json.put(PKG_ACTIVE, isActive());
         json.put(PKG_NARRATIVE, getNarrative());
+        json.put(PKG_HASEVENT, hasEvent());
+        json.put(PKG_HASPROJECT, hasProject());
         json.put(PKG_QCSTATE, getQcState());
         json.put(PKG_CONTAINER, c.getId());
 

@@ -24,6 +24,7 @@ import org.labkey.api.query.SimpleQueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.PackageDomainKind;
+import org.labkey.api.snd.Package;
 
 import java.sql.SQLException;
 import java.util.HashSet;
@@ -158,6 +159,21 @@ public class PackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             }
 
             return super.deleteRow(user, container, oldRowMap);
+        }
+
+        @Override
+        protected Map<String, Object> getRow(User user, Container container, Map<String, Object> keys) throws InvalidKeyException, QueryUpdateServiceException, SQLException
+        {
+            Map<String, Object> row = super.getRow(user, container, keys);
+
+            Set<String> cols = new HashSet<>();
+            cols.add("HasEvent");
+            cols.add("HasProject");
+            TableSelector ts = new TableSelector(this.getQueryTable(), cols, new SimpleFilter(FieldKey.fromString("PkgId"), row.get("PkgId")), null);
+            row.put(Package.PKG_HASEVENT, Boolean.parseBoolean((String) ts.getMap().get(Package.PKG_HASEVENT)));
+            row.put(Package.PKG_HASPROJECT, Boolean.parseBoolean((String) ts.getMap().get(Package.PKG_HASPROJECT)));
+
+            return row;
         }
 
     }

@@ -388,6 +388,8 @@ public class SNDManager
             pkg.setRepeatable((boolean) row.get(Package.PKG_REPEATABLE));
             pkg.setNarrative((String) row.get(Package.PKG_NARRATIVE));
             pkg.setQcState((Integer) row.get(Package.PKG_QCSTATE));
+            pkg.setHasEvent((boolean) row.get(Package.PKG_HASEVENT));
+            pkg.setHasProject((boolean) row.get(Package.PKG_HASPROJECT));
             pkg.setCategories(getPackageCategories(c, u, pkg.getPkgId()));
             pkg.setAttributes(getPackageAttributes(c, u, pkg.getPkgId()));
             addExtraFieldsToPackage(c, u, pkg, row);
