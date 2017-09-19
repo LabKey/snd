@@ -27,7 +27,7 @@ export const LookupKeyInput = (props: LookupKeyInputProps) => {
             onChange={props.onChange}
             className="form-control"
             disabled={props.disabled === true}>
-            <option disabled style={{display: 'none'}}/>
+            <option value=""/>
             {props.attributeLookups.map((opt: any, i: number) => {
                 return <option key={i} value={opt.value}>{opt.label}</option>;
             })}

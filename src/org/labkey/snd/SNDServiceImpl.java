@@ -32,7 +32,7 @@ public class SNDServiceImpl implements SNDService
         BatchValidationException errors = new BatchValidationException();
         Domain domain = null;
 
-        if (null != pkg.getPkgId() && pkg.getPkgId() > 0)
+        if (null != pkg.getPkgId() && pkg.getPkgId() > -1)
         {
             String domainURI = PackageDomainKind.getDomainURI(PackageDomainKind.getPackageSchemaName(), SNDManager.getPackageName(pkg.getPkgId()), c, u);
             domain = PropertyService.get().getDomain(c, domainURI);
@@ -45,7 +45,7 @@ public class SNDServiceImpl implements SNDService
         }
         else
         {
-            if (null == pkg.getPkgId() || pkg.getPkgId() == 0)
+            if (null == pkg.getPkgId() || pkg.getPkgId() < 0)
                 pkg.setPkgId(SNDManager.get().generatePackageId(c));
 
             SNDManager.get().createPackage(u, c, pkg, errors);

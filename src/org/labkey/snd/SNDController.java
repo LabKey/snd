@@ -73,7 +73,7 @@ public class SNDController extends SpringActionController
         {
             JSONObject json = form.getJsonObject();
             Package pkg = new Package();
-            pkg.setPkgId(json.optInt("id", 0));
+            pkg.setPkgId(json.optInt("id", -1));
 
             pkg.setDescription(json.getString("description"));
             pkg.setActive(json.getBoolean("active"));

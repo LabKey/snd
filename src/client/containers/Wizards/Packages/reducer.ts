@@ -64,7 +64,8 @@ export const packages = handleActions({
         });
 
         data.attributes = data.attributes.map((attribute, i) => {
-            attribute["lookupKey"] = attribute["lookupSchema"] + "." + attribute["lookupQuery"];
+            if (attribute["lookupSchema"] && attribute["lookupQuery"])
+                attribute["lookupKey"] = attribute["lookupSchema"] + "." + attribute["lookupQuery"];
             return Object.keys(attribute).reduce((prev, next) => {
                 prev[next] = attribute[next];
                 return prev;

@@ -176,11 +176,17 @@ export function formatPackageValues(model: PackageWizardModel, active: boolean, 
         // loop through the attribute keys and strip off the _# like name_0 = name
         return Object.keys(attribute).reduce((prev, next) => {
             const nextKey = next.split('_')[0];
-            if (next === 'lookupKey' && attribute[next]) {
-                const splitKey = attribute[next].split('.');
-                if (splitKey && splitKey.length > 1) {
-                    prev['lookupSchema'] = splitKey[0];
-                    prev['lookupQuery'] = splitKey[1];
+            if (next === 'lookupKey') {
+                if (attribute[next]) {
+                    const splitKey = attribute[next].split('.');
+                    if (splitKey && splitKey.length > 1) {
+                        prev['lookupSchema'] = splitKey[0];
+                        prev['lookupQuery'] = splitKey[1];
+                    }
+                }
+                else {
+                    prev['lookupSchema'] = "";
+                    prev['lookupQuery'] = "";
                 }
             }
             else if (next === 'required') {
