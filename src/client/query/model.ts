@@ -85,6 +85,7 @@ export interface LabKeyQueryResponse {
 export interface QueryModelProps {
     schema?: string
     query?: string
+    view?: string
 
     data?: {[key: string]: LabKeyQueryRowPropertyProps}
     dataCount?: number
@@ -100,6 +101,7 @@ export interface QueryModelProps {
 const defaultQueryModel: QueryModelProps = {
     schema: undefined,
     query: undefined,
+    view: undefined,
 
     data: {},
     dataCount: 0,
@@ -115,6 +117,7 @@ const defaultQueryModel: QueryModelProps = {
 export class QueryModel implements QueryModelProps {
     schema?: string;
     query?: string;
+    view?: string;
 
     data?: {[key: string]: LabKeyQueryRowPropertyProps};
     dataCount?: number;
@@ -217,10 +220,16 @@ export class SchemaQuery implements SchemaQueryProps {
     }
 
     resolveKey(): string {
-        return [this.schemaName, this.queryName].join('|').toLowerCase();
+        return resolveKey(this.schemaName, this.queryName, this.viewName);
     }
 }
 
-function resolveKey(schema: string, query: string): string {
-    return [schema, query].join('|').toLowerCase();
+function resolveKey(schema: string, query: string, view?: string): string {
+    let key = [schema, query].join('|');
+
+    if (view != undefined) {
+        key = [key, view].join('|');
+    }
+
+    return key.toLowerCase();
 }

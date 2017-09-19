@@ -30,7 +30,7 @@ export function queryInitialize(schemaQuery: SchemaQuery): (dispatch, getState) 
         model = getState().queries.models[schemaQuery.resolveKey()];
 
         if (shouldSearch(model)) {
-            dispatch(querySelectRows(schemaQuery.schemaName, schemaQuery.queryName));
+            dispatch(querySelectRows(schemaQuery.schemaName, schemaQuery.queryName, schemaQuery.viewName));
         }
     }
 }
@@ -64,9 +64,9 @@ export function querySuccess(schemaQuery: SchemaQuery, response) {
     };
 }
 
-export function querySelectRows(schemaName: string, queryName: string, params?: {[key: string]: any}) {
+export function querySelectRows(schemaName: string, queryName: string, viewName?: string, params?: {[key: string]: any}) {
     return (dispatch, getState: () => APP_STATE_PROPS) => {
-        const schemaQuery: SchemaQuery = SchemaQuery.create(schemaName, queryName);
+        const schemaQuery: SchemaQuery = SchemaQuery.create(schemaName, queryName, viewName);
         const model = getState().queries.models[schemaQuery.resolveKey()];
 
         if (!model) {
@@ -75,7 +75,7 @@ export function querySelectRows(schemaName: string, queryName: string, params?: 
 
         dispatch(queryLoading(schemaQuery));
 
-        return selectRows(schemaName, queryName, params).then((response: LabKeyQueryResponse) => {
+        return selectRows(schemaName, queryName, viewName, params).then((response: LabKeyQueryResponse) => {
 
            const { id } = response.metaData;
            if (id) {
@@ -83,7 +83,7 @@ export function querySelectRows(schemaName: string, queryName: string, params?: 
                 dispatch(queryLoaded(schemaQuery));
            }
            else {
-               throw new Error([schemaName, queryName].join(' ') + 'Response does not include id column');
+               throw new Error([schemaName, queryName, viewName].join(' ') + 'Response does not include id column');
            }
 
         }).catch((error) => {
@@ -109,11 +109,12 @@ export function labkeyAjax(controller: string, action: string, params?: any, jso
     });
 }
 
-export function selectRows(schemaName: string, queryName: string, params?: {[key: string]: any}): Promise<any> {
+export function selectRows(schemaName: string, queryName: string, viewName?: string, params?: {[key: string]: any}): Promise<any> {
     return new Promise((resolve, reject) => {
         return LABKEY.Query.selectRows({
             schemaName,
             queryName,
+            viewName,
             params,
             requiredVersion: 17.1, // newer?
             success: (data: LabKeyQueryResponse) => {

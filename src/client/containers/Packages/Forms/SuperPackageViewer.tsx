@@ -6,11 +6,12 @@ import { QueryModel, SchemaQuery } from '../../../query/model'
 import { PACKAGE_VIEW } from './PackageFormContainer'
 import {SuperPackageSearchResults} from "../../../components/SuperPackages/SuperPackageSearchResults";
 import {SearchInput} from "../../../components/Search/SearchInput";
-import { QuerySuperPackageModel } from "../model";
+import { QuerySuperPackageModel, AssignedPackageModel } from "../model";
 
 interface SuperPackageViewerOwnProps {
     schemaQuery: SchemaQuery
-    view?: PACKAGE_VIEW
+    handleAssignedPackageAdd: (assignedPackage: AssignedPackageModel) => void
+    view: PACKAGE_VIEW
 }
 
 interface SuperPackageViewerState {
@@ -89,8 +90,8 @@ export class SuperPackageViewerImpl extends React.Component<SuperPackageViewerPr
                             superPkg.PkgId &&
                             superPkg.PkgId.displayValue.toLowerCase().indexOf(input.toLowerCase()) !== -1
                         ) || (
-                            superPkg.SuperPkgId &&
-                            superPkg.SuperPkgId.value.toString().indexOf(input) !== -1
+                            superPkg.PkgId &&
+                            superPkg.PkgId.value.toString().indexOf(input) !== -1
                         )
                 }
            });
@@ -108,7 +109,7 @@ export class SuperPackageViewerImpl extends React.Component<SuperPackageViewerPr
     }
 
     render() {
-        const { model } = this.props;
+        const { model, handleAssignedPackageAdd, view } = this.props;
         const { input, filteredIds, primitivesOnly } = this.state;
 
         if (model != undefined && model.data != undefined) {
@@ -129,7 +130,10 @@ export class SuperPackageViewerImpl extends React.Component<SuperPackageViewerPr
                         data={model.data}
                         dataIds={Array.isArray(filteredIds) ? filteredIds : model.dataIds}
                         primitivesOnly={primitivesOnly}
-                        isLoaded={model.isLoaded}/>
+                        isLoaded={model.isLoaded}
+                        handleAssignedPackageAdd={handleAssignedPackageAdd}
+                        view={view}
+                    />
                 </div>
             )
         }

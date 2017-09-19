@@ -13,7 +13,7 @@ import { ExtraFields} from '../../../components/Form/ExtraFields'
 import { QuerySearch } from '../../../query/QuerySearchInput'
 import { SubpackageViewer } from './SubpackageViewer';
 import { SuperPackageViewer } from './SuperPackageViewer';
-import { superPkgSchemaQuery as SUPER_PKG_SQ, catSchemaQuery as CAT_SQ } from '../model'
+import { topLevelSuperPkgSchemaQuery as TOPLEVEL_SUPER_PKG_SQ, catSchemaQuery as CAT_SQ, AssignedPackageModel } from '../model'
 
 const styles = require<any>('./PackageForm.css');
 
@@ -46,6 +46,8 @@ interface PackageFormOwnProps {
     handleCancel?: () => void
     handleFieldChange?: (name: string, value: any) => void
     handleNarrativeChange?: (val) => void
+    handleAssignedPackageAdd?: (assignedPackage: AssignedPackageModel) => void
+    handleAssignedPackageRemove?: (assignedPackage: AssignedPackageModel) => void
     handleFormSubmit?: any
     isValid?: boolean
     model?: PackageModel
@@ -67,6 +69,8 @@ export class PackageFormImpl extends React.Component<PackageFormProps, {}> {
         this.handleCategoriesChange = this.handleCategoriesChange.bind(this);
         this.handleFieldChange = this.handleFieldChange.bind(this);
         this.handleNarrativeChange = this.handleNarrativeChange.bind(this);
+        this.handleAssignedPackageAdd = this.handleAssignedPackageAdd.bind(this);
+        this.handleAssignedPackageRemove = this.handleAssignedPackageRemove.bind(this);
         this.submit = this.submit.bind(this);
     }
 
@@ -118,6 +122,31 @@ export class PackageFormImpl extends React.Component<PackageFormProps, {}> {
         }
     }
 
+    handleAssignedPackageAdd(assignedPackage: AssignedPackageModel) {
+        const { model, handleFieldChange } = this.props;
+
+        // create a new AssignedPackageModel object as the SuperPkgId needs to be undefined as it will be set on save/submit
+        let newAssignedPackage = new AssignedPackageModel(assignedPackage.PkgId, assignedPackage.Description);
+        newAssignedPackage.setAltId();
+
+        handleFieldChange('subPackages', model.subPackages.concat([newAssignedPackage]));
+    }
+
+    handleAssignedPackageRemove(assignedPackage: AssignedPackageModel) {
+        const { model, handleFieldChange } = this.props;
+
+        // if the remove is of a previously saved assigned package, we can remove it by SuperPkgId
+        // otherwise use the generated altId to remove
+        handleFieldChange('subPackages', model.subPackages.filter((subPackage) => {
+            if (assignedPackage.SuperPkgId != undefined) {
+                return subPackage.SuperPkgId != assignedPackage.SuperPkgId;
+            }
+            else {
+                return subPackage.altId != assignedPackage.altId;
+            }
+        }));
+    }
+
     renderExtraFields() {
         const { model, view } = this.props;
         if (model) {
@@ -159,17 +188,24 @@ export class PackageFormImpl extends React.Component<PackageFormProps, {}> {
                             <ControlLabel>Available Packages</ControlLabel >
                         </div>
                         <div className="row col-xs-12">
-                            <QuerySearch schemaQuery={SUPER_PKG_SQ}>
-                                <SuperPackageViewer schemaQuery={SUPER_PKG_SQ}/>
+                            <QuerySearch schemaQuery={TOPLEVEL_SUPER_PKG_SQ}>
+                                <SuperPackageViewer
+                                    schemaQuery={TOPLEVEL_SUPER_PKG_SQ}
+                                    handleAssignedPackageAdd={this.handleAssignedPackageAdd}
+                                    view={view}
+                                />
                             </QuerySearch>
                         </div>
                     </div>
-                    : ''
+                    : null
                 }
                 <div className={isReadyOnly ? "col-sm-12" : "col-sm-6"}>
                     <div className={"row clearfix col-xs-12 " + styles['margin-top']}>
                         <ControlLabel>Assigned Packages</ControlLabel >
-                        <SubpackageViewer packageIds={model.subPackages} view={view}/>
+                        <SubpackageViewer
+                            subPackages={model.subPackages}
+                            handleAssignedPackageRemove={this.handleAssignedPackageRemove}
+                            view={view}/>
                     </div>
                     <div className={"row clearfix col-xs-12 " + styles['margin-top']}>
                         <ListGroupItem className="data-search__container" style={{height: '90px'}}>

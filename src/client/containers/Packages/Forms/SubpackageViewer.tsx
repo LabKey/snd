@@ -4,9 +4,12 @@ import { connect } from 'react-redux';
 import { Dispatch } from 'redux'
 
 import { PACKAGE_VIEW } from './PackageFormContainer'
+import { SuperPackageRow } from '../../../components/SuperPackages/SuperPackageRow'
+import { AssignedPackageModel } from "../model";
 
 interface SubpackageViewerOwnProps {
-    packageIds: Array<number>
+    subPackages: Array<AssignedPackageModel>
+    handleAssignedPackageRemove: (assignedPackage: AssignedPackageModel) => any
     view?: PACKAGE_VIEW
 }
 
@@ -19,12 +22,26 @@ type SubpackageViewerProps = SubpackageViewerOwnProps & SubpackageViewerState;
 export class SubpackageViewerImpl extends React.Component<SubpackageViewerProps, {}> {
 
     render() {
-        const { packageIds, view } = this.props;
+        const { subPackages, handleAssignedPackageRemove, view } = this.props;
 
         return (
             <ListGroupItem className="data-search__container" style={{height: '150px', overflowY: 'scroll'}}>
                 <div className="data-search__row">
-                    {/*TODO: current subpackages will go here*/}
+                    {Array.isArray(subPackages) && subPackages.length > 0 ?
+                        subPackages.map((d, i) => {
+                            return (
+                                <div key={'data-search__row' + i}>
+                                    <SuperPackageRow
+                                        model={subPackages[i]}
+                                        menuActionName="Remove"
+                                        handleMenuAction={handleAssignedPackageRemove}
+                                        view={view}
+                                    />
+                                </div>
+                            )
+                        })
+                        : 'None'
+                    }
                 </div>
             </ListGroupItem>
         )

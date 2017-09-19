@@ -21,7 +21,8 @@ export const queries = handleActions({
 
         const model = new QueryModel({
             schema: schemaQuery.schemaName,
-            query: schemaQuery.queryName
+            query: schemaQuery.queryName,
+            view: schemaQuery.viewName
         });
 
         const models = Object.assign({}, state.models,{[schemaQuery.resolveKey()]: model});
@@ -107,7 +108,7 @@ export const queries = handleActions({
             metaData: response.metaData
         }));
 
-        const models = Object.assign({}, state.models,{[schemaQuery.resolveKey()]: queryModel})
+        const models = Object.assign({}, state.models,{[schemaQuery.resolveKey()]: queryModel});
 
         const updatedState = Object.assign({}, state, {models});
         return new QueryModelsContainer(updatedState);

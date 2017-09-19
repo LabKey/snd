@@ -21,12 +21,12 @@ public class SuperPackage
     private String _description;        // From referenced package
     private Integer _sortOrder;
 
-    public static final String SUPERPKG_ID = "superPkgId";
-    public static final String SUPERPKG_PARENTID = "parentSuperPkgId";
-    public static final String SUPERPKG_PKGID = "pkgId";
-    public static final String SUPERPKG_DESCRIPTION = "description";
-    public static final String SUPERPKG_ORDER = "sortOrder";
-    public static final String SUPERPKG_PATH = "superPkgPath";
+    public static final String SUPERPKG_ID = "SuperPkgId";
+    public static final String SUPERPKG_PARENTID = "ParentSuperPkgId";
+    public static final String SUPERPKG_PKGID = "PkgId";
+    public static final String SUPERPKG_DESCRIPTION = "Description";
+    public static final String SUPERPKG_ORDER = "SortOrder";
+    public static final String SUPERPKG_PATH = "SuperPkgPath";
 
     public Integer getParentSuperPkgId()
     {
@@ -128,7 +128,7 @@ public class SuperPackage
             }
         }
 
-        json.put("subPackages", subPackages);
+        json.put("SubPackages", subPackages);
         return json;
     }
 }

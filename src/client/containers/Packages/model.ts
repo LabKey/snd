@@ -5,6 +5,7 @@ import * as actions from './actions'
 
 export const pkgSchemaQuery = SchemaQuery.create(SND_PKG_SCHEMA, SND_PKG_QUERY);
 export const superPkgSchemaQuery = SchemaQuery.create(SND_PKG_SCHEMA, SND_SUPER_PKG_QUERY);
+export const topLevelSuperPkgSchemaQuery = SchemaQuery.create(SND_PKG_SCHEMA, SND_SUPER_PKG_QUERY, 'TopLevelSuperPkgs');
 export const catSchemaQuery = SchemaQuery.create(SND_PKG_SCHEMA, SND_CATEGORY_QUERY);
 
 interface PackagesModelProps {
@@ -169,5 +170,30 @@ export class QuerySuperPackageModel implements QuerySuperPackageModelProps {
         Object.keys(values).forEach(key => {
             this[key] = values[key];
         });
+    }
+}
+
+interface AssignedPackageModelProps {
+    SuperPkgId: number
+    PkgId: number
+    Description: string
+    altId: number
+}
+
+export class AssignedPackageModel implements AssignedPackageModelProps {
+    SuperPkgId: number = undefined;
+    PkgId: number = undefined;
+    Description: string = undefined;
+    altId: number = undefined;
+
+    constructor(pkgId: number, description: string, superPkgId?: number) {
+        this.PkgId = pkgId;
+        this.Description = description;
+        this.SuperPkgId = superPkgId;
+    }
+
+    setAltId() {
+        // set the altId as a way to uniquely remove this assigned package
+        this.altId = LABKEY.Utils.id();
     }
 }

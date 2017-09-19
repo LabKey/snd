@@ -1,5 +1,6 @@
 import * as actions from './actions'
 import { PACKAGE_VIEW } from '../../Packages/Forms/PackageFormContainer'
+import { AssignedPackageModel } from '../../Packages/model'
 interface PackageQueryResponse {
     json: Array<PackageModel>
 }
@@ -79,7 +80,7 @@ interface PackageModelProps {
     pkgId?: number
     qcState?: any
     repeatable?: boolean
-    subPackages?: Array<number>
+    subPackages?: Array<AssignedPackageModel>
 }
 
 export const defaultPackageModel = {
@@ -109,7 +110,7 @@ export class PackageModel implements PackageModelProps {
     pkgId?: number;
     qcState?: any;
     repeatable?: boolean;
-    subPackages?: Array<number>;
+    subPackages?: Array<AssignedPackageModel>;
 
     constructor(values: PackageModelProps = defaultPackageModel) {
         Object.keys(values).forEach(key => {
@@ -130,7 +131,7 @@ interface PackageSubmissionModelProps extends PackageModel {
     pkgId?: number;
     qcState?: any;
     repeatable?: boolean;
-    subPackages?: Array<number>;
+    subPackages?: Array<AssignedPackageModel>;
 }
 
 export class PackageSubmissionModel implements PackageSubmissionModelProps {
@@ -145,7 +146,7 @@ export class PackageSubmissionModel implements PackageSubmissionModelProps {
     pkgId?: number;
     qcState?: any;
     repeatable?: boolean;
-    subPackages?: Array<number>;
+    subPackages?: Array<AssignedPackageModel>;
 
     constructor(values: PackageSubmissionModelProps) {
         Object.keys(values).forEach(key => {

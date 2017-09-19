@@ -1,12 +1,15 @@
 import * as React from 'react';
 import { DropdownButton, MenuItem } from 'react-bootstrap'
-import { QuerySuperPackageModel } from '../../containers/Packages/model'
+import { PACKAGE_VIEW } from '../../containers/Packages/Forms/PackageFormContainer'
+import { AssignedPackageModel } from '../../containers/Packages/model'
 
 const styles = require<any>('./SuperPackageRow.css');
 
 interface SuperPackageRowProps {
-    data: QuerySuperPackageModel
-    dataId: number
+    model: AssignedPackageModel
+    menuActionName?: string
+    handleMenuAction?: (model: AssignedPackageModel) => any
+    view?: PACKAGE_VIEW
 }
 
 interface SuperPackageRowStateProps {
@@ -35,8 +38,9 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
     }
 
     render() {
-        const { SuperPkgId, PkgId } = this.props.data;
+        const { model, menuActionName, handleMenuAction, view } = this.props;
         const { isHover } = this.state;
+        let isReadyOnly = view == PACKAGE_VIEW.VIEW;
 
         return (
             <div
@@ -44,12 +48,15 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
                 onMouseEnter={this.handleMouseEnter}
                 onMouseLeave={this.handleMouseLeave}>
                 <div className="pull-left " style={{marginLeft: '10px'}}>
-                    {[SuperPkgId.value, PkgId.displayValue].join(' - ')}
+                    {[model.PkgId, model.Description].join(' - ')}
                 </div>
                 {isHover ?
                     <div className="pull-right" style={{cursor: 'pointer'}}>
                         <DropdownButton id="superpackage-actions" title="" pullRight className={styles["superpackage-row-option-btn"]}>
-                            <MenuItem disabled>Add</MenuItem>
+                            {!isReadyOnly && menuActionName
+                                ? <MenuItem onClick={() => handleMenuAction(model)}>{menuActionName}</MenuItem>
+                                : null
+                            }
                             <MenuItem disabled>Full Narrative</MenuItem>
                             <MenuItem disabled>Packages Using</MenuItem>
                             <MenuItem disabled>Projects Using</MenuItem>

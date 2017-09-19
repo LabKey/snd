@@ -1,14 +1,17 @@
 import * as React from 'react';
 import { ListGroupItem } from 'react-bootstrap'
 
-import { QuerySuperPackageModel } from '../../containers/Packages/model'
+import { QuerySuperPackageModel, AssignedPackageModel } from '../../containers/Packages/model'
 import { SuperPackageRow } from './SuperPackageRow'
+import { PACKAGE_VIEW } from '../../containers/Packages/Forms/PackageFormContainer'
 
 interface SuperPackageSearchResultsProps {
-    data: {[key: string]: any} // TODO Why doesn't QuerySuperPackageModel work here instead of any?
+    data: {[key: string]: any} // TODO: why doesn't QuerySuperPackageModel work here instead of any?
     dataIds: Array<number>
     isLoaded: boolean
-    primitivesOnly: boolean
+    primitivesOnly: boolean,
+    handleAssignedPackageAdd: (assignedPackage: AssignedPackageModel) => void
+    view: PACKAGE_VIEW
 }
 
 export class SuperPackageSearchResults extends React.Component<SuperPackageSearchResultsProps, any> {
@@ -17,11 +20,13 @@ export class SuperPackageSearchResults extends React.Component<SuperPackageSearc
         data: {},
         dataIds: [],
         isLoaded: false,
-        primitivesOnly: false
+        primitivesOnly: false,
+        handleAssignedPackageAdd: undefined,
+        view: undefined
     };
 
     render() {
-        const { data, dataIds, isLoaded, primitivesOnly } = this.props;
+        const { data, dataIds, isLoaded, primitivesOnly, handleAssignedPackageAdd, view } = this.props;
 
         if (isLoaded && data && Array.isArray(dataIds)) {
             return (
@@ -32,9 +37,16 @@ export class SuperPackageSearchResults extends React.Component<SuperPackageSearc
                             return !primitivesOnly || rowData.IsPrimitive.value === 'true';
                         }).map((d, i) => {
                             const rowData: QuerySuperPackageModel = data[d];
+                            let assignedPackage = new AssignedPackageModel(rowData.PkgId.value, rowData.PkgId.displayValue, rowData.SuperPkgId.value);
+
                             return (
                                 <div key={'data-search__row' + i}>
-                                    <SuperPackageRow data={rowData} dataId={d}/>
+                                    <SuperPackageRow
+                                        model={assignedPackage}
+                                        menuActionName="Add"
+                                        handleMenuAction={handleAssignedPackageAdd}
+                                        view={view}
+                                    />
                                 </div>
                             )
                         })
