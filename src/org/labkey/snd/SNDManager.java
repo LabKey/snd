@@ -325,7 +325,7 @@ public class SNDManager
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
-        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.PkgId, p.Description FROM ");
+        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.PkgId, p.Description, p.Narrative FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" JOIN ");
         sql.append(schema.getTable(SNDSchema.PKGS_TABLE_NAME), "p");

@@ -7,6 +7,8 @@ const styles = require<any>('./SuperPackageRow.css');
 
 interface SuperPackageRowProps {
     model: AssignedPackageModel
+    selected?: boolean
+    handleRowClick?: (model: AssignedPackageModel) => any
     menuActionName?: string
     handleMenuAction?: (model: AssignedPackageModel) => any
     view?: PACKAGE_VIEW
@@ -27,6 +29,7 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
 
         this.handleMouseEnter = this.handleMouseEnter.bind(this);
         this.handleMouseLeave = this.handleMouseLeave.bind(this);
+        this.handleOnClick = this.handleOnClick.bind(this);
     }
 
     handleMouseEnter() {
@@ -37,16 +40,28 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
         this.setState({isHover: false});
     }
 
+    handleOnClick() {
+        const { model, handleRowClick } = this.props;
+        if (handleRowClick) {
+            handleRowClick(model);
+        }
+    }
+
     render() {
-        const { model, menuActionName, handleMenuAction, view } = this.props;
+        const { model, selected, menuActionName, handleMenuAction, view } = this.props;
         const { isHover } = this.state;
         let isReadyOnly = view == PACKAGE_VIEW.VIEW;
 
         return (
             <div
-                className={"superpackage_viewer__result clearfix " + styles["superpackage-row"]}
+                className={"superpackage_viewer__result clearfix "
+                            + styles["superpackage-row"]
+                            + (selected ? ' ' + styles["superpackage-selected-row"] : '')
+                          }
                 onMouseEnter={this.handleMouseEnter}
-                onMouseLeave={this.handleMouseLeave}>
+                onMouseLeave={this.handleMouseLeave}
+                onClick={this.handleOnClick}
+            >
                 <div className="pull-left " style={{marginLeft: '10px'}}>
                     {[model.PkgId, model.Description].join(' - ')}
                 </div>

@@ -2,11 +2,10 @@
     <columns>
         <column name="SuperPkgId"/>
         <column name="PkgId"/>
+        <column name="Description"/>
+        <column name="Narrative"/>
         <column name="IsPrimitive"/>
     </columns>
-    <filters>
-        <filter column="ParentSuperPkgId" operator="isblank"/>
-    </filters>
     <sorts>
         <sort column="PkgId"/>
     </sorts>

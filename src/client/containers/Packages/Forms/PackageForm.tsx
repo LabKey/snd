@@ -58,12 +58,20 @@ interface PackageFormState {
     dispatch?: Dispatch<any>
 }
 
+interface PackageFormStateProps {
+    selectedSubPackage?: AssignedPackageModel
+}
+
 type PackageFormProps = PackageFormOwnProps & PackageFormState;
 
-export class PackageFormImpl extends React.Component<PackageFormProps, {}> {
+export class PackageFormImpl extends React.Component<PackageFormProps, PackageFormStateProps> {
 
     constructor(props?: PackageFormProps) {
         super(props);
+
+        this.state = {
+            selectedSubPackage: undefined
+        };
 
         this.handleCancel = this.handleCancel.bind(this);
         this.handleCategoriesChange = this.handleCategoriesChange.bind(this);
@@ -71,6 +79,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, {}> {
         this.handleNarrativeChange = this.handleNarrativeChange.bind(this);
         this.handleAssignedPackageAdd = this.handleAssignedPackageAdd.bind(this);
         this.handleAssignedPackageRemove = this.handleAssignedPackageRemove.bind(this);
+        this.handleAssignedPackageClick = this.handleAssignedPackageClick.bind(this);
         this.submit = this.submit.bind(this);
     }
 
@@ -126,10 +135,10 @@ export class PackageFormImpl extends React.Component<PackageFormProps, {}> {
         const { model, handleFieldChange } = this.props;
 
         // create a new AssignedPackageModel object as the SuperPkgId needs to be undefined as it will be set on save/submit
-        let newAssignedPackage = new AssignedPackageModel(assignedPackage.PkgId, assignedPackage.Description);
-        newAssignedPackage.setAltId();
+        let newAssignedPackage = new AssignedPackageModel(assignedPackage.PkgId, assignedPackage.Description, assignedPackage.Narrative);
 
         handleFieldChange('subPackages', model.subPackages.concat([newAssignedPackage]));
+        this.setState({selectedSubPackage: newAssignedPackage});
     }
 
     handleAssignedPackageRemove(assignedPackage: AssignedPackageModel) {
@@ -145,6 +154,18 @@ export class PackageFormImpl extends React.Component<PackageFormProps, {}> {
                 return subPackage.altId != assignedPackage.altId;
             }
         }));
+    }
+
+    handleAssignedPackageClick(assignedPackage: AssignedPackageModel) {
+        const { selectedSubPackage } = this.state;
+        let idProp = assignedPackage.SuperPkgId ? 'SuperPkgId' : 'altId';
+
+        if (selectedSubPackage == undefined || selectedSubPackage[idProp] != assignedPackage[idProp]) {
+            this.setState({selectedSubPackage: assignedPackage});
+        }
+        else {
+            this.setState({selectedSubPackage: undefined});
+        }
     }
 
     renderExtraFields() {
@@ -178,6 +199,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, {}> {
 
     renderSubpackages() {
         const { model, view } = this.props;
+        const { selectedSubPackage } = this.state;
         let isReadyOnly = view == PACKAGE_VIEW.VIEW;
 
         return (
@@ -204,13 +226,20 @@ export class PackageFormImpl extends React.Component<PackageFormProps, {}> {
                         <ControlLabel>Assigned Packages</ControlLabel >
                         <SubpackageViewer
                             subPackages={model.subPackages}
+                            selectedSubPackage={selectedSubPackage}
                             handleAssignedPackageRemove={this.handleAssignedPackageRemove}
+                            handleRowClick={this.handleAssignedPackageClick}
                             view={view}/>
                     </div>
                     <div className={"row clearfix col-xs-12 " + styles['margin-top']}>
                         <ListGroupItem className="data-search__container" style={{height: '90px'}}>
                             <div className="data-search__row">
-                                {/*TODO: Narrative will go here.*/}
+                                {selectedSubPackage != undefined
+                                    ? selectedSubPackage.Narrative
+                                    : <div className={styles['narrative-none']}>
+                                        Select a package to view its narrative.
+                                      </div>
+                                }
                             </div>
                         </ListGroupItem>
                     </div>

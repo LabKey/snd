@@ -1,13 +1,18 @@
 
 .superpackage-row {
-    /*height: 33px;*/
     padding: 3px 15px;
     width: 100%;
+}
+
+.superpackage-selected-row {
+    background-color: #FFFFCC;
+    border-radius: 10px;
 }
 
 .superpackage-row:hover {
     background-color: lightgrey;
     border-radius: 10px;
+    cursor: pointer;
 }
 
 .superpackage-row-option-btn {

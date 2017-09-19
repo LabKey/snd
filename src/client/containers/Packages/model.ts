@@ -5,7 +5,7 @@ import * as actions from './actions'
 
 export const pkgSchemaQuery = SchemaQuery.create(SND_PKG_SCHEMA, SND_PKG_QUERY);
 export const superPkgSchemaQuery = SchemaQuery.create(SND_PKG_SCHEMA, SND_SUPER_PKG_QUERY);
-export const topLevelSuperPkgSchemaQuery = SchemaQuery.create(SND_PKG_SCHEMA, SND_SUPER_PKG_QUERY, 'TopLevelSuperPkgs');
+export const topLevelSuperPkgSchemaQuery = SchemaQuery.create(SND_PKG_SCHEMA, 'TopLevelSuperPkgs');
 export const catSchemaQuery = SchemaQuery.create(SND_PKG_SCHEMA, SND_CATEGORY_QUERY);
 
 interface PackagesModelProps {
@@ -136,6 +136,7 @@ interface QuerySuperPackageModelProps {
     SuperPkgId: LabKeyQueryRowPropertyProps
     PkgId: LabKeyQueryRowPropertyProps
     IsPrimitive: LabKeyQueryRowPropertyProps
+    Narrative: LabKeyQueryRowPropertyProps
     links: any
 }
 
@@ -150,6 +151,7 @@ export const defaultQuerySuperPackageModel: QuerySuperPackageModelProps = {
     SuperPkgId: undefined,
     PkgId: undefined,
     IsPrimitive: undefined,
+    Narrative: undefined,
     links: undefined
 };
 
@@ -164,6 +166,7 @@ export class QuerySuperPackageModel implements QuerySuperPackageModelProps {
     SuperPkgId: LabKeyQueryRowPropertyProps;
     PkgId: LabKeyQueryRowPropertyProps;
     IsPrimitive: LabKeyQueryRowPropertyProps;
+    Narrative: LabKeyQueryRowPropertyProps;
     links: any;
 
     constructor(values: QuerySuperPackageModelProps = defaultQuerySuperPackageModel) {
@@ -177,6 +180,7 @@ interface AssignedPackageModelProps {
     SuperPkgId: number
     PkgId: number
     Description: string
+    Narrative: string
     altId: number
 }
 
@@ -184,16 +188,15 @@ export class AssignedPackageModel implements AssignedPackageModelProps {
     SuperPkgId: number = undefined;
     PkgId: number = undefined;
     Description: string = undefined;
-    altId: number = undefined;
+    Narrative: string = null;
 
-    constructor(pkgId: number, description: string, superPkgId?: number) {
+    // set the altId as a way to uniquely remove this assigned package or to handle assigned package click
+    altId: number = LABKEY.Utils.id();
+
+    constructor(pkgId: number, description: string, narrative: string, superPkgId?: number) {
         this.PkgId = pkgId;
         this.Description = description;
+        this.Narrative = narrative;
         this.SuperPkgId = superPkgId;
-    }
-
-    setAltId() {
-        // set the altId as a way to uniquely remove this assigned package
-        this.altId = LABKEY.Utils.id();
     }
 }

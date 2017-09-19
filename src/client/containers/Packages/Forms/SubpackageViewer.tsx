@@ -9,7 +9,9 @@ import { AssignedPackageModel } from "../model";
 
 interface SubpackageViewerOwnProps {
     subPackages: Array<AssignedPackageModel>
+    selectedSubPackage: AssignedPackageModel
     handleAssignedPackageRemove: (assignedPackage: AssignedPackageModel) => any
+    handleRowClick: (assignedPackage: AssignedPackageModel) => any
     view?: PACKAGE_VIEW
 }
 
@@ -22,19 +24,23 @@ type SubpackageViewerProps = SubpackageViewerOwnProps & SubpackageViewerState;
 export class SubpackageViewerImpl extends React.Component<SubpackageViewerProps, {}> {
 
     render() {
-        const { subPackages, handleAssignedPackageRemove, view } = this.props;
+        const { subPackages, selectedSubPackage, handleAssignedPackageRemove, handleRowClick, view } = this.props;
 
         return (
             <ListGroupItem className="data-search__container" style={{height: '150px', overflowY: 'scroll'}}>
                 <div className="data-search__row">
                     {Array.isArray(subPackages) && subPackages.length > 0 ?
                         subPackages.map((d, i) => {
+                            let idProp = selectedSubPackage != undefined && selectedSubPackage.SuperPkgId ? 'SuperPkgId' : 'altId';
+
                             return (
                                 <div key={'data-search__row' + i}>
                                     <SuperPackageRow
                                         model={subPackages[i]}
+                                        selected={selectedSubPackage != undefined && subPackages[i][idProp] == selectedSubPackage[idProp]}
                                         menuActionName="Remove"
                                         handleMenuAction={handleAssignedPackageRemove}
+                                        handleRowClick={handleRowClick}
                                         view={view}
                                     />
                                 </div>

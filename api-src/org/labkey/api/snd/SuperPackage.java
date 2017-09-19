@@ -18,13 +18,15 @@ public class SuperPackage
     private Integer _pkgId;
     private String _superPkgPath;
     private Integer _parentSuperPkgId;
-    private String _description;        // From referenced package
+    private String _description; // From referenced package
+    private String _narrative; // From referenced package
     private Integer _sortOrder;
 
     public static final String SUPERPKG_ID = "SuperPkgId";
     public static final String SUPERPKG_PARENTID = "ParentSuperPkgId";
     public static final String SUPERPKG_PKGID = "PkgId";
     public static final String SUPERPKG_DESCRIPTION = "Description";
+    public static final String SUPERPKG_NARRATIVE = "Narrative";
     public static final String SUPERPKG_ORDER = "SortOrder";
     public static final String SUPERPKG_PATH = "SuperPkgPath";
 
@@ -61,6 +63,16 @@ public class SuperPackage
     public void setDescription(String description)
     {
         _description = description;
+    }
+
+    public String getNarrative()
+    {
+        return _narrative;
+    }
+
+    public void setNarrative(String narrative)
+    {
+        _narrative = narrative;
     }
 
     public void setChildPackages(List<SuperPackage> childPackages)
@@ -118,6 +130,7 @@ public class SuperPackage
         json.put(SUPERPKG_ID, getSuperPkgId());
         json.put(SUPERPKG_PKGID, getPkgId());
         json.put(SUPERPKG_DESCRIPTION, getDescription());
+        json.put(SUPERPKG_NARRATIVE, getNarrative());
 
         JSONArray subPackages = new JSONArray();
         if (getChildPackages() != null)

@@ -37,7 +37,12 @@ export class SuperPackageSearchResults extends React.Component<SuperPackageSearc
                             return !primitivesOnly || rowData.IsPrimitive.value === 'true';
                         }).map((d, i) => {
                             const rowData: QuerySuperPackageModel = data[d];
-                            let assignedPackage = new AssignedPackageModel(rowData.PkgId.value, rowData.PkgId.displayValue, rowData.SuperPkgId.value);
+                            let assignedPackage = new AssignedPackageModel(
+                                rowData.PkgId.value,
+                                rowData.PkgId.displayValue,
+                                rowData.Narrative.value,
+                                rowData.SuperPkgId.value
+                            );
 
                             return (
                                 <div key={'data-search__row' + i}>
