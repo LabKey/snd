@@ -47,6 +47,8 @@ public class Package
     public static final String PKG_ATTRIBUTES = "attributes";
     public static final String PKG_SUBPACKAGES = "subPackages";
 
+    public static final String RANGE_PARTICIPANTID = "ParticipantId";
+
     public Integer getPkgId()
     {
         return _pkgId;
@@ -245,7 +247,6 @@ public class Package
     {
         JSONObject json = new JSONObject();
         json.put("name", pd.getName());
-        json.put("rangeURI", pd.getRangeURI());
         json.put("required", pd.isRequired());
         json.put("label", pd.getLabel());
         json.put("scale", pd.getScale());
@@ -257,6 +258,15 @@ public class Package
         {
             json.put("lookupValues", lookupValuesToJson(c, u, pd.getLookupSchema(), pd.getLookupQuery()));
         }
+
+        // Not passing in full range URI also need to handle participantid
+        String type = pd.getRangeURI().split("#")[1];
+        String conceptUri = pd.getConceptURI();
+        if (conceptUri != null && conceptUri.contains(RANGE_PARTICIPANTID))
+        {
+            type = RANGE_PARTICIPANTID;
+        }
+        json.put("rangeURI", type);
 
         return json;
     }

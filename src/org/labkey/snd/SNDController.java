@@ -68,6 +68,21 @@ public class SNDController extends SpringActionController
     @RequiresPermission(AdminPermission.class)
     public class SavePackageAction extends ApiAction<SimpleApiJsonForm>
     {
+
+        private GWTPropertyDescriptor convertJsonToPropertyDescriptor(JSONObject json)
+        {
+            String rangeUri = json.getString("rangeURI");
+            if (rangeUri.equals(Package.RANGE_PARTICIPANTID))
+            {
+                json.put("conceptURI", "http://cpas.labkey.com/Study#" + Package.RANGE_PARTICIPANTID);
+                rangeUri = "string";
+            }
+
+            json.put("rangeURI", "http://www.w3.org/2001/XMLSchema#" + rangeUri);
+
+            return ExperimentService.get().convertJsonToPropertyDescriptor(json);
+        }
+
         @Override
         public ApiResponse execute(SimpleApiJsonForm form, BindException errors) throws Exception
         {
@@ -113,7 +128,7 @@ public class SNDController extends SpringActionController
                 List<GWTPropertyDescriptor> pds = new ArrayList<>();
                 for (int i = 0; i < attribs.length(); i++)
                 {
-                    pds.add(ExperimentService.get().convertJsonToPropertyDescriptor(attribs.getJSONObject(i)));
+                    pds.add(convertJsonToPropertyDescriptor(attribs.getJSONObject(i)));
                 }
                 pkg.setAttributes(pds);
             }

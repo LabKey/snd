@@ -34,12 +34,28 @@ const DataTypeOptions: Array<{label: string, value: string}> = [
         label: 'String'
     },
     {
-        value: 'http://www.w3.org/2001/XMLSchema#integer',
+        value: 'int',
         label: 'Integer'
     },
     {
-        value: 'http://www.w3.org/2001/XMLSchema#double',
-        label: 'Double'
+        value: 'double',
+        label: 'Decimal'
+    },
+    {
+        value: 'boolean',
+        label: 'Boolean'
+    },
+    {
+        value: 'date',
+        label: 'Date'
+    },
+    {
+        value: 'dateTime',
+        label: 'Date Time'
+    },
+    {
+        value: 'ParticipantId',
+        label: 'Animal Id'
     }
 
 ];
@@ -62,7 +78,6 @@ export const DataTypeSelect = (props: DataTypeSelectProps) => {
                 onChange={props.onChange}
                 required={props.required === true}
                 value={props.value}>
-                <option value=""/>
                 {DataTypeOptions.map((opt: {label: string, value: string}, i: number) => {
                     return <option key={i} value={opt.value}>{opt.label}</option>;
                 })}
