@@ -40,7 +40,8 @@ export class SuperPackageSearchResults extends React.Component<SuperPackageSearc
                             let assignedPackage = new AssignedPackageModel(
                                 rowData.PkgId.value,
                                 rowData.PkgId.displayValue,
-                                rowData.Narrative.value,
+                                // narrative not currently returning from server
+                                rowData.Narrative && rowData.Narrative.value ? rowData.Narrative.value : undefined,
                                 rowData.SuperPkgId.value
                             );
 

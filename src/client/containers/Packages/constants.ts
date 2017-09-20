@@ -52,6 +52,7 @@ const superPkgRequiredColumns = [
     'createdBy',
     'modified',
     'modifiedBy',
+    'narrative',
     'parentSuperPkgId',
     'superPkgPath',
     'superPkgId',
