@@ -30,7 +30,7 @@ export const FieldDataTypeSelect = (field: WrappedFieldProps<{}> & FieldDataType
 
 const DataTypeOptions: Array<{label: string, value: string}> = [
     {
-        value: 'http://www.w3.org/2001/XMLSchema#string',
+        value: 'string',
         label: 'String'
     },
     {

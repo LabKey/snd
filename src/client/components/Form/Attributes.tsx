@@ -12,69 +12,80 @@ interface AttributeColumnProps {
     label?: string
     name: string
     required?: boolean
+    width?: string
 }
 
 const ATTRIBUTE_COLUMNS: Array<AttributeColumnProps> = [
     {
         disabled: true,
         inputComponent: TextInput,
-        label: 'Attribute Key',
+        label: 'Key',
         name: 'name',
-        required: true
+        required: true,
+        width: '7vw'
     },
     {
         inputComponent: LookupKeyInput,
         label: 'Lookup Key',
         name: 'lookupKey',
-        required: false
+        required: false,
+        width: '13vw'
     },
     {
         inputComponent: DataTypeSelect,
         label: 'Data Type',
         name: 'rangeURI',
-        required: true
+        required: true,
+        width: '13vw'
     },
     {
         inputComponent: TextInput,
         label: 'Label',
         name: 'label',
-        required: false
+        required: false,
+        width: '13vw'
     },
     {
         inputComponent: NumericInput,
         label: 'Min',
         name: 'min',
-        required: false
+        required: false,
+        width: '8vw'
     },
     {
         inputComponent: NumericInput,
         label: 'Max',
         name: 'max',
-        required: false
+        required: false,
+        width: '8vw'
     },
     {
         inputComponent: TextInput,
         label: 'Default',
         name: 'default',
-        required: false
+        required: false,
+        width: '13vw'
     },
     {
-        inputComponent: TextInput,
+        inputComponent: NumericInput,
         label: 'Order',
         name: 'sortOrder',
-        required: false
+        required: false,
+        width: '7vw'
     },
     {
         inputComponent: CheckboxInput,
-        label: 'Required',
+        label: 'Req.',
         name: 'required',
-        required: false
+        required: false,
+        width: '5vw'
     },
     {
         inputComponent: TextInput,
         label: 'Redacted Text',
         name: 'redactedText',
-        required: false
+        required: false,
+        width: '13vw'
     }
 ];
 
@@ -84,7 +95,7 @@ const AttributesGridHeader = () => {
             <tr>
                 {ATTRIBUTE_COLUMNS.map((col: AttributeColumnProps, i: number) => {
                     return (
-                        <th key={i} style={{whiteSpace: 'nowrap'}}>
+                        <th key={i} style={{whiteSpace: 'nowrap', width: col.width}}>
                             <strong>{col.label}{col.required ? ' *' : ''}</strong>
                         </th>
                     )
@@ -107,7 +118,7 @@ class AttributesGridBody extends React.Component<AttributesGridProps, any> {
     }
 
     render() {
-        const { attributes, attributeLookups, handleFieldChange, readOnly } = this.props;
+        const { attributes, attributeLookups, readOnly } = this.props;
         if (attributes && attributes.length) {
             return (
                 <tbody>

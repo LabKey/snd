@@ -19,32 +19,41 @@ interface PackageModelAttributeLookupProps {
 }
 
 interface PackageModelAttributeProps {
+    default?: string
     format?: string
     label?: string
     lookupKey?: string
     lookupQuery?: string
     lookupSchema?: string
     lookupValues?: Array<string>
+    max?: number
+    min?: number
     name?: string
     rangeURI?: string
+    redactedText?: string
     required?: boolean | 'on'
     scale?: number
+    sortOrder?: string
     validators?: Array<PackageModelValidatorProps>
     [key: string]: any
 }
 
 export class PackageModelAttribute implements PackageModelAttributeProps {
-
+    default?: string = undefined;
     format: string = undefined;
     label: string = undefined;
     lookupKey?: string = undefined;
     lookupQuery: string = undefined;
     lookupSchema: string = undefined;
     lookupValues: Array<string> = undefined;
+    max: number = 0;
+    min: number = 0;
     name: string = undefined;
     rangeURI: string = undefined;
+    redactedText: string = undefined;
     required: boolean | 'on' = false;
     scale: number = 0;
+    sortOrder: string = undefined;
     validators: Array<PackageModelValidatorProps>;
     [key: string]: any;
 

@@ -15,6 +15,7 @@ interface LookupKeyInputProps {
 export const LookupKeyInput = (props: LookupKeyInputProps) => {
     let value = '';
 
+    console.log(props)
     if (props.value) {
         value = props.value;
     }

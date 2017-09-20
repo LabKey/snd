@@ -161,7 +161,11 @@ export const packages = handleActions({
             data.attributes = narrativeKeywords.map((keyword, i) => {
                 return new PackageModelAttribute(Object.assign({},
                     model.data.attributes[i],
-                    {['name']: keyword}
+                    {
+                        name: keyword,
+                        rangeURI: 'string',
+                        sortOrder: i + 1
+                    }
                 ));
             });
         }
@@ -227,7 +231,7 @@ export function parseNarrativeKeywords(narrative): Array<string> {
         if (!start && char === '{') {
             start = true;
         }
-        else if (start && char === '}') {
+        else if (start && char === '}' && keyword.length) {
             start = false;
             keywords.push(keyword.join(''));
             keyword = [];

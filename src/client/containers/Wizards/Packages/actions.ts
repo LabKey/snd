@@ -147,7 +147,10 @@ export function save(pkg: PackageSubmissionModel, onSuccess?: any) {
 export function formatPackageValues(model: PackageWizardModel, active: boolean): PackageSubmissionModel {
     const { formView } = model;
     const { categories, description, extraFields, narrative, pkgId, repeatable } = model.data;
-    const id = formView !== PACKAGE_VIEW.CLONE ? pkgId : undefined;
+    let id;
+    if ((formView !== PACKAGE_VIEW.CLONE) && (formView !== PACKAGE_VIEW.NEW)) {
+        id = pkgId;
+    }
 
     const attributes = model.data.attributes.map((attribute, i) => {
         // loop through the attribute keys and strip off the _# like name_0 = name

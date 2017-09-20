@@ -38,6 +38,8 @@ export const NumericInput = (props: NumericInputProps) => {
             <input
                 className="form-control"
                 disabled={props.disabled === true}
+                name={props.name}
+                onChange={props.onChange}
                 required={props.disabled === true}
                 type="number"
                 value={props.value}/>

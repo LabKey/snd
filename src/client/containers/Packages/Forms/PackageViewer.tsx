@@ -185,7 +185,8 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, Packa
                                     <PackageSearchResults
                                         data={data}
                                         dataIds={filteredDrafts}
-                                        isLoaded={isInit}/>
+                                        isLoaded={isInit}
+                                        handleDelete={this.handleDeleteRequest}/>
                                 </div>
                             </div>
                             : null}

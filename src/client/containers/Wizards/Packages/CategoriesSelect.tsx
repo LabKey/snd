@@ -78,11 +78,12 @@ export class CategoriesSelect extends React.Component<CategoriesSelectProps, Cat
         return dataIds.filter((id) => {
             if (selected.indexOf(id) === -1) {
                 if (input) {
+                    const inputVal = input.toLowerCase();
                     const catId = data[id]['CategoryId']['value'],
                         description = data[id]['Description']['value'];
 
-                    return catId && catId.toString().indexOf(input) !== -1 ||
-                        description && description.toLowerCase().indexOf(input) !== -1;
+                    return catId && catId.toString().indexOf(inputVal) !== -1 ||
+                        description && description.toLowerCase().indexOf(inputVal) !== -1;
 
                 }
                 return true;
