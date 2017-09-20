@@ -43,7 +43,7 @@ export const TextInput = (props: TextInputProps) => {
                 onChange={props.onChange}
                 required={props.required === true}
                 type="text"
-                value={props.value ? props.value : ''}/>
+                value={props.value != null ? props.value : ''}/>
         </div>
     );
 };

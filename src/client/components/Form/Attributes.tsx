@@ -61,7 +61,7 @@ const ATTRIBUTE_COLUMNS: Array<AttributeColumnProps> = [
     {
         inputComponent: TextInput,
         label: 'Order',
-        name: 'order',
+        name: 'sortOrder',
         required: false
     },
     {

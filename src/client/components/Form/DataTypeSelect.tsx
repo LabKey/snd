@@ -55,7 +55,7 @@ const DataTypeOptions: Array<{label: string, value: string}> = [
     },
     {
         value: 'ParticipantId',
-        label: 'Animal Id'
+        label: 'Id'
     }
 
 ];
