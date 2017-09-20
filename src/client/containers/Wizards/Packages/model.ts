@@ -33,38 +33,29 @@ interface PackageModelAttributeProps {
     [key: string]: any
 }
 
-export const defaultPackageModelAttribute: PackageModelAttributeProps = {
-    format: undefined,
-    label: undefined,
-    lookupKey: undefined,
-    lookupQuery: undefined,
-    lookupSchema: undefined,
-    lookupValues: undefined,
-    name: undefined,
-    rangeURI: undefined,
-    required: false,
-    scale: 0,
-    validators: Array<PackageModelValidatorProps>(),
-};
 export class PackageModelAttribute implements PackageModelAttributeProps {
 
-    format: string;
-    label: string;
-    lookupKey: string;
-    lookupQuery: string;
-    lookupSchema: string;
-    lookupValues: Array<string>;
-    name: string;
-    rangeURI: string;
-    required: boolean | 'on';
-    scale: number;
+    format: string = undefined;
+    label: string = undefined;
+    lookupKey?: string = undefined;
+    lookupQuery: string = undefined;
+    lookupSchema: string = undefined;
+    lookupValues: Array<string> = undefined;
+    name: string = undefined;
+    rangeURI: string = undefined;
+    required: boolean | 'on' = false;
+    scale: number = 0;
     validators: Array<PackageModelValidatorProps>;
     [key: string]: any;
 
-    constructor(values: PackageModelAttributeProps = defaultPackageModelAttribute) {
-        Object.keys(values).forEach(key => {
-            this[key] = values[key];
-        });
+    constructor(props?: Partial<PackageModelAttribute>) {
+        if (props) {
+            for (let k in props) {
+                if (this.hasOwnProperty(k) && props.hasOwnProperty(k)) {
+                    this[k] = props[k];
+                }
+            }
+        }
     }
 }
 
@@ -77,45 +68,36 @@ interface PackageModelProps {
     description?: string
     extraFields?: Array<PackageModelAttributeProps>
     narrative?: string
+    narrativeKeywords?: Array<string>
     pkgId?: number
     qcState?: any
     repeatable?: boolean
     subPackages?: Array<AssignedPackageModel>
 }
 
-export const defaultPackageModel = {
-    active: false,
-    attributes: [],
-    attributeLookups: [],
-    categories: [],
-    container: undefined,
-    description: undefined,
-    extraFields: [],
-    narrative: undefined,
-    pkgId: undefined,
-    qcState: null,
-    repeatable: false,
-    subPackages: []
-};
-
 export class PackageModel implements PackageModelProps {
-    active?: boolean;
-    attributes?: Array<PackageModelAttributeProps>;
-    attributeLookups?: Array<PackageModelAttributeLookupProps>
-    categories?: Array<number>;
-    container?: string;
-    description?: string;
-    extraFields?: Array<PackageModelAttributeProps>;
-    narrative?: string;
-    pkgId?: number;
-    qcState?: any;
-    repeatable?: boolean;
-    subPackages?: Array<AssignedPackageModel>;
+    active?: boolean = false;
+    attributes?: Array<PackageModelAttributeProps> = [];
+    attributeLookups?: Array<PackageModelAttributeLookupProps> = [];
+    categories?: Array<number> = [];
+    container?: string = undefined;
+    description?: string = undefined;
+    extraFields?: Array<PackageModelAttributeProps> = [];
+    narrative?: string = undefined;
+    narrativeKeywords?: Array<string> = [];
+    pkgId?: number = undefined;
+    qcState?: any = null; // todo: find out qcState type
+    repeatable?: boolean = false;
+    subPackages?: Array<AssignedPackageModel> = [];
 
-    constructor(values: PackageModelProps = defaultPackageModel) {
-        Object.keys(values).forEach(key => {
-            this[key] = values[key];
-        });
+    constructor(props?: Partial<PackageModel>) {
+        if (props) {
+            for (let k in props) {
+                if (this.hasOwnProperty(k) && props.hasOwnProperty(k)) {
+                    this[k] = props[k];
+                }
+            }
+        }
     }
 }
 
@@ -135,23 +117,27 @@ interface PackageSubmissionModelProps extends PackageModel {
 }
 
 export class PackageSubmissionModel implements PackageSubmissionModelProps {
-    active?: boolean;
-    attributes?: Array<PackageModelAttributeProps>;
-    categories: Array<number>;
-    container?: string;
-    description?: string;
-    extraFields?: Array<PackageModelAttributeProps>;
-    id?: number;
-    narrative?: string;
-    pkgId?: number;
-    qcState?: any;
-    repeatable?: boolean;
-    subPackages?: Array<AssignedPackageModel>;
+    active?: boolean = false;
+    attributes?: Array<PackageModelAttributeProps> = [];
+    categories: Array<number> = [];
+    container?: string = undefined;
+    description?: string = undefined;
+    extraFields?: Array<PackageModelAttributeProps> = [];
+    id?: number = undefined;
+    narrative?: string = undefined;
+    pkgId?: number = undefined;
+    qcState?: any = null;
+    repeatable?: boolean = false;
+    subPackages?: Array<AssignedPackageModel> = [];
 
-    constructor(values: PackageSubmissionModelProps) {
-        Object.keys(values).forEach(key => {
-            this[key] = values[key];
-        });
+    constructor(props: Partial<PackageSubmissionModelProps>) {
+        if (props) {
+            for (let k in props) {
+                if (this.hasOwnProperty(k) && props.hasOwnProperty(k)) {
+                    this[k] = props[k];
+                }
+            }
+        }
     }
 }
 
@@ -169,41 +155,35 @@ interface PackageWizardModelProps {
     packageLoading?: boolean;
 }
 
-export const defaultPackageWizardModel: PackageWizardModelProps = {
-    data: new PackageModel(),
-    formView: undefined,
-    initialData: new PackageModel(),
-    isActive: false,
-    isError: false,
-    isValid: false,
-    message: undefined,
-    packageCount: 0,
-    packageId: undefined,
-    packageLoaded: false,
-    packageLoading: false,
-};
-
 export class PackageWizardModel implements PackageWizardModelProps {
-    data?: PackageModel;
-    formView?: PACKAGE_VIEW;
-    initialData?: PackageModel;
-    isActive?: boolean;
-    isError?: boolean;
-    isValid?: boolean;
-    message?: string;
-    packageCount?: number;
-    packageId?: number;
-    packageLoaded?: boolean;
-    packageLoading?: boolean;
+    data?: PackageModel = new PackageModel();
+    formView?: PACKAGE_VIEW = undefined;
+    initialData?: PackageModel = new PackageModel();
+    isActive?: boolean = false;
+    isError?: boolean = false;
+    isValid?: boolean = false;
+    message?: string = undefined;
+    packageCount?: number = 0;
+    packageId?: number = undefined;
+    packageLoaded?: boolean = false;
+    packageLoading?: boolean = false;
 
-    constructor(values: PackageWizardModelProps = defaultPackageWizardModel) {
-        Object.keys(values).forEach(key => {
-            this[key] = values[key];
-        });
+    constructor(props: PackageWizardModelProps) {
+        if (props) {
+            for (let k in props) {
+                if (this.hasOwnProperty(k) && props.hasOwnProperty(k)) {
+                    this[k] = props[k];
+                }
+            }
+        }
     }
 
-    formatPackageValues(active: boolean, view?: PACKAGE_VIEW): PackageSubmissionModel {
-        return actions.formatPackageValues(this, active, view);
+    checkValid() {
+        return actions.packageCheckValid(this);
+    }
+
+    formatPackageValues(active: boolean): PackageSubmissionModel {
+        return actions.formatPackageValues(this, active);
     }
 
     loaded() {
@@ -227,7 +207,7 @@ export class PackageWizardModel implements PackageWizardModelProps {
     }
 
     submitForm(active: boolean, onSuccess?: any) {
-        return actions.save(this.formatPackageValues(active, this.formView), onSuccess);
+        return actions.save(this.formatPackageValues(active), onSuccess);
     }
 
     success(response: PackageQueryResponse, view: PACKAGE_VIEW) {
@@ -239,16 +219,16 @@ interface PackageWizardContainerProps {
     packageData: {[key: string]: PackageWizardModel}
 }
 
-export const defaultPackageWizardContainer = {
-    packageData: {}
-};
-
 export class PackageWizardContainer implements PackageWizardContainerProps {
-    packageData: {[key: string]: PackageWizardModel};
+    packageData: {[key: string]: PackageWizardModel} = {};
 
-    constructor(values: PackageWizardContainerProps = defaultPackageWizardContainer) {
-        Object.keys(values).forEach(key => {
-            this[key] = values[key];
-        });
+    constructor(props?: Partial<PackageWizardContainer>) {
+        if (props) {
+            for (let k in props) {
+                if (this.hasOwnProperty(k) && props.hasOwnProperty(k)) {
+                    this[k] = props[k];
+                }
+            }
+        }
     }
 }

@@ -2,14 +2,13 @@ import { handleActions } from 'redux-actions';
 
 import { PKG_WIZARD_TYPES } from './constants'
 import {
-    defaultPackageModelAttribute,
-    defaultPackageWizardModel,
     PackageModelAttribute,
     PackageModel,
     PackageWizardModel,
     PackageWizardContainer
 } from './model'
-import {PACKAGE_VIEW} from "../../Packages/Forms/PackageFormContainer";
+import { PACKAGE_VIEW } from "../../Packages/Forms/PackageFormContainer";
+import { arraysMatch } from '../../../utils/actions'
 
 export const packages = handleActions({
 
@@ -20,11 +19,27 @@ export const packages = handleActions({
     },
 
     [PKG_WIZARD_TYPES.PACKAGE_INIT]: (state: PackageWizardContainer, action: any) => {
-        const { id } = action;
-        const model = new PackageWizardModel(Object.assign({}, defaultPackageWizardModel,{packageId: id}));
+        const { packageId } = action.props;
+
+        const model = new PackageWizardModel(
+            Object.assign({}, state.packageData[packageId], {packageId, ...action.props})
+        );
 
         return new PackageWizardContainer(Object.assign({}, state, {packageData: {
-            [id]: model
+            [packageId]: model
+        }}));
+    },
+
+    [PKG_WIZARD_TYPES.PACKAGE_CHECK_VALID]: (state: PackageWizardContainer, action: any) => {
+        const { model } = action;
+        const { data } = model;
+
+        const successModel = new PackageWizardModel(Object.assign({}, model, {
+            isValid: isFormValid(data, data, model.formView)
+        }));
+
+        return new PackageWizardContainer(Object.assign({}, state, {packageData: {
+            [successModel.packageId]: successModel
         }}));
     },
 
@@ -132,13 +147,19 @@ export const packages = handleActions({
     },
 
     [PKG_WIZARD_TYPES.SAVE_NARRATIVE]: (state: PackageWizardContainer, action: any) => {
-        const { model, narrative, parsedNarrative } = action;
+        const { model, narrative } = action;
 
         let data = Object.assign({}, model.data, {narrative});
+        const narrativeKeywords = parseNarrativeKeywords(narrative);
 
-        if (parsedNarrative.length !== model.data.attributes.length) {
-            data.attributes = parsedNarrative.map((keyword, i) => {
-                return new PackageModelAttribute(Object.assign({}, defaultPackageModelAttribute,
+        // compare the parsed and existing keyword arrays to see if they match
+        if (!arraysMatch(narrativeKeywords, model.data.narrativeKeywords)) {
+
+            data.narrativeKeywords = narrativeKeywords;
+
+            // look for more efficient method to set attributes/keywords
+            data.attributes = narrativeKeywords.map((keyword, i) => {
+                return new PackageModelAttribute(Object.assign({},
                     model.data.attributes[i],
                     {['name']: keyword}
                 ));
@@ -159,7 +180,7 @@ export const packages = handleActions({
 
 function isFormValid(data: PackageModel, initialData: PackageModel, view: PACKAGE_VIEW): boolean {
 
-    let isValid: boolean = false;
+    let isValid: boolean = true;
 
     if (!data.description || !data.narrative) {
         return false;
@@ -173,6 +194,7 @@ function isFormValid(data: PackageModel, initialData: PackageModel, view: PACKAG
 
     // add check for updated categories
 
+    //todo: add check for sub/superpackages
     if (isValid && view === PACKAGE_VIEW.EDIT) {
         // need to loop through initialData to compare with currentValues if view === edit
         return (
@@ -193,4 +215,31 @@ function isFormValid(data: PackageModel, initialData: PackageModel, view: PACKAG
     }
 
     return isValid;
+}
+
+export function parseNarrativeKeywords(narrative): Array<string> {
+
+    let start,
+        keyword = [],
+        keywords = [];
+
+    for (let char of narrative) {
+        if (!start && char === '{') {
+            start = true;
+        }
+        else if (start && char === '}') {
+            start = false;
+            keywords.push(keyword.join(''));
+            keyword = [];
+        }
+        else if (start) {
+            keyword.push(char);
+        }
+    }
+
+    if (keywords && keywords.length) {
+        return keywords;
+    }
+
+    return [];
 }

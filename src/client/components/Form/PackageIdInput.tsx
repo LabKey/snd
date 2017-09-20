@@ -41,23 +41,18 @@ interface PackageIdInputProps  {
 }
 
 export const PackageIdInput = (props: PackageIdInputProps ) => {
-    const { onChange, value, view } = props;
-
-    // {field.meta.touched && field.meta.error ?
-    //     <div className="error">
-    //         <span>{field.meta.error}</span>
-    //     </div>
-    //     : null}
+    const { onChange, value } = props;
 
     return (
         <div className="input-row">
             <input
                 className="form-control"
                 disabled
+                min={0}
                 onChange={onChange}
                 required
                 type="text"
-                value={value > -1?value:""}
+                value={value > -1 ? value : ""}
             />
         </div>
     );

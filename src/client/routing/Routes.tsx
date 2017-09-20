@@ -2,7 +2,7 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 
 
-import { EditCategories } from '../containers/Categories/Forms/Edit'
+import { EditCategories } from '../containers/Wizards/Categories/EditCategories'
 import { LandingPage } from '../containers/LandingPage/LandingPage'
 import { PackageFormContainer } from '../containers/Packages/Forms/PackageFormContainer'
 import { PackageSearch } from '../containers/Packages/Forms/PackageSearch'

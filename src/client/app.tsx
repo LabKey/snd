@@ -50,13 +50,13 @@ const storeCreator = compose(
 const store = storeCreator(
     reducers
     // uncomment following line to view redux dev tools in chrome
-    // ,composeWithDevTools()
+    ,composeWithDevTools()
 );
 
 jQuery(() => {
     ReactDom.render(
         <Provider store={store}>
-            <div className="container">
+            <div className="app">
                 { /* ConnectedRouter will use the store from Provider automatically */ }
                 <ConnectedRouter history={history}>
                     <div>

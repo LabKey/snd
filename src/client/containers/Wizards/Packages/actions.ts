@@ -4,7 +4,7 @@ import { PackageModel, PackageWizardModel, PackageSubmissionModel } from './mode
 import { PACKAGE_VIEW } from '../../Packages/Forms/PackageFormContainer'
 import { labkeyAjax, queryInvalidate } from '../../../query/actions'
 import { packagesInvalidate } from '../../Packages/actions'
-import { pkgSchemaQuery as PKG_SQ } from '../../Packages/model'
+import { PKG_SQ } from '../../Packages/constants'
 
 export function fetchPackage(id: string | number) {
     return labkeyAjax(
@@ -19,14 +19,24 @@ export function init(id: string | number, view: PACKAGE_VIEW) {
     return (dispatch, getState) => {
         let packageModel: PackageWizardModel = getState().wizards.packages.packageData[id];
 
-        if (!packageModel) {
-            dispatch(initPackageModel(id));
+        // todo: make this cleaner - works for now
+        if (!packageModel || packageModel.formView !== view) {
+            const packageModelProps = {
+                packageId: id,
+                formView: view
+            };
+            dispatch(initPackageModel(packageModelProps));
+
+
+            const model = getState().wizards.packages.packageData[id];
+            if (packageModel && packageModel.formView !== view) {
+                dispatch(model.checkValid());
+            }
         }
 
         packageModel = getState().wizards.packages.packageData[id];
 
-
-        if (shouldFetch(packageModel, view)) {
+        if (shouldFetch(packageModel)) {
             dispatch(packageModel.loading());
 
             return fetchPackage(id).then((response: PackageQueryResponse) => {
@@ -41,21 +51,29 @@ export function init(id: string | number, view: PACKAGE_VIEW) {
                 console.log('error', error)
             });
         }
+
         else if (packageModel && !packageModel.packageLoaded && !packageModel.packageLoading) {
             dispatch(packageModel.loaded());
         }
     }
 }
 
-export function initPackageModel(id) {
+export function initPackageModel(props: {[key: string]: any}) {
     return {
         type: PKG_WIZARD_TYPES.PACKAGE_INIT,
-        id
+        props
     }
 }
 
-function shouldFetch(model: PackageWizardModel, view: PACKAGE_VIEW): boolean {
+function shouldFetch(model: PackageWizardModel): boolean {
     return !model.packageLoaded && !model.packageLoading;
+}
+
+export function packageCheckValid(model: PackageWizardModel) {
+    return {
+        type: PKG_WIZARD_TYPES.PACKAGE_CHECK_VALID,
+        model
+    }
 }
 
 export function packageError(model: PackageWizardModel, error: any) {
@@ -90,15 +108,12 @@ export function packageSuccess(model: PackageWizardModel, response: PackageQuery
 }
 
 export function saveNarrative(model: PackageWizardModel, narrative: string) {
-    return (dispatch, getState) => {
+    return (dispatch) => {
         dispatch({
             type: PKG_WIZARD_TYPES.SAVE_NARRATIVE,
             model,
-            narrative,
-            parsedNarrative: parseNarrativeKeywords(narrative)
+            narrative
         });
-
-        // Redux form will not change one field value from another automatically, do that here for the attribute name
     }
 }
 
@@ -109,45 +124,6 @@ export function saveField(model, name, value) {
         name,
         value
     };
-}
-
-export function saveDraft() {
-
-}
-
-export function submitFinal() {
-
-}
-
-export function submitReview() {
-
-}
-
-export function parseNarrativeKeywords(narrative): Array<string> {
-
-    let start,
-        keyword = [],
-        keywords = [];
-
-    for (let char of narrative) {
-        if (!start && char === '{') {
-            start = true;
-        }
-        else if (start && char === '}') {
-            start = false;
-            keywords.push(keyword.join(''));
-            keyword = [];
-        }
-        else if (start) {
-            keyword.push(char);
-        }
-    }
-
-    if (keywords && keywords.length) {
-        return keywords;
-    }
-
-    return [];
 }
 
 interface PackageQueryResponse {
@@ -168,9 +144,10 @@ export function save(pkg: PackageSubmissionModel, onSuccess?: any) {
     }
 }
 
-export function formatPackageValues(model: PackageWizardModel, active: boolean, view: PACKAGE_VIEW): PackageSubmissionModel {
+export function formatPackageValues(model: PackageWizardModel, active: boolean): PackageSubmissionModel {
+    const { formView } = model;
     const { categories, description, extraFields, narrative, pkgId, repeatable } = model.data;
-    const id = view !== PACKAGE_VIEW.CLONE ? pkgId : undefined;
+    const id = formView !== PACKAGE_VIEW.CLONE ? pkgId : undefined;
 
     const attributes = model.data.attributes.map((attribute, i) => {
         // loop through the attribute keys and strip off the _# like name_0 = name

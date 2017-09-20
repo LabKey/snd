@@ -1,38 +1,127 @@
 import { QUERY_TYPES } from './constants'
 import { LabKeyQueryResponse, QueryModel, SchemaQuery } from './model'
 
-export function queryError(schemaQuery: SchemaQuery, error: any) {
+export function getStateQueryModel(
+    state: any,
+    id: string,
+    schemaQuery: SchemaQuery,
+    props?: {
+        requiredColumns?: Array<string>
+    }
+) {
+    let parts = [id, schemaQuery.schemaName, schemaQuery.queryName];
+
+    if (schemaQuery.viewName) {
+        parts.push(schemaQuery.viewName);
+    }
+
+    const modelId = parts.join('|').toLowerCase();
+
+    if (state.models[modelId] !== undefined) {
+        return state.models[modelId];
+    }
+
+    interface QModelProps {
+        id: string
+        query: string
+        requiredColumns?: Array<string>
+        schema: string
+        schemaQuery: SchemaQuery
+        view: string
+    }
+
+    let modelProps: QModelProps = {
+        id: modelId,
+        query: schemaQuery.queryName, // todo: remove these for schemaQUery prop
+        schema: schemaQuery.schemaName,
+        schemaQuery,
+        view: schemaQuery.viewName,
+    };
+
+    if (props) {
+        if (props.requiredColumns !== undefined) {
+            modelProps.requiredColumns = props.requiredColumns;
+        }
+    }
+
+    return new QueryModel(modelProps);
+}
+
+function fetchData(model: QueryModel) {
+    return (dispatch, getState: () => APP_STATE_PROPS) => {
+
+        dispatch(queryLoading(model));
+
+        let updatedModel = getState().queries.models[model.id];
+
+        return selectRows(
+            updatedModel.schema,
+            updatedModel.query,
+            {
+                columns: updatedModel.requiredColumns
+            }
+        ).then((response: LabKeyQueryResponse) => {
+            const { id } = response.metaData;
+            if (id) {
+                dispatch(queryModelSuccess(updatedModel, response));
+
+                updatedModel = getState().queries.models[model.id];
+                dispatch(queryLoaded(updatedModel));
+            }
+            else {
+                throw new Error([updatedModel.schema, updatedModel.query].join(' ') + 'Response does not include id column');
+            }
+
+        }).catch((error) => {
+            dispatch(queryError(updatedModel, error));
+        });
+
+    }
+}
+
+function shouldInit(state, id: string) {
+    const model = state.queries.models[id];
+
+    if (!model) {
+        return true;
+    }
+    else if (!model.isLoaded && !model.isLoading && !model.isError) {
+        return true;
+    }
+
+    return false;
+}
+
+export function init(model: QueryModel) {
+    return (dispatch, getState: () => APP_STATE_PROPS) => {
+        if (shouldInit(getState(), model.id)) {
+
+            dispatch({
+                type: QUERY_TYPES.QUERY_INITIALIZE,
+                model
+            });
+
+            const updatedModel: QueryModel = getState().queries.models[model.id];
+            dispatch(updatedModel.load());
+        }
+    }
+}
+
+export function load(model: QueryModel) {
+    return (dispatch, getState: () => APP_STATE_PROPS) => {
+
+        if (!model.isLoaded && !model.isLoading) {
+            dispatch(fetchData(model));
+        }
+    }
+}
+
+export function queryError(model: QueryModel, error: any) {
     return {
         type: QUERY_TYPES.QUERY_ERROR,
         error,
-        schemaQuery
+        model
     };
-}
-
-function shouldSearch(model: QueryModel): boolean {
-
-    const { dataCount, isLoaded, isLoading } = model;
-
-    return !dataCount && !isLoaded && !isLoading;
-}
-
-export function queryInitialize(schemaQuery: SchemaQuery): (dispatch, getState) => any {
-    return (dispatch, getState: () => APP_STATE_PROPS) => {
-        let model: QueryModel = getState().queries.models[schemaQuery.resolveKey()];
-
-        if (!model) {
-            dispatch({
-                type: QUERY_TYPES.QUERY_INIT,
-                schemaQuery
-            });
-        }
-
-        model = getState().queries.models[schemaQuery.resolveKey()];
-
-        if (shouldSearch(model)) {
-            dispatch(querySelectRows(schemaQuery.schemaName, schemaQuery.queryName, schemaQuery.viewName));
-        }
-    }
 }
 
 export function queryInvalidate(schemaQuery: SchemaQuery) {
@@ -42,56 +131,27 @@ export function queryInvalidate(schemaQuery: SchemaQuery) {
     };
 }
 
-export function queryLoaded(schemaQuery: SchemaQuery) {
+export function queryLoaded(model: QueryModel) {
     return {
         type: QUERY_TYPES.QUERY_LOADED,
-        schemaQuery
+        model
     };
 }
 
-export function queryLoading(schemaQuery: SchemaQuery) {
+export function queryLoading(model: QueryModel) {
     return {
         type: QUERY_TYPES.QUERY_LOADING,
-        schemaQuery
+        model
     };
 }
 
-export function querySuccess(schemaQuery: SchemaQuery, response) {
+export function queryModelSuccess(model: QueryModel, response) {
     return {
         type: QUERY_TYPES.QUERY_SUCCESS,
-        response,
-        schemaQuery
+        model,
+        response
     };
 }
-
-export function querySelectRows(schemaName: string, queryName: string, viewName?: string, params?: {[key: string]: any}) {
-    return (dispatch, getState: () => APP_STATE_PROPS) => {
-        const schemaQuery: SchemaQuery = SchemaQuery.create(schemaName, queryName, viewName);
-        const model = getState().queries.models[schemaQuery.resolveKey()];
-
-        if (!model) {
-            dispatch(queryInitialize(schemaQuery));
-        }
-
-        dispatch(queryLoading(schemaQuery));
-
-        return selectRows(schemaName, queryName, viewName, params).then((response: LabKeyQueryResponse) => {
-
-           const { id } = response.metaData;
-           if (id) {
-                dispatch(querySuccess(schemaQuery, response));
-                dispatch(queryLoaded(schemaQuery));
-           }
-           else {
-               throw new Error([schemaName, queryName, viewName].join(' ') + 'Response does not include id column');
-           }
-
-        }).catch((error) => {
-            dispatch(queryError(schemaQuery, error));
-        });
-    }
-}
-
 
 export function labkeyAjax(controller: string, action: string, params?: any, jsonData?: any, container?: string): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -105,24 +165,6 @@ export function labkeyAjax(controller: string, action: string, params?: any, jso
             failure: LABKEY.Utils.getCallbackWrapper((data) => {
                 reject(data);
             })
-        });
-    });
-}
-
-export function selectRows(schemaName: string, queryName: string, viewName?: string, params?: {[key: string]: any}): Promise<any> {
-    return new Promise((resolve, reject) => {
-        return LABKEY.Query.selectRows({
-            schemaName,
-            queryName,
-            viewName,
-            params,
-            requiredVersion: 17.1, // newer?
-            success: (data: LabKeyQueryResponse) => {
-                resolve(data);
-            },
-            failure: (data) => {
-                reject(data);
-            }
         });
     });
 }
@@ -141,4 +183,53 @@ export function deleteRows(schemaName: string, queryName: string, rows: Array<{[
             }
         });
     });
-};
+}
+
+export function insertRows(schemaName: string, queryName: string, rows: Array<{[key: string]: any}>) {
+    return new Promise((resolve, reject) => {
+        LABKEY.Query.insertRows({
+            schemaName,
+            queryName,
+            rows,
+            success: (data: LabKeyQueryResponse) => {
+                resolve(data);
+            },
+            failure: (data) => {
+                reject(data);
+            }
+        });
+    });
+}
+
+export function selectRows(schemaName: string, queryName: string, params?: {[key: string]: any}): Promise<any> {
+    return new Promise((resolve, reject) => {
+        return LABKEY.Query.selectRows({
+            schemaName,
+            queryName,
+            ...params,
+            requiredVersion: 17.1, // newer?
+            success: (data: LabKeyQueryResponse) => {
+                resolve(data);
+            },
+            failure: (data) => {
+                reject(data);
+            }
+        });
+    });
+}
+
+export function updateRows(schemaName: string, queryName: string, rows: Array<{[key: string]: any}>) {
+    return new Promise((resolve, reject) => {
+        LABKEY.Query.updateRows({
+            schemaName,
+            queryName,
+            rows,
+            success: (data: LabKeyQueryResponse) => {
+                resolve(data);
+            },
+            failure: (data) => {
+                reject(data);
+            }
+        });
+    });
+}

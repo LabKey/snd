@@ -7,6 +7,7 @@ import { SearchInput } from "../Search/SearchInput";
 const styles = require<any>('../../containers/Packages/Forms/PackageSearch.css');
 
 interface PackageSearchInputProps {
+    changeLocation?: (loc: string) => any
     handleClear: () => any
     handleInputChange?: (input) => any
     input?: string
@@ -19,6 +20,7 @@ export class PackageSearchInput extends React.Component<PackageSearchInputProps,
 
     render() {
         const {
+            changeLocation,
             handleClear,
             handleInputChange,
             input,
@@ -36,17 +38,19 @@ export class PackageSearchInput extends React.Component<PackageSearchInputProps,
                         </Link>
                     </div>
                     <SearchInput
-                        className={"col-sm-6 col-md-8"}
                         inputRef={inputRef}
                         input={input}
                         handleInputChange={handleInputChange}
                         handleClear={handleClear}
-                    />
+                        name="packageSearch"
+                        wrapperClassName={"col-sm-6 col-md-8"}/>
                     <div className={"col-sm-3 col-md-2 " + styles['packages-button']}>
                         <div className={styles['packages-options']}>
                             <DropdownButton id="package-actions" title="Options" pullRight style={{width: '105px'}}>
-                                <MenuItem>Edit Categories</MenuItem>
-                                <MenuItem>Edit Projects</MenuItem>
+                                <MenuItem onClick={() => changeLocation('/categories')}>
+                                        Edit Categories
+                                </MenuItem>
+                                <MenuItem disabled>Edit Projects</MenuItem>
                             </DropdownButton>
                         </div>
                     </div>

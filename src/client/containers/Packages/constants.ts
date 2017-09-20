@@ -1,3 +1,5 @@
+import { SchemaQuery } from '../../query/model'
+
 const PKG_PREFIX = 'packages/';
 
 export const PKG_TYPES = {
@@ -16,3 +18,50 @@ export const SND_PKG_SCHEMA: string = 'snd',
     SND_PKG_QUERY: string = 'pkgs',
     SND_SUPER_PKG_QUERY: string = 'superPkgs',
     SND_CATEGORY_QUERY: string = 'pkgCategories';
+
+export const CAT_SQ = SchemaQuery.create(SND_PKG_SCHEMA, SND_CATEGORY_QUERY);
+export const EDITABLE_CAT_SQ = SchemaQuery.create(SND_PKG_SCHEMA, SND_CATEGORY_QUERY, undefined, {editable: true});
+export const PKG_SQ = SchemaQuery.create(SND_PKG_SCHEMA, SND_PKG_QUERY);
+export const TOPLEVEL_SUPER_PKG_SQ = SchemaQuery.create(SND_PKG_SCHEMA, SND_SUPER_PKG_QUERY, 'TopLevelSuperPkgs');
+
+const categoriesRequiredColumns = [
+    'CategoryId',
+    'Description'
+];
+
+const packagesRequiredColumns = [
+    'Active',
+    'Container',
+    'Created',
+    'CreatedBy',
+    'Description',
+    'HasEvent',
+    'HasProject',
+    'ModifiedBy',
+    'Narrative',
+    'ObjectId',
+    'PkgId',
+    'QcState',
+    'Repeatable',
+    'links'
+];
+
+const superPkgRequiredColumns = [
+    'container',
+    'created',
+    'createdBy',
+    'modified',
+    'modifiedBy',
+    'parentSuperPkgId',
+    'superPkgPath',
+    'superPkgId',
+    'pkgId',
+    'isPrimitive',
+    'links'
+];
+
+export const REQUIRED_COLUMNS = {
+    CATS: categoriesRequiredColumns,
+    PKGS: packagesRequiredColumns,
+    SUPER_PKG: superPkgRequiredColumns,
+};

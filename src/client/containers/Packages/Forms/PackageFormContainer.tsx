@@ -19,29 +19,6 @@ export enum PACKAGE_VIEW {
     VIEW
 }
 
-const Buttons = [
-    {
-        action: 'cancel',
-        label: 'Cancel',
-        type: 'button'
-    },
-    {
-        action: 'saveDraft',
-        label: 'Save as Draft',
-        type: 'submit'
-    },
-    {
-        action: 'submitReview',
-        label: 'Submit for Review',
-        type: 'submit'
-    },
-    {
-        action: 'submitFinal',
-        label: 'Submit Final',
-        type: 'submit'
-    },
-];
-
 interface PackageFormContainerOwnProps extends RouteComponentProps<{id: string}> {}
 
 interface PackageFormContainerState {
@@ -129,8 +106,8 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
     }
 
     initModel(props: PackageFormContainerProps) {
-        const { dispatch, id } = props;
-        dispatch(actions.init(id, this.view));
+        const { dispatch, id, view } = props;
+        dispatch(actions.init(id, PACKAGE_VIEW[view.toUpperCase()]));
     }
 
     handleCancel() {

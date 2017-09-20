@@ -5,6 +5,11 @@
     width: 100%;
 }
 
+.searchinput-search:disabled {
+    background: #eee;
+    cursor: not-allowed;
+}
+
 .searchinput-icon {
     position: absolute;
     left: 21px;

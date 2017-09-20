@@ -1,5 +1,5 @@
-import { PKG_TYPES, SND_PKG_QUERY, SND_PKG_SCHEMA } from './constants'
-import { PackagesModel, pkgSchemaQuery as PKG_SQ } from './model'
+import { PKG_SQ, PKG_TYPES, SND_PKG_QUERY, SND_PKG_SCHEMA } from './constants'
+import { PackagesModel } from './model'
 
 import { deleteRows, queryInvalidate } from '../../query/actions'
 import { QueryModel } from '../../query/model'
@@ -12,8 +12,8 @@ export function deletePackage(id: number) {
         // should also display feedback to the user that the pkg was successfully deleted
         // need app wide 'message/error' field
         return deleteRows(SND_PKG_SCHEMA, SND_PKG_QUERY, rows).then((response) => {
-            dispatch(packagesInvalidate());
             dispatch(queryInvalidate(PKG_SQ));
+            dispatch(packagesInvalidate());
         }).catch((error) => {
             console.log('delete package error', error)
         });

@@ -1,21 +1,17 @@
 import * as React from 'react';
 import { ListGroupItem } from 'react-bootstrap'
-import { connect } from 'react-redux';
 
 import { QueryModel, SchemaQuery } from '../../../query/model'
 import { PACKAGE_VIEW } from './PackageFormContainer'
-import {SuperPackageSearchResults} from "../../../components/SuperPackages/SuperPackageSearchResults";
-import {SearchInput} from "../../../components/Search/SearchInput";
-import { QuerySuperPackageModel, AssignedPackageModel } from "../model";
+import { SuperPackageSearchResults } from "../../../components/SuperPackages/SuperPackageSearchResults";
+import { SearchInput } from "../../../components/Search/SearchInput";
+import { AssignedPackageModel } from "../model";
 
 interface SuperPackageViewerOwnProps {
     schemaQuery: SchemaQuery
     handleAssignedPackageAdd: (assignedPackage: AssignedPackageModel) => void
-    view: PACKAGE_VIEW
-}
-
-interface SuperPackageViewerState {
     model?: QueryModel
+    view: PACKAGE_VIEW
 }
 
 interface SuperPackageViewerStateProps {
@@ -24,17 +20,9 @@ interface SuperPackageViewerStateProps {
     filteredIds?: Array<number>
 }
 
-type SuperPackageViewerProps = SuperPackageViewerOwnProps & SuperPackageViewerState;
+type SuperPackageViewerProps = SuperPackageViewerOwnProps;
 
-function mapStateToProps(state: APP_STATE_PROPS, ownProps: SuperPackageViewerOwnProps): SuperPackageViewerState {
-    const { schemaQuery } = ownProps;
-
-    return {
-        model: state.queries.models[schemaQuery.resolveKey()]
-    }
-}
-
-export class SuperPackageViewerImpl extends React.Component<SuperPackageViewerProps, SuperPackageViewerStateProps> {
+export class SuperPackageViewer extends React.Component<SuperPackageViewerProps, SuperPackageViewerStateProps> {
 
     private timer: number = 0;
     private inputRef: HTMLInputElement;
@@ -116,12 +104,13 @@ export class SuperPackageViewerImpl extends React.Component<SuperPackageViewerPr
             return (
                 <div>
                     <ListGroupItem className="col-sm-12">
-                        <SearchInput className="col-sm-8"
+                        <SearchInput
                             inputRef={(el) => this.inputRef = el}
                             input={input}
                             handleClear={this.handleClear}
                             handleInputChange={this.handleInputChange}
-                        />
+                            name="packageSearch"
+                            wrapperClassName="col-sm-8"/>
                         <div className="col-sm-4" onClick={this.togglePrimitivesOnly}>
                             <input type="checkbox" style={{marginTop: '10px'}}/> Primitives only
                         </div>
@@ -147,5 +136,3 @@ export class SuperPackageViewerImpl extends React.Component<SuperPackageViewerPr
         )
     }
 }
-
-export const SuperPackageViewer = connect<any, any, SuperPackageViewerProps>(mapStateToProps)(SuperPackageViewerImpl);

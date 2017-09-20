@@ -25,46 +25,31 @@ interface UserProps {
     phone: string;
 }
 
-export const defaultUser: UserProps = {
-    avatar: LABKEY.contextPath + '/_images/defaultavatar.png',
-    canDelete: false,
-    canDeleteOwn: false,
-    canInsert: false,
-    canUpdate: false,
-    canUpdateOwn: false,
-    displayName: 'guest',
-    email: 'guest',
-    id: 0,
-    isAdmin: false,
-    isDeveloper: false,
-    isGuest: true,
-    isRootAdmin: false,
-    isSignedIn: false,
-    isSystemAdmin: false,
-    phone: null
-};
-
 export class UserModel implements UserProps {
-    avatar: string;
-    canDelete: boolean;
-    canDeleteOwn: boolean;
-    canInsert: boolean;
-    canUpdate: boolean;
-    canUpdateOwn: boolean;
-    displayName: string;
-    email: string;
-    id: number;
-    isAdmin: boolean;
-    isDeveloper: boolean;
-    isGuest: boolean;
-    isRootAdmin: boolean;
-    isSignedIn: boolean;
-    isSystemAdmin: boolean;
-    phone: string;
+    avatar: string = LABKEY.contextPath + '/_images/defaultavatar.png';
+    canDelete: boolean = false;
+    canDeleteOwn: boolean = false;
+    canInsert: boolean = false;
+    canUpdate: boolean = false;
+    canUpdateOwn: boolean = false;
+    displayName: string = 'guest';
+    email: string = undefined;
+    id: number = 0;
+    isAdmin: boolean = false;
+    isDeveloper: boolean = false;
+    isGuest: boolean = true;
+    isRootAdmin: boolean = false;
+    isSignedIn: boolean = false;
+    isSystemAdmin: boolean = false;
+    phone: string = null;
 
-    constructor(values: UserProps = defaultUser) {
-        Object.keys(values).forEach(key => {
-            this[key] = values[key];
-        });
+    constructor(props?: Partial<UserModel>) {
+        if (props) {
+            for (let k in props) {
+                if (this.hasOwnProperty(k) && props.hasOwnProperty(k)) {
+                    this[k] = props[k];
+                }
+            }
+        }
     }
 }

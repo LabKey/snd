@@ -3,6 +3,8 @@ import { Button, Modal } from 'react-bootstrap'
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 
+import { History } from 'history'
+
 import { PackageSearchInput } from '../../../components/Packages/PackageSearchInput'
 import { PackageSearchResults } from '../../../components/Packages/PackageSearchResults'
 import * as actions from '../actions'
@@ -12,6 +14,7 @@ import { QueryModel } from '../../../query/model'
 
 
 interface PackageViewerOwnProps {
+    history?: History
     model?: QueryModel
 }
 
@@ -48,6 +51,7 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, Packa
             toRemove: undefined
         };
 
+        this.changeLocation = this.changeLocation.bind(this);
         this.deletePackage = this.deletePackage.bind(this);
         this.handleClear = this.handleClear.bind(this);
         this.handleDeleteRequest = this.handleDeleteRequest.bind(this);
@@ -58,7 +62,8 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, Packa
 
     componentDidMount() {
         const { dispatch, model, packagesModel } = this.props;
-        if (model && model.isLoaded && !packagesModel) {
+        // make a should load/init function
+        if (model && model.isLoaded && !packagesModel || packagesModel && !packagesModel.isInit) {
             dispatch(packagesModel.init(model));
         }
         // add mapDispatchToProps
@@ -72,6 +77,11 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, Packa
         if (dataExists && !modelExists) {
             dispatch(packagesModel.init(model));
         }
+    }
+
+    changeLocation(loc: string) {
+        const { history } = this.props;
+        history.push(loc);
     }
 
     deletePackage() {
@@ -90,7 +100,7 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, Packa
     }
 
     handleDeleteRequest(rowId) {
-        const { dispatch, packagesModel } = this.props;
+        const { dispatch } = this.props;
 
         this.setState({
             toRemove: rowId
@@ -159,6 +169,7 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, Packa
                 <div className="row" style={{padding: '20px 0'}}>
                     {this.renderWarning()}
                     <PackageSearchInput
+                        changeLocation={this.changeLocation}
                         handleClear={this.handleClear}
                         handleInputChange={this.handleInputChange}
                         input={input}

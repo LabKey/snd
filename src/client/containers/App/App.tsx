@@ -7,6 +7,7 @@ import { UserModel } from '../SignIn/model'
 import { SignIn } from '../SignIn/SignIn'
 
 import { CrumbRoutes, Routes } from '../../routing/Routes'
+const styles = require<any>('./App.css');
 
 interface AppOwnProps extends RouteComponentProps<{}> {}
 interface AppStateProps {
@@ -36,25 +37,27 @@ export class AppImpl extends React.Component<AppProps, any> {
         }
 
         return (
-            <div>
-                <Switch>
-                    {CrumbRoutes.map((route: RouteProps, index: number) => {
-                        return <Route
-                            key={index}
-                            path={route.path}
-                            exact={route.exact}
-                            component={route.component}/>;
-                    })}
-                </Switch>
-                <Switch>
-                    {Routes.map((route: RouteProps, index: number) => {
-                        return <Route
-                            key={index}
-                            path={route.path}
-                            exact={route.exact}
-                            component={route.component}/>;
-                    })}
-                </Switch>
+            <div className={styles['content-wrapper']}>
+                <div className="container">
+                    <Switch>
+                        {CrumbRoutes.map((route: RouteProps, index: number) => {
+                            return <Route
+                                key={index}
+                                path={route.path}
+                                exact={route.exact}
+                                component={route.component}/>;
+                        })}
+                    </Switch>
+                    <Switch>
+                        {Routes.map((route: RouteProps, index: number) => {
+                            return <Route
+                                key={index}
+                                path={route.path}
+                                exact={route.exact}
+                                component={route.component}/>;
+                        })}
+                    </Switch>
+                </div>
             </div>
         )
     }

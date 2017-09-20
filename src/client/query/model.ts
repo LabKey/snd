@@ -1,4 +1,39 @@
+import * as actions from './actions'
+interface SchemaQueryParamsProps {
+    editable?: boolean
+}
 
+interface SchemaQueryProps {
+    params?: SchemaQueryParamsProps
+    queryName?: string
+    schemaName?: string
+    viewName?: string
+}
+
+export class SchemaQuery implements SchemaQueryProps {
+    params?: SchemaQueryParamsProps = {editable: false};
+    queryName?: string = undefined;
+    schemaName?: string = undefined;
+    viewName?: string = undefined;
+
+    static create(schemaName: string, queryName: string, viewName?: string, params?: SchemaQueryParamsProps): SchemaQuery {
+        return new SchemaQuery({schemaName, queryName, viewName, params});
+    }
+
+    constructor(props?: Partial<SchemaQuery>) {
+        if (props) {
+            for (let k in props) {
+                if (this.hasOwnProperty(k) && props.hasOwnProperty(k)) {
+                    this[k] = props[k];
+                }
+            }
+        }
+    }
+
+    resolveKey(): string {
+        return [this.schemaName, this.queryName].join('|').toLowerCase();
+    }
+}
 
 export interface LabKeyQueryRowPropertyProps {
     displayValue?: string
@@ -18,7 +53,7 @@ interface LabKeyQueryColumnModelProps {
     width: number
 }
 
-interface LabKeyQueryFieldProps {
+export interface LabKeyQueryFieldProps {
     align: string
     autoIncrement: boolean
     calculated: boolean
@@ -83,8 +118,11 @@ export interface LabKeyQueryResponse {
 
 
 export interface QueryModelProps {
-    schema?: string
+    id: string
     query?: string
+    requiredColumns?: Array<string>
+    schemaQuery?: SchemaQuery
+    schema?: string
     view?: string
 
     data?: {[key: string]: LabKeyQueryRowPropertyProps}
@@ -98,42 +136,40 @@ export interface QueryModelProps {
     metaData?: LabKeyQueryMetaDataProps
 }
 
-const defaultQueryModel: QueryModelProps = {
-    schema: undefined,
-    query: undefined,
-    view: undefined,
-
-    data: {},
-    dataCount: 0,
-    dataIds: [],
-    filters: [], // define filter type
-    isError: false,
-    isLoaded: false,
-    isLoading: false,
-    message: undefined,
-    metaData: {} as LabKeyQueryMetaDataProps
-};
-
 export class QueryModel implements QueryModelProps {
-    schema?: string;
-    query?: string;
-    view?: string;
+    id: string = undefined;
+    query?: string = undefined;
+    requiredColumns?: Array<string> = [];
+    schemaQuery?: SchemaQuery = new SchemaQuery();
+    schema?: string = undefined;
+    view?: string = undefined;
 
-    data?: {[key: string]: LabKeyQueryRowPropertyProps};
-    dataCount?: number;
-    dataIds?: Array<number>;
-    filters?: Array<any>; // define filter type
-    isError?: boolean;
-    isLoaded?: boolean;
-    isLoading?: boolean;
-    message?: string;
-    metaData?: LabKeyQueryMetaDataProps;
+    data?: {[key: string]: LabKeyQueryRowPropertyProps} = {};
+    dataCount?: number = 0;
+    dataIds?: Array<number> = [];
+    filters?: Array<any> = []; // define filter type
+    isError?: boolean = false;
+    isLoaded?: boolean = false;
+    isLoading?: boolean = false;
+    message?: string = undefined;
+    metaData?: LabKeyQueryMetaDataProps = {} as LabKeyQueryMetaDataProps;
 
-    constructor(values: QueryModelProps = defaultQueryModel) {
-        const data: QueryModelProps = Object.assign({}, defaultQueryModel, values);
-        Object.keys(data).forEach(key => {
-            this[key] = values[key];
-        });
+    constructor(props?: Partial<QueryModel>) {
+        if (props) {
+            for (let k in props) {
+                if (this.hasOwnProperty(k) && props.hasOwnProperty(k)) {
+                    this[k] = props[k];
+                }
+            }
+        }
+    }
+
+    init() {
+        return actions.init(this);
+    }
+
+    load() {
+        return actions.load(this);
     }
 
     getColumn(columnName: string) {
@@ -158,6 +194,10 @@ export class QueryModel implements QueryModelProps {
         return [];
     }
 
+    getRequiredColumns(): string | Array<string> {
+        return this.requiredColumns.length ? this.requiredColumns : '*';
+    }
+
     // TODO: add a fetch for LABKEY.Query.getQueryDetails and populate a queryInfo field instead of metaData
     getVisibleColumns(): Array<LabKeyQueryFieldProps> {
         if (this.metaData) {
@@ -180,56 +220,18 @@ export interface QueryModelsProps {
     loadingQueries: Array<string>
 }
 
-const defaultQueryModelsContainer: QueryModelsProps = {
-    models: {},
-    loadedQueries: [],
-    loadingQueries: [],
-};
-
 export class QueryModelsContainer implements QueryModelsProps {
-    models: {[key: string]: QueryModel};
-    loadedQueries: Array<string>;
-    loadingQueries: Array<string>;
+    models: {[key: string]: QueryModel} = {};
+    loadedQueries: Array<string> = [];
+    loadingQueries: Array<string> = [];
 
-    constructor(values: QueryModelsProps = defaultQueryModelsContainer) {
-        Object.keys(values).forEach(key => {
-            this[key] = values[key];
-        });
+    constructor(props?: Partial<QueryModelsContainer>) {
+        if (props) {
+            for (let k in props) {
+                if (this.hasOwnProperty(k) && props.hasOwnProperty(k)) {
+                    this[k] = props[k];
+                }
+            }
+        }
     }
-}
-
-interface SchemaQueryProps {
-    schemaName: string
-    queryName: string
-    viewName?: string
-}
-
-export class SchemaQuery implements SchemaQueryProps {
-    schemaName: string;
-    queryName: string;
-    viewName?: string;
-
-    static create(schemaName: string, queryName: string, viewName?: string): SchemaQuery {
-        return new SchemaQuery({schemaName, queryName, viewName});
-    }
-
-    constructor(values: SchemaQueryProps) {
-        Object.keys(values).forEach(key => {
-            this[key] = values[key];
-        });
-    }
-
-    resolveKey(): string {
-        return resolveKey(this.schemaName, this.queryName, this.viewName);
-    }
-}
-
-function resolveKey(schema: string, query: string, view?: string): string {
-    let key = [schema, query].join('|');
-
-    if (view != undefined) {
-        key = [key, view].join('|');
-    }
-
-    return key.toLowerCase();
 }

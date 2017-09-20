@@ -10,10 +10,16 @@ import { TextArea } from '../../../components/Form/TextArea'
 import { TextInput } from '../../../components/Form/TextInput'
 import { Attributes } from '../../../components/Form/Attributes'
 import { ExtraFields} from '../../../components/Form/ExtraFields'
-import { QuerySearch } from '../../../query/QuerySearchInput'
+import { QuerySearch } from '../../../query/QuerySearch'
 import { SubpackageViewer } from './SubpackageViewer';
 import { SuperPackageViewer } from './SuperPackageViewer';
-import { topLevelSuperPkgSchemaQuery as TOPLEVEL_SUPER_PKG_SQ, catSchemaQuery as CAT_SQ, AssignedPackageModel } from '../model'
+import { AssignedPackageModel } from '../model'
+import {
+    CAT_SQ,
+    REQUIRED_COLUMNS,
+    TOPLEVEL_SUPER_PKG_SQ
+} from '../constants'
+import { CategoriesSelect } from '../../Wizards/Packages/CategoriesSelect'
 
 const styles = require<any>('./PackageForm.css');
 
@@ -74,7 +80,6 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         };
 
         this.handleCancel = this.handleCancel.bind(this);
-        this.handleCategoriesChange = this.handleCategoriesChange.bind(this);
         this.handleFieldChange = this.handleFieldChange.bind(this);
         this.handleNarrativeChange = this.handleNarrativeChange.bind(this);
         this.handleAssignedPackageAdd = this.handleAssignedPackageAdd.bind(this);
@@ -84,7 +89,6 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
     }
 
     handleButtonAction(action: string) {
-        const { dispatch, model } = this.props;
         switch (action) {
             case 'cancel':
                 this.handleCancel();
@@ -108,10 +112,6 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
 
     handleCancel() {
         this.props.handleCancel();
-    }
-
-    handleCategoriesChange(categories) {
-        console.log(categories)
     }
 
     handleFieldChange(event: React.ChangeEvent<any>) {
@@ -204,18 +204,20 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
 
         return (
             <div className="row clearfix">
-                { !isReadyOnly ?
+                {!isReadyOnly ?
                     <div className="col-sm-6">
                         <div className={"row clearfix col-xs-12 " + styles['margin-top']}>
                             <ControlLabel>Available Packages</ControlLabel >
                         </div>
                         <div className="row col-xs-12">
-                            <QuerySearch schemaQuery={TOPLEVEL_SUPER_PKG_SQ}>
+                            <QuerySearch
+                                id='superPackageViewer'
+                                modelProps={{requiredColumns: REQUIRED_COLUMNS.SUPER_PKG}}
+                                schemaQuery={TOPLEVEL_SUPER_PKG_SQ}>
                                 <SuperPackageViewer
                                     schemaQuery={TOPLEVEL_SUPER_PKG_SQ}
                                     handleAssignedPackageAdd={this.handleAssignedPackageAdd}
-                                    view={view}
-                                />
+                                    view={view}/>
                             </QuerySearch>
                         </div>
                     </div>
@@ -307,6 +309,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                                 </div>
                                 <div className="col-xs-10">
                                     <TextInput
+                                        disabled={view === PACKAGE_VIEW.VIEW}
                                         name='description'
                                         onChange={this.handleFieldChange}
                                         required
@@ -334,18 +337,15 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                             <div className="row col-sm-12">
                                 {this.renderExtraFields()}
                             </div>
-                            <div className="row col-sm-12">
-                                <div className={"row clearfix col-xs-12 " + styles['margin-top']}>
-                                    <ControlLabel>Categories</ControlLabel >
-                                </div>
-                                <div className="row col-xs-12">
-                                    <QuerySearch
-                                        handleChange={handleFieldChange}
-                                        name='categories'
-                                        schemaQuery={CAT_SQ}
-                                        value={model.categories}/>
-                                </div>
-                            </div>
+                            <QuerySearch
+                                id='categoriesSelect'
+                                modelProps={{requiredColumns: REQUIRED_COLUMNS.CATS}}
+                                schemaQuery={CAT_SQ}>
+                                <CategoriesSelect
+                                    disabled={view === PACKAGE_VIEW.VIEW}
+                                    handleChange={handleFieldChange}
+                                    values={model.categories}/>
+                            </QuerySearch>
                         </div>
                     </div>
 
