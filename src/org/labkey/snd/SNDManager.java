@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import org.labkey.api.cache.CacheManager;
 import org.labkey.api.cache.StringKeyCache;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.DbScope;
 import org.labkey.api.data.DbSequence;
 import org.labkey.api.data.DbSequenceManager;
@@ -321,22 +322,48 @@ public class SNDManager
             return -1;
     }
 
-    private List<SuperPackage> getChildSuperPkgs(Container c, User u, int superPkgId)
+    private List<SuperPackage> getChildSuperPkgs(Container c, User u, int superPkgId) throws SQLException
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        DbSchema dbSchema = schema.getDbSchema();
 
-        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.PkgId, p.Description, p.Narrative FROM ");
+        /*SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.PkgId, p.Description, p.Narrative FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" JOIN ");
         sql.append(schema.getTable(SNDSchema.PKGS_TABLE_NAME), "p");
         sql.append(" ON sp.PkgId = p.PkgId");
         sql.append(" WHERE ParentSuperPkgId = ?").add(superPkgId);
-        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);*/
+
+        // start with first-level children
+        String cteName = "AllSuperPackageChildren";
+        // level not currently used, but may be useful later
+        SQLFragment cteInnerSql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, p.Description, p.Narrative, 1 AS Level FROM ");
+        cteInnerSql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
+        cteInnerSql.append(" JOIN ");
+        cteInnerSql.append(schema.getTable(SNDSchema.PKGS_TABLE_NAME), "p");
+        cteInnerSql.append(" ON sp.PkgId = p.PkgId");
+        cteInnerSql.append(" WHERE ParentSuperPkgId = ?").add(superPkgId); // ? = superPkgId
+        cteInnerSql.append(" UNION ALL");
+        // now second-level and lower children via recursion on this CTE
+        cteInnerSql.append(" SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, p.Description, p.Narrative, (childrenCte.level + 1) AS Level FROM ");
+        cteInnerSql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
+        cteInnerSql.append(" JOIN ");
+        cteInnerSql.append(schema.getTable(SNDSchema.PKGS_TABLE_NAME), "p");
+        cteInnerSql.append(" ON sp.PkgId = p.PkgId");
+        cteInnerSql.append(" JOIN " + cteName + " childrenCte");
+        cteInnerSql.append(" ON sp.ParentSuperPkgId = childrenCte.SuperPkgId");
+        SQLFragment cteSql = new SQLFragment("");
+        cteSql.addCommonTableExpression(cteInnerSql, cteName, cteInnerSql);
+        cteSql.append(" SELECT * FROM ");
+        cteSql.append(cteName);
+
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), cteSql);
 
         return selector.getArrayList(SuperPackage.class);
     }
 
-    public Package addSubPackagesToPackage(Container c, User u, Package pkg)
+    public Package addSubPackagesToPackage(Container c, User u, Package pkg) throws SQLException
     {
         int superPkgId = getTopLevelSuperPkgId(c, u, pkg.getPkgId());
         if (superPkgId > -1)
@@ -377,7 +404,7 @@ public class SNDManager
         return pkg;
     }
 
-    private Package createPackage(Container c, User u, Map<String, Object> row)
+    private Package createPackage(Container c, User u, Map<String, Object> row) throws SQLException
     {
         Package pkg = new Package();
         if(row != null)
@@ -400,7 +427,7 @@ public class SNDManager
         return pkg;
     }
 
-    public List<Package> getPackages(Container c, User u, List<Integer> pkgIds, BatchValidationException errors)
+    public List<Package> getPackages(Container c, User u, List<Integer> pkgIds, BatchValidationException errors) throws SQLException
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 

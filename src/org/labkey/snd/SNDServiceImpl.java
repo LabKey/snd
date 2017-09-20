@@ -12,6 +12,7 @@ import org.labkey.api.snd.SNDService;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.util.UnexpectedException;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -67,7 +68,7 @@ public class SNDServiceImpl implements SNDService
     }
 
     @Override
-    public List<Package> getPackages(Container c, User u, List<Integer> pkgIds)
+    public List<Package> getPackages(Container c, User u, List<Integer> pkgIds) throws SQLException
     {
         BatchValidationException errors = new BatchValidationException();
 
