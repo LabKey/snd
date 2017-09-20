@@ -15,24 +15,23 @@ interface LookupKeyInputProps {
 export const LookupKeyInput = (props: LookupKeyInputProps) => {
     let value = '';
 
-    console.log(props)
     if (props.value) {
         value = props.value;
     }
 
     return (
         <div className="input-row">
-        <select
-            value={value}
-            name={props.name}
-            onChange={props.onChange}
-            className="form-control"
-            disabled={props.disabled === true}>
-            <option value=""/>
-            {props.attributeLookups.map((opt: any, i: number) => {
-                return <option key={i} value={opt.value}>{opt.label}</option>;
-            })}
-        </select>
+            <select
+                className="form-control"
+                disabled={props.disabled === true}
+                name={props.name}
+                onChange={props.onChange}
+                value={value}>
+                <option value=""/>
+                {props.attributeLookups.map((opt: any, i: number) => {
+                    return <option key={i} value={opt.value}>{opt.label}</option>;
+                })}
+            </select>
         </div>
     );
 };
