@@ -60,7 +60,7 @@ export class CategoriesSelectResults extends React.Component<CategoriesSelectRes
 
         }
         else {
-            text = 'No categories selected'
+            text = 'No categories assigned'
         }
         // todo: disabled version will show white block where '...' would be, need to figure out dynamic background color
         return (
