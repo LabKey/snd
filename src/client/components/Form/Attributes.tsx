@@ -62,7 +62,7 @@ const ATTRIBUTE_COLUMNS: Array<AttributeColumnProps> = [
     {
         inputComponent: TextInput,
         label: 'Default',
-        name: 'default',
+        name: 'defaultValue',
         required: false,
         width: '13vw'
     },

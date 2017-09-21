@@ -279,6 +279,8 @@ public class Package
         json.put("lookupSchema", pd.getLookupSchema());
         json.put("lookupQuery", pd.getLookupQuery());
         json.put("sortOrder", pd.getSortOrder());
+        json.put("defaultValue", pd.getDefaultValue());
+        json.put("redactedText", pd.getRedactedText());
         json.put("validators", convertPropertyValidatorsToJson(pd));
         if (resolveLookupValues && (pd.getLookupSchema() != null) && (pd.getLookupQuery() != null))
         {
