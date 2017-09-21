@@ -180,6 +180,32 @@ export const packages = handleActions({
         }}));
     },
 
+    [PKG_WIZARD_TYPES.SET_SUBMITTED]: (state: PackageWizardContainer, action: any) => {
+        const { model } = action;
+
+        const submittedModel = new PackageWizardModel(Object.assign({}, model, {
+            isSubmitted: true,
+            isSubmitting: false
+        }));
+
+        return new PackageWizardContainer(Object.assign({}, state, {packageData: {
+            [submittedModel.packageId]: submittedModel
+        }}));
+    },
+
+    [PKG_WIZARD_TYPES.SET_SUBMITTING]: (state: PackageWizardContainer, action: any) => {
+        const { model } = action;
+
+        const submittingModel = new PackageWizardModel(Object.assign({}, model, {
+            isSubmitted: false,
+            isSubmitting: true
+        }));
+
+        return new PackageWizardContainer(Object.assign({}, state, {packageData: {
+            [submittingModel.packageId]: submittingModel
+        }}));
+    },
+
 }, new PackageWizardContainer());
 
 function isFormValid(data: PackageModel, initialData: PackageModel, view: PACKAGE_VIEW): boolean {

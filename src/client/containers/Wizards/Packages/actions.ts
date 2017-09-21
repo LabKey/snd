@@ -117,7 +117,7 @@ export function saveNarrative(model: PackageWizardModel, narrative: string) {
     }
 }
 
-export function saveField(model, name, value) {
+export function saveField(model: PackageWizardModel, name: string, value: any) {
     return {
         type: PKG_WIZARD_TYPES.SAVE_FIELD,
         model,
@@ -126,12 +126,28 @@ export function saveField(model, name, value) {
     };
 }
 
+export function setSubmitted(model: PackageWizardModel) {
+    return {
+        type: PKG_WIZARD_TYPES.SET_SUBMITTED,
+        model
+    };
+}
+
+export function setSubmitting(model: PackageWizardModel) {
+    return {
+        type: PKG_WIZARD_TYPES.SET_SUBMITTING,
+        model
+    };
+}
+
 interface PackageQueryResponse {
     json: Array<PackageModel>
 }
 
-export function save(pkg: PackageSubmissionModel, onSuccess?: any) {
-    return (dispatch) => {
+export function save(model: PackageWizardModel, pkg: PackageSubmissionModel, onSuccess?: any) {
+    return (dispatch, getState) => {
+        dispatch(setSubmitting(model));
+
         return savePackage(pkg).then((response) => {
 
             dispatch(packagesInvalidate());

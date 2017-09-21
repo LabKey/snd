@@ -156,6 +156,8 @@ interface PackageWizardModelProps {
     initialData?: PackageModel;
     isActive?: boolean;
     isError?: boolean;
+    isSubmitted?: boolean;
+    isSubmitting?: boolean;
     isValid?: boolean;
     message?: string;
     packageCount?: number;
@@ -170,6 +172,8 @@ export class PackageWizardModel implements PackageWizardModelProps {
     initialData?: PackageModel = new PackageModel();
     isActive?: boolean = false;
     isError?: boolean = false;
+    isSubmitted?: boolean = false;
+    isSubmitting?: boolean = false;
     isValid?: boolean = false;
     message?: string = undefined;
     packageCount?: number = 0;
@@ -216,7 +220,7 @@ export class PackageWizardModel implements PackageWizardModelProps {
     }
 
     submitForm(active: boolean, onSuccess?: any) {
-        return actions.save(this.formatPackageValues(active), onSuccess);
+        return actions.save(this, this.formatPackageValues(active), onSuccess);
     }
 
     success(response: PackageQueryResponse, view: PACKAGE_VIEW) {

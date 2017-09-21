@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button, Panel } from 'react-bootstrap'
+import { Button, Modal, Panel } from 'react-bootstrap'
 import { RouteComponentProps } from 'react-router-dom'
 
 import { connect } from 'react-redux';
@@ -150,9 +150,27 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
         return <div>Loading...</div>;
     }
 
+    renderModal() {
+        const { model } = this.props;
+
+        if (model && model.isSubmitting) {
+            return (
+                <div className="static-modal">
+                    <Modal onHide={() => null} show={model.isSubmitting}>
+                        <Modal.Body>
+                            Submitting Package
+                        </Modal.Body>
+                    </Modal>
+                </div>
+            )
+        }
+    }
+
+
     render() {
         return (
             <Panel header={this.panelHeader}>
+                {this.renderModal()}
                 {this.renderBody()}
             </Panel>
         )

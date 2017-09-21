@@ -169,6 +169,47 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         }
     }
 
+    renderAttributes() {
+        const { model, view } = this.props;
+        if (model) {
+            const { attributes, attributeLookups, narrative } = model;
+            return <Attributes
+                attributes={attributes}
+                attributeLookups={attributeLookups}
+                handleFieldChange={this.handleFieldChange}
+                narrative={narrative}
+                readOnly={view === PACKAGE_VIEW.VIEW}/>
+        }
+
+        return null;
+    }
+
+    renderButtons() {
+        const { isValid, view } = this.props;
+
+        if (view !== PACKAGE_VIEW.VIEW) {
+            // Todo enable/disable depending on form state
+            return (
+                <div className="btn-group pull-right">
+                    <Button
+                        onClick={() => this.handleButtonAction('cancel')}>
+                        Cancel
+                    </Button>
+                    {buttons.map((button: ButtonListProps, i: number) => {
+                        return (
+                            <Button
+                                disabled={button.disabled === true || !isValid}
+                                key={i}
+                                onClick={() => this.handleButtonAction(button.action)}>
+                                {button.label}
+                            </Button>
+                        );
+                    })}
+                </div>
+            );
+        }
+    }
+
     renderExtraFields() {
         const { model, view } = this.props;
         if (model) {
@@ -178,21 +219,6 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                 disabled={view === PACKAGE_VIEW.VIEW}
                 handleFieldChange={this.handleFieldChange}
             />
-        }
-
-        return null;
-    }
-
-    renderAttributes() {
-        const { model, view } = this.props;
-        if (model) {
-            const { attributes, attributeLookups, narrative } = model;
-            return <Attributes
-                        attributes={attributes}
-                        attributeLookups={attributeLookups}
-                        handleFieldChange={this.handleFieldChange}
-                        narrative={narrative}
-                        readOnly={view === PACKAGE_VIEW.VIEW}/>
         }
 
         return null;
@@ -249,32 +275,6 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                 </div>
             </div>
         );
-    }
-
-    renderButtons() {
-        const { isValid, view } = this.props;
-
-        if (view !== PACKAGE_VIEW.VIEW) {
-            // Todo enable/disable depending on form state
-            return (
-                <div className="btn-group pull-right">
-                    <Button
-                        onClick={() => this.handleButtonAction('cancel')}>
-                        Cancel
-                    </Button>
-                    {buttons.map((button: ButtonListProps, i: number) => {
-                        return (
-                            <Button
-                                disabled={button.disabled === true || !isValid}
-                                key={i}
-                                onClick={() => this.handleButtonAction(button.action)}>
-                                {button.label}
-                            </Button>
-                        );
-                    })}
-                </div>
-            );
-        }
     }
 
     submit(active: boolean = false) {
