@@ -2,6 +2,7 @@ import { QUERY_TYPES } from './constants'
 import { handleActions } from 'redux-actions';
 
 import {
+    EditableQueryModel,
     QueryModel,
     QueryModelsContainer,
     SchemaQuery
@@ -127,6 +128,63 @@ export const queries = handleActions({
         const models = Object.assign({}, state.models,{[model.id]: queryModel});
 
         const updatedState = Object.assign({}, state, {models});
+        return new QueryModelsContainer(updatedState);
+    },
+
+
+    // editable models
+
+    [QUERY_TYPES.QUERY_EDIT_INITIALIZE]: (state: QueryModelsContainer, action: any) => {
+        const { initialModel } = action;
+
+        const editableModels = Object.assign({}, state.editableModels,{
+            [initialModel.id]: new EditableQueryModel(initialModel)
+        });
+
+        const updatedState = Object.assign({}, state, {editableModels});
+        return new QueryModelsContainer(updatedState);
+    },
+
+    [QUERY_TYPES.QUERY_EDIT_ADD_ROW]: (state: QueryModelsContainer, action: any) => {
+        const { editableModel } = action;
+
+        let dataIds = [].concat(state.editableModels[editableModel.id].dataIds);
+        const largest = dataIds.sort()[dataIds.length - 1];
+        dataIds.push(largest + 1);
+
+        const updatedModel = new EditableQueryModel(Object.assign({}, state.editableModels[editableModel.id], {
+            dataIds,
+            dataCount: dataIds.length,
+        }));
+
+        const editableModels = Object.assign({}, state.editableModels,{
+            [editableModel.id]: updatedModel
+        });
+
+        const updatedState = Object.assign({}, state, {editableModels});
+        return new QueryModelsContainer(updatedState);
+    },
+
+    [QUERY_TYPES.QUERY_EDIT_REMOVE_ROW]: (state: QueryModelsContainer, action: any) => {
+        const { editableModel, rowId } = action;
+
+        let dataIds = [].concat(state.editableModels[editableModel.id].dataIds);
+        const index = dataIds.findIndex(d => {
+            return d === rowId
+        });
+
+        dataIds.splice(index, 1);
+
+        const updatedModel = new EditableQueryModel(Object.assign({}, state.editableModels[editableModel.id], {
+            dataIds,
+            dataCount: dataIds.length,
+        }));
+
+        const editableModels = Object.assign({}, state.editableModels,{
+            [editableModel.id]: updatedModel
+        });
+
+        const updatedState = Object.assign({}, state, {editableModels});
         return new QueryModelsContainer(updatedState);
     },
 

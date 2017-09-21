@@ -50,7 +50,7 @@ const storeCreator = compose(
 const store = storeCreator(
     reducers
     // uncomment following line to view redux dev tools in chrome
-    // ,composeWithDevTools()
+    ,composeWithDevTools()
 );
 
 jQuery(() => {

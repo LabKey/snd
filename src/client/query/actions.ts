@@ -1,5 +1,5 @@
 import { QUERY_TYPES } from './constants'
-import { LabKeyQueryResponse, QueryModel, SchemaQuery } from './model'
+import { EditableQueryModel, LabKeyQueryResponse, QueryModel, SchemaQuery } from './model'
 
 export function getStateQueryModel(
     state: any,
@@ -150,6 +150,55 @@ export function queryModelSuccess(model: QueryModel, response) {
         type: QUERY_TYPES.QUERY_SUCCESS,
         model,
         response
+    };
+}
+
+// QueryEditModel
+
+function editShouldInit(state, id: string) {
+    const model = state.queries.editableModels[id];
+
+    if (!model) {
+        return true;
+    }
+    else if (!model.isLoaded && !model.isLoading && !model.isError) {
+        return true;
+    }
+
+    return false;
+}
+
+export function queryEditAddRow(editableModel: EditableQueryModel) {
+    return {
+        type: QUERY_TYPES.QUERY_EDIT_ADD_ROW,
+        editableModel
+    };
+}
+
+export function queryEditInitModel(initialModel: QueryModel) {
+    return (dispatch, getState) => {
+
+        if (initialModel && editShouldInit(getState(), initialModel.id)) {
+            dispatch({
+                type: QUERY_TYPES.QUERY_EDIT_INITIALIZE,
+                initialModel
+            });
+        }
+    }
+}
+
+export function queryEditRemoveRow(editableModel: EditableQueryModel, rowId: number) {
+    return {
+        type: QUERY_TYPES.QUERY_EDIT_REMOVE_ROW,
+        editableModel,
+        rowId
+    };
+}
+
+export function queryEditSuccess(editableModel: EditableQueryModel) {
+    return {
+        type: QUERY_TYPES.QUERY_EDIT_SUCCESS,
+        editableModel
     };
 }
 

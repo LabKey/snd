@@ -4,7 +4,8 @@ import { connect } from 'react-redux';
 import { RouteComponentProps } from 'react-router-dom';
 import { Form, FormProps, Field, reduxForm } from 'redux-form';
 
-import * as actions from './actions'
+//import * as actions from './actions'
+import * as actions from '../../../query/actions'
 import { QuerySearch } from '../../../query/QuerySearch'
 import { LabKeyQueryRowPropertyProps, QueryModel } from '../../../query/model'
 import { EDITABLE_CAT_SQ } from '../../Packages/constants'
@@ -80,21 +81,29 @@ const ULHeaderStyle = Object.assign({}, ULStyle, {borderBottom: '2px solid light
 
 
 interface EditCategoriesStateProps extends FormProps<any, any, any> {
+    editableModel?: any
     dispatch?: any
 }
 
 interface EditCategoriesOwnProps {
-    editableModel?: any
     model?: QueryModel
 }
 
 type EditCategoriesProps = EditCategoriesStateProps & EditCategoriesOwnProps;
 
 function mapStateToProps(state: APP_STATE_PROPS, ownProps:  EditCategoriesOwnProps): EditCategoriesStateProps{
+    const { model } = ownProps;
 
-    // this is breaking because models are sharing names/not specific enough
+    // this is janky and needs to be improved
+    if (model && state.queries.editableModels[model.id]) {
+        return {
+            editableModel: state.queries.editableModels[model.id],
+            initialValues: state.queries.editableModels[model.id].data
+        };
+    }
+
     return {
-        // initialValues: ownProps.editableModel.data
+
     };
 }
 
@@ -108,6 +117,14 @@ export class EditCategoriesImpl extends React.Component<EditCategoriesProps, any
         this.handleDelete = this.handleDelete.bind(this);
         this.handleCancel = this.handleCancel.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+    }
+
+    componentDidMount() {
+        this.initModel(this.props);
+    }
+
+    componentWillReceiveProps(nextProps: EditCategoriesProps) {
+        this.initModel(nextProps);
     }
 
     handleAdd() {
@@ -126,7 +143,12 @@ export class EditCategoriesImpl extends React.Component<EditCategoriesProps, any
 
     handleSubmit(values) {
         const { editableModel } = this.props;
-        return actions.saveCategoryChanges(editableModel, values)
+        // return actions.saveCategoryChanges(editableModel, values)
+    }
+
+    initModel(props: EditCategoriesProps) {
+        const { dispatch, model } = props;
+        dispatch(actions.queryEditInitModel(model))
     }
 
     renderDataRows() {

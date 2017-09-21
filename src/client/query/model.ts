@@ -214,13 +214,54 @@ export class QueryModel implements QueryModelProps {
     }
 }
 
+interface EditableQueryModelProps extends QueryModelProps {}
+
+export class EditableQueryModel implements EditableQueryModelProps {
+    id: string = undefined;
+    schemaQuery?: SchemaQuery = new SchemaQuery();
+    schema?: string = undefined;
+    query?: string = undefined;
+
+    data?: {[key: string]: LabKeyQueryRowPropertyProps} = {};
+    dataCount?: number = 0;
+    dataIds?: Array<number> = [];
+    filters?: Array<any> = []; // define filter type
+    isError?: boolean = false;
+    isLoaded?: boolean = false;
+    isLoading?: boolean = false;
+    message?: string = undefined;
+    metaData?: LabKeyQueryMetaDataProps = {} as LabKeyQueryMetaDataProps;
+
+    constructor(props?: Partial<EditableQueryModel>) {
+        if (props) {
+            for (let k in props) {
+                if (this.hasOwnProperty(k) && props.hasOwnProperty(k)) {
+                    this[k] = props[k];
+                }
+            }
+        }
+    }
+
+    addRow() {
+        return actions.queryEditAddRow(this);
+    }
+
+    removeRow(rowId: number) {
+        return actions.queryEditRemoveRow(this, rowId);
+    }
+}
+
+
+
 export interface QueryModelsProps {
+    editableModels: {[key: string]: EditableQueryModel}
     models: {[key: string]: QueryModel}
     loadedQueries: Array<string>
     loadingQueries: Array<string>
 }
 
 export class QueryModelsContainer implements QueryModelsProps {
+    editableModels: {[key: string]: EditableQueryModel} = {};
     models: {[key: string]: QueryModel} = {};
     loadedQueries: Array<string> = [];
     loadingQueries: Array<string> = [];
