@@ -19,7 +19,7 @@ interface PackageModelAttributeLookupProps {
 }
 
 interface PackageModelAttributeProps {
-    default?: string
+    defaultValue?: string
     format?: string
     label?: string
     lookupKey?: string
@@ -39,7 +39,7 @@ interface PackageModelAttributeProps {
 }
 
 export class PackageModelAttribute implements PackageModelAttributeProps {
-    default?: string = undefined;
+    defaultValue?: string = undefined;
     format: string = undefined;
     label: string = undefined;
     lookupKey?: string = undefined;

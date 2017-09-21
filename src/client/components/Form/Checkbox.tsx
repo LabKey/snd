@@ -27,19 +27,18 @@ export const FieldCheckboxInput = (field: WrappedFieldProps<any> & FieldCheckbox
 };
 
 interface CheckboxInputProps {
-    checked?: boolean
     disabled?: boolean
     name?: string
     onChange?: React.EventHandler<React.ChangeEvent<HTMLInputElement>>
     required?: boolean
-    value?: string
+    value?: boolean
 }
 
 export const CheckboxInput = (props: CheckboxInputProps) => {
     return (
         <span className="input-row">
             <input
-                checked={props.checked}
+                checked={props.value}
                 disabled={props.disabled === true}
                 name={props.name}
                 onChange={props.onChange}
