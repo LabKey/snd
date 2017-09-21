@@ -117,7 +117,8 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
     handleFieldChange(event: React.ChangeEvent<any>) {
         const { handleFieldChange } = this.props;
         const name = event.currentTarget.name,
-            value = event.currentTarget.value;
+            value = event.currentTarget.type === 'checkbox' ?
+                event.currentTarget.checked : event.currentTarget.value;
 
         handleFieldChange(name, value);
     }

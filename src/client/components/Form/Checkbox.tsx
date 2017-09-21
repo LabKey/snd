@@ -38,7 +38,7 @@ export const CheckboxInput = (props: CheckboxInputProps) => {
     return (
         <span className="input-row">
             <input
-                checked={props.value}
+                defaultChecked={props.value}
                 disabled={props.disabled === true}
                 name={props.name}
                 onChange={props.onChange}
