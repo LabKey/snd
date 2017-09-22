@@ -1,10 +1,5 @@
-SET ANSI_NULLS ON;
-GO
 
-SET QUOTED_IDENTIFIER ON;
-GO
-
-CREATE FUNCTION [snd].[fGetSuperPkg] ( @TopLevelPkgId INT )
+CREATE FUNCTION snd.fGetSuperPkg ( @TopLevelPkgId INT )
 RETURNS TABLE
 AS
 
