@@ -17,12 +17,14 @@ import { routerReducer } from 'react-router-redux';
 import { combineReducers } from 'redux';
 import { reducer as formReducer } from 'redux-form'
 
+import { app } from '../containers/App/reducer'
 import { packages } from '../containers/Packages/reducer'
 import { user } from '../containers/SignIn/reducer'
 import { WizardsReducer } from '../containers/Wizards/reducer'
 import { queries } from '../query/reducer'
 
 export const reducers = combineReducers({
+    app,
     packages,
     queries,
     user,

@@ -149,7 +149,9 @@ export function save(model: PackageWizardModel, pkg: PackageSubmissionModel, onS
         dispatch(setSubmitting(model));
 
         return savePackage(pkg).then((response) => {
+            const updatedModel = getState().wizards.packages.packageData[model.packageId];
 
+            dispatch(setSubmitted(updatedModel));
             dispatch(packagesInvalidate());
             dispatch(queryInvalidate(PKG_SQ));
             onSuccess('/packages');

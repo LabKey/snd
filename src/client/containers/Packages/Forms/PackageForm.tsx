@@ -127,7 +127,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         const { handleNarrativeChange } = this.props;
         const value = event.currentTarget.value;
 
-        if (value && handleNarrativeChange && typeof handleNarrativeChange === 'function') {
+        if (handleNarrativeChange && typeof handleNarrativeChange === 'function') {
             handleNarrativeChange(value);
         }
     }

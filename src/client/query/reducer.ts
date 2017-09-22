@@ -103,6 +103,19 @@ export const queries = handleActions({
         return new QueryModelsContainer(updatedState);
     },
 
+    [QUERY_TYPES.QUERY_DETAILS_SUCCESS]: (state: QueryModelsContainer, action: any) => {
+        const { model, queryInfo } = action;
+
+        const queryModel = new QueryModel(Object.assign({}, state.models[model.id], {
+            queryInfo
+        }));
+        //
+        const models = Object.assign({}, state.models,{[model.id]: queryModel});
+
+        const updatedState = Object.assign({}, state, {models});
+        return new QueryModelsContainer(updatedState);
+    },
+
     [QUERY_TYPES.QUERY_SUCCESS]: (state: QueryModelsContainer, action: any) => {
         const { response, model } = action;
         const pkCol = response.metaData.id;
@@ -147,12 +160,19 @@ export const queries = handleActions({
 
     [QUERY_TYPES.QUERY_EDIT_ADD_ROW]: (state: QueryModelsContainer, action: any) => {
         const { editableModel } = action;
+        const stateModel = state.editableModels[editableModel.id];
 
-        let dataIds = [].concat(state.editableModels[editableModel.id].dataIds);
-        const largest = dataIds.sort()[dataIds.length - 1];
+        const initialIds = Object.keys(stateModel.data).map((id) => id).sort();
+        let dataIds = [].concat(stateModel.dataIds);
+
+        // in case a row has been removed, ensure we are adding a fake rowId that does not and did not exist
+        const initialLargest = initialIds.length ? parseInt(initialIds.slice(-1)[0]) : 0;
+        const dataLargest = dataIds.length ? dataIds.sort().slice(-1)[0] : 0;
+
+        const largest = dataLargest <= initialLargest ? initialLargest : dataLargest;
         dataIds.push(largest + 1);
 
-        const updatedModel = new EditableQueryModel(Object.assign({}, state.editableModels[editableModel.id], {
+        const updatedModel = new EditableQueryModel(Object.assign({}, stateModel, {
             dataIds,
             dataCount: dataIds.length,
         }));
@@ -167,15 +187,15 @@ export const queries = handleActions({
 
     [QUERY_TYPES.QUERY_EDIT_REMOVE_ROW]: (state: QueryModelsContainer, action: any) => {
         const { editableModel, rowId } = action;
-
-        let dataIds = [].concat(state.editableModels[editableModel.id].dataIds);
+        const stateModel = state.editableModels[editableModel.id];
+        let dataIds = [].concat(stateModel.dataIds);
         const index = dataIds.findIndex(d => {
             return d === rowId
         });
 
         dataIds.splice(index, 1);
 
-        const updatedModel = new EditableQueryModel(Object.assign({}, state.editableModels[editableModel.id], {
+        const updatedModel = new EditableQueryModel(Object.assign({}, stateModel, {
             dataIds,
             dataCount: dataIds.length,
         }));

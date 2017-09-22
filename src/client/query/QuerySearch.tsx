@@ -99,7 +99,11 @@ export class QuerySearchWrapperImpl extends React.Component<QuerySearchProps, {}
         }
 
         else if (model && model.isLoading) {
-            return <div className='query-search--container'>Loading...</div>;
+            return (
+                <div className='query-search--container'>
+                    <i className="fa fa-spinner fa-spin fa-fw"/> Loading...
+                </div>
+            );
         }
 
         return null;

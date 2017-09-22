@@ -42,7 +42,7 @@ export const NumericInput = (props: NumericInputProps) => {
                 onChange={props.onChange}
                 required={props.disabled === true}
                 type="number"
-                value={props.value ? props.value : 0}/>
+                value={props.value ? props.value : ''}/>
         </div>
     );
 };

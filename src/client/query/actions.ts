@@ -54,27 +54,39 @@ function fetchData(model: QueryModel) {
 
         let updatedModel = getState().queries.models[model.id];
 
-        return selectRows(
+        return getQueryDetails(
             updatedModel.schema,
-            updatedModel.query,
-            {
-                columns: updatedModel.requiredColumns
-            }
-        ).then((response: LabKeyQueryResponse) => {
-            const { id } = response.metaData;
-            if (id) {
-                dispatch(queryModelSuccess(updatedModel, response));
+            updatedModel.query
+        ).then(queryInfo => {
+            dispatch(queryModelDetailsSuccess(updatedModel, queryInfo));
 
-                updatedModel = getState().queries.models[model.id];
-                dispatch(queryLoaded(updatedModel));
-            }
-            else {
-                throw new Error([updatedModel.schema, updatedModel.query].join(' ') + 'Response does not include id column');
-            }
+            updatedModel = getState().queries.models[model.id];
 
+            return selectRows(
+                updatedModel.schema,
+                updatedModel.query,
+                {
+                    columns: updatedModel.requiredColumns
+                }
+            ).then((response: LabKeyQueryResponse) => {
+                const { id } = response.metaData;
+                if (id) {
+                    dispatch(queryModelSuccess(updatedModel, response));
+
+                    updatedModel = getState().queries.models[model.id];
+                    dispatch(queryLoaded(updatedModel));
+                }
+                else {
+                    throw new Error([updatedModel.schema, updatedModel.query].join(' ') + 'Response does not include id column');
+                }
+
+            }).catch((error) => {
+                dispatch(queryError(updatedModel, error));
+            });
         }).catch((error) => {
             dispatch(queryError(updatedModel, error));
-        });
+        })
+
 
     }
 }
@@ -142,6 +154,13 @@ export function queryLoading(model: QueryModel) {
     return {
         type: QUERY_TYPES.QUERY_LOADING,
         model
+    };
+}
+export function queryModelDetailsSuccess(model: QueryModel, queryInfo) {
+    return {
+        type: QUERY_TYPES.QUERY_DETAILS_SUCCESS,
+        model,
+        queryInfo
     };
 }
 
@@ -278,6 +297,39 @@ export function updateRows(schemaName: string, queryName: string, rows: Array<{[
             },
             failure: (data) => {
                 reject(data);
+            }
+        });
+    });
+}
+
+export function getQueryDetails(schemaName: string, queryName: string, params?: {[key: string]: any}) {
+    return new Promise((resolve, reject) => {
+        return LABKEY.Query.getQueryDetails({
+            schemaName,
+            queryName,
+            view: '*',
+            ...params,
+            requiredVersion: 17.1, // newer?
+            success: (queryDetails: LabKeyQueryResponse | any) => {
+                // getQueryDetails will return an exception parameter in cases
+                // where it is unable to resolve the tableInfo. This is deemed a 'success'
+                // by the request standards but here we reject as an outright failure
+                if (queryDetails.exception) {
+                    reject({
+                        schemaName,
+                        queryName,
+                        message: queryDetails.exception,
+                        exceptionClass: undefined
+                    });
+                }
+                resolve(queryDetails);
+            },
+            failure: (data, request) => {
+                console.log('GetQueryDetailsError', data, request);
+                reject({
+                    data,
+                    request
+                });
             }
         });
     });

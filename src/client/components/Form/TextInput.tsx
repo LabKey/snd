@@ -34,8 +34,9 @@ interface TextInputProps {
 }
 
 export const TextInput = (props: TextInputProps) => {
+    const inputValue = props.value != null ? props.value : '';
     return (
-        <div className="input-row">
+        <div className="input-row" title={inputValue}>
             <input
                 className="form-control"
                 disabled={props.disabled === true}
@@ -43,7 +44,7 @@ export const TextInput = (props: TextInputProps) => {
                 onChange={props.onChange}
                 required={props.required === true}
                 type="text"
-                value={props.value != null ? props.value : ''}/>
+                value={inputValue}/>
         </div>
     );
 };

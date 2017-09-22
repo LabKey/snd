@@ -38,7 +38,6 @@ export class CategoriesSelectResults extends React.Component<CategoriesSelectRes
                                     </span>
                                 </div>
                             </ListGroupItem>
-
                         )
                     })}
                     <div style={{borderBottom: '3px solid black'}}/>
@@ -55,7 +54,7 @@ export class CategoriesSelectResults extends React.Component<CategoriesSelectRes
         let text;
         if (selected && selected.length) {
             text = selected.map((id) => {
-                return [data[id]['CategoryId'].value, data[id]['Description'].value].join(' ');
+                return [data[id]['CategoryId'].value, data[id]['Description'].value].join('-');
             }).join(', ');
 
         }
@@ -64,7 +63,15 @@ export class CategoriesSelectResults extends React.Component<CategoriesSelectRes
         }
         // todo: disabled version will show white block where '...' would be, need to figure out dynamic background color
         return (
-            <div style={{border: '1px solid #ddd', height: '89px', background: disabled ? '#eee' : ''}}>
+            <div
+                style={{
+                    background: disabled ? '#eee' : '',
+                    border: '1px solid #ddd',
+                    height: '89px',
+                    maxHeight: '525px',
+                    overflowY: 'scroll'
+                }}
+                title={text}>
                 <div
                     className={"data-search__row_selected"}
                     style={{padding: '10px 15px'}}>

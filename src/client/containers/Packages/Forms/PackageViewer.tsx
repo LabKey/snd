@@ -206,7 +206,7 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, Packa
             )
         }
 
-        return <div>Loading...</div>;
+        return <div><i className="fa fa-spinner fa-spin fa-fw"/> Loading...</div>;
     }
 }
 

@@ -116,6 +116,128 @@ export interface LabKeyQueryResponse {
     schemaName: Array<string> | string
 }
 
+export interface QueryColumn {
+    align: string;
+    autoIncrement: boolean;
+    calculated: boolean;
+    caption: string;
+    conceptURI: string;
+    defaultScale: string;
+    defaultValue: any;
+    description?: string;
+    dimension: boolean;
+    displayAsLookup?: boolean;
+    excludeFromShifting: boolean;
+    ext: any;
+    facetingBehaviorType: string;
+    fieldKey: string;
+    fieldKeyArray: Array<string>;
+    fieldKeyPath: string;
+    friendlyType: string;
+    hidden: boolean;
+    inputType: string;
+    isAutoIncrement: boolean; // DUPLICATE
+    isHidden: boolean; // DUPLICATE
+    isKeyField: boolean;
+    isMvEnabled: boolean;
+    isNullable: boolean;
+    isReadOnly: boolean;
+    isSelectable: boolean; // DUPLICATE
+    isUserEditable: boolean; // DUPLICATE
+    isVersionField: boolean;
+    jsonType: string;
+    keyField: boolean;
+    measure: boolean;
+    mvEnabled: boolean;
+    name: string;
+    nullable: boolean;
+    phi: string;
+    rangeURI: string;
+    readOnly: boolean;
+    recommendedVariable: boolean;
+    required: boolean;
+    selectable: boolean;
+    shortCaption: string;
+    shownInDetailsView: boolean;
+    shownInInsertView: boolean;
+    shownInUpdateView: boolean;
+    sortable: boolean;
+    sqlType: string;
+    type: string;
+    userEditable: boolean;
+    versionField: boolean;
+}
+
+interface QueryInfoProps {
+    canEdit: boolean;
+    canEditSharedViews: boolean;
+    columns: Array<QueryColumn>;
+    createDefinitionUrl?: string;
+    defaultView?: {columns: Array<QueryColumn>}
+    description?: string;
+    editDefinitionUrl?: string;
+    iconURL?: string;
+    importTemplates: Array<any>;
+    indices: {[key: string]: any};
+    insertUrl: string;
+    isInherited: boolean;
+    isMetadataOverrideable: boolean;
+    isTemporary: boolean;
+    isUserDefined: boolean;
+    name: string;
+    schemaName: string;
+    targetContainers: Array<any>;
+    title: string;
+    titleColumn: string;
+    viewDataUrl: string;
+    views: Array<any>;
+    schemaLabel: string;
+    showInsertNewButton: boolean;
+    importUrlDisabled: boolean;
+    importUrl: boolean;
+    insertUrlDisabled: boolean;
+}
+
+export class QueryInfo implements QueryInfoProps {
+    canEdit: boolean = false;
+    canEditSharedViews: boolean = false;
+    columns: Array<QueryColumn> = [];
+    createDefinitionUrl?: string = undefined;
+    defaultView?: {columns: Array<QueryColumn>} = {columns: []};
+    description?: string = undefined;
+    editDefinitionUrl?: string = undefined;
+    iconURL?: string = undefined;
+    importTemplates: Array<any> = [];
+    indices: {[key: string]: any} = {};
+    insertUrl: string = undefined;
+    isInherited: boolean = false;
+    isMetadataOverrideable: boolean = false;
+    isTemporary: boolean = false;
+    isUserDefined: boolean = false;
+    name: string = undefined;
+    schemaName: string = undefined;
+    targetContainers: Array<any> = [];
+    title: string = undefined;
+    titleColumn: string = undefined;
+    viewDataUrl: string = undefined;
+    views: Array<any> = [];
+    schemaLabel: string = undefined;
+    showInsertNewButton: boolean = false;
+    importUrlDisabled: boolean = false;
+    importUrl: boolean = false;
+    insertUrlDisabled: boolean = false;
+
+    constructor(props?: Partial<QueryInfo>) {
+        if (props) {
+            for (let k in props) {
+                if (this.hasOwnProperty(k) && props.hasOwnProperty(k)) {
+                    this[k] = props[k];
+                }
+            }
+        }
+    }
+
+}
 
 export interface QueryModelProps {
     id: string
@@ -134,6 +256,7 @@ export interface QueryModelProps {
     isLoading?: boolean
     message?: string
     metaData?: LabKeyQueryMetaDataProps
+    queryInfo?: QueryInfo // define queryInfo
 }
 
 export class QueryModel implements QueryModelProps {
@@ -153,6 +276,7 @@ export class QueryModel implements QueryModelProps {
     isLoading?: boolean = false;
     message?: string = undefined;
     metaData?: LabKeyQueryMetaDataProps = {} as LabKeyQueryMetaDataProps;
+    queryInfo?: QueryInfo = new QueryInfo();
 
     constructor(props?: Partial<QueryModel>) {
         if (props) {
@@ -231,6 +355,7 @@ export class EditableQueryModel implements EditableQueryModelProps {
     isLoading?: boolean = false;
     message?: string = undefined;
     metaData?: LabKeyQueryMetaDataProps = {} as LabKeyQueryMetaDataProps;
+    queryInfo?: any = new QueryInfo();
 
     constructor(props?: Partial<EditableQueryModel>) {
         if (props) {
@@ -244,6 +369,15 @@ export class EditableQueryModel implements EditableQueryModelProps {
 
     addRow() {
         return actions.queryEditAddRow(this);
+    }
+
+    getRequiredInsertColumns(): Array<QueryColumn> {
+        if (this.queryInfo) {
+            return this.queryInfo.columns
+                .filter(c => c.shownInInsertView && c.required);
+        }
+
+        return [];
     }
 
     removeRow(rowId: number) {

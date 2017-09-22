@@ -4,16 +4,15 @@ import { connect } from 'react-redux';
 import { RouteComponentProps } from 'react-router-dom';
 import { Form, FormProps, Field, reduxForm } from 'redux-form';
 
-//import * as actions from './actions'
 import * as actions from '../../../query/actions'
 import { QuerySearch } from '../../../query/QuerySearch'
-import { LabKeyQueryRowPropertyProps, QueryModel } from '../../../query/model'
+import {EditableQueryModel, LabKeyQueryRowPropertyProps, QueryModel} from '../../../query/model'
 import { EDITABLE_CAT_SQ } from '../../Packages/constants'
 
 import { FieldCheckboxInput } from '../../../components/Form/Checkbox'
 import { FieldTextInput } from '../../../components/Form/TextInput'
 
-
+import { saveCategoryChanges } from './actions'
 
 export class EditCategories extends React.Component<RouteComponentProps<any>, any> {
     render() {
@@ -30,7 +29,7 @@ export class EditCategories extends React.Component<RouteComponentProps<any>, an
     }
 }
 
-const EditColumns = [
+const EditColumns = [ // this should actually be based on model queryInfo req. columns
     {
         component: FieldTextInput,
         disabled: true,
@@ -77,10 +76,10 @@ const ULStyle: React.CSSProperties = {
     padding: "5px"
 };
 
-const ULHeaderStyle = Object.assign({}, ULStyle, {borderBottom: '2px solid lightgray'});
+const ULHeaderStyle = Object.assign({}, ULStyle, {borderBottom: '2px solid lightgray', marginBottom: '5px'});
 
 
-interface EditCategoriesStateProps extends FormProps<any, any, any> {
+interface EditCategoriesState extends FormProps<any, any, any> {
     editableModel?: any
     dispatch?: any
 }
@@ -89,9 +88,9 @@ interface EditCategoriesOwnProps {
     model?: QueryModel
 }
 
-type EditCategoriesProps = EditCategoriesStateProps & EditCategoriesOwnProps;
+type EditCategoriesProps = EditCategoriesState & EditCategoriesOwnProps;
 
-function mapStateToProps(state: APP_STATE_PROPS, ownProps:  EditCategoriesOwnProps): EditCategoriesStateProps{
+function mapStateToProps(state: APP_STATE_PROPS, ownProps:  EditCategoriesOwnProps): EditCategoriesState{
     const { model } = ownProps;
 
     // this is janky and needs to be improved
@@ -109,6 +108,16 @@ function mapStateToProps(state: APP_STATE_PROPS, ownProps:  EditCategoriesOwnPro
 
 // make this more HOC
 export class EditCategoriesImpl extends React.Component<EditCategoriesProps, any> {
+
+    static checkEnabled(dirty: boolean, queryModel: QueryModel, editableModel: EditableQueryModel) {
+        if (dirty === true) {
+            // if form is dirty, allow submit
+            return true;
+        }
+
+        // if row has been removed, allow submit
+        return editableModel && editableModel.dataCount < queryModel.dataCount;
+    }
 
     constructor(props) {
         super(props);
@@ -142,13 +151,38 @@ export class EditCategoriesImpl extends React.Component<EditCategoriesProps, any
     }
 
     handleSubmit(values) {
-        const { editableModel } = this.props;
-        // return actions.saveCategoryChanges(editableModel, values)
+        const { dispatch, editableModel, model } = this.props;
+
+        return dispatch(saveCategoryChanges(editableModel, model, values));
     }
 
     initModel(props: EditCategoriesProps) {
         const { dispatch, model } = props;
-        dispatch(actions.queryEditInitModel(model))
+        dispatch(actions.queryEditInitModel(model));
+    }
+
+    renderButtons() {
+        const { editableModel, model, dirty } = this.props;
+
+        const submitEnabled = EditCategoriesImpl.checkEnabled(dirty, model, editableModel);
+
+        return (
+            <div>
+                <div className="buttons clearfix" style={{padding: '0 5px', marginBottom: '15px'}}>
+                    <div className="pull-left" onClick={this.handleAdd} style={{cursor: 'pointer'}}>
+                        <i className="fa fa-plus-circle" style={{color: '#5cb85c'}}/> Add Category
+                    </div>
+
+                </div>
+                <div className="buttons clearfix" style={{padding: '0 5px'}}>
+                    <div className="btn-group pull-left">
+                        <Button onClick={this.handleCancel}>Cancel</Button>
+                        <Button disabled={!submitEnabled} type='submit'>Save</Button>
+                    </div>
+                </div>
+            </div>
+        )
+
     }
 
     renderDataRows() {
@@ -167,15 +201,15 @@ export class EditCategoriesImpl extends React.Component<EditCategoriesProps, any
     }
 
     render() {
-        const { error, handleSubmit, dirty } = this.props;
+        const { error, handleSubmit } = this.props;
 
         return (
-            <div style={{border: '1px solid black', padding: '10px'}}>
+            <div style={{padding: '10px'}}>
                 {error ?
                     <div className='alert alert-danger' role='alert'>{error}</div>
                     : null}
                 <Form onSubmit={handleSubmit(this.handleSubmit)}>
-                    <div className='categories-container clearfix' style={{marginBottom: '15px'}}>
+                    <div className='categories-container clearfix' style={{marginBottom: '10px'}}>
                         <ul className='categories-header' style={ULHeaderStyle}>
                             <li style={{flex: 0.1}}/>
                             {EditColumns.map((col, i) => {
@@ -188,15 +222,7 @@ export class EditCategoriesImpl extends React.Component<EditCategoriesProps, any
                         </ul>
                         {this.renderDataRows()}
                     </div>
-                    <div className="buttons clearfix" style={{padding: '0 5px'}}>
-                        <div className="btn-group pull-left">
-                            <Button onClick={this.handleAdd}><i className='fa fa-plus'/> Add Category</Button>
-                        </div>
-                        <div className="btn-group pull-right">
-                            <Button onClick={this.handleCancel}>Cancel</Button>
-                            <Button disabled={!dirty} type='submit'>Save</Button>
-                        </div>
-                    </div>
+                    {this.renderButtons()}
                 </Form>
             </div>
         )

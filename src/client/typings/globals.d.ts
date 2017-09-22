@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { AppModel } from '../containers/App/model'
 import { PackagesModel } from '../containers/Packages/model'
 import { UserModel } from '../containers/SignIn/model'
 import { WizardReducerProps } from '../containers/Wizards/reducer'
@@ -21,6 +22,7 @@ import { QueryModelsContainer } from '../query/model'
 declare global {
 
     interface APP_STATE_PROPS {
+        app: AppModel
         packages: PackagesModel
         queries: QueryModelsContainer
         user: UserModel

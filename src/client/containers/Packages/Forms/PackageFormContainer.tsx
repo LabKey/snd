@@ -147,7 +147,7 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
                         view={model.formView}/>;
         }
 
-        return <div>Loading...</div>;
+        return <div><i className="fa fa-spinner fa-spin fa-fw"/> Loading...</div>;
     }
 
     renderModal() {
@@ -158,7 +158,7 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
                 <div className="static-modal">
                     <Modal onHide={() => null} show={model.isSubmitting}>
                         <Modal.Body>
-                            Submitting Package
+                            <i className="fa fa-spinner fa-spin fa-fw"/> Submitting Package
                         </Modal.Body>
                     </Modal>
                 </div>

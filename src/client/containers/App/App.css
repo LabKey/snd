@@ -3,3 +3,13 @@
     /*Works with webkit browsers - need to double check IE/Edge*/
     width: 100vw;
 }
+
+.alert-dismiss {
+    float: right;
+    margin: 5px;
+    cursor: pointer;
+}
+
+.alert-dismiss:hover {
+    transform: scale(1.1);
+}

@@ -33,6 +33,10 @@ type CategoriesSelectProps = CategoriesSelectOwnProps & CategoriesSelectState;
 
 export class CategoriesSelect extends React.Component<CategoriesSelectProps, CategoriesSelectStateProps> {
 
+    static defaultProps = {
+        values: []
+    };
+
     private inputRef: HTMLInputElement;
     private wrapper: HTMLDivElement;
 
@@ -40,7 +44,7 @@ export class CategoriesSelect extends React.Component<CategoriesSelectProps, Cat
         super(props);
 
         this.state = {
-            data: props.model.dataIds,
+            data: props.model.dataIds.filter(id => props.values.indexOf(id) === -1),
             focused: false,
             input: '',
             selected: props.values
@@ -66,7 +70,7 @@ export class CategoriesSelect extends React.Component<CategoriesSelectProps, Cat
 
         if (model && model.dataIds && !arraysMatch(model.dataIds, this.state.data)) {
             this.setState({
-                data: model.dataIds,
+                data: model.dataIds.filter(id => values.indexOf(id) === -1),
                 selected: values
             });
         }

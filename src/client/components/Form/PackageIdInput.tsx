@@ -42,6 +42,7 @@ interface PackageIdInputProps  {
 
 export const PackageIdInput = (props: PackageIdInputProps ) => {
     const { onChange, value } = props;
+    const packageIdValue = value > -1 ? value : "";
 
     return (
         <div className="input-row">
@@ -52,7 +53,7 @@ export const PackageIdInput = (props: PackageIdInputProps ) => {
                 onChange={onChange}
                 required
                 type="text"
-                value={value > -1 ? value : ""}
+                value={packageIdValue}
             />
         </div>
     );
