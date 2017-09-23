@@ -60,7 +60,7 @@ public class CategoriesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
 
     protected boolean isCategoryInUse(Container c, User u, int catId)
     {
-        TableSelector ts = new TableSelector(this, Collections.singleton("InUse"), new SimpleFilter(FieldKey.fromString("PkgId"), catId), null);
+        TableSelector ts = new TableSelector(this, Collections.singleton("InUse"), new SimpleFilter(FieldKey.fromString("CategoryId"), catId), null);
         Boolean[] ret = ts.getArray(Boolean.class);
 
         return ret[0];
