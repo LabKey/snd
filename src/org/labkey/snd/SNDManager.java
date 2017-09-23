@@ -57,7 +57,9 @@ public class SNDManager
 {
     private static final SNDManager _instance = new SNDManager();
     private static final int _minPkgId = 10000;
+    private static final int _minCategoryId = 100;
     private static final String SND_DBSEQUENCE_NAME = "org.labkey.snd.api.Package";
+    private static final String SND_CATEGORY_DBSEQUENCE_NAME = "org.labkey.snd.api.Categories";
     private final StringKeyCache<Object> _cache;
 
     private List<TableInfo> _attributeLookups = new ArrayList<>();
@@ -81,6 +83,13 @@ public class SNDManager
     {
         DbSequence sequence = DbSequenceManager.get(c, SND_DBSEQUENCE_NAME);
         sequence.ensureMinimum(_minPkgId);
+        return sequence.next();
+    }
+
+    public Integer generateCategoryId(Container c)
+    {
+        DbSequence sequence = DbSequenceManager.get(c, SND_CATEGORY_DBSEQUENCE_NAME);
+        sequence.ensureMinimum(_minCategoryId);
         return sequence.next();
     }
 

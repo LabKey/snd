@@ -1,11 +1,14 @@
 package org.labkey.snd;
 
+import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.JdbcType;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
+import org.labkey.api.query.BatchValidationException;
+import org.labkey.api.query.DuplicateKeyException;
 import org.labkey.api.query.ExprColumn;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.InvalidKeyException;
@@ -13,10 +16,12 @@ import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.QueryUpdateServiceException;
 import org.labkey.api.query.SimpleQueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema;
+import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
 
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -89,5 +94,30 @@ public class CategoriesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             return super.deleteRow(user, container, oldRowMap);
         }
 
+        public List<Map<String, Object>> insertRows(User user, Container container, List<Map<String, Object>> rows, BatchValidationException errors, @Nullable Map<Enum, Object> configParameters, Map<String, Object> extraScriptContext)
+                throws DuplicateKeyException, QueryUpdateServiceException, SQLException
+        {
+            for (Map<String, Object> row : rows)
+            {
+                if((!row.containsKey("CategoryId") && !row.containsKey("categoryId")) || (row.get("CategoryId") == null))
+                {
+                    row.put("CategoryId", SNDManager.get().generateCategoryId(container));
+                }
+            }
+
+            return super.insertRows(user, container, rows, errors, configParameters, extraScriptContext);
+        }
+
+        @Override
+        protected Map<String, Object> insertRow(User user, Container container, Map<String, Object> row)
+                throws DuplicateKeyException, ValidationException, QueryUpdateServiceException, SQLException
+        {
+            if(!row.containsKey("CategoryId") && !row.containsKey("categoryId"))
+            {
+                row.put("CategoryId", SNDManager.get().generateCategoryId(container));
+            }
+
+            return super.insertRow(user, container, row);
+        }
     }
 }
