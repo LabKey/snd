@@ -36,6 +36,7 @@ public class SNDSchema
     public static final String PROJECTITEMS_TABLE_NAME = "ProjectItems";
     public static final String LOOKUPS_TABLE_NAME = "Lookups";
     public static final String LOOKUPSETS_TABLE_NAME = "LookupSets";
+    public static final String SUPERPKGS_FUNCTION_NAME = "fGetSuperPkg";
 
     public static SNDSchema getInstance()
     {

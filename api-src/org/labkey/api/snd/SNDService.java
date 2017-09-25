@@ -22,7 +22,7 @@ public interface SNDService
 
     void savePackage(Container c, User u, Package pkg);
     void saveSuperPackages(Container c, User u, List<SuperPackage> superPkgs);
-    List<Package> getPackages(Container c, User u, List<Integer> pkgIds) throws SQLException;
+    List<Package> getPackages(Container c, User u, List<Integer> pkgIds);
     void registerAttributeLookup(Container c, User u, String schema, @Nullable String table);
     Map<String, String> getAttributeLookups(Container c, User u);
 }

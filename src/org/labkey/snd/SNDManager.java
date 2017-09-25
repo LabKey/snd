@@ -21,7 +21,6 @@ import org.jetbrains.annotations.Nullable;
 import org.labkey.api.cache.CacheManager;
 import org.labkey.api.cache.StringKeyCache;
 import org.labkey.api.data.Container;
-import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.DbScope;
 import org.labkey.api.data.DbSequence;
 import org.labkey.api.data.DbSequenceManager;
@@ -316,67 +315,31 @@ public class SNDManager
         return pkg;
     }
 
-    private int getTopLevelSuperPkgId(Container c, User u, int pkgId)
+    private List<SuperPackage> getChildSuperPkgs(Container c, User u, int pkgId)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
-        SQLFragment sql = new SQLFragment("SELECT SuperPkgId FROM ");
-        sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
-        sql.append(" WHERE PkgId = ? AND ParentSuperPkgId IS NULL").add(pkgId);
-        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+        SQLFragment childSql = new SQLFragment("");
 
-        if (selector.getArrayList(Integer.class).size() > 0)
-            return selector.getArrayList(Integer.class).get(0);
-        else
-            return -1;
+        childSql.append(" SELECT * FROM ");
+        childSql.append("snd." + SNDSchema.SUPERPKGS_FUNCTION_NAME + "(?)").add(pkgId);
+
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), childSql);
+        ArrayList<SuperPackage> children = selector.getArrayList(SuperPackage.class);
+
+        // don't want to add this node as its own child, so filter it out (root-level node has no parent ID)
+        for (int i = 0; i < children.size(); i++)
+        {
+            if(children.get(i).getParentSuperPkgId() == null)
+                children.remove(i);
+        }
+
+        return children;
     }
 
-    private List<SuperPackage> getChildSuperPkgs(Container c, User u, int superPkgId) throws SQLException
+    public Package addSubPackagesToPackage(Container c, User u, Package pkg)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
-        DbSchema dbSchema = schema.getDbSchema();
-
-        /*SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.PkgId, p.Description, p.Narrative FROM ");
-        sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
-        sql.append(" JOIN ");
-        sql.append(schema.getTable(SNDSchema.PKGS_TABLE_NAME), "p");
-        sql.append(" ON sp.PkgId = p.PkgId");
-        sql.append(" WHERE ParentSuperPkgId = ?").add(superPkgId);
-        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);*/
-
-        // start with first-level children
-        String cteName = "AllSuperPackageChildren";
-        // level not currently used, but may be useful later
-        SQLFragment cteInnerSql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, p.Description, p.Narrative, 1 AS Level FROM ");
-        cteInnerSql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
-        cteInnerSql.append(" JOIN ");
-        cteInnerSql.append(schema.getTable(SNDSchema.PKGS_TABLE_NAME), "p");
-        cteInnerSql.append(" ON sp.PkgId = p.PkgId");
-        cteInnerSql.append(" WHERE ParentSuperPkgId = ?").add(superPkgId); // ? = superPkgId
-        cteInnerSql.append(" UNION ALL");
-        // now second-level and lower children via recursion on this CTE
-        cteInnerSql.append(" SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, p.Description, p.Narrative, (childrenCte.level + 1) AS Level FROM ");
-        cteInnerSql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
-        cteInnerSql.append(" JOIN ");
-        cteInnerSql.append(schema.getTable(SNDSchema.PKGS_TABLE_NAME), "p");
-        cteInnerSql.append(" ON sp.PkgId = p.PkgId");
-        cteInnerSql.append(" JOIN " + cteName + " childrenCte");
-        cteInnerSql.append(" ON sp.ParentSuperPkgId = childrenCte.SuperPkgId");
-        SQLFragment cteSql = new SQLFragment("");
-        cteSql.addCommonTableExpression(cteInnerSql, cteName, cteInnerSql);
-        cteSql.append(" SELECT * FROM ");
-        cteSql.append(cteName);
-
-        SqlSelector selector = new SqlSelector(schema.getDbSchema(), cteSql);
-
-        return selector.getArrayList(SuperPackage.class);
-    }
-
-    public Package addSubPackagesToPackage(Container c, User u, Package pkg) throws SQLException
-    {
-        int superPkgId = getTopLevelSuperPkgId(c, u, pkg.getPkgId());
-        if (superPkgId > -1)
-            pkg.setSubpackages(getChildSuperPkgs(c, u, superPkgId));
+        pkg.setSubpackages(getChildSuperPkgs(c, u, pkg.getPkgId()));
 
         return pkg;
     }
@@ -413,7 +376,7 @@ public class SNDManager
         return pkg;
     }
 
-    private Package createPackage(Container c, User u, Map<String, Object> row) throws SQLException
+    private Package createPackage(Container c, User u, Map<String, Object> row)
     {
         Package pkg = new Package();
         if(row != null)
@@ -436,7 +399,7 @@ public class SNDManager
         return pkg;
     }
 
-    public List<Package> getPackages(Container c, User u, List<Integer> pkgIds, BatchValidationException errors) throws SQLException
+    public List<Package> getPackages(Container c, User u, List<Integer> pkgIds, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
