@@ -435,7 +435,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     private void runScript(String script)
     {
         String result = (String) executeAsyncScript(script);
-        assertEquals(result, "Success!", result);
+        assertEquals("JavaScript API failure.", "Success!", result);
     }
 
     @Before
