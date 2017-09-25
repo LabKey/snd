@@ -1,6 +1,6 @@
 package org.labkey.snd;
 
-import com.beust.jcommander.internal.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.exp.property.Domain;
 import org.labkey.api.exp.property.PropertyService;
