@@ -5,6 +5,7 @@ import { DataTypeSelect } from './DataTypeSelect'
 import { LookupKeyInput } from './LookupKeyInput'
 import { NumericInput } from './NumericInput'
 import { TextInput } from './TextInput'
+import {OrderSelect} from "./OrderSelect";
 
 interface AttributeColumnProps {
     disabled?: boolean
@@ -36,7 +37,7 @@ const ATTRIBUTE_COLUMNS: Array<AttributeColumnProps> = [
         label: 'Data Type',
         name: 'rangeURI',
         required: true,
-        width: '13vw'
+        width: '8vw'
     },
     {
         inputComponent: TextInput,
@@ -67,11 +68,11 @@ const ATTRIBUTE_COLUMNS: Array<AttributeColumnProps> = [
         width: '13vw'
     },
     {
-        inputComponent: NumericInput,
+        inputComponent: OrderSelect,
         label: 'Order',
         name: 'sortOrder',
         required: false,
-        width: '7vw'
+        width: '12vw'
     },
     {
         inputComponent: CheckboxInput,
