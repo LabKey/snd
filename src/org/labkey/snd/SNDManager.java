@@ -315,6 +315,23 @@ public class SNDManager
         return pkg;
     }
 
+    private SuperPackage addChildren(SuperPackage parent, List<SuperPackage> descendants)
+    {
+        List<SuperPackage> children = new ArrayList<>();
+
+        for (SuperPackage child : descendants)
+        {
+            if (child.getParentSuperPkgId() != null
+                    && (child.getParentSuperPkgId().intValue() == parent.getSuperPkgId().intValue()))
+            {
+                children.add(addChildren(child, descendants));
+            }
+        }
+
+        parent.setChildPackages(children);
+        return parent;
+    }
+
     private List<SuperPackage> getChildSuperPkgs(Container c, User u, int pkgId)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -325,13 +342,29 @@ public class SNDManager
         childSql.append("snd." + SNDSchema.SUPERPKGS_FUNCTION_NAME + "(?)").add(pkgId);
 
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), childSql);
-        ArrayList<SuperPackage> children = selector.getArrayList(SuperPackage.class);
+        List<SuperPackage> descendants = selector.getArrayList(SuperPackage.class);
+        List<SuperPackage> children = new ArrayList<>();
 
-        // don't want to add this node as its own child, so filter it out (root-level node has no parent ID)
-        for (int i = 0; i < children.size(); i++)
+        SuperPackage root = null;
+        for (SuperPackage sPkg : descendants)
         {
-            if(children.get(i).getParentSuperPkgId() == null)
-                children.remove(i);
+            if (sPkg.getParentSuperPkgId() == null)
+            {
+                root = sPkg;
+                break;
+            }
+        }
+
+        if (root != null)
+        {
+            for (SuperPackage descendent : descendants)
+            {
+                if ((descendent.getParentSuperPkgId() != null) &&
+                        (descendent.getParentSuperPkgId().intValue() == root.getSuperPkgId().intValue()))
+                {
+                    children.add(addChildren(descendent, descendants));
+                }
+            }
         }
 
         return children;
