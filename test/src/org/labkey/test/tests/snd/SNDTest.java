@@ -91,8 +91,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 "            success: function(){ callback('Success!'); },                                               \n" +
 "    failure: function(e){ callback(e.responseText); },                                                  \n" +
 "    jsonData: {                                                                                         \n" +
-"        //'id': 10027,                                                                                  \n" +
-"        'description': 'My package description2',                                                       \n" +
+"        'description': 'My package description',                                                       \n" +
 "                'active': true,                                                                         \n" +
 "                'repeatable': true,                                                                     \n" +
 "                'narrative': 'This is a narrative',                                                     \n" +
@@ -102,11 +101,11 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 "        'attributes': [{                                                                                \n" +
 "            'name': 'SNDName',                                                                          \n" +
 "                    'label': 'Name',                                                                    \n" +
-"                   'rangeURI': 'http://www.w3.org/2001/XMLSchema#string',                               \n" +
+"                    'rangeURI': 'string',                                                               \n" +
 "                    'required': false,                                                                  \n" +
 "                    'scale': 500,                                                                       \n" +
 "                    'validators': [{                                                                    \n" +
-"                'name': 'SNDLength',                                                                    \n" +
+"                        'name': 'SNDLength',                                                            \n" +
 "                        'description': 'This will check the length of the field',                       \n" +
 "                        'type': 'length',                                                               \n" +
 "                        'expression': '~gte=1&amp;~lte=400',                                            \n" +
@@ -115,17 +114,17 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 "        },{                                                                                             \n" +
 "            'name': 'SNDUser',                                                                          \n" +
 "                    'label': 'User',                                                                    \n" +
-"                   'rangeURI': 'http://www.w3.org/2001/XMLSchema#int',                                  \n" +
+"                    'rangeURI': 'int',                                                                  \n" +
 "                    'required': true,                                                                   \n" +
 "                    'lookupSchema': 'core',                                                             \n" +
 "                    'lookupQuery': 'Principals'                                                         \n" +
 "        },{                                                                                             \n" +
 "            'name': 'SNDAge',                                                                           \n" +
 "                    'label': 'Age',                                                                     \n" +
-"                   'rangeURI': 'http://www.w3.org/2001/XMLSchema#double',                               \n" +
+"                    'rangeURI': 'double',                                                               \n" +
 "                    'format': '0.##',                                                                   \n" +
 "                    'validators': [{                                                                    \n" +
-"                'name': 'SNDRange',                                                                     \n" +
+"                        'name': 'SNDRange',                                                             \n" +
 "                        'description': 'This will check the range of the field',                        \n" +
 "                        'type': 'range',                                                                \n" +
 "                        'expression': '~gte=1&amp;~lte=100',                                            \n" +
@@ -442,7 +441,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     public void preTest() throws Exception
     {
         goToProjectHome();
-        truncateSndPkg();
+//        truncateSndPkg();
 
         //TODO: once exp tables are exposed - do a full cleanup from snd.pkgs, exp.DomainDescriptor, exp.PropertyDomain, exp.PropertyDescriptor
     }
@@ -535,14 +534,14 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         runScript(CREATECATEGORIESAPI);
         goToProjectHome();
         goToSchemaBrowser();
-        dataRegionTable = viewQueryData("snd", "PkgCategories");
-        assertEquals("Wrong count of categories",4,dataRegionTable.getDataRowCount());
+        viewQueryData("snd", "PkgCategories");
+        assertTextPresent("Surgery", "Blood Draw", "Weight", "Vitals");
 
         //insert package
         runScript(SAVEPACKAGEAPI);
         goToSchemaBrowser();
-        dataRegionTable = viewQueryData("snd", "Pkgs");
-        assertEquals("Wrong count of categories",1,dataRegionTable.getDataRowCount());
+        viewQueryData("snd", "Pkgs");
+        assertTextPresent("My package description", 1);
 
         //get package json
         String result = (String) executeAsyncScript(GETPACKAGEAPI);

@@ -33,7 +33,7 @@
         </package>
     </packages>
     <superPackages>
-        <superPackage superPkgId="2" pkgId="5">
+        <superPackage superPkgId="2" pkgId="2">
             <children/>
         </superPackage>
     </superPackages>
