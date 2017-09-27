@@ -32,10 +32,10 @@ export function getStateQueryModel(
 
     let modelProps: QModelProps = {
         id: modelId,
-        query: schemaQuery.queryName, // todo: remove these for schemaQUery prop
-        schema: schemaQuery.schemaName,
-        schemaQuery,
+        schema: schemaQuery.schemaName, // todo: remove these for schemaQuery prop
+        query: schemaQuery.queryName,
         view: schemaQuery.viewName,
+        schemaQuery
     };
 
     if (props) {
@@ -56,7 +56,8 @@ function fetchData(model: QueryModel) {
 
         return getQueryDetails(
             updatedModel.schema,
-            updatedModel.query
+            updatedModel.query,
+            updatedModel.view
         ).then(queryInfo => {
             dispatch(queryModelDetailsSuccess(updatedModel, queryInfo));
 
@@ -65,6 +66,7 @@ function fetchData(model: QueryModel) {
             return selectRows(
                 updatedModel.schema,
                 updatedModel.query,
+                updatedModel.view,
                 {
                     columns: updatedModel.requiredColumns
                 }
@@ -77,7 +79,7 @@ function fetchData(model: QueryModel) {
                     dispatch(queryLoaded(updatedModel));
                 }
                 else {
-                    throw new Error([updatedModel.schema, updatedModel.query].join(' ') + 'Response does not include id column');
+                    throw new Error([updatedModel.schema, updatedModel.query, updatedModel.view].join(' ') + 'Response does not include id column');
                 }
 
             }).catch((error) => {
@@ -269,11 +271,12 @@ export function insertRows(schemaName: string, queryName: string, rows: Array<{[
     });
 }
 
-export function selectRows(schemaName: string, queryName: string, params?: {[key: string]: any}): Promise<any> {
+export function selectRows(schemaName: string, queryName: string, viewName?: string, params?: {[key: string]: any}): Promise<any> {
     return new Promise((resolve, reject) => {
         return LABKEY.Query.selectRows({
             schemaName,
             queryName,
+            viewName,
             ...params,
             requiredVersion: 17.1, // newer?
             success: (data: LabKeyQueryResponse) => {
@@ -302,12 +305,12 @@ export function updateRows(schemaName: string, queryName: string, rows: Array<{[
     });
 }
 
-export function getQueryDetails(schemaName: string, queryName: string, params?: {[key: string]: any}) {
+export function getQueryDetails(schemaName: string, queryName: string, viewName?: string, params?: {[key: string]: any}) {
     return new Promise((resolve, reject) => {
         return LABKEY.Query.getQueryDetails({
             schemaName,
             queryName,
-            view: '*',
+            viewName: viewName || '*',
             ...params,
             requiredVersion: 17.1, // newer?
             success: (queryDetails: LabKeyQueryResponse | any) => {
@@ -318,6 +321,7 @@ export function getQueryDetails(schemaName: string, queryName: string, params?: 
                     reject({
                         schemaName,
                         queryName,
+                        viewName,
                         message: queryDetails.exception,
                         exceptionClass: undefined
                     });

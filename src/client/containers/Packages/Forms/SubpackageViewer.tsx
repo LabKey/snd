@@ -23,28 +23,41 @@ type SubpackageViewerProps = SubpackageViewerOwnProps & SubpackageViewerState;
 
 export class SubpackageViewerImpl extends React.Component<SubpackageViewerProps, {}> {
 
+    renderAssignedPackageRow(assignedPackage: AssignedPackageModel, allowRemove: boolean, treeLevel: number, key: string) {
+        const { selectedSubPackage, handleAssignedPackageRemove, handleRowClick, view } = this.props;
+        let idProp = selectedSubPackage != undefined && selectedSubPackage.SuperPkgId ? 'SuperPkgId' : 'altId';
+
+        return (
+            <div key={key}>
+                <SuperPackageRow
+                    model={assignedPackage}
+                    selected={selectedSubPackage != undefined && assignedPackage[idProp] == selectedSubPackage[idProp]}
+                    menuActionName={allowRemove ? "Remove" : null}
+                    handleMenuAction={allowRemove ? handleAssignedPackageRemove : null}
+                    handleRowClick={handleRowClick}
+                    treeLevel={treeLevel}
+                    view={view}
+                />
+
+                {Array.isArray(assignedPackage.SubPackages) && assignedPackage.SubPackages.length > 0
+                    ? assignedPackage.SubPackages.map((dd, ii) => {
+                        return this.renderAssignedPackageRow(assignedPackage.SubPackages[ii], false, treeLevel+1, key + "-" + ii);
+                    })
+                    : null
+                }
+            </div>
+        )
+    }
+
     render() {
-        const { subPackages, selectedSubPackage, handleAssignedPackageRemove, handleRowClick, view } = this.props;
+        const { subPackages } = this.props;
 
         return (
             <ListGroupItem className="data-search__container" style={{height: '150px', overflowY: 'scroll'}}>
                 <div className="data-search__row">
                     {Array.isArray(subPackages) && subPackages.length > 0 ?
                         subPackages.map((d, i) => {
-                            let idProp = selectedSubPackage != undefined && selectedSubPackage.SuperPkgId ? 'SuperPkgId' : 'altId';
-
-                            return (
-                                <div key={'data-search__row' + i}>
-                                    <SuperPackageRow
-                                        model={subPackages[i]}
-                                        selected={selectedSubPackage != undefined && subPackages[i][idProp] == selectedSubPackage[idProp]}
-                                        menuActionName="Remove"
-                                        handleMenuAction={handleAssignedPackageRemove}
-                                        handleRowClick={handleRowClick}
-                                        view={view}
-                                    />
-                                </div>
-                            )
+                            return this.renderAssignedPackageRow(subPackages[i], true, 0, 'data-search__row' + i);
                         })
                         : 'None'
                     }

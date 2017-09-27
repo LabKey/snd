@@ -31,7 +31,13 @@ export class SchemaQuery implements SchemaQueryProps {
     }
 
     resolveKey(): string {
-        return [this.schemaName, this.queryName].join('|').toLowerCase();
+        let key = [this.schemaName, this.queryName].join('|');
+
+        if (this.viewName != undefined) {
+            key = [key, this.viewName].join('|');
+        }
+
+        return key.toLowerCase();
     }
 }
 

@@ -141,6 +141,7 @@ interface AssignedPackageModelProps {
     PkgId: number
     Description: string
     Narrative: string
+    SubPackages: Array<AssignedPackageModel>
     altId: number
 }
 
@@ -149,6 +150,7 @@ export class AssignedPackageModel implements AssignedPackageModelProps {
     PkgId: number = undefined;
     Description: string = undefined;
     Narrative: string = null;
+    SubPackages: Array<AssignedPackageModel> = [];
 
     // set the altId as a way to uniquely remove this assigned package or to handle assigned package click
     altId: number = LABKEY.Utils.id();

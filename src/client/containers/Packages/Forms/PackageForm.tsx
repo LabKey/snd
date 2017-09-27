@@ -14,11 +14,7 @@ import { QuerySearch } from '../../../query/QuerySearch'
 import { SubpackageViewer } from './SubpackageViewer';
 import { SuperPackageViewer } from './SuperPackageViewer';
 import { AssignedPackageModel } from '../model'
-import {
-    CAT_SQ,
-    REQUIRED_COLUMNS,
-    TOPLEVEL_SUPER_PKG_SQ
-} from '../constants'
+import { CAT_SQ, REQUIRED_COLUMNS, TOPLEVEL_SUPER_PKG_SQ } from '../constants'
 import { CategoriesSelect } from '../../Wizards/Packages/CategoriesSelect'
 
 const styles = require<any>('./PackageForm.css');
@@ -239,7 +235,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                         <div className="row col-xs-12">
                             <QuerySearch
                                 id='superPackageViewer'
-                                modelProps={{requiredColumns: REQUIRED_COLUMNS.SUPER_PKG}}
+                                modelProps={{requiredColumns: REQUIRED_COLUMNS.TOP_LEVEL_SUPER_PKG}}
                                 schemaQuery={TOPLEVEL_SUPER_PKG_SQ}>
                                 <SuperPackageViewer
                                     schemaQuery={TOPLEVEL_SUPER_PKG_SQ}
