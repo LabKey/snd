@@ -49,15 +49,19 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class SNDManager
 {
     private static final SNDManager _instance = new SNDManager();
     private static final int _minPkgId = 10000;
+    private static final int _minSuperPkgId = 1000;
     private static final int _minCategoryId = 100;
     private static final String SND_DBSEQUENCE_NAME = "org.labkey.snd.api.Package";
+    private static final String SND_SUPER_PACKAGE_DBSEQUENCE_NAME = "ord.labkey.snd.api.SuperPackage";
     private static final String SND_CATEGORY_DBSEQUENCE_NAME = "org.labkey.snd.api.Categories";
     private final StringKeyCache<Object> _cache;
 
@@ -82,6 +86,13 @@ public class SNDManager
     {
         DbSequence sequence = DbSequenceManager.get(c, SND_DBSEQUENCE_NAME);
         sequence.ensureMinimum(_minPkgId);
+        return sequence.next();
+    }
+
+    public Integer generateSuperPackageId(Container c)
+    {
+        DbSequence sequence = DbSequenceManager.get(c, SND_SUPER_PACKAGE_DBSEQUENCE_NAME);
+        sequence.ensureMinimum(_minSuperPkgId);
         return sequence.next();
     }
 
@@ -167,7 +178,7 @@ public class SNDManager
         }
     }
 
-    public void createPackage(User u, Container c, Package pkg, BatchValidationException errors)
+    public void createPackage(User u, Container c, Package pkg, SuperPackage superPkg, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -203,6 +214,12 @@ public class SNDManager
             PackageDomainKind kind = new PackageDomainKind();
             kind.updateDomain(c, u, domain);
         }
+
+        List<SuperPackage> superPackages = new ArrayList<>(pkg.getSubpackages());
+        if(superPkg != null)
+            superPackages.add(superPkg);
+
+        createSuperPackages(u, c, superPackages, errors);
     }
     
     private List<Integer> getSavedSuperPkgs(Container c, User u)
@@ -227,9 +244,12 @@ public class SNDManager
         for (SuperPackage parent : superPkgs)
         {
             flatSuperPackages.add(parent);
-            for (SuperPackage child : parent.getChildPackages())
+            if(parent.getChildPackages() != null)
             {
-                flatSuperPackages.add(child);
+                for (SuperPackage child : parent.getChildPackages())
+                {
+                    flatSuperPackages.add(child);
+                }
             }
         }
         
@@ -332,6 +352,32 @@ public class SNDManager
         return parent;
     }
 
+    // NOTE: this function only fills in SuperPkgId, PkgId and SuperPkgPath (other fields are not useful for our purposes here)
+    public static List<SuperPackage> getTopLevelSuperPkgs(Container c, User u, Set<Integer> superPackageIds)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.PkgId, sp.SuperPkgPath FROM ");
+        sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
+        sql.append(" WHERE SuperPkgId IN (");
+        Iterator<Integer> superPackageIdIterator = superPackageIds.iterator();
+        while(superPackageIdIterator.hasNext())
+        {
+            Integer superPkgId = superPackageIdIterator.next();
+            if(!superPackageIdIterator.hasNext())
+                sql.append("?").add(superPkgId);
+            else
+                sql.append("?,").add(superPkgId);
+        }
+        sql.append(") AND ParentSuperPkgId IS NULL");
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+
+        if (selector.getArrayList(SuperPackage.class).size() > 0)
+            return selector.getArrayList(SuperPackage.class);
+        else
+            return null;
+    }
+
     private List<SuperPackage> getChildSuperPkgs(Container c, User u, int pkgId)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -370,7 +416,7 @@ public class SNDManager
         return children;
     }
 
-    public Package addSubPackagesToPackage(Container c, User u, Package pkg)
+    private Package addSubPackagesToPackage(Container c, User u, Package pkg)
     {
         pkg.setSubpackages(getChildSuperPkgs(c, u, pkg.getPkgId()));
 

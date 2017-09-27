@@ -31,6 +31,7 @@ import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.SNDService;
+import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.view.NavTree;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
@@ -133,7 +134,46 @@ public class SNDController extends SpringActionController
                 pkg.setAttributes(pds);
             }
 
-            SNDService.get().savePackage(getViewContext().getContainer(), getUser(), pkg);
+            // Get top-level packages that correspond to children
+            JSONArray jsonSubPackages = json.getJSONArray("subpackages");  // only first-level children (as package IDs) should be here
+            Map<Integer, Integer> superPkgIdToSortOrderMap = new HashMap<>();
+            Integer superPackageId = SNDManager.get().generateSuperPackageId(getContainer());
+            if (null != jsonSubPackages)
+            {
+                for (int i = 0; i < jsonSubPackages.length(); i++)
+                {
+                    JSONObject jsonSubPackage = jsonSubPackages.getJSONObject(i);
+                    superPkgIdToSortOrderMap.put(jsonSubPackage.getInt("superPkgId"), jsonSubPackage.getInt("sortOrder"));
+                }
+
+                List<SuperPackage> topLevelSuperPackages = SNDManager.getTopLevelSuperPkgs(getContainer(), getUser(), superPkgIdToSortOrderMap.keySet());
+
+                // sort order is only thing we need from UI, so set it here in the mostly-complete super packages
+                for (SuperPackage topLevelSuperPackage : topLevelSuperPackages)
+                {
+                    topLevelSuperPackage.setSortOrder(superPkgIdToSortOrderMap.get(topLevelSuperPackage.getSuperPkgId()));
+                    // now set new super package ID (so that this can be a properly-created child super package later)
+                    topLevelSuperPackage.setSuperPkgId(SNDManager.get().generateSuperPackageId(getContainer()));
+                    // the parent for this child super package is the current super package being saved
+                    topLevelSuperPackage.setParentSuperPkgId(superPackageId);
+                }
+
+                // topLevelSuperPackages is now actually a collection of child super packages, so let's set them in the package
+                pkg.setSubpackages(topLevelSuperPackages);
+            }
+
+            // create super package for root
+
+            SuperPackage superPackage = new SuperPackage();
+            superPackage.setSuperPkgId(superPackageId);
+            superPackage.setParentSuperPkgId(null);
+            superPackage.setSortOrder(null);
+            superPackage.setChildPackages(null);
+            superPackage.setDescription(pkg.getDescription());
+            superPackage.setNarrative(pkg.getNarrative());
+            superPackage.setSuperPkgPath(Integer.toString(superPackageId));
+
+            SNDService.get().savePackage(getViewContext().getContainer(), getUser(), pkg, superPackage);
 
             return new ApiSimpleResponse();
         }

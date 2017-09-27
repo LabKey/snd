@@ -29,6 +29,12 @@ public class SNDServiceImpl implements SNDService
     @Override
     public void savePackage(Container c, User u, Package pkg)
     {
+        savePackage(c, u, pkg, null);
+    }
+
+    @Override
+    public void savePackage(Container c, User u, Package pkg, SuperPackage superPkg)
+    {
         BatchValidationException errors = new BatchValidationException();
         Domain domain = null;
 
@@ -37,8 +43,6 @@ public class SNDServiceImpl implements SNDService
             String domainURI = PackageDomainKind.getDomainURI(PackageDomainKind.getPackageSchemaName(), SNDManager.getPackageName(pkg.getPkgId()), c, u);
             domain = PropertyService.get().getDomain(c, domainURI);
         }
-
-        // Create/update package in pkgs table
         if (null != domain)
         {
             SNDManager.get().updatePackage(u, c, pkg, errors);
@@ -46,11 +50,14 @@ public class SNDServiceImpl implements SNDService
         else
         {
             if (null == pkg.getPkgId() || pkg.getPkgId() < 0)
+            {
                 pkg.setPkgId(SNDManager.get().generatePackageId(c));
+            }
+            if (superPkg != null)
+                superPkg.setPkgId(pkg.getPkgId());
 
-            SNDManager.get().createPackage(u, c, pkg, errors);
+            SNDManager.get().createPackage(u, c, pkg, superPkg, errors);
         }
-
         if (errors.hasErrors())
             throw new UnexpectedException(errors);
     }

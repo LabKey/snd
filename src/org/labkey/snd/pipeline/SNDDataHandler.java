@@ -103,6 +103,8 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
 
         if(null != export)
         {
+            // CONSIDER: merging these two functions into a single function
+
             parseAndSavePackages(export, info, log);
             parseAndSaveSuperPackages(export, info, log);
         }
