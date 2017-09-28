@@ -19,13 +19,55 @@ interface SubpackageViewerState {
     dispatch?: Dispatch<any>
 }
 
+interface SubpackageViewerStateProps {
+    collapsed: {[key: string]: boolean}
+}
+
 type SubpackageViewerProps = SubpackageViewerOwnProps & SubpackageViewerState;
 
-export class SubpackageViewerImpl extends React.Component<SubpackageViewerProps, {}> {
+export class SubpackageViewerImpl extends React.Component<SubpackageViewerProps, SubpackageViewerStateProps> {
+
+    constructor(props: SubpackageViewerProps) {
+        super(props);
+
+        this.state = {
+            collapsed: {}
+        };
+
+        this.handleIconClick = this.handleIconClick.bind(this);
+    }
+
+    handleIconClick(model: AssignedPackageModel) {
+        let { collapsed } = this.state;
+
+        if (model) {
+            let id = this.getModelId(model);
+            // TODO issue with adding the same pkg to the tree having subpackages that get the same id
+
+            if (collapsed[id] != undefined) {
+                collapsed[id] = !collapsed[id];
+            }
+            else {
+                collapsed[id] = true;
+            }
+        }
+
+        this.setState({collapsed});
+    }
+
+    getModelId(model: AssignedPackageModel) {
+        if (model.altId == undefined) {
+            model.altId = LABKEY.Utils.id();
+        }
+
+        return model.altId;
+    }
 
     renderAssignedPackageRow(assignedPackage: AssignedPackageModel, allowRemove: boolean, treeLevel: number, key: string) {
         const { selectedSubPackage, handleAssignedPackageRemove, handleRowClick, view } = this.props;
+        let { collapsed } = this.state;
         let idProp = selectedSubPackage != undefined && selectedSubPackage.SuperPkgId ? 'SuperPkgId' : 'altId';
+        let treeCollapsed = collapsed[this.getModelId(assignedPackage)] || false;
 
         return (
             <div key={key}>
@@ -34,12 +76,14 @@ export class SubpackageViewerImpl extends React.Component<SubpackageViewerProps,
                     selected={selectedSubPackage != undefined && assignedPackage[idProp] == selectedSubPackage[idProp]}
                     menuActionName={allowRemove ? "Remove" : null}
                     handleMenuAction={allowRemove ? handleAssignedPackageRemove : null}
+                    handleIconClick={this.handleIconClick}
                     handleRowClick={handleRowClick}
                     treeLevel={treeLevel}
+                    treeCollapsed={treeCollapsed}
                     view={view}
                 />
 
-                {Array.isArray(assignedPackage.SubPackages) && assignedPackage.SubPackages.length > 0
+                {!treeCollapsed && Array.isArray(assignedPackage.SubPackages) && assignedPackage.SubPackages.length > 0
                     ? assignedPackage.SubPackages.map((dd, ii) => {
                         return this.renderAssignedPackageRow(assignedPackage.SubPackages[ii], false, treeLevel+1, key + "-" + ii);
                     })

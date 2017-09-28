@@ -8,10 +8,12 @@ const styles = require<any>('./SuperPackageRow.css');
 interface SuperPackageRowProps {
     model: AssignedPackageModel
     selected?: boolean
+    handleIconClick?: (model: AssignedPackageModel) => any
     handleRowClick?: (model: AssignedPackageModel) => any
     menuActionName?: string
     handleMenuAction?: (model: AssignedPackageModel) => any
     treeLevel?: number
+    treeCollapsed?: boolean
     view?: PACKAGE_VIEW
 }
 
@@ -41,18 +43,25 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
         this.setState({isHover: false});
     }
 
-    handleOnClick() {
-        const { model, handleRowClick } = this.props;
-        if (handleRowClick) {
+    handleOnClick(evnt) {
+        const { model, handleIconClick, handleRowClick } = this.props;
+        let iconClick = evnt.target.getAttribute('class') && evnt.target.getAttribute('class').indexOf('icon-tree-toggle') > -1;
+
+        if (!iconClick && handleRowClick) {
             handleRowClick(model);
+        }
+
+        if (iconClick && handleIconClick) {
+            handleIconClick(model);
         }
     }
 
     render() {
-        const { model, selected, menuActionName, handleMenuAction, treeLevel, view } = this.props;
+        const { model, selected, menuActionName, handleMenuAction, treeLevel, treeCollapsed, view } = this.props;
         const { isHover } = this.state;
         let isReadyOnly = view == PACKAGE_VIEW.VIEW;
         let treeLevelVal = treeLevel == undefined ? -1 : treeLevel;
+        let treeCollapsedVal = treeCollapsed != undefined && treeCollapsed;
         let indentPx = treeLevel == undefined ? 0 : treeLevelVal * 15;
 
         let caretStyle = {width: '15px'};
@@ -74,9 +83,9 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
                     {treeLevelVal > -1
                         ? model.loadingSubpackages != undefined && model.loadingSubpackages === true
                             ? <i className="fa fa-spinner fa-pulse">&nbsp;</i>
-                            : model.SubPackages.length > 0
-                                ? <i className="fa fa-caret-down" style={caretStyle}>&nbsp;</i>
-                                : <i className="fa fa-caret-right" style={caretStyle}>&nbsp;</i>
+                            : !treeCollapsedVal && model.SubPackages.length > 0
+                                ? <i className="icon-tree-toggle fa fa-caret-down" style={caretStyle}>&nbsp;</i>
+                                : <i className="icon-tree-toggle fa fa-caret-right" style={caretStyle}>&nbsp;</i>
                         : null
                     }
                     {[model.PkgId, model.Description].join(' - ')}
