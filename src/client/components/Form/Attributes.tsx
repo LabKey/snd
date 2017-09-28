@@ -171,17 +171,15 @@ export class Attributes extends React.Component<AttributesGridProps, {}> {
 
         return (
             <div>
-                <div className="table-responsive">
-                    <table className='table table-striped table-bordered'>
-                        <AttributesGridHeader/>
-                        <AttributesGridBody
-                            attributes={attributes}
-                            attributeLookups={attributeLookups}
-                            handleFieldChange={handleFieldChange}
-                            narrative={narrative}
-                            readOnly={readOnly}/>
-                    </table>
-                </div>
+                <table className='table table-striped table-bordered'>
+                    <AttributesGridHeader/>
+                    <AttributesGridBody
+                        attributes={attributes}
+                        attributeLookups={attributeLookups}
+                        handleFieldChange={handleFieldChange}
+                        narrative={narrative}
+                        readOnly={readOnly}/>
+                </table>
             </div>
         )
     }
