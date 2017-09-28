@@ -25,6 +25,15 @@ export class SuperPackageSearchResults extends React.Component<SuperPackageSearc
         view: undefined
     };
 
+    shouldComponentUpdate(nextProps: SuperPackageSearchResultsProps) {
+        const { dataIds, isLoaded, primitivesOnly, view } = nextProps;
+
+        return dataIds.length !== this.props.dataIds.length ||
+            isLoaded !== this.props.isLoaded ||
+            primitivesOnly !== this.props.primitivesOnly ||
+            view !== this.props.view;
+    }
+
     render() {
         const { data, dataIds, isLoaded, primitivesOnly, handleAssignedPackageAdd, view } = this.props;
 
