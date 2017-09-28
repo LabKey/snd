@@ -269,27 +269,28 @@ function isFormValid(data: PackageModel, initialData: PackageModel, view: PACKAG
 }
 
 export function parseNarrativeKeywords(narrative): Array<string> {
+    if (narrative) {
+        let start,
+            keyword = [],
+            keywords = [];
 
-    let start,
-        keyword = [],
-        keywords = [];
+        for (let char of narrative) {
+            if (!start && char === '{') {
+                start = true;
+            }
+            else if (start && char === '}' && keyword.length) {
+                start = false;
+                keywords.push(keyword.join(''));
+                keyword = [];
+            }
+            else if (start) {
+                keyword.push(char);
+            }
+        }
 
-    for (let char of narrative) {
-        if (!start && char === '{') {
-            start = true;
+        if (keywords && keywords.length) {
+            return keywords;
         }
-        else if (start && char === '}' && keyword.length) {
-            start = false;
-            keywords.push(keyword.join(''));
-            keyword = [];
-        }
-        else if (start) {
-            keyword.push(char);
-        }
-    }
-
-    if (keywords && keywords.length) {
-        return keywords;
     }
 
     return [];
