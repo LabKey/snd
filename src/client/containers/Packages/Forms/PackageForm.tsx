@@ -318,10 +318,10 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                         <div className="col-sm-8" style={{height: '220px'}}>
                             <div className="row clearfix">
                                 <div className="col-xs-2">
-                                    <ControlLabel>Package Id</ControlLabel>
+                                    <ControlLabel htmlFor='pkgId'>Package Id</ControlLabel>
                                 </div>
                                 <div className="col-xs-10">
-                                    <ControlLabel>Description</ControlLabel>
+                                    <ControlLabel htmlFor='description'>Description *</ControlLabel>
                                 </div>
                             </div>
                             <div className="row clearfix">
@@ -343,7 +343,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                             </div>
                             <div className={"row clearfix " + styles['margin-top']}>
                                 <div className="col-xs-12">
-                                    <ControlLabel>Narrative</ControlLabel>
+                                    <ControlLabel htmlFor='narrative'>Narrative *</ControlLabel>
                                 </div>
                             </div>
                             <div className="row clearfix">
@@ -368,7 +368,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
 
                     <div className="row clearfix">
                         <div className={"col-sm-12 " + styles['margin-top']}>
-                            <strong>Attributes <i className="fa fa-refresh" style={{cursor: 'pointer'}}/></strong>
+                            <strong>Attributes</strong>
                         </div>
                         <div className={"col-sm-12 " + styles['margin-top']}>
                             {this.renderAttributes()}

@@ -153,7 +153,13 @@ class AttributesGridBody extends React.Component<AttributesGridProps, {}> {
             )
         }
 
-        return <tbody/>;
+        return (
+            <tbody>
+                <tr>
+                    <td colSpan={ATTRIBUTE_COLUMNS.length}>No tokens added</td>
+                </tr>
+            </tbody>
+        );
     }
 }
 
