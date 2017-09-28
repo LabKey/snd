@@ -24,12 +24,19 @@ export class SearchInput extends React.Component<SearchInputProps, {}> {
         disabled: false
     };
 
+    handleFocus(el: React.FocusEvent<HTMLInputElement>) {
+        const { handleFocus } = this.props;
+        if (handleFocus && typeof handleFocus === 'function') {
+            handleFocus(el);
+        }
+
+    }
+
     render() {
         const {
             allowClear,
             disabled,
             handleClear,
-            handleFocus,
             handleInputChange,
             input,
             inputClassName,
@@ -41,7 +48,7 @@ export class SearchInput extends React.Component<SearchInputProps, {}> {
         return (
             <div className={wrapperClassName}>
                 <i className={"fa fa-search " + styles['searchinput-icon']}/>
-                {allowClear ?
+                {allowClear && input !== '' ?
                     <i className={"fa fa-times-circle " + styles['searchinput-clear']} onClick={handleClear}/>
                 : null}
                 <input
@@ -49,7 +56,7 @@ export class SearchInput extends React.Component<SearchInputProps, {}> {
                     disabled={disabled}
                     name={name}
                     onChange={handleInputChange}
-                    onFocus={(el: React.FocusEvent<HTMLInputElement>) => handleFocus(el)}
+                    onFocus={(el: React.FocusEvent<HTMLInputElement>) => this.handleFocus(el)}
                     ref={inputRef}
                     type="text"
                     value={input}/>

@@ -68,8 +68,7 @@ export class CategoriesSelectResults extends React.Component<CategoriesSelectRes
                     background: disabled ? '#eee' : '',
                     border: '1px solid #ddd',
                     height: '89px',
-                    maxHeight: '525px',
-                    overflowY: 'scroll'
+                    maxHeight: '525px'
                 }}
                 title={text}>
                 <div
