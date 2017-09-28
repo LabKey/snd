@@ -139,7 +139,6 @@ export const packages = handleActions({
                 attributes: attributes.sort((attA, attB) => {
                     const a = attA.sortOrder,
                         b = attB.sortOrder;
-                    console.log(a, b, a < b)
                     return a < b ? -1 : a == b ? 0 : 1;
                 })
             }));
@@ -245,14 +244,13 @@ function isFormValid(data: PackageModel, initialData: PackageModel, view: PACKAG
         });
     }
 
-    // add check for updated categories
-
     //todo: add check for sub/superpackages
     if (isValid && view === PACKAGE_VIEW.EDIT) {
         // need to loop through initialData to compare with currentValues if view === edit
         return (
             data.description !== initialData.description ||
             data.narrative !== initialData.narrative ||
+            data.categories.sort().join('') !== initialData.categories.sort().join('') ||
             data.attributes.some((attribute, i) => {
                 return Object.keys(attribute).findIndex((a) => {
                     if (initialData.attributes[i]) {

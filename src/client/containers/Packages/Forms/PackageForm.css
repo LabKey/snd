@@ -10,7 +10,8 @@
     color: #AAA;
 }
 
-.block-with-text {
+.block-with-text,
+.disabled__block-with-text {
     /* hide text if it more than N lines  */
     overflow: hidden;
     /* for set '...' in absolute position */
@@ -27,7 +28,8 @@
     padding-right: 1em;
 }
 /* create the ... */
-.block-with-text:before {
+.block-with-text:before,
+.disabled__block-with-text:before {
     /* points in the end */
     content: '...';
     /* absolute position */
@@ -37,7 +39,8 @@
     bottom: 0;
 }
 /* hide ... if we have text, which is less than or equal to max lines */
-.block-with-text:after {
+.block-with-text:after,
+.disabled__block-with-text:after {
     /* points in the end */
     content: '';
     /* absolute position */
@@ -50,4 +53,8 @@
     margin-top: 0.2em;
     /* bg color = bg color under block */
     background: white;
+}
+
+.disabled__block-with-text:after {
+    background: rgb(238, 238, 238);
 }

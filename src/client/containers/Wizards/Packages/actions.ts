@@ -57,7 +57,7 @@ export function init(id: string | number, view: PACKAGE_VIEW) {
 
 
             const model = getState().wizards.packages.packageData[id];
-            if (packageModel && packageModel.formView !== view) {
+            if (packageModel && packageModel.formView !== view && view !== PACKAGE_VIEW.VIEW) {
                 dispatch(model.checkValid());
             }
         }

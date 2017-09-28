@@ -75,7 +75,7 @@ export class CategoriesSelectResults extends React.Component<CategoriesSelectRes
                 <div
                     className={"data-search__row_selected"}
                     style={{padding: '10px 15px'}}>
-                    <div className={styles['block-with-text']}>
+                    <div className={disabled ? styles['disabled__block-with-text'] : styles['block-with-text']}>
                         {text}
                     </div>
                     <span/>
