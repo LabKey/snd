@@ -173,13 +173,15 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
     renderAttributes() {
         const { model, view } = this.props;
         if (model) {
-            const { attributes, attributeLookups, narrative } = model;
+            const { attributes, attributeLookups, hasEvent, hasProject, narrative } = model;
+            const isReadOnly = view === PACKAGE_VIEW.VIEW ||
+                (view === PACKAGE_VIEW.EDIT && (hasEvent || hasProject));
             return <Attributes
                 attributes={attributes}
                 attributeLookups={attributeLookups}
                 handleFieldChange={this.handleFieldChange}
                 narrative={narrative}
-                readOnly={view === PACKAGE_VIEW.VIEW}/>
+                readOnly={isReadOnly}/>
         }
 
         return null;
@@ -189,7 +191,6 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         const { isValid, view } = this.props;
 
         if (view !== PACKAGE_VIEW.VIEW) {
-            // Todo enable/disable depending on form state
             return (
                 <div className="btn-group pull-right">
                     <Button
@@ -211,13 +212,31 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         }
     }
 
+    renderCategories() {
+        const { handleFieldChange, model, view } = this.props;
+        const disabled = view === PACKAGE_VIEW.VIEW;
+
+        return (
+            <QuerySearch
+                id='categoriesSelect'
+                modelProps={{requiredColumns: REQUIRED_COLUMNS.CATS}}
+                schemaQuery={CAT_SQ}>
+                <CategoriesSelect
+                    disabled={disabled}
+                    handleChange={handleFieldChange}
+                    values={model.categories}/>
+            </QuerySearch>
+        )
+    }
+
     renderExtraFields() {
         const { model, view } = this.props;
+        const disabled = view === PACKAGE_VIEW.VIEW;
         if (model) {
             const { extraFields } = model;
             return <ExtraFields
                 extraFields={extraFields}
-                disabled={view === PACKAGE_VIEW.VIEW}
+                disabled={disabled}
                 handleFieldChange={this.handleFieldChange}
             />
         }
@@ -228,7 +247,9 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
     renderSubpackages() {
         const { model, view } = this.props;
         const { selectedSubPackage } = this.state;
-        let isReadyOnly = view == PACKAGE_VIEW.VIEW;
+        const { hasEvent, hasProject } = model;
+        const isReadyOnly = view === PACKAGE_VIEW.VIEW ||
+            (view === PACKAGE_VIEW.EDIT && (hasEvent || hasProject));
 
         return (
             <div className="row clearfix">
@@ -287,6 +308,8 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
 
     render() {
         const { handleFieldChange, model, view } = this.props;
+        const disabled = view === PACKAGE_VIEW.VIEW ||
+            (view === PACKAGE_VIEW.EDIT && (model.hasEvent || model.hasProject));
 
         return (
             <div>
@@ -311,7 +334,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                                 </div>
                                 <div className="col-xs-10">
                                     <TextInput
-                                        disabled={view === PACKAGE_VIEW.VIEW}
+                                        disabled={disabled}
                                         name='description'
                                         onChange={this.handleFieldChange}
                                         required
@@ -326,7 +349,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                             <div className="row clearfix">
                                 <div className="col-xs-12">
                                     <TextArea
-                                        disabled={view === PACKAGE_VIEW.VIEW}
+                                        disabled={disabled}
                                         name='narrative'
                                         onChange={this.handleNarrativeChange}
                                         required={true}
@@ -339,15 +362,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                             <div className="row col-sm-12">
                                 {this.renderExtraFields()}
                             </div>
-                            <QuerySearch
-                                id='categoriesSelect'
-                                modelProps={{requiredColumns: REQUIRED_COLUMNS.CATS}}
-                                schemaQuery={CAT_SQ}>
-                                <CategoriesSelect
-                                    disabled={view === PACKAGE_VIEW.VIEW}
-                                    handleChange={handleFieldChange}
-                                    values={model.categories}/>
-                            </QuerySearch>
+                            {this.renderCategories()}
                         </div>
                     </div>
 
@@ -360,7 +375,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                         </div>
                         <div className={"col-sm-12 " + styles['margin-bottom']}>
                             <CheckboxInput
-                                disabled={view === PACKAGE_VIEW.VIEW}
+                                disabled={disabled}
                                 name='repeatable'
                                 onChange={this.handleFieldChange}
                                 value={model.repeatable}/>

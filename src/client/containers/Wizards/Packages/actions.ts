@@ -25,7 +25,9 @@ export function querySubPackageDetails(id: number, parentPkgId: number) {
             const parentPackageModel = getState().wizards.packages.packageData[parentPkgId];
 
             // the response should have exactly one row
-            let responseData: PackageModel = Array.isArray(response.json) && response.json.length == 1 ? response.json[0] : {};
+            let responseData: PackageModel = Array.isArray(response.json) && response.json.length == 1 ?
+                response.json[0] :
+                new PackageModel();
 
             let newSubpackages = parentPackageModel.data.subPackages.map((subPackage) => {
                 if (subPackage.PkgId == responseData.pkgId) {

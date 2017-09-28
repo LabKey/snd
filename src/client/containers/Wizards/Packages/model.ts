@@ -76,6 +76,8 @@ interface PackageModelProps {
     container?: string
     description?: string
     extraFields?: Array<PackageModelAttributeProps>
+    hasEvent?: boolean;
+    hasProject?: boolean;
     narrative?: string
     narrativeKeywords?: Array<string>
     pkgId?: number
@@ -85,19 +87,21 @@ interface PackageModelProps {
 }
 
 export class PackageModel implements PackageModelProps {
-    active?: boolean = false;
-    attributes?: Array<PackageModelAttribute> = [];
-    attributeLookups?: Array<PackageModelAttributeLookupProps> = [];
-    categories?: Array<number> = [];
-    container?: string = undefined;
-    description?: string = undefined;
-    extraFields?: Array<PackageModelAttributeProps> = [];
-    narrative?: string = undefined;
-    narrativeKeywords?: Array<string> = [];
-    pkgId?: number = undefined;
-    qcState?: any = null; // todo: find out qcState type
-    repeatable?: boolean = false;
-    subPackages?: Array<AssignedPackageModel> = [];
+    active: boolean = false;
+    attributes: Array<PackageModelAttribute> = [];
+    attributeLookups: Array<PackageModelAttributeLookupProps> = [];
+    categories: Array<number> = [];
+    container: string = undefined;
+    description: string = undefined;
+    extraFields: Array<PackageModelAttributeProps> = [];
+    hasEvent: boolean = false;
+    hasProject: boolean = false;
+    narrative: string = undefined;
+    narrativeKeywords: Array<string> = [];
+    pkgId: number = undefined;
+    qcState: any = null; // todo: find out qcState type
+    repeatable: boolean = false;
+    subPackages: Array<AssignedPackageModel> = [];
 
     constructor(props?: Partial<PackageModel>) {
         if (props) {
@@ -110,7 +114,7 @@ export class PackageModel implements PackageModelProps {
     }
 }
 
-interface PackageSubmissionModelProps extends PackageModel {
+interface PackageSubmissionModelProps extends Partial<PackageModel> {
     active?: boolean;
     attributes?: Array<PackageModelAttribute>;
     categories?: Array<number>;
@@ -126,18 +130,18 @@ interface PackageSubmissionModelProps extends PackageModel {
 }
 
 export class PackageSubmissionModel implements PackageSubmissionModelProps {
-    active?: boolean = false;
-    attributes?: Array<PackageModelAttribute> = [];
+    active: boolean = false;
+    attributes: Array<PackageModelAttribute> = [];
     categories: Array<number> = [];
-    container?: string = undefined;
-    description?: string = undefined;
-    extraFields?: Array<PackageModelAttributeProps> = [];
-    id?: number = undefined;
-    narrative?: string = undefined;
-    pkgId?: number = undefined;
-    qcState?: any = null;
-    repeatable?: boolean = false;
-    subPackages?: Array<AssignedPackageModel> = [];
+    container: string = undefined;
+    description: string = undefined;
+    extraFields: Array<PackageModelAttributeProps> = [];
+    id: number = undefined;
+    narrative: string = undefined;
+    pkgId: number = undefined;
+    qcState: any = null;
+    repeatable: boolean = false;
+    subPackages: Array<AssignedPackageModel> = [];
 
     constructor(props: Partial<PackageSubmissionModelProps>) {
         if (props) {
@@ -167,21 +171,21 @@ interface PackageWizardModelProps {
 }
 
 export class PackageWizardModel implements PackageWizardModelProps {
-    data?: PackageModel = new PackageModel();
-    formView?: PACKAGE_VIEW = undefined;
-    initialData?: PackageModel = new PackageModel();
-    isActive?: boolean = false;
-    isError?: boolean = false;
-    isSubmitted?: boolean = false;
-    isSubmitting?: boolean = false;
-    isValid?: boolean = false;
-    message?: string = undefined;
-    packageCount?: number = 0;
-    packageId?: number = undefined;
-    packageLoaded?: boolean = false;
-    packageLoading?: boolean = false;
+    data: PackageModel = new PackageModel();
+    formView: PACKAGE_VIEW = undefined;
+    initialData: PackageModel = new PackageModel();
+    isActive: boolean = false;
+    isError: boolean = false;
+    isSubmitted: boolean = false;
+    isSubmitting: boolean = false;
+    isValid: boolean = false;
+    message: string = undefined;
+    packageCount: number = 0;
+    packageId: number = undefined;
+    packageLoaded: boolean = false;
+    packageLoading: boolean = false;
 
-    constructor(props: PackageWizardModelProps) {
+    constructor(props: Partial<PackageWizardModelProps>) {
         if (props) {
             for (let k in props) {
                 if (this.hasOwnProperty(k) && props.hasOwnProperty(k)) {
