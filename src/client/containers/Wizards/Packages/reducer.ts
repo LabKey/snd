@@ -182,12 +182,15 @@ export const packages = handleActions({
             data.narrativeKeywords = narrativeKeywords;
 
             // look for more efficient method to set attributes/keywords
+            // sort order is set based on order or keywords, but if a different order has been set, the original will
+            // override
             data.attributes = narrativeKeywords.map((keyword, i) => {
                 return new PackageModelAttribute(Object.assign({},
-                    model.data.attributes[i],
                     {
-                        name: keyword
-                    }
+                        name: keyword,
+                        sortOrder: i
+                    },
+                    model.data.attributes[i]
                 ));
             });
         }

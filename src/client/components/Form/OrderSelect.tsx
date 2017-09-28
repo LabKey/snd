@@ -23,10 +23,11 @@ interface OrderSelectProps {
 }
 
 export const OrderSelect = (props: OrderSelectProps) => {
+    // order is 0 indexed, add 1 for display purposes
     return (
         <div className="input-row">
             <div style={{float: 'left', width: '25%', padding: '5px 0 0'}}>
-                {props.value}
+                {props.value + 1}
             </div>
             <div style={{float: 'left', width: '75%'}}>
                 <select
