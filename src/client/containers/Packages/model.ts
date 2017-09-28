@@ -143,6 +143,7 @@ interface AssignedPackageModelProps {
     Narrative: string
     SubPackages: Array<AssignedPackageModel>
     altId: number
+    loadingSubpackages: boolean
 }
 
 export class AssignedPackageModel implements AssignedPackageModelProps {
@@ -154,6 +155,9 @@ export class AssignedPackageModel implements AssignedPackageModelProps {
 
     // set the altId as a way to uniquely remove this assigned package or to handle assigned package click
     altId: number = LABKEY.Utils.id();
+
+    // set to true to indicate that a package is in the process of loading the full hierarchy
+    loadingSubpackages: boolean = undefined;
 
     constructor(pkgId: number, description: string, narrative: string, superPkgId?: number) {
         this.PkgId = pkgId;

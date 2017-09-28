@@ -186,7 +186,13 @@ public class SNDController extends SpringActionController
         public void validateForm(SimpleApiJsonForm form, Errors errors)
         {
             JSONObject json = form.getJsonObject();
-            JSONArray pkgIds = json.getJSONArray("packages");
+            if (json == null)
+            {
+                errors.reject(ERROR_MSG, "Missing json parameter.");
+                return;
+            }
+
+            JSONArray pkgIds = json.has("packages") ? json.getJSONArray("packages") : null;
             if (pkgIds == null)
                 errors.reject(ERROR_MSG, "Package IDs not defined.");
         }
@@ -196,6 +202,8 @@ public class SNDController extends SpringActionController
         {
             JSONObject json = form.getJsonObject();
             JSONArray pkgIds = json.getJSONArray("packages");
+            boolean includeExtraFields = !json.has("excludeExtraFields") || !json.getBoolean("excludeExtraFields");
+            boolean includeLookups = !json.has("excludeLookups") || !json.getBoolean("excludeLookups");
             ApiSimpleResponse response = new ApiSimpleResponse();
 
             List<Package> pkgs = new ArrayList<>();
@@ -221,7 +229,7 @@ public class SNDController extends SpringActionController
 
                 SNDService sndService = SNDService.get();
                 if (ids.size() > 0 && sndService != null)
-                    pkgs.addAll(sndService.getPackages(getViewContext().getContainer(), getUser(), ids));
+                    pkgs.addAll(sndService.getPackages(getViewContext().getContainer(), getUser(), ids, includeExtraFields, includeLookups));
             }
 
             JSONArray jsonOut = new JSONArray();

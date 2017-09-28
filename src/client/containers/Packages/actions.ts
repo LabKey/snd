@@ -1,4 +1,4 @@
-import { PKG_SQ, PKG_TYPES, SND_PKG_QUERY, SND_PKG_SCHEMA } from './constants'
+import {PKG_SQ, PKG_TYPES, SND_PKG_QUERY, SND_PKG_SCHEMA, TOPLEVEL_SUPER_PKG_SQ} from './constants'
 import { PackagesModel } from './model'
 
 import { deleteRows, queryInvalidate } from '../../query/actions'
@@ -13,6 +13,7 @@ export function deletePackage(id: number) {
         // need app wide 'message/error' field
         return deleteRows(SND_PKG_SCHEMA, SND_PKG_QUERY, rows).then((response) => {
             dispatch(queryInvalidate(PKG_SQ));
+            dispatch(queryInvalidate(TOPLEVEL_SUPER_PKG_SQ));
             dispatch(packagesInvalidate());
         }).catch((error) => {
             console.log('delete package error', error)

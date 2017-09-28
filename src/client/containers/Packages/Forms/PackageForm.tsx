@@ -16,6 +16,7 @@ import { SuperPackageViewer } from './SuperPackageViewer';
 import { AssignedPackageModel } from '../model'
 import { CAT_SQ, REQUIRED_COLUMNS, TOPLEVEL_SUPER_PKG_SQ } from '../constants'
 import { CategoriesSelect } from '../../Wizards/Packages/CategoriesSelect'
+import { querySubPackageDetails } from '../../Wizards/Packages/actions'
 
 const styles = require<any>('./PackageForm.css');
 
@@ -129,13 +130,16 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
     }
 
     handleAssignedPackageAdd(assignedPackage: AssignedPackageModel) {
-        const { model, handleFieldChange } = this.props;
+        const { dispatch, model, handleFieldChange } = this.props;
 
         // create a new AssignedPackageModel object as the SuperPkgId needs to be undefined as it will be set on save/submit
         let newAssignedPackage = new AssignedPackageModel(assignedPackage.PkgId, assignedPackage.Description, assignedPackage.Narrative);
+        newAssignedPackage.loadingSubpackages = true;
 
         handleFieldChange('subPackages', model.subPackages.concat([newAssignedPackage]));
         this.setState({selectedSubPackage: newAssignedPackage});
+
+        dispatch(querySubPackageDetails(assignedPackage.PkgId, model.pkgId));
     }
 
     handleAssignedPackageRemove(assignedPackage: AssignedPackageModel) {

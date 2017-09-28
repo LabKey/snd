@@ -72,9 +72,11 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
             >
                 <div className="pull-left" style={{marginLeft: indentPx + 'px'}}>
                     {treeLevelVal > -1
-                        ? model.SubPackages.length > 0
-                            ? <i className="fa fa-caret-down" style={caretStyle}>&nbsp;</i>
-                            : <i className="fa fa-caret-right" style={caretStyle}>&nbsp;</i>
+                        ? model.loadingSubpackages != undefined && model.loadingSubpackages === true
+                            ? <i className="fa fa-spinner fa-pulse">&nbsp;</i>
+                            : model.SubPackages.length > 0
+                                ? <i className="fa fa-caret-down" style={caretStyle}>&nbsp;</i>
+                                : <i className="fa fa-caret-right" style={caretStyle}>&nbsp;</i>
                         : null
                     }
                     {[model.PkgId, model.Description].join(' - ')}

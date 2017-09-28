@@ -455,7 +455,7 @@ public class SNDManager
         return pkg;
     }
 
-    private Package createPackage(Container c, User u, Map<String, Object> row)
+    private Package createPackage(Container c, User u, Map<String, Object> row, boolean includeExtraFields, boolean includeLookups)
     {
         Package pkg = new Package();
         if(row != null)
@@ -470,15 +470,17 @@ public class SNDManager
             pkg.setHasProject((boolean) row.get(Package.PKG_HASPROJECT));
             pkg.setCategories(getPackageCategories(c, u, pkg.getPkgId()));
             pkg.setAttributes(getPackageAttributes(c, u, pkg.getPkgId()));
-            addExtraFieldsToPackage(c, u, pkg, row);
             addSubPackagesToPackage(c, u, pkg);
-            addLookupsToPkg(c, u, pkg);
+            if (includeExtraFields)
+                addExtraFieldsToPackage(c, u, pkg, row);
+            if (includeLookups)
+                addLookupsToPkg(c, u, pkg);
         }
 
         return pkg;
     }
 
-    public List<Package> getPackages(Container c, User u, List<Integer> pkgIds, BatchValidationException errors)
+    public List<Package> getPackages(Container c, User u, List<Integer> pkgIds, boolean includeExtraFields, boolean includeLookups, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -509,7 +511,7 @@ public class SNDManager
         {
             for (Map<String, Object> row : rows)
             {
-                packages.add(createPackage(c, u, row));
+                packages.add(createPackage(c, u, row, includeExtraFields, includeLookups));
             }
         }
 

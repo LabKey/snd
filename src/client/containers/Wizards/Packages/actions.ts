@@ -4,15 +4,43 @@ import { PackageModel, PackageWizardModel, PackageSubmissionModel } from './mode
 import { PACKAGE_VIEW } from '../../Packages/Forms/PackageFormContainer'
 import { labkeyAjax, queryInvalidate } from '../../../query/actions'
 import { packagesInvalidate } from '../../Packages/actions'
-import { PKG_SQ } from '../../Packages/constants'
+import { PKG_SQ, TOPLEVEL_SUPER_PKG_SQ } from '../../Packages/constants'
 
-export function fetchPackage(id: string | number) {
+function fetchPackage(id: string | number, includeExtraFields: boolean, includeLookups: boolean) {
     return labkeyAjax(
         'snd',
         'getPackages',
         null,
-        {"packages":[id]}
+        {
+            'packages': [id],
+            'excludeExtraFields': !includeExtraFields,
+            "excludeLookups": !includeLookups
+        }
     );
+}
+
+export function querySubPackageDetails(id: number, parentPkgId: number) {
+    return (dispatch, getState) => {
+        return fetchPackage(id, false, false).then((response: PackageQueryResponse) => {
+            const parentPackageModel = getState().wizards.packages.packageData[parentPkgId];
+
+            // the response should have exactly one row
+            let responseData: PackageModel = Array.isArray(response.json) && response.json.length == 1 ? response.json[0] : {};
+
+            let newSubpackages = parentPackageModel.data.subPackages.map((subPackage) => {
+                if (subPackage.PkgId == responseData.pkgId) {
+                    subPackage.SubPackages = responseData.subPackages;
+                    subPackage.loadingSubpackages = undefined;
+                }
+                return subPackage;
+            });
+
+            dispatch(parentPackageModel.saveField('subPackages', newSubpackages));
+        }).catch((error) => {
+            // set error
+            console.log('error', error)
+        });
+    }
 }
 
 export function init(id: string | number, view: PACKAGE_VIEW) {
@@ -39,7 +67,7 @@ export function init(id: string | number, view: PACKAGE_VIEW) {
         if (shouldFetch(packageModel)) {
             dispatch(packageModel.loading());
 
-            return fetchPackage(id).then((response: PackageQueryResponse) => {
+            return fetchPackage(id, true, true).then((response: PackageQueryResponse) => {
 
                 packageModel = getState().wizards.packages.packageData[id];
                 dispatch(packageModel.success(response, view));
@@ -154,6 +182,7 @@ export function save(model: PackageWizardModel, pkg: PackageSubmissionModel, onS
             dispatch(setSubmitted(updatedModel));
             dispatch(packagesInvalidate());
             dispatch(queryInvalidate(PKG_SQ));
+            dispatch(queryInvalidate(TOPLEVEL_SUPER_PKG_SQ));
             onSuccess('/packages');
         }).catch((error) => {
             // todo handle errors
