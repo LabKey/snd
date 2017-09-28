@@ -42,8 +42,9 @@ export class PackageRow extends React.Component<PackageRowProps, PackageRowState
 
     render() {
         const { handleDelete } = this.props;
-        const { Description, PkgId } = this.props.data;
+        const { Description, HasEvent, HasProject, PkgId } = this.props.data;
         const { isHover } = this.state;
+        const canDelete = HasEvent.value === true || HasProject.value === true;
 
         // todo: URLs should be more resilient
         return (
@@ -72,7 +73,7 @@ export class PackageRow extends React.Component<PackageRowProps, PackageRowState
                 <div className="pull-left " style={{marginLeft: '10px'}}>
                     {[PkgId.value, Description.value].join(' - ')}
                 </div>
-                {isHover ?
+                {isHover && canDelete ?
                     <div className="pull-right" style={{cursor: 'pointer'}}>
                         <i className="fa fa-times" onClick={() => handleDelete(PkgId.value)}/>
                     </div>
