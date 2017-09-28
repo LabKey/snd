@@ -49,7 +49,7 @@ export class PackageModelAttribute implements PackageModelAttributeProps {
     max: number = 0;
     min: number = 0;
     name: string = undefined;
-    rangeURI: string = undefined;
+    rangeURI: string = 'string';
     redactedText: string = undefined;
     required: boolean | 'on' = false;
     scale: number = 0;
