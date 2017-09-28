@@ -7,7 +7,7 @@ import { FormProps, Field, reduxForm } from 'redux-form';
 import { readCookie, signInRequestAction } from './actions';
 import { COOKIE_EMAIL } from './constants'
 
-import { CheckboxInput } from '../../components/Form/Checkbox';
+import { FieldCheckboxInput } from '../../components/Form/Checkbox';
 import { EmailInput } from '../../components/Form/EmailInput';
 import { PasswordInput } from '../../components/Form/PasswordInput';
 import { emailValidator, requiredValidator } from '../../components/Form/validators';
@@ -86,7 +86,7 @@ class SignInImpl extends React.Component<SignInProps, any> {
                     </div>
                     <div style={{marginBottom: '10px'}}>
                         <Field
-                            component={CheckboxInput}
+                            component={FieldCheckboxInput}
                             name="remember"
                             type="checkbox"/>
                         <ControlLabel>Remember my email address</ControlLabel>

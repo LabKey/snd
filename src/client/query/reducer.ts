@@ -42,14 +42,24 @@ export const queries = handleActions({
 
         let models = Object.assign({}, state.models);
         delete models[schemaQuery.resolveKey()];
+        let editableModels = Object.assign({}, state.editableModels);
+        delete editableModels[schemaQuery.resolveKey()];
 
-        Object.keys(models).forEach((modelId, i) => {
+        // clear any models or editable models using this schemaQuery
+        Object.keys(models).forEach((modelId: string) => {
             if (modelId.toLowerCase().indexOf(schemaQuery.resolveKey()) !== -1) {
                 delete models[modelId];
             }
         });
 
+        Object.keys(editableModels).forEach((modelId: string) => {
+            if (modelId.toLowerCase().indexOf(schemaQuery.resolveKey()) !== -1) {
+                delete editableModels[modelId];
+            }
+        });
+
         const updatedState = Object.assign({}, state, {
+            editableModels,
             loadedQueries: loaded,
             loadingQueries: loading,
             models
@@ -202,6 +212,40 @@ export const queries = handleActions({
 
         const editableModels = Object.assign({}, state.editableModels,{
             [editableModel.id]: updatedModel
+        });
+
+        const updatedState = Object.assign({}, state, {editableModels});
+        return new QueryModelsContainer(updatedState);
+    },
+
+    [QUERY_TYPES.QUERY_EDIT_SET_SUBMITTED]: (state: QueryModelsContainer, action: any) => {
+        const { editableModel } = action;
+        const stateModel = state.editableModels[editableModel.id];
+
+        const updatedModel = new EditableQueryModel(Object.assign({}, stateModel, {
+            isSubmitted: true,
+            isSubmitting: false
+        }));
+
+        const editableModels = Object.assign({}, state.editableModels,{
+            [updatedModel.id]: updatedModel
+        });
+
+        const updatedState = Object.assign({}, state, {editableModels});
+        return new QueryModelsContainer(updatedState);
+    },
+
+    [QUERY_TYPES.QUERY_EDIT_SET_SUBMITTING]: (state: QueryModelsContainer, action: any) => {
+        const { editableModel } = action;
+        const stateModel = state.editableModels[editableModel.id];
+
+        const updatedModel = new EditableQueryModel(Object.assign({}, stateModel, {
+            isSubmitted: false,
+            isSubmitting: true
+        }));
+
+        const editableModels = Object.assign({}, state.editableModels,{
+            [updatedModel.id]: updatedModel
         });
 
         const updatedState = Object.assign({}, state, {editableModels});

@@ -1,5 +1,5 @@
 import { PKG_WIZARD_TYPES } from './constants'
-import { PackageModel, PackageWizardModel, PackageSubmissionModel } from './model'
+import { PackageModel, PackageModelAttribute, PackageWizardModel, PackageSubmissionModel } from './model'
 
 import { PACKAGE_VIEW } from '../../Packages/Forms/PackageFormContainer'
 import { labkeyAjax, queryInvalidate } from '../../../query/actions'
@@ -201,7 +201,7 @@ export function formatPackageValues(model: PackageWizardModel, active: boolean):
 
     const attributes = model.data.attributes.map((attribute, i) => {
         // loop through the attribute keys and strip off the _# like name_0 = name
-        return Object.keys(attribute).reduce((prev, next) => {
+        return new PackageModelAttribute(Object.keys(attribute).reduce((prev, next) => {
             const nextKey = next.split('_')[0];
             if (next === 'lookupKey') {
                 if (attribute[next]) {
@@ -224,7 +224,7 @@ export function formatPackageValues(model: PackageWizardModel, active: boolean):
             }
 
             return prev;
-        }, {});
+        }, {}));
     });
 
     return new PackageSubmissionModel({

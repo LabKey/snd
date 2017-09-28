@@ -79,13 +79,22 @@ export const packages = handleActions({
         });
 
         data.attributes = data.attributes.map((attribute, i) => {
-            if (attribute["lookupSchema"] && attribute["lookupQuery"])
-                attribute["lookupKey"] = attribute["lookupSchema"] + "." + attribute["lookupQuery"];
-            return Object.keys(attribute).reduce((prev, next) => {
-                prev[next] = attribute[next];
-                return prev;
-            }, {});
+            let attributeValues = Object.assign({}, attribute, {
+                rangeURI: attribute.rangeURI ? attribute.rangeURI : 'string',
+                sortOrder: attribute.sortOrder || attribute.sortOrder === 0 ? attribute.sortOrder : i
+            });
+            if (attribute["lookupSchema"] && attribute["lookupQuery"]) {
+                attributeValues["lookupKey"] = [attribute["lookupSchema"], attribute["lookupQuery"]].join('.');
+            }
+
+            return new PackageModelAttribute(attributeValues);
+        }).sort((attA, attB) => {
+            const a = attA.sortOrder,
+                b = attB.sortOrder;
+            return a < b ? -1 : a == b ? 0 : 1;
         });
+
+        data.narrativeKeywords = parseNarrativeKeywords(data.narrative);
 
         const modelData = new PackageModel(Object.assign({}, state.packageData[pkgId].data, data));
         const successModel = new PackageWizardModel(Object.assign({}, model, {
@@ -109,14 +118,30 @@ export const packages = handleActions({
             const parts = name.split('_');
             const index = parts[1];
             const attributeField = parts[2];
-
+            let attributeValue = value;
             let attributes = [].concat(model.data.attributes);
+
+            if (attributeField === 'sortOrder') {
+                const prevValue = model.data.attributes[index].sortOrder;
+                attributeValue = value === 'up' ? prevValue - 1 : prevValue + 1;
+
+                // move the existing attribute to replace the changed attribute
+                attributes[attributeValue] = new PackageModelAttribute(
+                    Object.assign({}, model.data.attributes[attributeValue], {['sortOrder']: prevValue})
+                );
+            }
+
             attributes[index] = new PackageModelAttribute(
-                Object.assign({}, model.data.attributes[index], {[attributeField]: value})
+                Object.assign({}, model.data.attributes[index], {[attributeField]: attributeValue})
             );
 
             data = new PackageModel(Object.assign({}, model.data, {
-                attributes
+                attributes: attributes.sort((attA, attB) => {
+                    const a = attA.sortOrder,
+                        b = attB.sortOrder;
+                    console.log(a, b, a < b)
+                    return a < b ? -1 : a == b ? 0 : 1;
+                })
             }));
         }
         else if (name.indexOf('extraFields') !== -1) {
@@ -162,9 +187,7 @@ export const packages = handleActions({
                 return new PackageModelAttribute(Object.assign({},
                     model.data.attributes[i],
                     {
-                        name: keyword,
-                        rangeURI: 'string',
-                        sortOrder: i + 1
+                        name: keyword
                     }
                 ));
             });

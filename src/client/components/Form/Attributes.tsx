@@ -1,15 +1,16 @@
 import * as React from 'react';
+import { PackageModelAttribute } from '../../containers/Wizards/Packages/model'
 
 import { CheckboxInput } from './Checkbox'
 import { DataTypeSelect } from './DataTypeSelect'
 import { LookupKeyInput } from './LookupKeyInput'
 import { NumericInput } from './NumericInput'
 import { TextInput } from './TextInput'
-import {OrderSelect} from "./OrderSelect";
+import { OrderSelect } from "./OrderSelect";
 
 interface AttributeColumnProps {
     disabled?: boolean
-    inputComponent?: any
+    inputComponent?: (props) => JSX.Element
     label?: string
     name: string
     required?: boolean
@@ -106,7 +107,7 @@ const AttributesGridHeader = () => {
     )
 };
 
-class AttributesGridBody extends React.Component<AttributesGridProps, any> {
+class AttributesGridBody extends React.Component<AttributesGridProps, {}> {
     constructor(props) {
         super(props);
 
@@ -125,14 +126,16 @@ class AttributesGridBody extends React.Component<AttributesGridProps, any> {
                 <tbody>
                     {attributes.map((attribute, i) => {
                         return (
-                            <tr key={i}>
+                            <tr key={i} data-attributeId={attribute.sortOrder}>
                                 {ATTRIBUTE_COLUMNS.map((col: AttributeColumnProps, j: number) => {
                                     const props = {
                                         attribute,
                                         attributeId: i,
                                         attributeLookups,
                                         disabled: col.disabled || readOnly,
-                                        name: `attributes_${i}_${col.name}`,
+                                        first: i === 0,
+                                        last: i === attributes.length - 1,
+                                        name: `attributes_${attribute.sortOrder}_${col.name}`,
                                         onChange: this.handleChange,
                                         value: attribute[col.name],
                                         required: col.required
@@ -155,10 +158,10 @@ class AttributesGridBody extends React.Component<AttributesGridProps, any> {
 }
 
 interface AttributesGridProps {
-    attributes: any
-    attributeLookups?: any
-    handleFieldChange?: any
-    narrative: any
+    attributes: Array<PackageModelAttribute>
+    attributeLookups?: Array<{label: string, value: string}>
+    handleFieldChange?: (evt) => void
+    narrative: string
     readOnly?: boolean
 }
 

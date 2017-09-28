@@ -49,6 +49,7 @@ export class PackageRow extends React.Component<PackageRowProps, PackageRowState
         return (
             <div
                 className={"package_viewer__result clearfix " + styles["package-row"]}
+                data-packageId={PkgId.value}
                 onMouseEnter={this.handleMouseEnter}
                 onMouseLeave={this.handleMouseLeave}>
                 <div className="result-icons pull-left">

@@ -1,12 +1,12 @@
 import * as React from 'react';
-import { Button, Panel } from 'react-bootstrap';
+import { Button, Modal, Panel } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import { RouteComponentProps } from 'react-router-dom';
 import { Form, FormProps, Field, reduxForm } from 'redux-form';
 
 import * as actions from '../../../query/actions'
 import { QuerySearch } from '../../../query/QuerySearch'
-import {EditableQueryModel, LabKeyQueryRowPropertyProps, QueryModel} from '../../../query/model'
+import { EditableQueryModel, LabKeyQueryRowPropertyProps, QueryModel } from '../../../query/model'
 import { EDITABLE_CAT_SQ } from '../../Packages/constants'
 
 import { FieldCheckboxInput } from '../../../components/Form/Checkbox'
@@ -80,7 +80,7 @@ const ULHeaderStyle = Object.assign({}, ULStyle, {borderBottom: '2px solid light
 
 
 interface EditCategoriesState extends FormProps<any, any, any> {
-    editableModel?: any
+    editableModel?: EditableQueryModel
     dispatch?: any
 }
 
@@ -197,7 +197,23 @@ export class EditCategoriesImpl extends React.Component<EditCategoriesProps, any
             });
         }
 
-        return null;
+        return <div style={{padding: "5px"}}>No Categories found.</div>;
+    }
+
+    renderMessage() {
+        const { editableModel } = this.props;
+
+        if (editableModel && editableModel.isSubmitting) {
+            return (
+                <div className="static-modal">
+                    <Modal onHide={() => null} show={editableModel.isSubmitting}>
+                        <Modal.Body>
+                            <i className="fa fa-spinner fa-spin fa-fw"/> Submitting Edits
+                        </Modal.Body>
+                    </Modal>
+                </div>
+            )
+        }
     }
 
     render() {
@@ -208,6 +224,7 @@ export class EditCategoriesImpl extends React.Component<EditCategoriesProps, any
                 {error ?
                     <div className='alert alert-danger' role='alert'>{error}</div>
                     : null}
+                {this.renderMessage()}
                 <Form onSubmit={handleSubmit(this.handleSubmit)}>
                     <div className='categories-container clearfix' style={{marginBottom: '10px'}}>
                         <ul className='categories-header' style={ULHeaderStyle}>

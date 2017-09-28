@@ -33,16 +33,16 @@ interface PackageModelAttributeProps {
     redactedText?: string
     required?: boolean | 'on'
     scale?: number
-    sortOrder?: string
+    sortOrder?: number
     validators?: Array<PackageModelValidatorProps>
     [key: string]: any
 }
 
 export class PackageModelAttribute implements PackageModelAttributeProps {
-    defaultValue?: string = undefined;
+    defaultValue: string = undefined;
     format: string = undefined;
     label: string = undefined;
-    lookupKey?: string = undefined;
+    lookupKey: string = undefined;
     lookupQuery: string = undefined;
     lookupSchema: string = undefined;
     lookupValues: Array<string> = undefined;
@@ -53,7 +53,7 @@ export class PackageModelAttribute implements PackageModelAttributeProps {
     redactedText: string = undefined;
     required: boolean | 'on' = false;
     scale: number = 0;
-    sortOrder: string = undefined;
+    sortOrder: number = 0;
     validators: Array<PackageModelValidatorProps>;
     [key: string]: any;
 
@@ -70,7 +70,7 @@ export class PackageModelAttribute implements PackageModelAttributeProps {
 
 interface PackageModelProps {
     active?: boolean
-    attributes?: Array<PackageModelAttributeProps>
+    attributes?: Array<PackageModelAttribute>
     attributeLookups?: Array<PackageModelAttributeLookupProps>
     categories?: Array<number>
     container?: string
@@ -86,7 +86,7 @@ interface PackageModelProps {
 
 export class PackageModel implements PackageModelProps {
     active?: boolean = false;
-    attributes?: Array<PackageModelAttributeProps> = [];
+    attributes?: Array<PackageModelAttribute> = [];
     attributeLookups?: Array<PackageModelAttributeLookupProps> = [];
     categories?: Array<number> = [];
     container?: string = undefined;
@@ -112,7 +112,7 @@ export class PackageModel implements PackageModelProps {
 
 interface PackageSubmissionModelProps extends PackageModel {
     active?: boolean;
-    attributes?: Array<PackageModelAttributeProps>;
+    attributes?: Array<PackageModelAttribute>;
     categories?: Array<number>;
     container?: string;
     description?: string;
@@ -127,7 +127,7 @@ interface PackageSubmissionModelProps extends PackageModel {
 
 export class PackageSubmissionModel implements PackageSubmissionModelProps {
     active?: boolean = false;
-    attributes?: Array<PackageModelAttributeProps> = [];
+    attributes?: Array<PackageModelAttribute> = [];
     categories: Array<number> = [];
     container?: string = undefined;
     description?: string = undefined;

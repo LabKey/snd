@@ -344,7 +344,10 @@ export class QueryModel implements QueryModelProps {
     }
 }
 
-interface EditableQueryModelProps extends QueryModelProps {}
+interface EditableQueryModelProps extends QueryModelProps {
+    isSubmitting?: boolean
+    isSubmitted?: boolean
+}
 
 export class EditableQueryModel implements EditableQueryModelProps {
     id: string = undefined;
@@ -362,6 +365,10 @@ export class EditableQueryModel implements EditableQueryModelProps {
     message?: string = undefined;
     metaData?: LabKeyQueryMetaDataProps = {} as LabKeyQueryMetaDataProps;
     queryInfo?: any = new QueryInfo();
+
+    // added props
+    isSubmitting?: boolean = false;
+    isSubmitted?: boolean = false;
 
     constructor(props?: Partial<EditableQueryModel>) {
         if (props) {
@@ -388,6 +395,14 @@ export class EditableQueryModel implements EditableQueryModelProps {
 
     removeRow(rowId: number) {
         return actions.queryEditRemoveRow(this, rowId);
+    }
+
+    setSubmitted() {
+        return actions.queryEditSetSubmitted(this);
+    }
+
+    setSubmitting() {
+        return actions.queryEditSetSubmitting(this);
     }
 }
 

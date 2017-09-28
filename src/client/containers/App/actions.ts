@@ -13,3 +13,10 @@ export function resetAppError() {
         type: APP_TYPES.APP_ERROR_RESET
     }
 }
+
+export function setAppMessage(message: string) {
+    return {
+        type: APP_TYPES.APP_MESSAGE,
+        message
+    }
+}

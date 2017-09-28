@@ -28,6 +28,14 @@ export const app = handleActions({
         });
     },
 
+    [APP_TYPES.APP_MESSAGE]: (state: AppModel, action: any) => {
+        const { message } = action;
+
+        return new AppModel(Object.assign({}, state, {
+            message
+        }));
+    },
+
     [QUERY_TYPES.QUERY_ERROR]: (state: AppModel, action: any) => {
         const { error } = action;
 

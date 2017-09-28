@@ -1,41 +1,93 @@
-import { deleteRows, insertRows, updateRows } from '../../../query/actions'
+import { deleteRows, insertRows, queryInvalidate, updateRows } from '../../../query/actions'
 import { EditableQueryModel, QueryColumn, QueryModel } from '../../../query/model'
-import { setAppError } from '../../App/actions'
+import { setAppError, setAppMessage } from '../../App/actions'
 
 import { CAT_SQ } from '../../Packages/constants'
 
+interface CategoryActionProps {
+    action: (schemaName: string, queryName: string, rows: Array<any>) => any
+    schemaName: string
+    queryName: string
+    rows: Array<any>
+}
 export function saveCategoryChanges(editableModel: EditableQueryModel, queryModel: QueryModel, values: {[key: string]: any}) {
-    return (dispatch) => {
+    return (dispatch, getState: () => APP_STATE_PROPS) => {
         const changes = getChanges(editableModel, queryModel, values);
 
-        if (changes.added && changes.added.length) {
-            insertRows(CAT_SQ.schemaName, CAT_SQ.queryName, changes.added).then((response) => {
-                console.log('Insert Response', response);
-            }).catch((error) => {
-                console.log('Category Insert Error', error);
+        dispatch(editableModel.setSubmitting());
+
+        function handleActions(actionArr: Array<CategoryActionProps>) {
+            if (actionArr.length === 0) {
+                return Promise.resolve();
+            }
+
+            const nextAction: CategoryActionProps = actionArr[0];
+            const { action, queryName, schemaName, rows } = nextAction;
+
+            const remaining: Array<CategoryActionProps> = actionArr.slice(1);
+            return action(schemaName, queryName, rows).catch((error) => {
                 dispatch(setAppError(error));
+
+                const editModel = getState().queries.editableModels[editableModel.id];
+                dispatch(editModel.setSubmitted());
+            }).then(() => {
+                return handleActions(remaining);
             });
         }
 
-        if (changes.edited && changes.edited.length) {
-            updateRows(CAT_SQ.schemaName, CAT_SQ.queryName, changes.edited).then((response) => {
-                console.log('Update Response', response);
-            }).catch((error) => {
-                console.log('Category Insert Error', error);
-                dispatch(setAppError(error));
-            });
+        let hasAdded = changes.added && changes.added.length,
+            hasEdited = changes.edited && changes.edited.length,
+            hasRemoved =changes.removed && changes.removed.length;
+
+        let actions: Array<CategoryActionProps> = [];
+
+        if (hasAdded) {
+            const addCategories: CategoryActionProps = {
+                action: insertRows,
+                schemaName: CAT_SQ.schemaName,
+                queryName: CAT_SQ.queryName,
+                rows: changes.added
+            };
+
+            actions.push(addCategories);
+        }
+
+        if (hasEdited) {
+            const editCategories: CategoryActionProps = {
+                action: updateRows,
+                schemaName: CAT_SQ.schemaName,
+                queryName: CAT_SQ.queryName,
+                rows: changes.edited
+            };
+
+            actions.push(editCategories);
         }
 
         // add modal check for delete rows?
 
-        if (changes.removed && changes.removed.length) {
-            deleteRows(CAT_SQ.schemaName, CAT_SQ.queryName, changes.removed).then((response) => {
-                console.log('Update Response', response);
-            }).catch((error) => {
-                console.log('Category Insert Error', error);
-                dispatch(setAppError(error));
-            });
+        if (hasRemoved) {
+            const deleteCategories: CategoryActionProps = {
+                action: deleteRows,
+                schemaName: CAT_SQ.schemaName,
+                queryName: CAT_SQ.queryName,
+                rows: changes.removed
+            };
+
+            actions.push(deleteCategories);
         }
+
+        return handleActions(actions).then(() => {
+            let editModel = getState().queries.editableModels[editableModel.id];
+            dispatch(editModel.setSubmitted());
+            dispatch(queryInvalidate(CAT_SQ));
+
+            dispatch(setAppMessage('Changes saved'));
+
+            setTimeout(() => {
+                dispatch(setAppMessage(''));
+            }, 2000);
+
+        });
     }
 }
 

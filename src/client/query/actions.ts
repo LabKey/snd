@@ -216,9 +216,16 @@ export function queryEditRemoveRow(editableModel: EditableQueryModel, rowId: num
     };
 }
 
-export function queryEditSuccess(editableModel: EditableQueryModel) {
+export function queryEditSetSubmitted(editableModel: EditableQueryModel) {
     return {
-        type: QUERY_TYPES.QUERY_EDIT_SUCCESS,
+        type: QUERY_TYPES.QUERY_EDIT_SET_SUBMITTED,
+        editableModel
+    };
+}
+
+export function queryEditSetSubmitting(editableModel: EditableQueryModel) {
+    return {
+        type: QUERY_TYPES.QUERY_EDIT_SET_SUBMITTED,
         editableModel
     };
 }

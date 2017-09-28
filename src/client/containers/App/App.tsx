@@ -40,12 +40,41 @@ function mapDispatchToProps(dispatch: Dispatch<any>): AppStateDispatch {
 
 export class AppImpl extends React.Component<AppProps, {}> {
 
+    static getMessageTypes(app: AppModel): {
+        alertClassName: string
+        alertType: string
+    } {
+        let alertClassName,
+            alertType;
+
+        if (app.isError === true) {
+            alertClassName = 'alert-danger';
+            alertType = 'alert';
+        }
+
+        if (app.isWarning) {
+            alertClassName = 'alert-warning';
+            alertType = 'warning';
+        }
+
+        else {
+            alertClassName = 'alert-success';
+            alertType = 'success';
+        }
+
+        return {
+            alertClassName,
+            alertType
+        }
+    }
+
     renderMessage() {
         const { app } = this.props;
 
         if (app.message) {
-            const alertClassName = app.isError ? 'alert-danger' : 'alert-warning';
-            const alertType = app.isError ? 'alert' : 'success';
+            const alerts = AppImpl.getMessageTypes(app);
+            const { alertClassName, alertType } = alerts;
+
             return (
                 <div className="app-error">
                     <div className={[styles['alert-dismiss'], alertClassName].join(' ')}>
