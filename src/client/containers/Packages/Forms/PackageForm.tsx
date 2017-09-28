@@ -251,6 +251,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         const isReadyOnly = view === PACKAGE_VIEW.VIEW ||
             (view === PACKAGE_VIEW.EDIT && (hasEvent || hasProject));
 
+        console.log('render')
         return (
             <div className="row clearfix">
                 {!isReadyOnly ?

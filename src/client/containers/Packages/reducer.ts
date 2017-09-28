@@ -80,7 +80,8 @@ export const packages = handleActions({
 
         return new PackagesModel(Object.assign({}, state, {
             filteredActive,
-            filteredDrafts
+            filteredDrafts,
+            input
         }));
     },
 

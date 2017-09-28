@@ -25,7 +25,6 @@ interface PackageViewerState {
 }
 
 interface PackageViewerStateProps {
-    input?: string
     toRemove?: number
 }
 
@@ -40,14 +39,12 @@ function mapStateToProps(state: APP_STATE_PROPS) {
 
 export class PackageViewerImpl extends React.Component<PackageViewerProps, PackageViewerStateProps> {
 
-    private timer: number = 0;
     private inputRef: HTMLInputElement;
 
     constructor(props: PackageViewerProps) {
         super(props);
 
         this.state = {
-            input: '',
             toRemove: undefined
         };
 
@@ -98,8 +95,6 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, Packa
     handleClear() {
         const { dispatch } = this.props;
 
-        this.setInput('');
-
         this.inputRef.focus();
         dispatch(actions.filterPackages(''));
     }
@@ -116,26 +111,14 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, Packa
 
     hideModal() {
         const { dispatch } = this.props;
-        const { isWarning } = this.props.packagesModel;
+
         dispatch(actions.packagesResetWarning())
     }
 
     handleInputChange(evt: React.ChangeEvent<HTMLInputElement>) {
         const { dispatch } = this.props;
         const input = evt.currentTarget.value;
-
-        this.setInput(input);
-
-        clearTimeout(this.timer);
-        this.timer = setTimeout(() => {
-            this.timer = null;
-
-            dispatch(actions.filterPackages(input))
-        }, 50);
-    }
-
-    setInput(input: string) {
-        this.setState({input});
+        dispatch(actions.filterPackages(input));
     }
 
     toggleDrafts() {
@@ -167,8 +150,7 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, Packa
     render() {
 
         if (this.props.packagesModel) {
-            const { data, filteredActive, filteredDrafts, isInit, showDrafts } = this.props.packagesModel;
-            const { input } = this.state;
+            const { data, filteredActive, filteredDrafts, input, isInit, showDrafts } = this.props.packagesModel;
 
             return (
                 <div className="row" style={{padding: '20px 0'}}>

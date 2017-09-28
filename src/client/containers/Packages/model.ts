@@ -10,6 +10,7 @@ interface PackagesModelProps {
     drafts: Array<any>
     filteredActive?: Array<any>
     filteredDrafts?: Array<any>
+    input?: string
     isError: boolean
     isInit?: boolean
     isWarning?: boolean
@@ -24,14 +25,15 @@ export class PackagesModel implements PackagesModelProps {
     data: {[key: string]: any} = {};
     dataIds: Array<any> = [];
     drafts: Array<any> = [];
-    filteredActive?: Array<any> = [];
-    filteredDrafts?: Array<any> = [];
+    filteredActive: Array<any> = [];
+    filteredDrafts: Array<any> = [];
+    input: string = undefined;
     isError: boolean = false;
-    isInit?: boolean = false;
-    isWarning?: boolean = false;
+    isInit: boolean = false;
+    isWarning: boolean = false;
     message: string = undefined;
     packageCount: number = 0;
-    showDrafts?: boolean = false;
+    showDrafts: boolean = false;
 
     constructor(props?: Partial<PackagesModel>) {
         if (props) {

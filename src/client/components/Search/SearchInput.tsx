@@ -59,7 +59,7 @@ export class SearchInput extends React.Component<SearchInputProps, {}> {
                     onFocus={(el: React.FocusEvent<HTMLInputElement>) => this.handleFocus(el)}
                     ref={inputRef}
                     type="text"
-                    value={input}/>
+                    value={input ? input : ''}/>
             </div>
         );
     }
