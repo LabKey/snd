@@ -138,7 +138,7 @@ public class SNDController extends SpringActionController
             JSONArray jsonSubPackages = json.getJSONArray("subPackages");  // only first-level children (as package IDs) should be here
             Map<Integer, Integer> superPkgIdToSortOrderMap = new HashMap<>();
             Integer superPackageId = SNDManager.get().generateSuperPackageId(getContainer());
-            if (null != jsonSubPackages)
+            if (null != jsonSubPackages && jsonSubPackages.length() > 0)
             {
                 for (int i = 0; i < jsonSubPackages.length(); i++)
                 {
