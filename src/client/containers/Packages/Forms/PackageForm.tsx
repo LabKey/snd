@@ -5,6 +5,7 @@ import { Dispatch } from 'redux'
 
 import { PackageModel } from '../../Wizards/Packages/model'
 import { PACKAGE_VIEW } from './PackageFormContainer'
+import { CheckboxInput } from '../../../components/Form/Checkbox'
 import { PackageIdInput } from '../../../components/Form/PackageIdInput'
 import { TextArea } from '../../../components/Form/TextArea'
 import { TextInput } from '../../../components/Form/TextInput'
@@ -357,7 +358,16 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                         <div className={"col-sm-12 " + styles['margin-top']}>
                             {this.renderAttributes()}
                         </div>
+                        <div className={"col-sm-12 " + styles['margin-bottom']}>
+                            <CheckboxInput
+                                disabled={view === PACKAGE_VIEW.VIEW}
+                                name='repeatable'
+                                onChange={this.handleFieldChange}
+                                value={model.repeatable}/>
+                            Allow multiple instances of this package in one super package
+                        </div>
                     </div>
+                    <div style={{borderBottom: '1px solid black'}}/>
 
                     {this.renderSubpackages()}
 
