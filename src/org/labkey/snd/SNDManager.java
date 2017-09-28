@@ -215,9 +215,13 @@ public class SNDManager
             kind.updateDomain(c, u, domain);
         }
 
-        List<SuperPackage> superPackages = new ArrayList<>(pkg.getSubpackages());
-        if(superPkg != null)
-            superPackages.add(superPkg);
+        List<SuperPackage> superPackages = new ArrayList<>();
+        if (pkg.getSubpackages() != null)
+        {
+            superPackages.addAll(pkg.getSubpackages());
+            if (superPkg != null)
+                superPackages.add(superPkg);
+        }
 
         createSuperPackages(u, c, superPackages, errors);
     }
