@@ -345,32 +345,39 @@ export class QueryModel implements QueryModelProps {
 }
 
 interface EditableQueryModelProps extends QueryModelProps {
+    initialData?: {[key: string]: LabKeyQueryRowPropertyProps}
+    initialDataCount: number
+    initialIds?: Array<number>
     isSubmitting?: boolean
     isSubmitted?: boolean
 }
 
 export class EditableQueryModel implements EditableQueryModelProps {
     id: string = undefined;
-    schemaQuery?: SchemaQuery = new SchemaQuery();
-    schema?: string = undefined;
-    query?: string = undefined;
+    schemaQuery: SchemaQuery = new SchemaQuery();
+    schema: string = undefined;
+    query: string = undefined;
 
-    data?: {[key: string]: LabKeyQueryRowPropertyProps} = {};
-    dataCount?: number = 0;
-    dataIds?: Array<number> = [];
-    filters?: Array<any> = []; // define filter type
-    isError?: boolean = false;
-    isLoaded?: boolean = false;
-    isLoading?: boolean = false;
-    message?: string = undefined;
-    metaData?: LabKeyQueryMetaDataProps = {} as LabKeyQueryMetaDataProps;
-    queryInfo?: any = new QueryInfo();
+    data: {[key: string]: LabKeyQueryRowPropertyProps} = {};
+    dataCount: number = 0;
+    dataIds: Array<number> = [];
+    filters: Array<any> = []; // define filter type
+    isError: boolean = false;
+    isLoaded: boolean = false;
+    isLoading: boolean = false;
+    message: string = undefined;
+    metaData: LabKeyQueryMetaDataProps = {} as LabKeyQueryMetaDataProps;
+    queryInfo: any = new QueryInfo();
 
     // added props
-    isSubmitting?: boolean = false;
-    isSubmitted?: boolean = false;
+    initialData: {[key: string]: LabKeyQueryRowPropertyProps} = {};
+    initialDataCount: number = 0;
+    initialIds: Array<number> = [];
+    isSubmitting: boolean = false;
+    isSubmitted: boolean = false;
 
     constructor(props?: Partial<EditableQueryModel>) {
+        // todo: make version that holds data internally and does not rely on reduxForm
         if (props) {
             for (let k in props) {
                 if (this.hasOwnProperty(k) && props.hasOwnProperty(k)) {
@@ -382,6 +389,18 @@ export class EditableQueryModel implements EditableQueryModelProps {
 
     addRow() {
         return actions.queryEditAddRow(this);
+    }
+
+    hasAdded(): boolean {
+        return this && this.dataCount > this.initialDataCount;
+    }
+
+    hasRemoved(): boolean {
+        return this && this.dataCount < this.initialDataCount;
+    }
+
+    getRemoved(): Array<{[key: string]: any}> {
+        return actions.getRemoved(this.initialIds, this.dataIds, this.metaData.id);
     }
 
     getRequiredInsertColumns(): Array<QueryColumn> {

@@ -44,6 +44,15 @@ export const packages = handleActions({
         return new PackagesModel();
     },
 
+    [PKG_TYPES.PACKAGES_RESET_FILTER]: (state: PackagesModel) => {
+        const { active, drafts } = state;
+
+        return new PackagesModel(Object.assign({}, state, {
+            filteredActive: active,
+            filteredDrafts: drafts
+        }));
+    },
+
     [PKG_TYPES.PACKAGES_RESET_WARNING]: (state: PackagesModel) => {
         return new PackagesModel(Object.assign({}, state, {
             isWarning: false,

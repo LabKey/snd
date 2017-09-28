@@ -159,9 +159,15 @@ export const queries = handleActions({
 
     [QUERY_TYPES.QUERY_EDIT_INITIALIZE]: (state: QueryModelsContainer, action: any) => {
         const { initialModel } = action;
+        const { data, dataCount, dataIds } = initialModel;
 
         const editableModels = Object.assign({}, state.editableModels,{
-            [initialModel.id]: new EditableQueryModel(initialModel)
+            [initialModel.id]: new EditableQueryModel({
+                ...initialModel,
+                initialData: data,
+                initialDataCount: dataCount,
+                initialIds: dataIds
+            })
         });
 
         const updatedState = Object.assign({}, state, {editableModels});

@@ -15,6 +15,17 @@ import { FieldTextInput } from '../../../components/Form/TextInput'
 import { saveCategoryChanges } from './actions'
 
 export class EditCategories extends React.Component<RouteComponentProps<any>, any> {
+    constructor(props) {
+        super(props);
+
+        this.handleCancel = this.handleCancel.bind(this);
+    }
+
+    handleCancel() {
+        const { history } = this.props;
+        history.goBack();
+    }
+
     render() {
         return (
             <Panel>
@@ -22,7 +33,7 @@ export class EditCategories extends React.Component<RouteComponentProps<any>, an
                 <QuerySearch
                     id='EditCategories'
                     schemaQuery={EDITABLE_CAT_SQ}>
-                    <EditCategoriesForm/>
+                    <EditCategoriesForm handleCancel={this.handleCancel}/>
                 </QuerySearch>
             </Panel>
         );
@@ -85,47 +96,54 @@ interface EditCategoriesState extends FormProps<any, any, any> {
 }
 
 interface EditCategoriesOwnProps {
+    handleCancel: () => void
     model?: QueryModel
 }
 
 type EditCategoriesProps = EditCategoriesState & EditCategoriesOwnProps;
 
-function mapStateToProps(state: APP_STATE_PROPS, ownProps:  EditCategoriesOwnProps): EditCategoriesState{
+interface EditCategoriesStateProps {
+    hasRemoved?: boolean
+    formValues?: any
+}
+
+function mapStateToProps(state: APP_STATE_PROPS, ownProps:  EditCategoriesOwnProps): EditCategoriesState {
     const { model } = ownProps;
 
-    // this is janky and needs to be improved
-    if (model && state.queries.editableModels[model.id]) {
-        return {
-            editableModel: state.queries.editableModels[model.id],
-            initialValues: state.queries.editableModels[model.id].data
-        };
-    }
+    const editableModel = state.queries.editableModels[model.id];
 
     return {
-
+        editableModel,
+        initialValues: editableModel ? editableModel.data : undefined
     };
 }
 
 // make this more HOC
-export class EditCategoriesImpl extends React.Component<EditCategoriesProps, any> {
+export class EditCategoriesImpl extends React.Component<EditCategoriesProps, EditCategoriesStateProps> {
 
-    static checkEnabled(dirty: boolean, queryModel: QueryModel, editableModel: EditableQueryModel) {
+    static checkEnabled(dirty: boolean, editableModel: EditableQueryModel) {
         if (dirty === true) {
             // if form is dirty, allow submit
             return true;
         }
 
-        // if row has been removed, allow submit
-        return editableModel && editableModel.dataCount < queryModel.dataCount;
+        // if row has been removed, also allow submit
+        return editableModel && editableModel.hasRemoved();
     }
 
     constructor(props) {
         super(props);
 
+        this.state = {
+            hasRemoved: false,
+            formValues: undefined
+        };
+
         this.handleAdd = this.handleAdd.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
         this.handleCancel = this.handleCancel.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.toggleHasRemoved = this.toggleHasRemoved.bind(this);
     }
 
     componentDidMount() {
@@ -142,7 +160,10 @@ export class EditCategoriesImpl extends React.Component<EditCategoriesProps, any
     }
 
     handleCancel() {
-        const { dispatch, editableModel } = this.props;
+        const { handleCancel } = this.props;
+        if (handleCancel && typeof handleCancel === 'function') {
+            handleCancel();
+        }
     }
 
     handleDelete(rowId: number) {
@@ -150,10 +171,20 @@ export class EditCategoriesImpl extends React.Component<EditCategoriesProps, any
         dispatch(editableModel.removeRow(rowId));
     }
 
-    handleSubmit(values) {
-        const { dispatch, editableModel, model } = this.props;
+    handleSave(values) {
+        const { dispatch, editableModel } = this.props;
+        dispatch(saveCategoryChanges(editableModel, values));
+    }
 
-        return dispatch(saveCategoryChanges(editableModel, model, values));
+    handleSubmit(values) {
+        const { editableModel } = this.props;
+        if (editableModel.hasRemoved()) {
+            this.saveFormValues(values);
+            this.toggleHasRemoved();
+        }
+        else {
+            this.handleSave(values);
+        }
     }
 
     initModel(props: EditCategoriesProps) {
@@ -161,10 +192,17 @@ export class EditCategoriesImpl extends React.Component<EditCategoriesProps, any
         dispatch(actions.queryEditInitModel(model));
     }
 
-    renderButtons() {
-        const { editableModel, model, dirty } = this.props;
+    toggleHasRemoved() {
+        const { hasRemoved } = this.state;
+        this.setState({
+            hasRemoved: !hasRemoved
+        });
+    }
 
-        const submitEnabled = EditCategoriesImpl.checkEnabled(dirty, model, editableModel);
+    renderButtons() {
+        const { editableModel, dirty } = this.props;
+
+        const submitEnabled = EditCategoriesImpl.checkEnabled(dirty, editableModel);
 
         return (
             <div>
@@ -182,7 +220,6 @@ export class EditCategoriesImpl extends React.Component<EditCategoriesProps, any
                 </div>
             </div>
         )
-
     }
 
     renderDataRows() {
@@ -216,6 +253,36 @@ export class EditCategoriesImpl extends React.Component<EditCategoriesProps, any
         }
     }
 
+    renderDeleteRowsWarning() {
+        const { editableModel } = this.props;
+        const { hasRemoved, formValues } = this.state;
+
+        if (editableModel && hasRemoved) {
+            const removed = editableModel.getRemoved().map(r => r['CategoryId']);
+            return (
+                <div className="static-modal">
+                    <Modal onHide={this.toggleHasRemoved} show={editableModel && hasRemoved}>
+                        <Modal.Body>
+                            Are you sure you want to delete row{removed.length > 1 ? 's' : ''} {removed.join(', ')}?
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <div className="btn-group">
+                                <Button onClick={this.toggleHasRemoved}>Cancel</Button>
+                                <Button onClick={() => this.handleSave(formValues)}>Submit Changes</Button>
+                            </div>
+                        </Modal.Footer>
+                    </Modal>
+                </div>
+            )
+        }
+    }
+
+    saveFormValues(formValues) {
+        this.setState({
+            formValues
+        });
+    }
+
     render() {
         const { error, handleSubmit } = this.props;
 
@@ -224,6 +291,7 @@ export class EditCategoriesImpl extends React.Component<EditCategoriesProps, any
                 {error ?
                     <div className='alert alert-danger' role='alert'>{error}</div>
                     : null}
+                {this.renderDeleteRowsWarning()}
                 {this.renderMessage()}
                 <Form onSubmit={handleSubmit(this.handleSubmit)}>
                     <div className='categories-container clearfix' style={{marginBottom: '10px'}}>

@@ -54,6 +54,11 @@ export function packagesWarning(message?: string) {
         message
     }
 }
+export function resetPackageFilter() {
+    return {
+        type: PKG_TYPES.PACKAGES_RESET_FILTER
+    };
+}
 
 export function toggleDrafts() {
     return {

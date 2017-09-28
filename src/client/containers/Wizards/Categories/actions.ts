@@ -10,9 +10,10 @@ interface CategoryActionProps {
     queryName: string
     rows: Array<any>
 }
-export function saveCategoryChanges(editableModel: EditableQueryModel, queryModel: QueryModel, values: {[key: string]: any}) {
+
+export function saveCategoryChanges(editableModel: EditableQueryModel, values: {[key: string]: any}) {
     return (dispatch, getState: () => APP_STATE_PROPS) => {
-        const changes = getChanges(editableModel, queryModel, values);
+        const changes = getChanges(editableModel, values);
 
         dispatch(editableModel.setSubmitting());
 
@@ -37,7 +38,7 @@ export function saveCategoryChanges(editableModel: EditableQueryModel, queryMode
 
         let hasAdded = changes.added && changes.added.length,
             hasEdited = changes.edited && changes.edited.length,
-            hasRemoved =changes.removed && changes.removed.length;
+            hasRemoved = changes.removed && changes.removed.length;
 
         let actions: Array<CategoryActionProps> = [];
 
@@ -91,18 +92,16 @@ export function saveCategoryChanges(editableModel: EditableQueryModel, queryMode
     }
 }
 
-function getChanges(editableModel: EditableQueryModel, queryModel: QueryModel, values: {[key: string]: any}): {
+function getChanges(editableModel: EditableQueryModel, values: {[key: string]: any}): {
     added: Array<{[key: string]: any}>
     edited: Array<{[key: string]: any}>
     removed: Array<{[key: string]: any}>
 } {
-    const initialValues = queryModel.data;
-    const editableIds = editableModel.dataIds;
-    const initialIds = queryModel.dataIds;
+    const initialValues = editableModel.data;
 
     let added = [],
         edited = [],
-        removed = getRemoved(initialIds, editableIds, editableModel.metaData.id);
+        removed = editableModel.getRemoved();
 
     Object.keys(values).forEach((key) => {
         const row = values[key];
@@ -157,18 +156,4 @@ function getChanges(editableModel: EditableQueryModel, queryModel: QueryModel, v
         edited,
         removed
     }
-}
-
-function getRemoved(initial: Array<number>, current: Array<number>, pkCol: string) {
-    if (initial.length && current.length < initial.length) {
-        return initial.filter((id: number) => {
-            return current.indexOf(id) === -1;
-        }).map(id => {
-            return {
-                [pkCol]: id
-            };
-        });
-    }
-
-    return [];
 }

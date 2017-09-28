@@ -79,6 +79,11 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, Packa
         }
     }
 
+    componentWillUnmount() {
+        const { dispatch } = this.props;
+        dispatch(actions.resetPackageFilter());
+    }
+
     changeLocation(loc: string) {
         const { history } = this.props;
         history.push(loc);
