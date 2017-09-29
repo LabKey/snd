@@ -79,6 +79,7 @@
             <column columnName="Comment"/>
             <column columnName="Active"/>
             <column columnName="SortOrder"/>
+            <column columnName="ObjectId"/>
             <column columnName="Container"/>
             <column columnName="CreatedBy"/>
             <column columnName="Created"/>
@@ -102,6 +103,7 @@
         <columns>
             <column columnName="PkgId"/>
             <column columnName="CategoryId"/>
+            <column columnName="ObjectId"/>
             <column columnName="Container"/>
             <column columnName="CreatedBy"/>
             <column columnName="Created"/>
@@ -155,6 +157,7 @@
             <column columnName="ParentObjectId"/>
             <column columnName="SuperPkgId"/>
             <column columnName="Active"/>
+            <column columnName="ObjectId"/>
             <column columnName="Container"/>
             <column columnName="CreatedBy"/>
             <column columnName="Created"/>
