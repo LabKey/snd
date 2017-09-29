@@ -284,75 +284,6 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         "}                                                                                                                                        "+
         "                                                                                                                                         ";
 
-    //        "function myGetPackage() {                                                                                                                "+
-//        "	var package = prompt('Enter package id');                                                                                             "+
-//        "                                                                                                                                         "+
-//        "	if (package != null || package != '') {                                                                                               "+
-//        "		LABKEY.Ajax.request({                                                                                                             "+
-//        "			method: 'POST',                                                                                                               "+
-//        "			url: LABKEY.ActionURL.buildURL('snd', 'getPackages.api'),                                                                     "+
-//        "			success: function(data, a, b, c, d){                                                                                          "+
-//        "				//Ext4.Msg.alert('Success',JSON.stringify(JSON.parse(data.response).json[0]));                                            "+
-//        "				codeMirrorWindow('Package JSON', JSON.stringify(JSON.parse(data.response).json[0]), 'application/json');                  "+
-//        "			},                                                                                                                            "+
-//        "			failure: function(e){ Ext4.Msg.alert('Failure',e.responseText); },                                                            "+
-//        "			jsonData: {'packages':[package]}                                                                                              "+
-//        "		});                                                                                                                               "+
-//        "	}                                                                                                                                     "+
-//        "}                                                                                                                                        "+
-//        "                                                                                                                                         "+
-//        "function mySavePackage() {                                                                                                               "+
-//        "	LABKEY.Ajax.request({                                                                                                                 "+
-//        "		method: 'POST',                                                                                                                   "+
-//        "		url: LABKEY.ActionURL.buildURL('snd', 'savePackage.api'),                                                                         "+
-//        "		success: function(){ callback('Success!'); },                                                   "+
-//        "		failure: function(e){ callback(e.responseText); },                                                                "+
-//        "		jsonData: {                                                                                                                       "+
-//        "			//'id': 10001,                                                                                                                "+
-//        "			'description': 'My package description2',                                                                                     "+
-//        "			'active': true,                                                                                                               "+
-//        "			'repeatable': true,                                                                                                           "+
-//        "			'narrative': 'This is a narrative',                                                                                           "+
-//        "			'categories': [102, 103],                                                                                                     "+
-//        "			'subpackages': [],                                                                                                            "+
-//        "			'extraFields': {'UsdaCode':'B'},                                                                                              "+
-//        "			'attributes': [{                                                                                                              "+
-//        "				'name': 'SNDName',                                                                                                        "+
-//        "				'label': 'Name',                                                                                                          "+
-//        "				'rangeURI': 'http://www.w3.org/2001/XMLSchema#string',                                                                    "+
-//        "				'required': false,                                                                                                        "+
-//        "				'scale': 500,                                                                                                             "+
-//        "				'validators': [{                                                                                                          "+
-//        "					'name': 'SNDLength',                                                                                                  "+
-//        "					'description': 'This will check the length of the field',                                                             "+
-//        "					'type': 'length',                                                                                                     "+
-//        "					'expression': '~gte=1&amp;~lte=400',                                                                                  "+
-//        "					'errorMessage': 'This value must be between 1 and 400 characters long'                                                "+
-//        "				}]                                                                                                                        "+
-//        "			},{                                                                                                                           "+
-//        "				'name': 'SNDUser',                                                                                                        "+
-//        "				'label': 'User',                                                                                                          "+
-//        "				'rangeURI': 'http://www.w3.org/2001/XMLSchema#int',                                                                       "+
-//        "				'required': true,                                                                                                         "+
-//        "				'lookupSchema': 'core',                                                                                                   "+
-//        "				'lookupQuery': 'Principals'                                                                                               "+
-//        "			},{                                                                                                                           "+
-//        "				'name': 'SNDAge',                                                                                                         "+
-//        "				'label': 'Age',                                                                                                           "+
-//        "				'rangeURI': 'http://www.w3.org/2001/XMLSchema#double',                                                                    "+
-//        "				'format': '0.##',                                                                                                         "+
-//        "				'validators': [{                                                                                                          "+
-//        "					'name': 'SNDRange',                                                                                                   "+
-//        "					'description': 'This will check the range of the field',                                                              "+
-//        "					'type': 'range',                                                                                                      "+
-//        "					'expression': '~gte=1&amp;~lte=100',                                                                                  "+
-//        "					'errorMessage': 'No centenarians allowed'                                                                             "+
-//        "				}]                                                                                                                        "+
-//        "			}]                                                                                                                            "+
-//        "		}                                                                                                                                 "+
-//        "	});                                                                                                                                   "+
-//        "}                                                                                                                                        ";
-
     private static final String CREATECATEGORIESAPI = APISCRIPTS + " populateCategories();";
 //    private static final String SAVEPACKAGEAPI = APISCRIPTS + " mySavePackage():";
 
@@ -569,15 +500,17 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         runScript(ADDEVENT);
         refresh();
         dataRegionTable = new DataRegionTable("query",this);
-        assertEquals("Has event not true","true",dataRegionTable.getDataAsText(0,"Has Event"));
-        assertEquals("Has project not false","false",dataRegionTable.getDataAsText(0,"Has Project"));
+        int rowIndex = dataRegionTable.getRowIndex("Description", "My package description");
+        assertEquals("Has event not true","true",dataRegionTable.getDataAsText(rowIndex,"Has Event"));
+        assertEquals("Has project not false","false",dataRegionTable.getDataAsText(rowIndex,"Has Project"));
 
         //add package to project
         runScript(ADDPACKAGETOPROJECT);
         refresh();
         dataRegionTable = new DataRegionTable("query",this);
-        assertEquals("Has event not true","true",dataRegionTable.getDataAsText(0,"Has Event"));
-        assertEquals("Has project not true","true",dataRegionTable.getDataAsText(0,"Has Project"));
+        rowIndex = dataRegionTable.getRowIndex("Description", "My package description");
+        assertEquals("Has event not true","true",dataRegionTable.getDataAsText(rowIndex,"Has Event"));
+        assertEquals("Has project not true","true",dataRegionTable.getDataAsText(rowIndex,"Has Project"));
     }
 
     @Test
