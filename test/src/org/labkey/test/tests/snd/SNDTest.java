@@ -37,8 +37,15 @@ import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.TestFileUtils;
 import org.labkey.test.TestTimeoutException;
+import org.labkey.test.WebDriverWrapper;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.components.CustomizeView;
+import org.labkey.test.components.snd.AttributeGridRow;
+import org.labkey.test.components.snd.AttributesGrid;
+import org.labkey.test.components.snd.PackageViewerResult;
+import org.labkey.test.pages.snd.EditCategoriesPage;
+import org.labkey.test.pages.snd.EditPackagePage;
+import org.labkey.test.pages.snd.PackageListPage;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.LogMethod;
 import org.labkey.test.util.Maps;
@@ -403,6 +410,122 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     public List<String> getAssociatedModules()
     {
         return Collections.singletonList("SND");
+    }
+
+    @Test
+    public void submitDraftPackageForReview()
+    {
+        String description = "Our first package draft. Ambitious!";
+        String narrative = "Shall I {compare} thee to a summer's day?" +
+                "{Thou} art more lovely, and more {temperate};" +
+                "Rough {winds} do shake the {darling} buds of May," +
+                "And summer's {lease} hath all too short a date";
+        PackageListPage listPage = PackageListPage.beginAt(this, getProjectName());
+        EditPackagePage editPage = listPage.clickNewPackage();
+        editPage.setDescription(description);
+        editPage.setNarrative(narrative);
+
+        AttributesGrid grid = editPage.getAttributesGrid();
+        grid.waitForRows(6);
+
+        // now edit a row
+        AttributeGridRow windsRow = grid.getRow("winds")
+                .setDataType("String")
+                .setLabel("blustery")
+                .setMin(2)
+                .setMax(7)
+                .setDefault("breeze")
+                .setRequired(true)
+                .setRedactedText("lol");
+
+        listPage = editPage.clickSaveAsDraft();
+        listPage.showDrafts(true);
+        listPage.setSearchFilter(description);
+        PackageViewerResult packageViewerResult = listPage.getPackage(description);
+
+        EditPackagePage reviewPage = packageViewerResult.clickEdit();
+        assertEquals("narrative should equal what we set" ,narrative, reviewPage.getNarrative());
+        assertEquals("description should equal what we set" ,description, reviewPage.getDescription());
+        reviewPage.clickSubmitForReview();
+    }
+
+    @Test
+    public void cloneDraftPackage()
+    {
+        String description = "more sonnets. Ambitious!";
+        String narrative = "Sometimes too hot the {eye} of heaven shines" +
+                "and often is is {gold} complexion dimm'd," +
+                "and every {fair} from {fair} sometime declines," +
+                "by chance, or nature's changing {course} untrimmed";
+        PackageListPage listPage = PackageListPage.beginAt(this, getProjectName());
+        EditPackagePage editPage = listPage.clickNewPackage();
+        editPage.setDescription(description);
+        editPage.setNarrative(narrative);
+
+        AttributesGrid grid = editPage.getAttributesGrid();
+        grid.waitForRows(5);    // should this pass? duplicate token?
+
+        // now edit a row
+        AttributeGridRow fairRow = grid.getRow("fair")
+                .setDataType("String")
+                .setLabel("appearance")
+                .setMin(2)
+                .setMax(7)
+                .setDefault(":-)")
+                .setRequired(true)
+                .setRedactedText("lol");
+
+        listPage = editPage.clickSaveAsDraft();
+        listPage.showDrafts(true);
+        listPage.setSearchFilter(description);
+        PackageViewerResult packageViewerResult = listPage.getPackage(description);
+
+        EditPackagePage reviewPage = packageViewerResult.clickClone();
+        assertEquals("narrative should equal what we set" ,narrative, reviewPage.getNarrative());
+        assertEquals("description should equal what we set" ,description, reviewPage.getDescription());
+        reviewPage.setDescription("clone of more sonnets narrative.  Ugh, derivative!")
+                .setNarrative(narrative + "But thy eternal summer shall not fade, nor lose possession of that fair thou ow'st" +
+                        "when in eternal lines to time thou grow'st," +
+                        "so long as men can breathe or eyes can see, " +
+                        "so long lives this, and this gives life to thee.")
+                .clickSaveAsDraft();
+    }
+
+    @Test
+    public void saveNewPackage()
+    {
+        String description = "Our first package. Adorable!";
+        String narrative = "Four {score} and seven {years} ago, our {forefathers} brought forth," +
+                " upon this {continent}, a new {nation}, conceived in liberty, " +
+                "and dedicated to the proposition that all {men} are created equal.";
+        PackageListPage listPage = PackageListPage.beginAt(this , getProjectName());
+        EditPackagePage editPage = listPage.clickNewPackage();
+        editPage.setDescription(description);
+        editPage.setNarrative(narrative);
+
+        AttributesGrid grid = editPage.getAttributesGrid();
+        grid.waitForRows(6);
+
+        // now edit a row
+        AttributeGridRow menRow = grid.getRow("men")
+                .setDataType("String")
+                .setLabel("gender-generic term")
+                .setMin(2)
+                .setMax(7)
+                .setDefault("men")
+                .setRequired(true)
+                .setRedactedText("and women");
+        // move a row Up
+        AttributeGridRow nationRow = grid.getRow("nation")
+                .selectOrder("Move Down");
+
+        listPage = editPage.clickSave();
+        listPage.setSearchFilter(description);
+        PackageViewerResult packageViewerResult = listPage.getPackage(description);
+
+        EditPackagePage viewPage = packageViewerResult.clickView();
+        assertEquals("narrative should equal what we set" ,narrative, viewPage.getNarrative());
+        assertEquals("description should equal what we set" ,description, viewPage.getDescription());
     }
 
     @Test
