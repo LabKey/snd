@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class SNDController extends SpringActionController
 {
@@ -134,10 +135,25 @@ public class SNDController extends SpringActionController
                 pkg.setAttributes(pds);
             }
 
-            // Get top-level packages that correspond to children
+            // Get super packages
             JSONArray jsonSubPackages = json.getJSONArray("subPackages");  // only first-level children (as package IDs) should be here
             Map<Integer, Integer> superPkgIdToSortOrderMap = new HashMap<>();
-            Integer superPackageId = SNDManager.get().generateSuperPackageId(getContainer());
+            // create super package for root, if needed
+
+            SuperPackage superPackage = SNDManager.get().getRootSuperPkg(getContainer(), getUser(), pkg.getPkgId());
+            Integer rootSuperPackageId;
+            if(superPackage == null)
+            {
+                superPackage = new SuperPackage();
+                rootSuperPackageId = SNDManager.get().generateSuperPackageId(getContainer());
+                superPackage.setSuperPkgId(rootSuperPackageId);
+                superPackage.setSuperPkgPath(Integer.toString(rootSuperPackageId));
+            }
+            else
+            {
+                rootSuperPackageId = superPackage.getSuperPkgId();
+            }
+
             if (null != jsonSubPackages && jsonSubPackages.length() > 0)
             {
                 for (int i = 0; i < jsonSubPackages.length(); i++)
@@ -146,32 +162,41 @@ public class SNDController extends SpringActionController
                     superPkgIdToSortOrderMap.put(jsonSubPackage.getInt("superPkgId"), jsonSubPackage.getInt("sortOrder"));
                 }
 
-                List<SuperPackage> topLevelSuperPackages = SNDManager.getTopLevelSuperPkgs(getContainer(), getUser(), superPkgIdToSortOrderMap.keySet());
-
-                // sort order is only thing we need from UI, so set it here in the mostly-complete super packages
-                for (SuperPackage topLevelSuperPackage : topLevelSuperPackages)
+                // Get top-level packages that correspond to children
+                Set<Integer> superPackageIds = superPkgIdToSortOrderMap.keySet();
+                List<SuperPackage> topLevelSuperPackages = SNDManager.getTopLevelSuperPkgs(getContainer(), getUser(), superPackageIds);
+                if (topLevelSuperPackages != null)
                 {
-                    topLevelSuperPackage.setSortOrder(superPkgIdToSortOrderMap.get(topLevelSuperPackage.getSuperPkgId()));
-                    // now set new super package ID (so that this can be a properly-created child super package later)
-                    topLevelSuperPackage.setSuperPkgId(SNDManager.get().generateSuperPackageId(getContainer()));
-                    // the parent for this child super package is the current super package being saved
-                    topLevelSuperPackage.setParentSuperPkgId(superPackageId);
+                    // sort order is only thing we need from UI, so set it here in the mostly-complete super packages
+                    for (SuperPackage topLevelSuperPackage : topLevelSuperPackages)
+                    {
+                        topLevelSuperPackage.setSortOrder(superPkgIdToSortOrderMap.get(topLevelSuperPackage.getSuperPkgId()));
+                        // now set new super package ID (so that this can be a properly-created child super package later)
+                        topLevelSuperPackage.setSuperPkgId(SNDManager.get().generateSuperPackageId(getContainer()));
+                        // the parent for this child super package is the current super package being saved
+                        topLevelSuperPackage.setParentSuperPkgId(rootSuperPackageId);
+                    }
                 }
 
-                // topLevelSuperPackages is now actually a collection of child super packages, so let's set them in the package
-                pkg.setSubpackages(topLevelSuperPackages);
+                // topLevelSuperPackages is now actually a collection of child super packages
+                // next get existing child super packages and set their sort orders
+
+                List<SuperPackage> childSuperPackages = SNDManager.getChildSuperPkgs(getContainer(), getUser(), superPackageIds, rootSuperPackageId);
+                if (childSuperPackages != null)
+                {
+                    for (SuperPackage childSuperPackage : childSuperPackages)
+                    {
+                        childSuperPackage.setSortOrder(superPkgIdToSortOrderMap.get(childSuperPackage.getSuperPkgId()));
+                    }
+                }
+
+                ArrayList<SuperPackage> subPackages = new ArrayList<>();
+                if (topLevelSuperPackages != null)
+                    subPackages.addAll(topLevelSuperPackages);
+                if (childSuperPackages != null)
+                    subPackages.addAll(childSuperPackages);
+                pkg.setSubpackages(subPackages);
             }
-
-            // create super package for root
-
-            SuperPackage superPackage = new SuperPackage();
-            superPackage.setSuperPkgId(superPackageId);
-            superPackage.setParentSuperPkgId(null);
-            superPackage.setSortOrder(null);
-            superPackage.setChildPackages(null);
-            superPackage.setDescription(pkg.getDescription());
-            superPackage.setNarrative(pkg.getNarrative());
-            superPackage.setSuperPkgPath(Integer.toString(superPackageId));
 
             SNDService.get().savePackage(getViewContext().getContainer(), getUser(), pkg, superPackage);
 

@@ -176,6 +176,11 @@ public class SNDManager
             PackageDomainKind kind = new PackageDomainKind();
             kind.updateDomain(c, u, updateDomain);
         }
+
+        List<SuperPackage> superPackages = new ArrayList<>(pkg.getSubpackages());
+
+        // only need to save children; don't need to save parent super package because nothing about it could have changed
+        saveSuperPackages(u, c, superPackages, errors);
     }
 
     public void createPackage(User u, Container c, Package pkg, SuperPackage superPkg, BatchValidationException errors)
@@ -223,7 +228,7 @@ public class SNDManager
                 superPackages.add(superPkg);
         }
 
-        createSuperPackages(u, c, superPackages, errors);
+        saveSuperPackages(u, c, superPackages, errors);
     }
     
     private List<Integer> getSavedSuperPkgs(Container c, User u)
@@ -236,7 +241,7 @@ public class SNDManager
         return selector.getArrayList(Integer.class);
     }
 
-    public void createSuperPackages(User u, Container c, List<SuperPackage> superPkgs, BatchValidationException errors)
+    public void saveSuperPackages(User u, Container c, List<SuperPackage> superPkgs, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -356,6 +361,22 @@ public class SNDManager
         return parent;
     }
 
+    public static SuperPackage getRootSuperPkg(Container c, User u, Integer packageId)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.PkgId, sp.SuperPkgPath FROM ");
+        sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
+        sql.append(" WHERE sp.PkgId = ?").add(packageId);
+        sql.append(" AND ParentSuperPkgId IS NULL");
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+
+        if (selector.getArrayList(SuperPackage.class).size() == 1)
+            return selector.getArrayList(SuperPackage.class).get(0);
+        else
+            return null;
+    }
+
     // NOTE: this function only fills in SuperPkgId, PkgId and SuperPkgPath (other fields are not useful for our purposes here)
     public static List<SuperPackage> getTopLevelSuperPkgs(Container c, User u, Set<Integer> superPackageIds)
     {
@@ -382,7 +403,34 @@ public class SNDManager
             return null;
     }
 
-    private List<SuperPackage> getChildSuperPkgs(Container c, User u, int pkgId)
+    // NOTE: this function only fills in SuperPkgId, PkgId and SuperPkgPath (other fields are not useful for our purposes here)
+    public static List<SuperPackage> getChildSuperPkgs(Container c, User u, Set<Integer> superPackageIds, Integer parentSuperPackageId)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.PkgId, sp.SuperPkgPath FROM ");
+        sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
+        sql.append(" WHERE SuperPkgId IN (");
+        Iterator<Integer> superPackageIdIterator = superPackageIds.iterator();
+        while(superPackageIdIterator.hasNext())
+        {
+            Integer superPkgId = superPackageIdIterator.next();
+            if(!superPackageIdIterator.hasNext())
+                sql.append("?").add(superPkgId);
+            else
+                sql.append("?,").add(superPkgId);
+        }
+        sql.append(") AND ParentSuperPkgId = ?").add(parentSuperPackageId);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+
+        if (selector.getArrayList(SuperPackage.class).size() > 0)
+            return selector.getArrayList(SuperPackage.class);
+        else
+            return null;
+    }
+
+
+    private List<SuperPackage> getAllChildSuperPkgs(Container c, User u, int pkgId)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -422,7 +470,7 @@ public class SNDManager
 
     private Package addSubPackagesToPackage(Container c, User u, Package pkg)
     {
-        pkg.setSubpackages(getChildSuperPkgs(c, u, pkg.getPkgId()));
+        pkg.setSubpackages(getAllChildSuperPkgs(c, u, pkg.getPkgId()));
 
         return pkg;
     }
