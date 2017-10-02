@@ -231,8 +231,8 @@ export class PackageWizardModel implements PackageWizardModelProps {
         return actions.packageWarning(this, warning);
     }
 
-    submitForm(active: boolean, onSuccess?: any) {
-        return actions.save(this, this.formatPackageValues(active), onSuccess);
+    submitForm(active: boolean) {
+        return actions.save(this, this.formatPackageValues(active));
     }
 
     success(response: PackageQueryResponse, view: PACKAGE_VIEW) {

@@ -3,6 +3,7 @@ import { Button, Modal, Panel } from 'react-bootstrap'
 import { RouteComponentProps } from 'react-router-dom'
 
 import { connect } from 'react-redux';
+import { push } from 'react-router-redux'
 import { Dispatch } from 'redux';
 
 import * as actions from '../../Wizards/Packages/actions'
@@ -91,7 +92,6 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
 
         this.panelHeader = resolvePackageHeader(this.view, id);
 
-        this.dismissWarning = this.dismissWarning.bind(this);
         this.handleCancel = this.handleCancel.bind(this);
         this.handleFieldChange = this.handleFieldChange.bind(this);
         this.handleNarrativeChange = this.handleNarrativeChange.bind(this);
@@ -113,8 +113,8 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
     }
 
     handleCancel() {
-        const { history } = this.props;
-        history.goBack();
+        const { dispatch } = this.props;
+        dispatch(push('/packages'))
     }
 
     handleFieldChange(name, value) {
@@ -124,8 +124,8 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
     }
 
     handleSubmit(active: boolean) {
-        const { dispatch, history, model } = this.props;
-        dispatch(model.submitForm(active, history.push));
+        const { dispatch, model } = this.props;
+        dispatch(model.submitForm(active));
     }
 
     handleNarrativeChange(value) {
@@ -151,16 +151,6 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
         }
 
         return <div><i className="fa fa-spinner fa-spin fa-fw"/> Loading...</div>;
-    }
-
-    dismissWarning() {
-        const { dispatch, model } = this.props;
-        dispatch(model.setWarning());
-    }
-
-    setModelWarning(warning?: string) {
-        const { dispatch, model } = this.props;
-        dispatch(model.setWarning(warning));
     }
 
     renderModal() {
@@ -196,6 +186,11 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
         }
     }
 
+    setModelWarning(warning?: string) {
+        const { dispatch, model } = this.props;
+        // if no warning is provided, warning will be toggled off and message removed
+        dispatch(model.setWarning(warning));
+    }
 
     render() {
         return (

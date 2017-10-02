@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Button, Modal, Panel } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import { RouteComponentProps } from 'react-router-dom';
+import { push } from 'react-router-redux'
 import { Form, FormProps, Field, reduxForm } from 'redux-form';
 
 import * as actions from '../../../query/actions'
@@ -15,17 +16,6 @@ import { FieldTextInput } from '../../../components/Form/TextInput'
 import { saveCategoryChanges } from './actions'
 
 export class EditCategories extends React.Component<RouteComponentProps<any>, any> {
-    constructor(props) {
-        super(props);
-
-        this.handleCancel = this.handleCancel.bind(this);
-    }
-
-    handleCancel() {
-        const { history } = this.props;
-        history.goBack();
-    }
-
     render() {
         return (
             <Panel>
@@ -33,7 +23,7 @@ export class EditCategories extends React.Component<RouteComponentProps<any>, an
                 <QuerySearch
                     id='EditCategories'
                     schemaQuery={EDITABLE_CAT_SQ}>
-                    <EditCategoriesForm handleCancel={this.handleCancel}/>
+                    <EditCategoriesForm/>
                 </QuerySearch>
             </Panel>
         );
@@ -96,7 +86,6 @@ interface EditCategoriesState extends FormProps<any, any, any> {
 }
 
 interface EditCategoriesOwnProps {
-    handleCancel: () => void
     model?: QueryModel
 }
 
@@ -160,10 +149,8 @@ export class EditCategoriesImpl extends React.Component<EditCategoriesProps, Edi
     }
 
     handleCancel() {
-        const { handleCancel } = this.props;
-        if (handleCancel && typeof handleCancel === 'function') {
-            handleCancel();
-        }
+        const { dispatch } = this.props;
+        dispatch(push('/packages'))
     }
 
     handleDelete(rowId: number) {

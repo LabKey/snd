@@ -1,3 +1,5 @@
+import { push } from 'react-router-redux'
+
 import { PKG_WIZARD_TYPES } from './constants'
 import { PackageModel, PackageModelAttribute, PackageWizardModel, PackageSubmissionModel } from './model'
 
@@ -194,7 +196,7 @@ interface PackageQueryResponse {
     json: Array<PackageModel>
 }
 
-export function save(model: PackageWizardModel, pkg: PackageSubmissionModel, onSuccess?: any) {
+export function save(model: PackageWizardModel, pkg: PackageSubmissionModel) {
     return (dispatch, getState) => {
         dispatch(setSubmitting(model));
         const updatedModel = getState().wizards.packages.packageData[model.packageId];
@@ -204,7 +206,8 @@ export function save(model: PackageWizardModel, pkg: PackageSubmissionModel, onS
             dispatch(packagesInvalidate());
             dispatch(queryInvalidate(PKG_SQ));
             dispatch(queryInvalidate(TOPLEVEL_SUPER_PKG_SQ));
-            onSuccess('/packages');
+            //onSuccess('/packages');
+            dispatch(push('/packages'));
         }).catch((error) => {
             console.warn('save package error', error);
             dispatch(resetSubmitting(updatedModel));
