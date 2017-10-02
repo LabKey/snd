@@ -4,11 +4,14 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.labkey.test.Locator;
 import org.labkey.test.WebDriverWrapper;
 import org.labkey.test.WebTestHelper;
+import org.labkey.test.components.snd.CategoryEditRow;
 import org.labkey.test.pages.LabKeyPage;
 import org.labkey.test.selenium.LazyWebElement;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+
+import java.util.List;
 
 public class EditCategoriesPage extends LabKeyPage<EditCategoriesPage.ElementCache>
 {
@@ -31,18 +34,36 @@ public class EditCategoriesPage extends LabKeyPage<EditCategoriesPage.ElementCac
     public EditCategoriesPage addCategory(String category, boolean active)
     {
         elementCache().addCategoriesBtn.click();
-
-        // todo: find the new category row, set the category and active state
-        throw new NotImplementedException("not yet");
-        //return this;
+        CategoryEditRow newCategory = CategoryEditRow.finder(getDriver()).withEmptyDescription().find();
+        newCategory
+                .setDescription(category)
+                .setActive(active);
+        return this;
     }
 
-    public PackageListPage clickSave()
+    public CategoryEditRow getCategory(String category)
+    {
+        return CategoryEditRow.finder(getDriver()).withDescription(category).findOrNull();
+    }
+
+    public EditCategoriesPage deleteCategory(String category)
+    {
+        CategoryEditRow toDelete = CategoryEditRow.finder(getDriver()).withDescription(category).find();
+        toDelete.delete();
+        return this;
+    }
+
+    public List<CategoryEditRow> getAllCategories()
+    {
+        return CategoryEditRow.finder(getDriver()).findAll();
+    }
+
+    public EditCategoriesPage clickSave()
     {
         waitFor(()-> elementCache().saveButton.getAttribute("disabled")==null,
                 "'Save' button is disabled", 2000);
         elementCache().saveButton.click();
-        return new PackageListPage(getDriver());
+        return new EditCategoriesPage(getDriver());
     }
 
     public PackageListPage clickCancel()
@@ -61,9 +82,10 @@ public class EditCategoriesPage extends LabKeyPage<EditCategoriesPage.ElementCac
     protected class ElementCache extends LabKeyPage.ElementCache
     {
         // TODO: Add other elements that are on the page
-        WebElement addCategoriesBtn = Locator.tagWithClass("i", "fa fa-plus-circle")
-                .parent().containing("Add Category").findWhenNeeded(getDriver());
-        WebElement cancelButton = Locator.button("Cancel").findWhenNeeded(getDriver());
-        WebElement saveButton = Locator.button("Save").findWhenNeeded(getDriver());
+        WebElement addCategoriesBtn = Locator.tag("div").containing("Add Category")
+                .withChild(Locator.tagWithClass("i", "fa fa-plus-circle"))
+                .findWhenNeeded(getDriver()).withTimeout(4000);
+        WebElement cancelButton = Locator.button("Cancel").findWhenNeeded(getDriver()).withTimeout(4000);
+        WebElement saveButton = Locator.button("Save").findWhenNeeded(getDriver()).withTimeout(4000);
     }
 }

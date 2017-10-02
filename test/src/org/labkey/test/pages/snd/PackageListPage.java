@@ -44,14 +44,11 @@ public class PackageListPage extends LabKeyPage<PackageListPage.ElementCache>
         return this;
     }
 
-    public BootstrapMenu getOptionsMenu()
-    {
-        return BootstrapMenu.finder(getDriver()).withButtonText("Options").findWhenNeeded(elementCache().searchHeader);
-    }
-
     public EditCategoriesPage clickEditCategories()
     {
-        getOptionsMenu().clickSubMenu(false, "Edit Categories");
+        Locator.id("package-actions").waitForElement(elementCache().container, 4000).click();
+        Locator listItem = Locator.xpath("//ul/li/a[text()='Edit Categories']");
+        waitForElement(listItem).click();
         return new EditCategoriesPage(getDriver());
     }
 

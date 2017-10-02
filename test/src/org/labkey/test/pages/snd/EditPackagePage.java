@@ -74,6 +74,11 @@ public class EditPackagePage extends LabKeyPage<EditPackagePage.ElementCache>
         return elementCache().grid;
     }
 
+    public FilterSelect getCategoriesSelect()
+    {
+        return elementCache().categoryPicker;
+    }
+
     public PackageListPage clickSave()
     {
         waitFor(()-> elementCache().saveButton.getAttribute("disabled")==null,
@@ -118,7 +123,7 @@ public class EditPackagePage extends LabKeyPage<EditPackagePage.ElementCache>
         WebElement panelHeading = Locator.tagWithClass("div", "panel-heading").findWhenNeeded(appContainer);
         WebElement panelBody = Locator.tagWithClass("div", "panel-body").findWhenNeeded(appContainer);
 
-        // container for description, narrative, categories edits
+        // container for description, narrative
         WebElement packageEditPanel = Locator.xpath("//div[@class='col-sm-8']")
                 .withDescendant(Locator.tagWithClass("label", "control-label").withText("Package Id"))
                 .findWhenNeeded(getDriver());
@@ -137,11 +142,14 @@ public class EditPackagePage extends LabKeyPage<EditPackagePage.ElementCache>
                 Locator.tagWithClassContaining("div", "PackageForm__margin")
                         .withChild(Locator.tagWithText("strong", "Attributes"))
                         .followingSibling("div").withDescendant(Locator.tag("table"))
-                        .findWhenNeeded(getDriver()),
+                        .findWhenNeeded(getDriver()).withTimeout(4000),
                 getDriver());
 
+        WebElement categoryEditPanel = Locator.xpath("//div[@class='col-sm-4']")
+                .withDescendant(Locator.tagWithClass("label", "control-label").withText("Categories"))
+                .findWhenNeeded(getDriver()).withTimeout(4000);
         FilterSelect categoryPicker = FilterSelect.finder(getDriver())
-                .findWhenNeeded(packageEditPanel);
+                .findWhenNeeded(categoryEditPanel);
 
 
         // TODO: Available Packages summary (add package)

@@ -42,6 +42,8 @@ import org.labkey.test.categories.CustomModules;
 import org.labkey.test.components.CustomizeView;
 import org.labkey.test.components.snd.AttributeGridRow;
 import org.labkey.test.components.snd.AttributesGrid;
+import org.labkey.test.components.snd.CategoryEditRow;
+import org.labkey.test.components.snd.FilterSelect;
 import org.labkey.test.components.snd.PackageViewerResult;
 import org.labkey.test.pages.snd.EditCategoriesPage;
 import org.labkey.test.pages.snd.EditPackagePage;
@@ -58,7 +60,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @Category ({CustomModules.class})
 public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
@@ -361,6 +366,9 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         _containerHelper.enableModules(Arrays.asList("SND"));
         _containerHelper.createSubfolder(getProjectName(), getProjectName(), TEST1SUBFOLDER, "Collaboration", new String[]{"SND"});
         setupTest1Project();
+
+        //insert package categories
+        runScript(CREATECATEGORIESAPI);
     }
 
     private void setupTest1Project()
@@ -413,6 +421,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     }
 
     @Test
+    @Ignore
     public void submitDraftPackageForReview()
     {
         String description = "Our first package draft. Ambitious!";
@@ -499,7 +508,14 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
                 " upon this {continent}, a new {nation}, conceived in liberty, " +
                 "and dedicated to the proposition that all {men} are created equal.";
         PackageListPage listPage = PackageListPage.beginAt(this , getProjectName());
+
         EditPackagePage editPage = listPage.clickNewPackage();
+        FilterSelect categoriesSelect = editPage.getCategoriesSelect();
+        categoriesSelect
+                .selectItem("Surgery")
+                .selectItem("Blood Draw")
+                .close();
+
         editPage.setDescription(description);
         editPage.setNarrative(narrative);
 
@@ -526,6 +542,45 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         EditPackagePage viewPage = packageViewerResult.clickView();
         assertEquals("narrative should equal what we set" ,narrative, viewPage.getNarrative());
         assertEquals("description should equal what we set" ,description, viewPage.getDescription());
+
+        List<String> selectedCategories = viewPage.getCategoriesSelect().getSelections();
+        assertTrue("Expect Blood Draw category", selectedCategories.stream().anyMatch((a)-> a.contains("Blood Draw")));
+        assertTrue("Expect Surgery category", selectedCategories.stream().anyMatch((a)-> a.contains("Surgery")));
+    }
+
+    @Test
+    public void editCategories()
+    {
+        PackageListPage listPage = PackageListPage.beginAt(this , getProjectName());
+
+        EditCategoriesPage catPage = listPage.clickEditCategories();
+
+        // create a new one
+        catPage.addCategory("new category", true);
+
+        // edit an existing one
+        catPage.getCategory("Blood Draw")
+                .setActive(false);
+
+        catPage.deleteCategory("Weight");
+        catPage = catPage.clickSave();
+
+        List<CategoryEditRow> allCategories = catPage.getAllCategories();
+
+        CategoryEditRow surgeryRowCat = catPage.getCategory("Surgery");
+        assertNotNull("Surgery category should exist", surgeryRowCat);
+        assertEquals("Surgery category should be active", true, surgeryRowCat.getIsActive());
+
+        CategoryEditRow bloodDrawCat = catPage.getCategory("Blood Draw");
+        assertNotNull("Blood Draw category should exist", bloodDrawCat);
+        assertEquals("Blood Draw category should be inactive", false, bloodDrawCat.getIsActive());
+
+        CategoryEditRow newCat = catPage.getCategory("new category");
+        assertNotNull("new category should exist", newCat);
+        assertEquals("new category should be active", true, newCat.getIsActive());
+
+        CategoryEditRow weightCat = catPage.getCategory("Weight");
+        assertNull("Weight category should have been deleted", weightCat);
     }
 
     @Test
@@ -584,8 +639,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     @Test
     public void testPackageApis()
     {   DataRegionTable dataRegionTable;
-        //insert package categories
-        runScript(CREATECATEGORIESAPI);
+
         goToProjectHome();
         goToSchemaBrowser();
         viewQueryData("snd", "PkgCategories");

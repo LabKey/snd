@@ -1,12 +1,16 @@
 package org.labkey.test.components.snd;
 
 import org.labkey.test.Locator;
+import org.labkey.test.WebDriverWrapper;
 import org.labkey.test.components.WebDriverComponent;
 import org.labkey.test.components.html.Input;
 import org.labkey.test.pages.LabKeyPage;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.labkey.test.components.html.Input.Input;
@@ -39,9 +43,31 @@ public class FilterSelect extends WebDriverComponent<FilterSelect.ElementCache>
         return _driver;
     }
 
+
+    public boolean isOpen()
+    {   // this assumes any buttons/items exist
+        WebElement searchContainer = Locator.tagWithClassContaining("div", "data-search__container")
+                .child(Locator.tag("div").child(Locator.tag("div").child("button")))
+                .findElementOrNull(getComponentElement());
+        return searchContainer != null && searchContainer.isDisplayed();
+    }
+
     public FilterSelect open()
     {
-        elementCache().input.getComponentElement().click();
+        if (!isOpen())
+            elementCache().input.getComponentElement().click();
+        getWrapper().waitFor(()-> isOpen(), 1000);
+        return this;
+    }
+
+    public FilterSelect close()
+    {
+        if (isOpen())
+        {
+            // click just to the right of the input element
+            getWrapper().clickAt(elementCache().input.getComponentElement(), -10, 180, 0);
+        }
+        getWrapper().waitFor(()-> !isOpen(), 1000);
         return this;
     }
 
@@ -53,19 +79,34 @@ public class FilterSelect extends WebDriverComponent<FilterSelect.ElementCache>
 
     public FilterSelect selectItem(String itemText)
     {
+        open();
+        WebElement item = elementCache().option(itemText);
+        getWrapper().scrollIntoView(item);
+        getWrapper().fireEvent(item, WebDriverWrapper.SeleniumEvent.mouseover);
+        if (Locator.tagWithClass("i", "fa fa-check").findElementOrNull(item) == null)
+            item.click();
+        return this;
+    }
+
+    public FilterSelect deselectItem(String itemText)
+    {
         WebElement item = elementCache().option(itemText);
         getWrapper().scrollIntoView(item);
         if (Locator.tagWithClass("i", "fa fa-check").findElementOrNull(item) != null)
             item.click();
         return this;
     }
-    public FilterSelect deselectItem(String itemText)
+
+    public List<String> getSelections()
     {
-        WebElement item = elementCache().option(itemText);
-        getWrapper().scrollIntoView(item);
-        if (Locator.tagWithClass("i", "fa fa-check").findElementOrNull(item) == null)
-            item.click();
-        return this;
+        close();
+        WebElement selectionsContainer = Locator.tagWithClass("div", "data-search__row_selected")
+                .childTag("div")
+                .findElementOrNull(getComponentElement());
+        if (null==selectionsContainer)
+            return new ArrayList<>();
+
+        return Arrays.asList(selectionsContainer.getText().split(","));
     }
 
     protected ElementCache newElementCache()
@@ -80,7 +121,7 @@ public class FilterSelect extends WebDriverComponent<FilterSelect.ElementCache>
         WebElement option(String text)
         {
             return Locator.tagWithClassContaining("button", "list-group-item")
-                    .withChild(Locator.tagWithText("div", text))
+                    .withChild(Locator.tagContainingText("div", text))
                     .findElement(getComponentElement());
         }
         List<WebElement> options()
