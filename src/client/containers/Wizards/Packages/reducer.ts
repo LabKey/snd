@@ -260,7 +260,6 @@ function isFormValid(data: PackageModel, initialData: PackageModel, view: PACKAG
         });
     }
 
-    //todo: add check for sub/superpackages
     if (isValid && view === PACKAGE_VIEW.EDIT) {
         // need to loop through initialData to compare with currentValues if view === edit
         return (
@@ -278,7 +277,9 @@ function isFormValid(data: PackageModel, initialData: PackageModel, view: PACKAG
                     }
                     return false;
                 }) !== -1;
-            })
+            }) || // check list of initial and current subpackages, if changed, form is valid to save
+            data.subPackages.map(p => p.PkgId).sort().join('') !==
+            initialData.subPackages.map(p => p.PkgId).sort().join('')
         )
     }
 
