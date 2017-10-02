@@ -163,6 +163,7 @@ interface PackageWizardModelProps {
     isSubmitted?: boolean;
     isSubmitting?: boolean;
     isValid?: boolean;
+    isWarning?: boolean;
     message?: string;
     packageCount?: number;
     packageId?: number
@@ -179,6 +180,7 @@ export class PackageWizardModel implements PackageWizardModelProps {
     isSubmitted: boolean = false;
     isSubmitting: boolean = false;
     isValid: boolean = false;
+    isWarning: boolean = false;
     message: string = undefined;
     packageCount: number = 0;
     packageId: number = undefined;
@@ -221,6 +223,10 @@ export class PackageWizardModel implements PackageWizardModelProps {
 
     setError(error) {
         return actions.packageError(this, error);
+    }
+
+    setWarning(warning?: string) {
+        return actions.packageWarning(this, warning);
     }
 
     submitForm(active: boolean, onSuccess?: any) {

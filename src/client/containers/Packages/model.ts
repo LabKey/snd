@@ -105,6 +105,7 @@ interface QuerySuperPackageModelProps {
     Modified: LabKeyQueryRowPropertyProps
     ModifiedBy: LabKeyQueryRowPropertyProps
     ParentSuperPkgId: LabKeyQueryRowPropertyProps
+    Repeatable: LabKeyQueryRowPropertyProps
     SuperPkgPath: LabKeyQueryRowPropertyProps
     SuperPkgId: LabKeyQueryRowPropertyProps
     PkgId: LabKeyQueryRowPropertyProps
@@ -122,6 +123,7 @@ export class QuerySuperPackageModel implements QuerySuperPackageModelProps {
     ModifiedBy: LabKeyQueryRowPropertyProps = undefined;
     Narrative: LabKeyQueryRowPropertyProps = undefined;
     ParentSuperPkgId: LabKeyQueryRowPropertyProps = undefined;
+    Repeatable: LabKeyQueryRowPropertyProps = undefined;
     SuperPkgPath: LabKeyQueryRowPropertyProps = undefined;
     SuperPkgId: LabKeyQueryRowPropertyProps = undefined;
     PkgId: LabKeyQueryRowPropertyProps = undefined;
@@ -139,21 +141,26 @@ export class QuerySuperPackageModel implements QuerySuperPackageModelProps {
 }
 
 interface AssignedPackageModelProps {
-    SuperPkgId: number
-    PkgId: number
     Description: string
     Narrative: string
+    PkgId: number
+    Repeatable: boolean
+    SortOrder: number
     SubPackages: Array<AssignedPackageModel>
+    SuperPkgId: number
+
     altId: number
     loadingSubpackages: boolean
 }
 
 export class AssignedPackageModel implements AssignedPackageModelProps {
-    SuperPkgId: number = undefined;
-    PkgId: number = undefined;
     Description: string = undefined;
     Narrative: string = null;
+    PkgId: number = undefined;
+    Repeatable: boolean = undefined;
+    SortOrder: number = undefined;
     SubPackages: Array<AssignedPackageModel> = [];
+    SuperPkgId: number = undefined;
 
     // set the altId as a way to uniquely remove this assigned package or to handle assigned package click
     altId: number = LABKEY.Utils.id();
@@ -161,10 +168,11 @@ export class AssignedPackageModel implements AssignedPackageModelProps {
     // set to true to indicate that a package is in the process of loading the full hierarchy
     loadingSubpackages: boolean = undefined;
 
-    constructor(pkgId: number, description: string, narrative: string, superPkgId?: number) {
+    constructor(pkgId: number, description: string, narrative: string, repeatable: boolean, superPkgId?: number) {
         this.PkgId = pkgId;
         this.Description = description;
         this.Narrative = narrative;
+        this.Repeatable = repeatable;
         this.SuperPkgId = superPkgId;
     }
 }

@@ -70,7 +70,8 @@ const topLevelSuperPkgRequiredColumns = [
     'Description',
     'Narrative',
     'IsPrimitive',
-    'Container'
+    'Container',
+    'Repeatable'
 ];
 
 export const REQUIRED_COLUMNS = {

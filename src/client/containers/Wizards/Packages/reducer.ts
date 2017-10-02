@@ -18,6 +18,19 @@ export const packages = handleActions({
         return state;
     },
 
+    [PKG_WIZARD_TYPES.PACKAGE_WARNING]: (state: PackageWizardContainer, action: any) => {
+        const { model, warning } = action;
+
+        const warningModel = new PackageWizardModel(Object.assign({}, model, {
+            isWarning: !!warning, // if warning message is provided, set to true, otherwise false
+            message: warning
+        }));
+
+        return new PackageWizardContainer(Object.assign({}, state, {packageData: {
+            [warningModel.packageId]: warningModel
+        }}));
+    },
+
     [PKG_WIZARD_TYPES.PACKAGE_INIT]: (state: PackageWizardContainer, action: any) => {
         const { packageId } = action.props;
 
@@ -218,16 +231,16 @@ export const packages = handleActions({
         }}));
     },
 
-    [PKG_WIZARD_TYPES.SET_SUBMITTING]: (state: PackageWizardContainer, action: any) => {
+    [PKG_WIZARD_TYPES.RESET_SUBMISSION]: (state: PackageWizardContainer, action: any) => {
         const { model } = action;
 
-        const submittingModel = new PackageWizardModel(Object.assign({}, model, {
+        const resetModel = new PackageWizardModel(Object.assign({}, model, {
             isSubmitted: false,
-            isSubmitting: true
+            isSubmitting: false
         }));
 
         return new PackageWizardContainer(Object.assign({}, state, {packageData: {
-            [submittingModel.packageId]: submittingModel
+            [resetModel.packageId]: resetModel
         }}));
     },
 

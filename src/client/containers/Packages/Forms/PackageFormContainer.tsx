@@ -91,10 +91,12 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
 
         this.panelHeader = resolvePackageHeader(this.view, id);
 
+        this.dismissWarning = this.dismissWarning.bind(this);
         this.handleCancel = this.handleCancel.bind(this);
         this.handleFieldChange = this.handleFieldChange.bind(this);
         this.handleNarrativeChange = this.handleNarrativeChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.setModelWarning = this.setModelWarning.bind(this);
     }
 
     componentDidMount() {
@@ -142,6 +144,7 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
                         handleFieldChange={this.handleFieldChange}
                         handleFormSubmit={this.handleSubmit}
                         handleNarrativeChange={this.handleNarrativeChange}
+                        handleWarning={this.setModelWarning}
                         isValid={model.isValid}
                         model={model.data}
                         view={model.formView}/>;
@@ -150,8 +153,35 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
         return <div><i className="fa fa-spinner fa-spin fa-fw"/> Loading...</div>;
     }
 
+    dismissWarning() {
+        const { dispatch, model } = this.props;
+        dispatch(model.setWarning());
+    }
+
+    setModelWarning(warning?: string) {
+        const { dispatch, model } = this.props;
+        dispatch(model.setWarning(warning));
+    }
+
     renderModal() {
         const { model } = this.props;
+
+        if (model && model.isWarning && model.message) {
+            return (
+                <div className="static-modal">
+                    <Modal onHide={() => this.setModelWarning()} show={model.isWarning}>
+                        <Modal.Body>
+                            {model.message}
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <div className="btn-group">
+                                <Button onClick={() => this.setModelWarning()}>Confirm</Button>
+                            </div>
+                        </Modal.Footer>
+                    </Modal>
+                </div>
+            )
+        }
 
         if (model && model.isSubmitting) {
             return (
@@ -181,36 +211,30 @@ export const PackageFormContainer = connect<any, any, PackageFormContainerProps>
 
 function resolvePackageHeader(view: PACKAGE_VIEW, id) {
 
+    let text = '';
     switch (view) {
         case PACKAGE_VIEW.VIEW:
-            return (
-                <div className={styles['header--border__bottom']}>
-                    <h4>View Package - {id}</h4>
-                </div>
-            );
+            text = 'View Package - ' + id;
+            break;
 
         case PACKAGE_VIEW.EDIT:
-            return (
-                <div className={styles['header--border__bottom']}>
-                    <h4>Edit Package - {id}</h4>
-                </div>
-            );
+            text = 'Edit Package - ' + id;
+            break;
 
         case PACKAGE_VIEW.CLONE:
-            return (
-                <div className={styles['header--border__bottom']}>
-                    <h4>New Package - Clone of {id}</h4>
-                </div>
-            );
+            text = 'New Package - Clone of ' + id;
+            break;
 
         case PACKAGE_VIEW.NEW:
-            return (
-                <div className={styles['header--border__bottom']}>
-                    <h4>New Package</h4>
-                </div>
-            );
+            text = 'New Package';
+            break;
 
         default:
-            return null;
     }
+
+    return (
+        <div className={styles['header--border__bottom']}>
+            <h4>{text}</h4>
+        </div>
+    );
 }

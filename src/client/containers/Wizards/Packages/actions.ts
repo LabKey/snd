@@ -5,6 +5,7 @@ import { PACKAGE_VIEW } from '../../Packages/Forms/PackageFormContainer'
 import { labkeyAjax, queryInvalidate } from '../../../query/actions'
 import { packagesInvalidate } from '../../Packages/actions'
 import { PKG_SQ, TOPLEVEL_SUPER_PKG_SQ } from '../../Packages/constants'
+import { setAppError } from "../../App/actions";
 
 function fetchPackage(id: string | number, includeExtraFields: boolean, includeLookups: boolean) {
     return labkeyAjax(
@@ -137,6 +138,14 @@ export function packageSuccess(model: PackageWizardModel, response: PackageQuery
     };
 }
 
+export function packageWarning(model: PackageWizardModel, warning?: string) {
+    return {
+        type: PKG_WIZARD_TYPES.PACKAGE_WARNING,
+        model,
+        warning
+    }
+}
+
 export function saveNarrative(model: PackageWizardModel, narrative: string) {
     return (dispatch) => {
         dispatch({
@@ -153,6 +162,14 @@ export function saveField(model: PackageWizardModel, name: string, value: any) {
         model,
         name,
         value
+    };
+}
+
+
+export function resetSubmitting(model: PackageWizardModel) {
+    return {
+        type: PKG_WIZARD_TYPES.RESET_SUBMISSION,
+        model
     };
 }
 
@@ -177,18 +194,18 @@ interface PackageQueryResponse {
 export function save(model: PackageWizardModel, pkg: PackageSubmissionModel, onSuccess?: any) {
     return (dispatch, getState) => {
         dispatch(setSubmitting(model));
+        const updatedModel = getState().wizards.packages.packageData[model.packageId];
 
         return savePackage(pkg).then((response) => {
-            const updatedModel = getState().wizards.packages.packageData[model.packageId];
-
             dispatch(setSubmitted(updatedModel));
             dispatch(packagesInvalidate());
             dispatch(queryInvalidate(PKG_SQ));
             dispatch(queryInvalidate(TOPLEVEL_SUPER_PKG_SQ));
             onSuccess('/packages');
         }).catch((error) => {
-            // todo handle errors
-            console.log('error', error)
+            console.warn('save package error', error);
+            dispatch(resetSubmitting(updatedModel));
+            dispatch(setAppError(error));
         });
     }
 }
@@ -248,12 +265,12 @@ function savePackage(jsonData) {
             method: 'POST',
             url: LABKEY.ActionURL.buildURL('snd', 'savePackage.api'),
             jsonData,
-            success: (data) => {
+            success: LABKEY.Utils.getCallbackWrapper((data) => {
                 resolve(data);
-            },
-            failure: (data) => {
+            }),
+            failure: LABKEY.Utils.getCallbackWrapper((data) => {
                 reject(data);
-            }
+            })
         });
     })
 }

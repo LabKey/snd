@@ -50,6 +50,7 @@ export class SuperPackageSearchResults extends React.Component<SuperPackageSearc
                                 rowData.PkgId.value,
                                 rowData.PkgId.displayValue,
                                 rowData.Narrative.value,
+                                rowData.Repeatable.value,
                                 rowData.SuperPkgId.value
                             );
 
