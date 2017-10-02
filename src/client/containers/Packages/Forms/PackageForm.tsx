@@ -133,7 +133,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
 
     handleAssignedPackageAdd(assignedPackage: AssignedPackageModel) {
         const { dispatch, model, handleFieldChange, handleWarning } = this.props;
-        const { PkgId, Description, Narrative, Repeatable } = assignedPackage;
+        const { PkgId, Description, Narrative, Repeatable, SuperPkgId } = assignedPackage;
 
         if (!Repeatable) {
             // if the added package cannot be repeated and is already in the assigned packages array, emit warning
@@ -147,7 +147,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         }
 
         // create a new AssignedPackageModel object as the SuperPkgId needs to be undefined as it will be set on save/submit
-        let newAssignedPackage = new AssignedPackageModel(PkgId, Description, Narrative, Repeatable);
+        let newAssignedPackage = new AssignedPackageModel(PkgId, Description, Narrative, Repeatable, SuperPkgId, model.subPackages.length);
         newAssignedPackage.loadingSubpackages = true;
 
         handleFieldChange('subPackages', model.subPackages.concat([newAssignedPackage]));

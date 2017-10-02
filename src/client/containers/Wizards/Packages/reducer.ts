@@ -266,6 +266,7 @@ function isFormValid(data: PackageModel, initialData: PackageModel, view: PACKAG
         return (
             data.description !== initialData.description ||
             data.narrative !== initialData.narrative ||
+            data.repeatable !== initialData.repeatable ||
             data.categories.sort().join('') !== initialData.categories.sort().join('') ||
             data.attributes.some((attribute, i) => {
                 return Object.keys(attribute).findIndex((a) => {

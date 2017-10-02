@@ -168,11 +168,12 @@ export class AssignedPackageModel implements AssignedPackageModelProps {
     // set to true to indicate that a package is in the process of loading the full hierarchy
     loadingSubpackages: boolean = undefined;
 
-    constructor(pkgId: number, description: string, narrative: string, repeatable: boolean, superPkgId?: number) {
+     constructor(pkgId: number, description: string, narrative: string, repeatable: boolean, superPkgId: number, sortOrder?: number) {
         this.PkgId = pkgId;
         this.Description = description;
         this.Narrative = narrative;
         this.Repeatable = repeatable;
+        this.SortOrder = sortOrder;
         this.SuperPkgId = superPkgId;
     }
 }

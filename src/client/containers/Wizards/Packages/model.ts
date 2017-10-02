@@ -114,10 +114,11 @@ export class PackageModel implements PackageModelProps {
     }
 }
 
-interface PackageSubmissionModelProps extends Partial<PackageModel> {
+interface PackageSubmissionModelProps {
     active?: boolean;
     attributes?: Array<PackageModelAttribute>;
     categories?: Array<number>;
+    clone?: boolean;
     container?: string;
     description?: string;
     extraFields?: Array<PackageModelAttributeProps>;
@@ -126,13 +127,14 @@ interface PackageSubmissionModelProps extends Partial<PackageModel> {
     pkgId?: number;
     qcState?: any;
     repeatable?: boolean;
-    subPackages?: Array<AssignedPackageModel>;
+    subPackages?: Array<{sortOrder: number, superPkgId: number}>;
 }
 
 export class PackageSubmissionModel implements PackageSubmissionModelProps {
     active: boolean = false;
     attributes: Array<PackageModelAttribute> = [];
     categories: Array<number> = [];
+    clone: boolean = false;
     container: string = undefined;
     description: string = undefined;
     extraFields: Array<PackageModelAttributeProps> = [];
@@ -141,9 +143,9 @@ export class PackageSubmissionModel implements PackageSubmissionModelProps {
     pkgId: number = undefined;
     qcState: any = null;
     repeatable: boolean = false;
-    subPackages: Array<AssignedPackageModel> = [];
+    subPackages: Array<{sortOrder: number, superPkgId: number}> = [];
 
-    constructor(props: Partial<PackageSubmissionModelProps>) {
+    constructor(props: Partial<PackageSubmissionModel>) {
         if (props) {
             for (let k in props) {
                 if (this.hasOwnProperty(k) && props.hasOwnProperty(k)) {

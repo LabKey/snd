@@ -1,11 +1,14 @@
 import { PKG_WIZARD_TYPES } from './constants'
 import { PackageModel, PackageModelAttribute, PackageWizardModel, PackageSubmissionModel } from './model'
 
+import { setAppError } from "../../App/actions";
+
 import { PACKAGE_VIEW } from '../../Packages/Forms/PackageFormContainer'
-import { labkeyAjax, queryInvalidate } from '../../../query/actions'
 import { packagesInvalidate } from '../../Packages/actions'
 import { PKG_SQ, TOPLEVEL_SUPER_PKG_SQ } from '../../Packages/constants'
-import { setAppError } from "../../App/actions";
+import { AssignedPackageModel } from "../../Packages/model";
+
+import { labkeyAjax, queryInvalidate } from '../../../query/actions'
 
 function fetchPackage(id: string | number, includeExtraFields: boolean, includeLookups: boolean) {
     return labkeyAjax(
@@ -218,45 +221,69 @@ export function formatPackageValues(model: PackageWizardModel, active: boolean):
         id = pkgId;
     }
 
-    const attributes = model.data.attributes.map((attribute, i) => {
-        // loop through the attribute keys and strip off the _# like name_0 = name
-        return new PackageModelAttribute(Object.keys(attribute).reduce((prev, next) => {
-            const nextKey = next.split('_')[0];
-            if (next === 'lookupKey') {
-                if (attribute[next]) {
-                    const splitKey = attribute[next].split('.');
-                    if (splitKey && splitKey.length > 1) {
-                        prev['lookupSchema'] = splitKey[0];
-                        prev['lookupQuery'] = splitKey[1];
-                    }
-                }
-                else {
-                    prev['lookupSchema'] = "";
-                    prev['lookupQuery'] = "";
-                }
-            }
-            else if (next === 'required') {
-                prev['required'] = attribute[next] === 'on';
-            }
-            else {
-                prev[nextKey] = attribute[next];
-            }
-
-            return prev;
-        }, {}));
-    });
+    const attributes = formatAttributes(model.data.attributes),
+        subPackages = formatSubPackages(model.data.subPackages);
 
     return new PackageSubmissionModel({
         active,
         attributes,
         categories,
+        clone: formView === PACKAGE_VIEW.CLONE,
         description,
         extraFields,
         id,
         narrative,
         repeatable,
-        subPackages: [],
+        subPackages
     });
+}
+
+function formatSubPackages(subPackages: Array<AssignedPackageModel>): Array<{sortOrder: number, superPkgId: number}> {
+
+    if (subPackages.length) {
+        return subPackages.map((s: AssignedPackageModel) => {
+            return {
+                sortOrder: s.SortOrder,
+                superPkgId: s.SuperPkgId
+            }
+        });
+    }
+
+    return [];
+}
+
+function formatAttributes(attributes: Array<PackageModelAttribute>): Array<PackageModelAttribute> {
+    if (attributes.length) {
+        return attributes.map((attribute, i) => {
+            // loop through the attribute keys and strip off the _# like name_0 = name
+            return new PackageModelAttribute(Object.keys(attribute).reduce((prev, next) => {
+                const nextKey = next.split('_')[0];
+                if (next === 'lookupKey') {
+                    if (attribute[next]) {
+                        const splitKey = attribute[next].split('.');
+                        if (splitKey && splitKey.length > 1) {
+                            prev['lookupSchema'] = splitKey[0];
+                            prev['lookupQuery'] = splitKey[1];
+                        }
+                    }
+                    else {
+                        prev['lookupSchema'] = "";
+                        prev['lookupQuery'] = "";
+                    }
+                }
+                else if (next === 'required') {
+                    prev['required'] = attribute[next] === 'on';
+                }
+                else {
+                    prev[nextKey] = attribute[next];
+                }
+
+                return prev;
+            }, {}));
+        });
+    }
+
+    return [];
 }
 
 function savePackage(jsonData) {
