@@ -21,6 +21,7 @@ public class SuperPackage
     private String _description; // From referenced package
     private String _narrative; // From referenced package
     private Integer _sortOrder;
+    private Boolean _repeatable;
 
     public static final String SUPERPKG_ID = "SuperPkgId";
     public static final String SUPERPKG_PARENTID = "ParentSuperPkgId";
@@ -28,6 +29,7 @@ public class SuperPackage
     public static final String SUPERPKG_DESCRIPTION = "Description";
     public static final String SUPERPKG_NARRATIVE = "Narrative";
     public static final String SUPERPKG_ORDER = "SortOrder";
+    public static final String SUPERPKG_REPEATABLE = "Repeatable";
     public static final String SUPERPKG_PATH = "SuperPkgPath";
 
     public Integer getParentSuperPkgId()
@@ -64,6 +66,10 @@ public class SuperPackage
     {
         _description = description;
     }
+
+    public Boolean getRepeatable() { return _repeatable; }
+
+    public void setRepeatable(Boolean repeatable) { _repeatable = repeatable; }
 
     public String getNarrative()
     {
@@ -118,6 +124,7 @@ public class SuperPackage
         superPkgValues.put(SUPERPKG_PARENTID, getParentSuperPkgId());
         superPkgValues.put(SUPERPKG_PKGID, getPkgId());
         superPkgValues.put(SUPERPKG_ORDER, getSortOrder());
+        superPkgValues.put(SUPERPKG_REPEATABLE, getRepeatable());
         superPkgValues.put("Container", c);
         superPkgValues.put(SUPERPKG_PATH, getSuperPkgPath());
 
@@ -131,6 +138,8 @@ public class SuperPackage
         json.put(SUPERPKG_PKGID, getPkgId());
         json.put(SUPERPKG_DESCRIPTION, getDescription());
         json.put(SUPERPKG_NARRATIVE, getNarrative());
+        json.put(SUPERPKG_ORDER, getSortOrder());
+        json.put(SUPERPKG_REPEATABLE, getRepeatable());
 
         JSONArray subPackages = new JSONArray();
         if (getChildPackages() != null)
