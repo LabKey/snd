@@ -51,12 +51,10 @@ export class AppImpl extends React.Component<AppProps, {}> {
             alertClassName = 'alert-danger';
             alertType = 'alert';
         }
-
-        if (app.isWarning) {
+        else if (app.isWarning) {
             alertClassName = 'alert-warning';
             alertType = 'warning';
         }
-
         else {
             alertClassName = 'alert-success';
             alertType = 'success';

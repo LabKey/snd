@@ -3,6 +3,7 @@ import { PackagesModel } from './model'
 
 import { deleteRows, queryInvalidate } from '../../query/actions'
 import { QueryModel } from '../../query/model'
+import { setAppError, setAppMessage } from "../App/actions";
 
 export function deletePackage(id: number) {
     return (dispatch) => {
@@ -15,8 +16,15 @@ export function deletePackage(id: number) {
             dispatch(queryInvalidate(PKG_SQ));
             dispatch(queryInvalidate(TOPLEVEL_SUPER_PKG_SQ));
             dispatch(packagesInvalidate());
+
+            dispatch(setAppMessage('Package ' +  id + ' successfully removed.'));
+            setTimeout(() => {
+                dispatch(setAppMessage(''));
+            }, 2000);
         }).catch((error) => {
-            console.log('delete package error', error)
+            dispatch(packagesResetWarning());
+            dispatch(setAppError(error));
+            console.log('delete package error', error);
         });
     }
 }
