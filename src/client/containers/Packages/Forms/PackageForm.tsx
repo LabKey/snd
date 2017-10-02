@@ -50,8 +50,6 @@ interface PackageFormOwnProps {
     handleCancel?: () => void
     handleFieldChange?: (name: string, value: any) => void
     handleNarrativeChange?: (val) => void
-    handleAssignedPackageAdd?: (assignedPackage: AssignedPackageModel) => void
-    handleAssignedPackageRemove?: (assignedPackage: AssignedPackageModel) => void
     handleFormSubmit?: any
     handleWarning?: (warning?: string) => void
     isValid?: boolean
@@ -83,6 +81,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         this.handleNarrativeChange = this.handleNarrativeChange.bind(this);
         this.handleAssignedPackageAdd = this.handleAssignedPackageAdd.bind(this);
         this.handleAssignedPackageRemove = this.handleAssignedPackageRemove.bind(this);
+        this.handleAssignedPackageReorder = this.handleAssignedPackageReorder.bind(this);
         this.handleAssignedPackageClick = this.handleAssignedPackageClick.bind(this);
         this.submit = this.submit.bind(this);
     }
@@ -157,18 +156,51 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
     }
 
     handleAssignedPackageRemove(assignedPackage: AssignedPackageModel) {
-        const { model, handleFieldChange } = this.props;
+        const { handleFieldChange } = this.props;
+        handleFieldChange('subPackages', this.getNonmatchingSubpackages(assignedPackage));
+    }
 
-        // if the remove is of a previously saved assigned package, we can remove it by SuperPkgId
-        // otherwise use the generated altId to remove
-        handleFieldChange('subPackages', model.subPackages.filter((subPackage) => {
+    handleAssignedPackageReorder(assignedPackage: AssignedPackageModel, moveUp: boolean) {
+        const { handleFieldChange } = this.props;
+
+        let index = this.getSubpackageIndexOf(assignedPackage);
+        if (!moveUp)
+            index++;
+        else if (index > 0)
+            index--;
+
+        let newSubPackageArr = this.getNonmatchingSubpackages(assignedPackage);
+        newSubPackageArr.splice(index, 0, assignedPackage);
+
+        console.log(newSubPackageArr);
+        handleFieldChange('subPackages', newSubPackageArr);
+    }
+
+    getSubpackageIndexOf(assignedPackage: AssignedPackageModel) {
+        const { model } = this.props;
+        for (let i = 0; i < model.subPackages.length; i++) {
+            const subPackage = model.subPackages[i];
+            const idProp = assignedPackage.SuperPkgId != undefined ? 'SuperPkgId' : 'altId';
+            if (subPackage[idProp] == assignedPackage[idProp]) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    getNonmatchingSubpackages(assignedPackage: AssignedPackageModel) {
+        const { model } = this.props;
+
+        // if the assignedPackage is a previously saved assigned package, we can match by SuperPkgId
+        // otherwise use the generated altId to match
+        return model.subPackages.filter((subPackage) => {
             if (assignedPackage.SuperPkgId != undefined) {
                 return subPackage.SuperPkgId != assignedPackage.SuperPkgId;
             }
             else {
                 return subPackage.altId != assignedPackage.altId;
             }
-        }));
+        });
     }
 
     handleAssignedPackageClick(assignedPackage: AssignedPackageModel) {
@@ -292,6 +324,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                             subPackages={model.subPackages}
                             selectedSubPackage={selectedSubPackage}
                             handleAssignedPackageRemove={this.handleAssignedPackageRemove}
+                            handleAssignedPackageReorder={this.handleAssignedPackageReorder}
                             handleRowClick={this.handleAssignedPackageClick}
                             view={view}/>
                     </div>

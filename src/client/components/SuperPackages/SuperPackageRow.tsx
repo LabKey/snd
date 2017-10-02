@@ -8,6 +8,7 @@ const styles = require<any>('./SuperPackageRow.css');
 interface SuperPackageRowProps {
     model: AssignedPackageModel
     selected?: boolean
+    handleMenuReorderAction?: (model: AssignedPackageModel, moveUp: boolean) => any
     handleIconClick?: (model: AssignedPackageModel) => any
     handleRowClick?: (model: AssignedPackageModel) => any
     menuActionName?: string
@@ -57,17 +58,15 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
     }
 
     render() {
-        const { model, selected, menuActionName, handleMenuAction, treeLevel, treeCollapsed, view } = this.props;
+        const {
+            model, selected, treeLevel, treeCollapsed, view,
+            menuActionName, handleMenuAction, handleMenuReorderAction
+        } = this.props;
         const { isHover } = this.state;
         let isReadyOnly = view == PACKAGE_VIEW.VIEW;
         let treeLevelVal = treeLevel == undefined ? -1 : treeLevel;
         let treeCollapsedVal = treeCollapsed != undefined && treeCollapsed;
         let indentPx = treeLevel == undefined ? 0 : treeLevelVal * 15;
-
-        let caretStyle = {width: '15px'};
-        if (model.SubPackages.length == 0) {
-            caretStyle['opacity'] = 0.7;
-        }
 
         return (
             <div
@@ -82,10 +81,12 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
                 <div className="pull-left" style={{marginLeft: indentPx + 'px'}}>
                     {treeLevelVal > -1
                         ? model.loadingSubpackages != undefined && model.loadingSubpackages === true
-                            ? <i className="fa fa-spinner fa-pulse">&nbsp;</i>
+                            ? <i className="fa fa-spinner fa-spin">&nbsp;</i>
                             : !treeCollapsedVal && model.SubPackages.length > 0
-                                ? <i className="icon-tree-toggle fa fa-caret-down" style={caretStyle}>&nbsp;</i>
-                                : <i className="icon-tree-toggle fa fa-caret-right" style={caretStyle}>&nbsp;</i>
+                                ? <i className="icon-tree-toggle fa fa-caret-down">&nbsp;</i>
+                                : model.SubPackages.length == 0
+                                    ? <i className={"icon-tree-toggle fa fa-circle " + styles["superpackage-row-leaf"]}>&nbsp;</i>
+                                    : <i className="icon-tree-toggle fa fa-caret-right">&nbsp;</i>
                         : null
                     }
                     {[model.PkgId, model.Description].join(' - ')}
@@ -94,6 +95,14 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
                     <DropdownButton id="superpackage-actions" title="" pullRight className={styles["superpackage-row-option-btn"]}>
                         {!isReadyOnly && menuActionName
                             ? <MenuItem onClick={() => handleMenuAction(model)}>{menuActionName}</MenuItem>
+                            : null
+                        }
+                        {handleMenuReorderAction
+                            ? <MenuItem onClick={() => handleMenuReorderAction(model, true)}>Move Up</MenuItem>
+                            : null
+                        }
+                        {handleMenuReorderAction
+                            ? <MenuItem onClick={() => handleMenuReorderAction(model, false)}>Move Down</MenuItem>
                             : null
                         }
                         <MenuItem disabled>Full Narrative</MenuItem>

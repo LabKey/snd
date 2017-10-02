@@ -244,9 +244,9 @@ export function formatPackageValues(model: PackageWizardModel, active: boolean):
 function formatSubPackages(subPackages: Array<AssignedPackageModel>): Array<{sortOrder: number, superPkgId: number}> {
 
     if (subPackages.length) {
-        return subPackages.map((s: AssignedPackageModel) => {
+        return subPackages.map((s: AssignedPackageModel, i: number) => {
             return {
-                sortOrder: s.SortOrder,
+                sortOrder: i,
                 superPkgId: s.SuperPkgId
             }
         });
