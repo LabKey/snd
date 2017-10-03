@@ -172,7 +172,6 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         let newSubPackageArr = this.getNonmatchingSubpackages(assignedPackage);
         newSubPackageArr.splice(index, 0, assignedPackage);
 
-        console.log(newSubPackageArr);
         handleFieldChange('subPackages', newSubPackageArr);
     }
 
