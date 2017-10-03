@@ -177,7 +177,10 @@ public class SNDManager
             kind.updateDomain(c, u, updateDomain);
         }
 
-        List<SuperPackage> superPackages = new ArrayList<>(pkg.getSubpackages());
+
+        List<SuperPackage> superPackages = new ArrayList<>();
+        if (pkg.getSubpackages() != null)
+            superPackages.addAll(pkg.getSubpackages());
 
         // only need to save children; don't need to save parent super package because nothing about it could have changed
         saveSuperPackages(u, c, superPackages, errors);
