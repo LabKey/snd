@@ -10,6 +10,7 @@ import { AssignedPackageModel } from "../model";
 interface SuperPackageViewerOwnProps {
     schemaQuery: SchemaQuery
     handleAssignedPackageAdd: (assignedPackage: AssignedPackageModel) => void
+    handleFullNarrative: (model: AssignedPackageModel, shouldQuery: boolean) => void
     model?: QueryModel
     view: PACKAGE_VIEW
 }
@@ -38,6 +39,7 @@ export class SuperPackageViewer extends React.Component<SuperPackageViewerProps,
 
         this.handleClear = this.handleClear.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
+        this.handleAssignedFullNarrative = this.handleAssignedFullNarrative.bind(this);
         this.togglePrimitivesOnly = this.togglePrimitivesOnly.bind(this);
     }
 
@@ -57,6 +59,11 @@ export class SuperPackageViewer extends React.Component<SuperPackageViewerProps,
             this.timer = null;
             this.updateFilterIds();
         }, 50);
+    }
+
+    handleAssignedFullNarrative(model: AssignedPackageModel) {
+        const { handleFullNarrative } = this.props;
+        handleFullNarrative(model, true);
     }
 
     togglePrimitivesOnly() {
@@ -121,6 +128,7 @@ export class SuperPackageViewer extends React.Component<SuperPackageViewerProps,
                         primitivesOnly={primitivesOnly}
                         isLoaded={model.isLoaded}
                         handleAssignedPackageAdd={handleAssignedPackageAdd}
+                        handleFullNarrative={this.handleAssignedFullNarrative}
                         view={view}
                     />
                 </div>

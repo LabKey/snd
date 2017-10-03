@@ -13,7 +13,7 @@ interface SuperPackageRowProps {
     handleRowClick?: (model: AssignedPackageModel) => any
     menuActionName?: string
     handleMenuAction?: (model: AssignedPackageModel) => any
-    handleFullNarrative?: any
+    handleFullNarrative?: (model: AssignedPackageModel) => void
     treeLevel?: number
     treeArrIndex?: number
     treeArrLength?: number

@@ -10,9 +10,10 @@ import * as actions from '../../Wizards/Packages/actions'
 import { PackageWizardModel } from '../../Wizards/Packages/model'
 
 import { PackageForm } from './PackageForm'
-import {AssignedPackageModel} from "../model";
-import NarrativeRow from "./NarrativeRow";
-import {PKG_WIZARD_TYPES} from "../../Wizards/Packages/constants";
+import { AssignedPackageModel } from "../model";
+import { PKG_WIZARD_TYPES } from '../../Wizards/Packages/constants'
+import { queryPackageFullNarrative } from '../../Wizards/Packages/actions'
+import NarrativeRow from './NarrativeRow'
 
 const styles = require<any>('./PackageForm.css');
 
@@ -141,14 +142,19 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
         }
     }
 
-    showFullNarrative(pkg: AssignedPackageModel) {
+    showFullNarrative(pkg: AssignedPackageModel, shouldQuery: boolean) {
         const { dispatch, model } = this.props;
 
-        dispatch({
-            type: PKG_WIZARD_TYPES.PACKAGE_FULL_NARRATIVE,
-            model,
-            narrativePkg: pkg
-        });
+        if (shouldQuery) {
+            dispatch(queryPackageFullNarrative(pkg.PkgId, model));
+        }
+        else {
+            dispatch({
+                type: PKG_WIZARD_TYPES.PACKAGE_FULL_NARRATIVE,
+                model,
+                narrativePkg: pkg
+            });
+        }
     }
 
     closeFullNarrative() {
@@ -160,13 +166,16 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
         });
     }
 
-    renderNarrative(narrativePkg: AssignedPackageModel) {
+    renderNarrative(narrativePkg: AssignedPackageModel, level: number) {
+        const { SubPackages } = narrativePkg;
+        const key = "narrative-row-" + (narrativePkg.SuperPkgId || narrativePkg.altId);
+
         return (
-            <div>
-                <NarrativeRow
-                    Narrative={narrativePkg.Narrative}
-                    SubPackages={narrativePkg.SubPackages}
-                />
+            <div key={key}>
+                <NarrativeRow model={narrativePkg} level={level} />
+                {SubPackages.map((subPackage) =>
+                    this.renderNarrative(subPackage, level + 1)
+                )}
             </div>
         );
     }
@@ -229,7 +238,7 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
                                 <Modal.Title>Full Narrative for Package {model.narrativePkg.PkgId}</Modal.Title>
                             </Modal.Header>
                             <Modal.Body>
-                                {this.renderNarrative(model.narrativePkg)}
+                                {this.renderNarrative(model.narrativePkg, 0)}
                             </Modal.Body>
                             <Modal.Footer>
                                 <Button onClick={this.closeFullNarrative}>Close</Button>

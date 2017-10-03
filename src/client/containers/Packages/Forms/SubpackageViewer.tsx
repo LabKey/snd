@@ -13,7 +13,7 @@ interface SubpackageViewerOwnProps {
     handleAssignedPackageRemove: (assignedPackage: AssignedPackageModel) => any
     handleAssignedPackageReorder: (assignedPackage: AssignedPackageModel, moveUp: boolean) => any
     handleRowClick: (assignedPackage: AssignedPackageModel) => any
-    handleFullNarrative: any
+    handleFullNarrative: (model: AssignedPackageModel, shouldQuery: boolean) => void
     view?: PACKAGE_VIEW
 }
 
@@ -37,6 +37,7 @@ export class SubpackageViewerImpl extends React.Component<SubpackageViewerProps,
         };
 
         this.handleIconClick = this.handleIconClick.bind(this);
+        this.handleAssignedFullNarrative = this.handleAssignedFullNarrative.bind(this);
     }
 
     handleIconClick(model: AssignedPackageModel) {
@@ -57,6 +58,11 @@ export class SubpackageViewerImpl extends React.Component<SubpackageViewerProps,
         this.setState({collapsed});
     }
 
+    handleAssignedFullNarrative(model: AssignedPackageModel) {
+        const { handleFullNarrative } = this.props;
+        handleFullNarrative(model, false);
+    }
+
     getModelId(model: AssignedPackageModel) {
         if (model.altId == undefined) {
             model.altId = LABKEY.Utils.id();
@@ -66,7 +72,7 @@ export class SubpackageViewerImpl extends React.Component<SubpackageViewerProps,
     }
 
     renderAssignedPackageRow(assignedPackage: AssignedPackageModel, key: string, treeLevel: number, arrIndex: number, arrLength: number) {
-        const { selectedSubPackage, handleAssignedPackageRemove, handleAssignedPackageReorder, handleRowClick, handleFullNarrative, view } = this.props;
+        const { selectedSubPackage, handleAssignedPackageRemove, handleAssignedPackageReorder, handleRowClick, view } = this.props;
         const { collapsed } = this.state;
         const idProp = selectedSubPackage != undefined && selectedSubPackage.SuperPkgId ? 'SuperPkgId' : 'altId';
         const treeCollapsed = collapsed[this.getModelId(assignedPackage)] || false;
@@ -82,7 +88,7 @@ export class SubpackageViewerImpl extends React.Component<SubpackageViewerProps,
                     handleMenuReorderAction={isTopLevelSubpackage ? handleAssignedPackageReorder : null}
                     handleIconClick={this.handleIconClick}
                     handleRowClick={handleRowClick}
-                    handleFullNarrative={handleFullNarrative}
+                    handleFullNarrative={this.handleAssignedFullNarrative}
                     treeLevel={treeLevel}
                     treeArrIndex={arrIndex}
                     treeArrLength={arrLength}

@@ -51,7 +51,7 @@ interface PackageFormOwnProps {
     handleFieldChange?: (name: string, value: any) => void
     handleNarrativeChange?: (val) => void
     handleFormSubmit?: any
-    handleFullNarrative?: any
+    handleFullNarrative?: (model: AssignedPackageModel, shouldQuery: boolean) => void
     handleWarning?: (warning?: string) => void
     isValid?: boolean
     model?: PackageModel
@@ -311,6 +311,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                                 <SuperPackageViewer
                                     schemaQuery={TOPLEVEL_SUPER_PKG_SQ}
                                     handleAssignedPackageAdd={this.handleAssignedPackageAdd}
+                                    handleFullNarrative={handleFullNarrative}
                                     view={view}/>
                             </QuerySearch>
                         </div>

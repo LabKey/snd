@@ -11,6 +11,7 @@ interface SuperPackageSearchResultsProps {
     isLoaded: boolean
     primitivesOnly: boolean,
     handleAssignedPackageAdd: (assignedPackage: AssignedPackageModel) => void
+    handleFullNarrative: (model: AssignedPackageModel) => void
     view: PACKAGE_VIEW
 }
 
@@ -22,6 +23,7 @@ export class SuperPackageSearchResults extends React.Component<SuperPackageSearc
         isLoaded: false,
         primitivesOnly: false,
         handleAssignedPackageAdd: undefined,
+        handleFullNarrative: undefined,
         view: undefined
     };
 
@@ -35,7 +37,10 @@ export class SuperPackageSearchResults extends React.Component<SuperPackageSearc
     }
 
     render() {
-        const { data, dataIds, isLoaded, primitivesOnly, handleAssignedPackageAdd, view } = this.props;
+        const {
+            data, dataIds, isLoaded, primitivesOnly, view,
+            handleAssignedPackageAdd, handleFullNarrative
+        } = this.props;
 
         if (isLoaded && data && Array.isArray(dataIds)) {
             return (
@@ -60,6 +65,7 @@ export class SuperPackageSearchResults extends React.Component<SuperPackageSearc
                                         model={assignedPackage}
                                         menuActionName="Add"
                                         handleMenuAction={handleAssignedPackageAdd}
+                                        handleFullNarrative={handleFullNarrative}
                                         view={view}
                                     />
                                 </div>
