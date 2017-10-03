@@ -109,7 +109,7 @@ function getChanges(editableModel: EditableQueryModel, values: {[key: string]: a
 
         if (initialRow) {
             const hasEdits = Object.keys(row).some((field) => {
-                if (row[field] && row[field]['value'] && initialRow[field] && initialRow[field]['value']) {
+                if (row[field] && initialRow[field]) {
                     return row[field]['value'] !== initialRow[field]['value'];
                 }
 
@@ -119,7 +119,7 @@ function getChanges(editableModel: EditableQueryModel, values: {[key: string]: a
             hasEdits ? edited.push(row) : null;
         }
         else {
-            added.push(values[key])
+            added.push(values[key]);
         }
     });
 

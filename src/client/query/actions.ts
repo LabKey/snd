@@ -231,7 +231,7 @@ export function queryEditSetSubmitting(editableModel: EditableQueryModel) {
 }
 
 export function getRemoved(initial: Array<number>, current: Array<number>, pkCol: string) {
-    if (initial.length && current.length < initial.length) {
+    if (initial.length) {
         return initial.filter((id: number) => {
             return current.indexOf(id) === -1;
         }).map(id => {

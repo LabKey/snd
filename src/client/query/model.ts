@@ -396,7 +396,13 @@ export class EditableQueryModel implements EditableQueryModelProps {
     }
 
     hasRemoved(): boolean {
-        return this && this.dataCount < this.initialDataCount;
+        // if the current count is lower than our initial count, model hasRemoved,
+        // otherwise check if the initialIds are all still in current Ids
+
+        return this && this.dataCount < this.initialDataCount ||
+            this.initialIds.some((id) => {
+                return this.dataIds.indexOf(id) === -1;
+            });
     }
 
     getRemoved(): Array<{[key: string]: any}> {
