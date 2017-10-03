@@ -14,6 +14,8 @@ interface SuperPackageRowProps {
     menuActionName?: string
     handleMenuAction?: (model: AssignedPackageModel) => any
     treeLevel?: number
+    treeArrIndex?: number
+    treeArrLength?: number
     treeCollapsed?: boolean
     view?: PACKAGE_VIEW
 }
@@ -59,14 +61,18 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
 
     render() {
         const {
-            model, selected, treeLevel, treeCollapsed, view,
-            menuActionName, handleMenuAction, handleMenuReorderAction
+            model, selected, treeLevel, treeArrIndex, treeArrLength, treeCollapsed,
+            menuActionName, handleMenuAction, handleMenuReorderAction, view
         } = this.props;
         const { isHover } = this.state;
-        let isReadyOnly = view == PACKAGE_VIEW.VIEW;
-        let treeLevelVal = treeLevel == undefined ? -1 : treeLevel;
-        let treeCollapsedVal = treeCollapsed != undefined && treeCollapsed;
-        let indentPx = treeLevel == undefined ? 0 : treeLevelVal * 15;
+        const isReadyOnly = view == PACKAGE_VIEW.VIEW;
+        const treeLevelVal = treeLevel == undefined ? -1 : treeLevel;
+        const treeCollapsedVal = treeCollapsed != undefined && treeCollapsed;
+        const indentPx = treeLevel == undefined ? 0 : treeLevelVal * 15;
+
+        // boolean to indicate if the reorder up/down menu items should be shown
+        const showMoveUp = handleMenuReorderAction && treeArrIndex != undefined && treeArrIndex > 0;
+        const showMoveDown = handleMenuReorderAction && treeArrIndex != undefined && treeArrLength != undefined && treeArrIndex < (treeArrLength - 1);
 
         return (
             <div
@@ -97,11 +103,11 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
                             ? <MenuItem onClick={() => handleMenuAction(model)}>{menuActionName}</MenuItem>
                             : null
                         }
-                        {handleMenuReorderAction
+                        {showMoveUp
                             ? <MenuItem onClick={() => handleMenuReorderAction(model, true)}>Move Up</MenuItem>
                             : null
                         }
-                        {handleMenuReorderAction
+                        {showMoveDown
                             ? <MenuItem onClick={() => handleMenuReorderAction(model, false)}>Move Down</MenuItem>
                             : null
                         }
