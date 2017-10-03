@@ -92,7 +92,7 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
                             : !treeCollapsedVal && model.SubPackages.length > 0
                                 ? <i className="icon-tree-toggle fa fa-caret-down">&nbsp;</i>
                                 : model.SubPackages.length == 0
-                                    ? <i className={"icon-tree-toggle fa fa-circle " + styles["superpackage-row-leaf"]}>&nbsp;</i>
+                                    ? <i className={"icon-tree-toggle fa fa-circle " + styles["superpackage-row-leaf"]}>&nbsp;&nbsp;&nbsp;</i>
                                     : <i className="icon-tree-toggle fa fa-caret-right">&nbsp;</i>
                         : null
                     }
