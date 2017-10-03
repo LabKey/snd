@@ -41,8 +41,9 @@ interface PackageIdInputProps  {
 }
 
 export const PackageIdInput = (props: PackageIdInputProps ) => {
-    const { onChange, value } = props;
-    const packageIdValue = value > -1 ? value : "";
+    const { onChange, value, view } = props;
+    // Check if the view is Clone or New and if so hide the pkgId value as this will be set by the server
+    const packageIdValue = view !== PACKAGE_VIEW.CLONE || view !== PACKAGE_VIEW.NEW as any ? value : '';
 
     return (
         <div className="input-row">
