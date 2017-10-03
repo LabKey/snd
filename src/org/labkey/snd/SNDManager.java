@@ -49,6 +49,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -136,7 +137,7 @@ public class SNDManager
         return qus;
     }
 
-    public void updatePackage(User u, Container c, Package pkg, BatchValidationException errors)
+    public void updatePackage(User u, Container c, Package pkg, SuperPackage superPackage, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -145,6 +146,9 @@ public class SNDManager
 
         TableInfo pkgCategJuncTable = getTableInfo(schema, SNDSchema.PKGCATEGORYJUNCTION_TABLE_NAME);
         QueryUpdateService pkgCategoryQus = getQueryUpdateService(pkgCategJuncTable);
+
+        TableInfo superPkgsTable = getTableInfo(schema, SNDSchema.SUPERPKGS_TABLE_NAME);
+        QueryUpdateService superPkgQus = getQueryUpdateService(superPkgsTable);
 
         List<Map<String, Object>> pkgRows = new ArrayList<>();
         pkgRows.add(pkg.getPackageRow(c));
@@ -178,12 +182,43 @@ public class SNDManager
         }
 
 
-        List<SuperPackage> superPackages = new ArrayList<>();
+        List<SuperPackage> subPackages = new ArrayList<>();
         if (pkg.getSubpackages() != null)
-            superPackages.addAll(pkg.getSubpackages());
+            subPackages.addAll(pkg.getSubpackages());
+        Set<Integer> subPackageIds = new HashSet<>(subPackages.size());
+        for (SuperPackage subPackage : subPackages)
+        {
+            subPackageIds.add(subPackage.getSuperPkgId());
+        }
+
 
         // only need to save children; don't need to save parent super package because nothing about it could have changed
-        saveSuperPackages(u, c, superPackages, errors);
+        saveSuperPackages(u, c, subPackages, errors);
+
+        // now delete orphaned child super packages
+        if(superPackage == null)
+        {
+            errors.addRowError(new ValidationException("Super package ID for update was null"));
+        }
+        else
+        {
+            List<Integer> superPackageIdsToDelete = getDeletedChildSuperPkgs(c, u, subPackageIds, superPackage.getSuperPkgId());
+            List<Map<String, Object>> superPackageRows = new ArrayList<>();
+            for (Integer superPackageId : superPackageIdsToDelete)
+            {
+                Map<String, Object> superPackageRow = new HashMap<>(1);
+                superPackageRow.put("SuperPkgId", superPackageId);
+                superPackageRows.add(superPackageRow);
+            }
+            try
+            {
+                superPkgQus.deleteRows(u, c, superPackageRows, null, null);
+            }
+            catch (QueryUpdateServiceException | BatchValidationException | SQLException | InvalidKeyException e)
+            {
+                errors.addRowError(new ValidationException(e.getMessage()));
+            }
+        }
     }
 
     public void createPackage(User u, Container c, Package pkg, SuperPackage superPkg, BatchValidationException errors)
@@ -406,6 +441,19 @@ public class SNDManager
             return null;
     }
 
+    // only gets IDs for all child super packages that point to a certain super package ID
+    public static List<Integer> getChildSuperPkgs(Container c, User u, Integer parentSuperPackageId)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId FROM ");
+        sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
+        sql.append(" WHERE ParentSuperPkgId = ?").add(parentSuperPackageId);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+
+        return selector.getArrayList(Integer.class);
+    }
+
     public static List<SuperPackage> getChildSuperPkgs(Container c, User u, Set<Integer> superPackageIds, Integer parentSuperPackageId)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -417,7 +465,7 @@ public class SNDManager
         while(superPackageIdIterator.hasNext())
         {
             Integer superPkgId = superPackageIdIterator.next();
-            if(!superPackageIdIterator.hasNext())
+            if (!superPackageIdIterator.hasNext())
                 sql.append("?").add(superPkgId);
             else
                 sql.append("?,").add(superPkgId);
@@ -431,7 +479,29 @@ public class SNDManager
             return null;
     }
 
+    public static List<Integer> getDeletedChildSuperPkgs(Container c, User u, Set<Integer> superPackageIds, Integer parentSuperPackageId)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
+        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId FROM ");
+        sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
+        sql.append(" WHERE SuperPkgId NOT IN (");
+        Iterator<Integer> superPackageIdIterator = superPackageIds.iterator();
+        while(superPackageIdIterator.hasNext())
+        {
+            Integer superPkgId = superPackageIdIterator.next();
+            if(!superPackageIdIterator.hasNext())
+                sql.append("?").add(superPkgId);
+            else
+                sql.append("?,").add(superPkgId);
+        }
+        sql.append(") AND ParentSuperPkgId = ?").add(parentSuperPackageId);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+
+        return selector.getArrayList(Integer.class);
+    }
+
+    // recursively get all children
     private List<SuperPackage> getAllChildSuperPkgs(Container c, User u, int pkgId)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);

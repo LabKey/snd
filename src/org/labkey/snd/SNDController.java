@@ -163,6 +163,7 @@ public class SNDController extends SpringActionController
                 }
 
                 // Get top-level packages that correspond to children
+                // TODO: read clone flag from JSON and put all children in here if that flag is true
                 Set<Integer> superPackageIds = superPkgIdToSortOrderMap.keySet();
                 List<SuperPackage> topLevelSuperPackages = SNDManager.getTopLevelSuperPkgs(getContainer(), getUser(), superPackageIds);
                 if (topLevelSuperPackages != null)
@@ -181,6 +182,7 @@ public class SNDController extends SpringActionController
                 // topLevelSuperPackages is now actually a collection of child super packages
                 // next get existing child super packages and set their sort orders
 
+                // TODO: skip this section if clone flag from JSON is true
                 List<SuperPackage> childSuperPackages = SNDManager.getChildSuperPkgs(getContainer(), getUser(), superPackageIds, rootSuperPackageId);
                 if (childSuperPackages != null)
                 {

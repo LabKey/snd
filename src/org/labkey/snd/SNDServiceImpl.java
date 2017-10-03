@@ -45,7 +45,7 @@ public class SNDServiceImpl implements SNDService
         }
         if (null != domain)
         {
-            SNDManager.get().updatePackage(u, c, pkg, errors);
+            SNDManager.get().updatePackage(u, c, pkg, superPkg, errors);
         }
         else
         {

@@ -1,5 +1,6 @@
 package org.labkey.snd;
 
+import org.labkey.api.data.Container;
 import org.labkey.api.data.JdbcType;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
@@ -7,9 +8,17 @@ import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.query.ExprColumn;
 import org.labkey.api.query.FieldKey;
+import org.labkey.api.query.InvalidKeyException;
+import org.labkey.api.query.QueryUpdateService;
+import org.labkey.api.query.QueryUpdateServiceException;
+import org.labkey.api.query.SimpleQueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema;
+import org.labkey.api.security.User;
 
+import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -38,7 +47,7 @@ public class SuperPackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSche
         super.init();
 
         SQLFragment hasDataSql = new SQLFragment();
-        hasDataSql.append("(CASE WHEN EXISTS (SELECT " + ExprColumn.STR_TABLE_ALIAS + ".PkgId FROM ");
+        hasDataSql.append("(CASE WHEN EXISTS (SELECT " + ExprColumn.STR_TABLE_ALIAS + ".SuperPkgId FROM ");
         hasDataSql.append(SNDSchema.getInstance().getTableInfoCodedEvents(), "ce");
         hasDataSql.append(" WHERE " + ExprColumn.STR_TABLE_ALIAS + ".SuperPkgId = ce.SuperPkgId)");
         hasDataSql.append(" THEN 'true' ELSE 'false' END)");
@@ -46,7 +55,7 @@ public class SuperPackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSche
         addColumn(hasDataCol);
 
         SQLFragment inUseSql = new SQLFragment();
-        inUseSql.append("(CASE WHEN EXISTS (SELECT " + ExprColumn.STR_TABLE_ALIAS + ".PkgId FROM ");
+        inUseSql.append("(CASE WHEN EXISTS (SELECT " + ExprColumn.STR_TABLE_ALIAS + ".SuperPkgId FROM ");
         inUseSql.append(SNDSchema.getInstance().getTableInfoProjectItems(), "pi");
         inUseSql.append(" WHERE " + ExprColumn.STR_TABLE_ALIAS + ".SuperPkgId = pi.SuperPkgId)");
         inUseSql.append(" THEN 'true' ELSE 'false' END)");
@@ -66,14 +75,73 @@ public class SuperPackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSche
         return this;
     }
 
-    public boolean isPackageInUse(int pkgId)
+    public boolean isPackageInUse(int superPkgId)
     {
         Set<String> cols = new HashSet<>();
         cols.add("HasEvent");
         cols.add("HasProject");
-        TableSelector ts = new TableSelector(this, cols, new SimpleFilter(FieldKey.fromString("PkgId"), pkgId), null);
+        TableSelector ts = new TableSelector(this, cols, new SimpleFilter(FieldKey.fromString("SuperPkgId"), superPkgId), null);
         Map<String, Object> ret = ts.getMap();
 
         return Boolean.parseBoolean((String) ret.get("HasEvent")) | Boolean.parseBoolean((String) ret.get("HasProject"));
+    }
+
+    @Override
+    public QueryUpdateService getUpdateService()
+    {
+        return new SuperPackagesTable.UpdateService(this);
+    }
+
+    protected class UpdateService extends SimpleQueryUpdateService
+    {
+        public UpdateService(SimpleUserSchema.SimpleTable ti)
+        {
+            super(ti, ti.getRealTable());
+        }
+
+        public UpdateService(SimpleUserSchema.SimpleTable simpleTable, TableInfo table, DomainUpdateHelper helper)
+        {
+            super(simpleTable, table, helper);
+        }
+
+        @Override
+        protected Map<String, Object> deleteRow(User user, Container container, Map<String, Object> oldRowMap) throws QueryUpdateServiceException, SQLException, InvalidKeyException
+        {
+            int superPkgId = (Integer) oldRowMap.get("SuperPkgId");
+            if (isPackageInUse(superPkgId))
+                throw new QueryUpdateServiceException("Package in use, cannot delete.");
+
+            // if top-level super package
+            if ((Integer) oldRowMap.get("ParentSuperPkgId") == null)
+            {
+                // then delete all child super packages pointing to this top-level super package
+                List<Integer> childSuperPackageIds = SNDManager.getChildSuperPkgs(container, user, superPkgId);
+                if (childSuperPackageIds != null)
+                {
+                    for (Integer childSuperPackageId : childSuperPackageIds)
+                    {
+                        Map<String, Object> superPackageRow = new HashMap<>(1);
+                        superPackageRow.put("SuperPkgId", childSuperPackageId);
+                        super.deleteRow(user, container, superPackageRow);
+                    }
+                }
+            }
+
+            return super.deleteRow(user, container, oldRowMap);
+        }
+
+        @Override
+        protected Map<String, Object> getRow(User user, Container container, Map<String, Object> keys) throws InvalidKeyException, QueryUpdateServiceException, SQLException
+        {
+            Map<String, Object> row = super.getRow(user, container, keys);
+
+            Set<String> cols = new HashSet<>();
+            cols.add("HasEvent");
+            cols.add("HasProject");
+            TableSelector ts = new TableSelector(this.getQueryTable(), cols, new SimpleFilter(FieldKey.fromString("SuperPkgId"), row.get("SuperPkgId")), null);
+
+            return row;
+        }
+
     }
 }

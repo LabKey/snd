@@ -1,5 +1,6 @@
 package org.labkey.snd;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.JdbcType;
@@ -18,15 +19,20 @@ import org.labkey.api.query.DuplicateKeyException;
 import org.labkey.api.query.ExprColumn;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.InvalidKeyException;
+import org.labkey.api.query.QueryService;
 import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.QueryUpdateServiceException;
 import org.labkey.api.query.SimpleQueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema;
+import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.snd.Package;
+import org.labkey.api.snd.SuperPackage;
 
 import java.sql.SQLException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -158,7 +164,45 @@ public class PackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
                 throw new QueryUpdateServiceException(e);
             }
 
+            // get top-level super package for this package and delete it (if it exists)
+            UserSchema schema = QueryService.get().getUserSchema(user, container, SNDSchema.NAME);
+            TableInfo superPkgsTable = getTableInfo(schema, SNDSchema.SUPERPKGS_TABLE_NAME);
+            QueryUpdateService superPkgQus = getQueryUpdateService(superPkgsTable);
+            Map<String, Object> rootSuperPkgRow = new HashMap<>(1);
+            SuperPackage superPackage = SNDManager.getRootSuperPkg(container, user, pkgId);
+            if(superPackage != null)
+            {
+                rootSuperPkgRow.put("SuperPkgId", superPackage.getSuperPkgId());
+                try
+                {
+                    superPkgQus.deleteRows(user, container, Collections.singletonList(rootSuperPkgRow), null, null);
+                }
+                catch (BatchValidationException e)
+                {
+                    throw new QueryUpdateServiceException(e);
+                }
+            }
+
+            // now delete package row
             return super.deleteRow(user, container, oldRowMap);
+        }
+
+        private TableInfo getTableInfo(@NotNull UserSchema schema, @NotNull String table)
+        {
+            TableInfo tableInfo = schema.getTable(table);
+            if (tableInfo == null)
+                throw new IllegalStateException(table + " TableInfo not found");
+
+            return tableInfo;
+        }
+
+        private QueryUpdateService getQueryUpdateService(@NotNull TableInfo table)
+        {
+            QueryUpdateService qus = table.getUpdateService();
+            if (qus == null)
+                throw new IllegalStateException(table.getName() + " query update service");
+
+            return qus;
         }
 
         @Override
