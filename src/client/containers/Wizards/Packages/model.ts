@@ -167,6 +167,7 @@ interface PackageWizardModelProps {
     isValid?: boolean;
     isWarning?: boolean;
     message?: string;
+    narrativePkg?: AssignedPackageModel;
     packageCount?: number;
     packageId?: number
     packageLoaded?: boolean;
@@ -184,6 +185,7 @@ export class PackageWizardModel implements PackageWizardModelProps {
     isValid: boolean = false;
     isWarning: boolean = false;
     message: string = undefined;
+    narrativePkg?: AssignedPackageModel = undefined;
     packageCount: number = 0;
     packageId: number = undefined;
     packageLoaded: boolean = false;

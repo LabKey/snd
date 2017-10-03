@@ -10,6 +10,9 @@ import * as actions from '../../Wizards/Packages/actions'
 import { PackageWizardModel } from '../../Wizards/Packages/model'
 
 import { PackageForm } from './PackageForm'
+import {AssignedPackageModel} from "../model";
+import NarrativeRow from "./NarrativeRow";
+import {PKG_WIZARD_TYPES} from "../../Wizards/Packages/constants";
 
 const styles = require<any>('./PackageForm.css');
 
@@ -92,11 +95,14 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
 
         this.panelHeader = resolvePackageHeader(this.view, id);
 
+        this.closeFullNarrative = this.closeFullNarrative.bind(this);
         this.handleCancel = this.handleCancel.bind(this);
         this.handleFieldChange = this.handleFieldChange.bind(this);
         this.handleNarrativeChange = this.handleNarrativeChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.renderNarrative = this.renderNarrative.bind(this);
         this.setModelWarning = this.setModelWarning.bind(this);
+        this.showFullNarrative = this.showFullNarrative.bind(this);
     }
 
     componentDidMount() {
@@ -135,6 +141,36 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
         }
     }
 
+    showFullNarrative(pkg: AssignedPackageModel) {
+        const { dispatch, model } = this.props;
+
+        dispatch({
+            type: PKG_WIZARD_TYPES.PACKAGE_FULL_NARRATIVE,
+            model,
+            narrativePkg: pkg
+        });
+    }
+
+    closeFullNarrative() {
+        const { dispatch, model } = this.props;
+
+        dispatch({
+            type: PKG_WIZARD_TYPES.PACKAGE_CLOSE_FULL_NARRATIVE,
+            model
+        });
+    }
+
+    renderNarrative(narrativePkg: AssignedPackageModel) {
+        return (
+            <div>
+                <NarrativeRow
+                    Narrative={narrativePkg.Narrative}
+                    SubPackages={narrativePkg.SubPackages}
+                />
+            </div>
+        );
+    }
+
     renderBody() {
         const { model } = this.props;
 
@@ -144,6 +180,7 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
                         handleFieldChange={this.handleFieldChange}
                         handleFormSubmit={this.handleSubmit}
                         handleNarrativeChange={this.handleNarrativeChange}
+                        handleFullNarrative={this.showFullNarrative}
                         handleWarning={this.setModelWarning}
                         isValid={model.isValid}
                         model={model.data}
@@ -156,33 +193,51 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
     renderModal() {
         const { model } = this.props;
 
-        if (model && model.isWarning && model.message) {
-            return (
-                <div className="static-modal">
-                    <Modal onHide={() => this.setModelWarning()} show={model.isWarning}>
-                        <Modal.Body>
-                            {model.message}
-                        </Modal.Body>
-                        <Modal.Footer>
-                            <div className="btn-group">
-                                <Button onClick={() => this.setModelWarning()}>Confirm</Button>
-                            </div>
-                        </Modal.Footer>
-                    </Modal>
-                </div>
-            )
-        }
-
-        if (model && model.isSubmitting) {
-            return (
-                <div className="static-modal">
-                    <Modal onHide={() => null} show={model.isSubmitting}>
-                        <Modal.Body>
-                            <i className="fa fa-spinner fa-spin fa-fw"/> Submitting Package
-                        </Modal.Body>
-                    </Modal>
-                </div>
-            )
+        if (model) {
+            if (model.isWarning && model.message) {
+                return (
+                    <div className="static-modal">
+                        <Modal onHide={() => this.setModelWarning()} show={model.isWarning}>
+                            <Modal.Body>
+                                {model.message}
+                            </Modal.Body>
+                            <Modal.Footer>
+                                <div className="btn-group">
+                                    <Button onClick={() => this.setModelWarning()}>Confirm</Button>
+                                </div>
+                            </Modal.Footer>
+                        </Modal>
+                    </div>
+                )
+            }
+            if (model.isSubmitting) {
+                return (
+                    <div className="static-modal">
+                        <Modal onHide={() => null} show={model.isSubmitting}>
+                            <Modal.Body>
+                                <i className="fa fa-spinner fa-spin fa-fw"/> Submitting Package
+                            </Modal.Body>
+                        </Modal>
+                    </div>
+                )
+            }
+            if (model.narrativePkg != null) {
+                return (
+                    <div className="static-modal">
+                        <Modal onHide={this.closeFullNarrative} show={model.narrativePkg != null}>
+                            <Modal.Header closeButton>
+                                <Modal.Title>Full Narrative for Package {model.narrativePkg.PkgId}</Modal.Title>
+                            </Modal.Header>
+                            <Modal.Body>
+                                {this.renderNarrative(model.narrativePkg)}
+                            </Modal.Body>
+                            <Modal.Footer>
+                                <Button onClick={this.closeFullNarrative}>Close</Button>
+                            </Modal.Footer>
+                        </Modal>
+                    </div>
+                )
+            }
         }
     }
 

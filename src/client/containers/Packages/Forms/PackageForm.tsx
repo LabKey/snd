@@ -51,6 +51,7 @@ interface PackageFormOwnProps {
     handleFieldChange?: (name: string, value: any) => void
     handleNarrativeChange?: (val) => void
     handleFormSubmit?: any
+    handleFullNarrative?: any
     handleWarning?: (warning?: string) => void
     isValid?: boolean
     model?: PackageModel
@@ -289,7 +290,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
     }
 
     renderSubpackages() {
-        const { model, view } = this.props;
+        const { model, view, handleFullNarrative } = this.props;
         const { selectedSubPackage } = this.state;
         const { hasEvent, hasProject } = model;
         const isReadyOnly = view === PACKAGE_VIEW.VIEW ||
@@ -325,6 +326,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                             handleAssignedPackageRemove={this.handleAssignedPackageRemove}
                             handleAssignedPackageReorder={this.handleAssignedPackageReorder}
                             handleRowClick={this.handleAssignedPackageClick}
+                            handleFullNarrative={handleFullNarrative}
                             view={view}/>
                     </div>
                     <div className={"row clearfix col-xs-12 " + styles['margin-top']}>

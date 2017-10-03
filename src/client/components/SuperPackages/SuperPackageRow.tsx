@@ -13,6 +13,7 @@ interface SuperPackageRowProps {
     handleRowClick?: (model: AssignedPackageModel) => any
     menuActionName?: string
     handleMenuAction?: (model: AssignedPackageModel) => any
+    handleFullNarrative?: any
     treeLevel?: number
     treeArrIndex?: number
     treeArrLength?: number
@@ -62,7 +63,7 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
     render() {
         const {
             model, selected, treeLevel, treeArrIndex, treeArrLength, treeCollapsed,
-            menuActionName, handleMenuAction, handleMenuReorderAction, view
+            menuActionName, handleMenuAction, handleMenuReorderAction, handleFullNarrative, view
         } = this.props;
         const { isHover } = this.state;
         const isReadyOnly = view == PACKAGE_VIEW.VIEW;
@@ -111,7 +112,7 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
                             ? <MenuItem onClick={() => handleMenuReorderAction(model, false)}>Move Down</MenuItem>
                             : null
                         }
-                        <MenuItem disabled>Full Narrative</MenuItem>
+                        <MenuItem onClick={() => handleFullNarrative(model)}>Full Narrative</MenuItem>
                         <MenuItem disabled>Packages Using</MenuItem>
                         <MenuItem disabled>Projects Using</MenuItem>
                     </DropdownButton>

@@ -244,6 +244,30 @@ export const packages = handleActions({
         }}));
     },
 
+    [PKG_WIZARD_TYPES.PACKAGE_FULL_NARRATIVE]: (state: PackageWizardContainer, action: any) => {
+        const { model, narrativePkg } = action;
+
+        const submittingModel = new PackageWizardModel(Object.assign({}, model, {
+            narrativePkg: narrativePkg
+        }));
+
+        return new PackageWizardContainer(Object.assign({}, state, {packageData: {
+            [submittingModel.packageId]: submittingModel
+        }}));
+    },
+
+    [PKG_WIZARD_TYPES.PACKAGE_CLOSE_FULL_NARRATIVE]: (state: PackageWizardContainer, action: any) => {
+        const { model } = action;
+
+        const submittingModel = new PackageWizardModel(Object.assign({}, model, {
+            narrativePkg: null
+        }));
+
+        return new PackageWizardContainer(Object.assign({}, state, {packageData: {
+            [submittingModel.packageId]: submittingModel
+        }}));
+    },
+
 }, new PackageWizardContainer());
 
 function isFormValid(data: PackageModel, initialData: PackageModel, view: PACKAGE_VIEW): boolean {
