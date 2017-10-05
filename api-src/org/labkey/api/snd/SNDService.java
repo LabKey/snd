@@ -20,7 +20,7 @@ public interface SNDService
     }
 
     void savePackage(Container c, User u, Package pkg);
-    void savePackage(Container c, User u, Package pkg, SuperPackage superPkg);
+    void savePackage(Container c, User u, Package pkg, SuperPackage superPkg, boolean cloneFlag);
     void saveSuperPackages(Container c, User u, List<SuperPackage> superPkgs);
     List<Package> getPackages(Container c, User u, List<Integer> pkgIds, boolean includeExtraFields, boolean includeLookups);
     void registerAttributeLookup(Container c, User u, String schema, @Nullable String table);

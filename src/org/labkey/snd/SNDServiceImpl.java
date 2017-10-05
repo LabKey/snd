@@ -29,11 +29,11 @@ public class SNDServiceImpl implements SNDService
     @Override
     public void savePackage(Container c, User u, Package pkg)
     {
-        savePackage(c, u, pkg, null);
+        savePackage(c, u, pkg, null, false);
     }
 
     @Override
-    public void savePackage(Container c, User u, Package pkg, SuperPackage superPkg)
+    public void savePackage(Container c, User u, Package pkg, SuperPackage superPkg, boolean cloneFlag)
     {
         BatchValidationException errors = new BatchValidationException();
         Domain domain = null;
@@ -43,7 +43,7 @@ public class SNDServiceImpl implements SNDService
             String domainURI = PackageDomainKind.getDomainURI(PackageDomainKind.getPackageSchemaName(), SNDManager.getPackageName(pkg.getPkgId()), c, u);
             domain = PropertyService.get().getDomain(c, domainURI);
         }
-        if (null != domain)
+        if ((null != domain) && !cloneFlag)  // clone case is basically creation
         {
             SNDManager.get().updatePackage(u, c, pkg, superPkg, errors);
         }
