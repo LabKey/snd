@@ -302,7 +302,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     private final Map<String, Object> TEST1ROW1MAP = Maps.of("PkgId", 9900, "Description", "Description 1", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223451b901", "testPkgs", EXTCOLTESTDATA1);
     private final Map<String, Object> TEST1ROW2MAP = Maps.of("PkgId", 9901, "Description", "Description 2", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223751b901", "testPkgs", EXTCOLTESTDATA2);
     private final Map<String, Object> TEST1ROW3MAP = Maps.of("PkgId", 9902, "Description", "Description 3", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223481b901", "testPkgs", EXTCOLTESTDATA3);
-    private final Map<String, Object> TEST1ROW3AMAP = Maps.of("PkgId", 9903, "Description", "Updated Description 3", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223481b901", "testPkgs", EXTCOLTESTDATA3A);
+    private final Map<String, Object> TEST1ROW3AMAP = Maps.of("PkgId", 9902, "Description", "Updated Description 3", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223481b901", "testPkgs", EXTCOLTESTDATA3A);
 
     //Sample files for import to be used in this order
     private static final File INITIAL_IMPORT_FILE = TestFileUtils.getSampleData("snd/pipeline/import/1_initial.snd.xml");
