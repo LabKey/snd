@@ -402,6 +402,23 @@ public class SNDManager
         return parent;
     }
 
+    // return all super packages IDs which correspond to this package ID
+    public static List<Integer> getSuperPkgs(Container c, User u, Integer packageId)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId FROM ");
+        sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
+        sql.append(" WHERE sp.PkgId = ?").add(packageId);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+
+        if (selector.getArrayList(SuperPackage.class).size() > 0)
+            return selector.getArrayList(Integer.class);
+        else
+            return null;
+    }
+
+    // NOTE: this function only fills in SuperPkgId, PkgId and SuperPkgPath (other fields are not useful for our purposes here)
     // return the top-level super package which corresponds to this package ID
     public static SuperPackage getTopLevelSuperPkg(Container c, User u, Integer packageId)
     {
@@ -515,8 +532,7 @@ public class SNDManager
             return null;
     }
 
-    // return list of super package IDs that should be deleted
-    // (that is, super packages with parentSuperPackageId as a parent but are not in superPackageIds)
+    // return list of super package IDs that should be deleted based on passed-in superPackageIds and parentSuperPackage ID
     public static List<Integer> getDeletedChildSuperPkgs(Container c, User u, Set<Integer> superPackageIds, Integer parentSuperPackageId)
     {
         if((superPackageIds == null) || (superPackageIds.size() == 0))

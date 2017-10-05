@@ -28,10 +28,9 @@ import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.snd.Package;
-import org.labkey.api.snd.SuperPackage;
 
 import java.sql.SQLException;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -164,18 +163,23 @@ public class PackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
                 throw new QueryUpdateServiceException(e);
             }
 
-            // get top-level super package for this package and delete it (if it exists)
+            // get all super packages for this package and delete them (if they exist)
             UserSchema schema = QueryService.get().getUserSchema(user, container, SNDSchema.NAME);
             TableInfo superPkgsTable = getTableInfo(schema, SNDSchema.SUPERPKGS_TABLE_NAME);
             QueryUpdateService superPkgQus = getQueryUpdateService(superPkgsTable);
-            Map<String, Object> rootSuperPkgRow = new HashMap<>(1);
-            SuperPackage superPackage = SNDManager.getTopLevelSuperPkg(container, user, pkgId);
-            if(superPackage != null)
+            List<Map<String, Object>> superPkgRows = new ArrayList<Map<String, Object>>();
+            List<Integer> superPkgIds = SNDManager.getSuperPkgs(container, user, pkgId);
+            if(superPkgIds != null)
             {
-                rootSuperPkgRow.put("SuperPkgId", superPackage.getSuperPkgId());
+                for (Integer superPkgId : superPkgIds)
+                {
+                    Map<String, Object> superPkgRow = new HashMap<>();
+                    superPkgRow.put("SuperPkgId", superPkgId);
+                    superPkgRows.add(superPkgRow);
+                }
                 try
                 {
-                    superPkgQus.deleteRows(user, container, Collections.singletonList(rootSuperPkgRow), null, null);
+                    superPkgQus.deleteRows(user, container, superPkgRows, null, null);
                 }
                 catch (BatchValidationException e)
                 {

@@ -134,7 +134,7 @@ public class SuperPackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSche
         protected Map<String, Object> getRow(User user, Container container, Map<String, Object> keys) throws InvalidKeyException, QueryUpdateServiceException, SQLException
         {
             Map<String, Object> row = super.getRow(user, container, keys);
-            if(row == null)  // might have been deleted already due to super package cascading deletes
+            if(row == null)  // might have been deleted already due to package/super package cascading deletes
                 return null;
 
             Set<String> cols = new HashSet<>();
