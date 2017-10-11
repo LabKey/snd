@@ -145,7 +145,7 @@ public class SNDController extends SpringActionController
             Map<Integer, Integer> superPkgIdToSortOrderMap = new HashMap<>();
             // create super package for root, if needed
 
-            SuperPackage superPackage = SNDManager.get().getTopLevelSuperPkg(getContainer(), getUser(), pkg.getPkgId());
+            SuperPackage superPackage = SNDManager.getTopLevelSuperPkg(getContainer(), getUser(), pkg.getPkgId());
             Integer rootSuperPackageId;
             if(superPackage == null)
             {
