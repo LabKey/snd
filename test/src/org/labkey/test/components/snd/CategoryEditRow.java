@@ -43,7 +43,7 @@ public class CategoryEditRow extends WebDriverComponent<CategoryEditRow.ElementC
     public CategoryEditRow setDescription(String value)
     {
         elementCache().descriptionInput.set(value);
-
+        getWrapper().waitFor(()-> elementCache().descriptionInput.get() == value, 2000);
         return this;
     }
 
@@ -108,14 +108,14 @@ public class CategoryEditRow extends WebDriverComponent<CategoryEditRow.ElementC
             _locator = Locators.descriptionEdit();
         }
 
-        public CategoryEditRowFinder withDescription(String description)   // finds the row based on key column's 'title' attribute
+        public CategoryEditRowFinder withDescription(String description)
         {
             _locator = Locator.tag("ul").withDescendant(
                     Locators.descriptionEdit(description));
             return this;
         }
 
-        public CategoryEditRowFinder withEmptyDescription()   // finds the row based on key column's 'title' attribute
+        public CategoryEditRowFinder withEmptyDescription()
         {
             _locator = Locator.tag("ul").withDescendant(
                     Locators.descriptionEdit().withAttribute("value", ""));

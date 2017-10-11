@@ -40,6 +40,7 @@ import org.labkey.test.TestTimeoutException;
 import org.labkey.test.WebDriverWrapper;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.components.CustomizeView;
+import org.labkey.test.components.bootstrap.ModalDialog;
 import org.labkey.test.components.snd.AttributeGridRow;
 import org.labkey.test.components.snd.AttributesGrid;
 import org.labkey.test.components.snd.CategoryEditRow;
@@ -57,11 +58,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -146,15 +149,18 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 "    }                                                                                                   \n" +
 "})";
 
-    private static final String GETPACKAGEAPI = "LABKEY.Ajax.request({  \n" +
-            "                    method: 'POST',                                                   \n" +
-            "    url: LABKEY.ActionURL.buildURL('snd', 'getPackages.api'),                         \n" +
-            "    success: function(data, a, b, c, d){                                              \n" +
-            "                        callback(JSON.stringify(JSON.parse(data.response).json[0]));  \n" +
-            "},                                                                                    \n" +
-            "    failure: function(e){ callback(e.responseText); },                                \n" +
-            "    jsonData: {'packages':['10001']}                                                  \n" +
-            "});";
+    private static String getPackageWithId(String packageId)
+    {
+        return "LABKEY.Ajax.request({  \n" +
+                "                    method: 'POST',                                                   \n" +
+                "    url: LABKEY.ActionURL.buildURL('snd', 'getPackages.api'),                         \n" +
+                "    success: function(data, a, b, c, d){                                              \n" +
+                "                        callback(JSON.stringify(JSON.parse(data.response).json[0]));  \n" +
+                "},                                                                                    \n" +
+                "    failure: function(e){ callback(e.responseText); },                                \n" +
+                "    jsonData: {'packages':['" + packageId + "']}                                      \n" +
+                "});";
+    }
 
     private static final String ADDEVENT = "" +
             "	LABKEY.Query.insertRows({                                                                                                             " +
@@ -296,6 +302,23 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         "}                                                                                                                                        "+
         "                                                                                                                                         ";
 
+    private String addCategoryScript(String container, String description, String comment, boolean active, int id)
+    {
+        String isActive = active ? "true":"false";
+        return "LABKEY.Query.insertRows({                                               "+
+                "             containerPath: "+container+",                             "+
+                        "             schemaName: 'snd',                                "+
+                        "             queryName: 'PkgCategories',                       "+
+                        "             success: callback,"+
+                        "             failure: callback,"+
+                        "             rows: [{                                          "+
+                        "				'CategoryId':  "+Integer.toString(id)+",        "+
+                        "				'Description':  '"+description+"',              "+
+                        "				'Active': "+ isActive   +",                     "+
+                        "				'Comment': '"+comment+"'                        "+
+                        "				}]);";
+    }
+
     private static final String CREATECATEGORIESAPI = APISCRIPTS + " populateCategories();";
 //    private static final String SAVEPACKAGEAPI = APISCRIPTS + " mySavePackage():";
 
@@ -369,6 +392,9 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 
         //insert package categories
         runScript(CREATECATEGORIESAPI);
+
+        // this needs to run first; it has hard-coded IDs
+        testPackageApis();
     }
 
     private void setupTest1Project()
@@ -549,38 +575,97 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     }
 
     @Test
-    public void editCategories()
+    public void addCategoryViaUI() throws Exception
     {
+        String ourNewCategory = "a test category, created via the UI";
+        PackageListPage listPage = PackageListPage.beginAt(this , getProjectName());
+        EditCategoriesPage catPage = listPage.clickEditCategories();
+
+        // create a new one via the UI
+        catPage.addCategory(ourNewCategory, true);
+        catPage = catPage.clickSave();
+        waitFor(()-> false, 2000);
+
+        SelectRowsCommand catsCmd = new SelectRowsCommand("snd", "PkgCategories");
+        SelectRowsResponse afterCats = catsCmd.execute(createDefaultConnection(false), getProjectName());
+
+        assertTrue("our category should have been created, but was not",
+                afterCats.getRows().stream().anyMatch((a)-> a.get("Description").equals(ourNewCategory)));
+    }
+
+    @Test
+    public void deleteCategoryViaUI() throws Exception
+    {
+        // insert the category via API
+        String ourCategory = "a category to be deleted for test purposes";
+        InsertRowsCommand cmd = new InsertRowsCommand("snd", "PkgCategories");
+        Map<String, Object> catMap = new HashMap<>();
+        catMap.put("Description", ourCategory);
+        catMap.put("Active", true);
+        catMap.put("CategoryId", "109");
+        catMap.put("Comment", "delete me so hard!");
+        cmd.addRow(catMap);
+        SaveRowsResponse response = cmd.execute(createDefaultConnection(false), getProjectName());
+
+        PackageListPage listPage = PackageListPage.beginAt(this , getProjectName());
+        EditCategoriesPage catPage = listPage.clickEditCategories();
+
+        // after clicking 'save' we expect to have to dismiss the dialog for deleting the 'weight' category
+
+        catPage.deleteCategory(ourCategory);
+        catPage.clickSave();
+        ModalDialog.finder(getDriver())
+                .withBodyTextContaining("Are you sure you want to delete row").find()
+                .dismiss("Submit Changes");
+        waitFor(()-> false, 2000);
+
+        SelectRowsCommand catsCmd = new SelectRowsCommand("snd", "PkgCategories");
+        SelectRowsResponse afterCats = catsCmd.execute(createDefaultConnection(false), getProjectName());
+
+        assertFalse("our category should have been deleted, but was not",
+                afterCats.getRows().stream().anyMatch((a)-> a.get("Description").equals(ourCategory)));
+    }
+
+
+    @Test
+    public void editCategories() throws Exception
+    {
+        String ourCategory = "a category to be edited for test purposes";
+        String editedCategory = "a category that has been edited for test purposes";
+        InsertRowsCommand cmd = new InsertRowsCommand("snd", "PkgCategories");
+        Map<String, Object> catMap = new HashMap<>();
+        catMap.put("Description", ourCategory);
+        catMap.put("Active", true);
+        catMap.put("CategoryId", "108");
+        catMap.put("Comment", "edit me so hard!");
+        cmd.addRow(catMap);
+        SaveRowsResponse response = cmd.execute(createDefaultConnection(false), getProjectName());
+
         PackageListPage listPage = PackageListPage.beginAt(this , getProjectName());
 
         EditCategoriesPage catPage = listPage.clickEditCategories();
 
-        // create a new one
-        catPage.addCategory("new category", true);
-
         // edit an existing one
-        catPage.getCategory("Blood Draw")
-                .setActive(false);
-
-        catPage.deleteCategory("Weight");
+        CategoryEditRow editRow = CategoryEditRow.finder(getDriver()).withDescription(ourCategory).timeout(5000).find();
+        editRow
+                .setActive(false)
+                .setDescription(editedCategory);
         catPage = catPage.clickSave();
-
-        List<CategoryEditRow> allCategories = catPage.getAllCategories();
+        sleep(2000);
 
         CategoryEditRow surgeryRowCat = catPage.getCategory("Surgery");
         assertNotNull("Surgery category should exist", surgeryRowCat);
         assertEquals("Surgery category should be active", true, surgeryRowCat.getIsActive());
 
-        CategoryEditRow bloodDrawCat = catPage.getCategory("Blood Draw");
-        assertNotNull("Blood Draw category should exist", bloodDrawCat);
-        assertEquals("Blood Draw category should be inactive", false, bloodDrawCat.getIsActive());
+        CategoryEditRow ourCat = catPage.getCategory(editedCategory);
+        assertNotNull("test edit category should exist", ourCat);
+        assertEquals("test edit category should be inactive", false, ourCat.getIsActive());
+        assertEquals("test edit category should have new description", editedCategory, ourCat.getDescription());
 
-        CategoryEditRow newCat = catPage.getCategory("new category");
-        assertNotNull("new category should exist", newCat);
-        assertEquals("new category should be active", true, newCat.getIsActive());
-
-        CategoryEditRow weightCat = catPage.getCategory("Weight");
-        assertNull("Weight category should have been deleted", weightCat);
+        SelectRowsCommand catsCmd = new SelectRowsCommand("snd", "PkgCategories");
+        SelectRowsResponse afterCats = catsCmd.execute(createDefaultConnection(false), getProjectName());
+        assertFalse("our category should have been edited, but was not",
+                afterCats.getRows().stream().anyMatch((a)-> a.get("Description").equals(editedCategory)));
     }
 
     @Test
@@ -636,7 +721,6 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         assertTextNotPresent(EXTCOLTESTDATA2, "Description 2");
     }
 
-    @Test
     public void testPackageApis()
     {   DataRegionTable dataRegionTable;
 
@@ -651,8 +735,14 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         viewQueryData("snd", "Pkgs");
         assertTextPresent("My package description", 1);
 
+        List<Map<String, Object>> packages = executeSelectRowCommand("snd", "Pkgs").getRows();
+        String newPackageId = packages.stream()
+                .filter(a->a.get("Description").equals("My package description"))
+                .findAny().get()
+                .get("PkgId").toString();
+
         //get package json
-        String result = (String) executeAsyncScript(GETPACKAGEAPI);
+        String result = (String) executeAsyncScript(getPackageWithId(newPackageId));
         JSONObject resultAsJson = new JSONObject(result);
         assertEquals("Wrong narrative","This is a narrative", resultAsJson.getString("narrative"));
 
@@ -714,7 +804,8 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         waitAndClickAndWait(Locator.linkWithText("view data"));
 
         DataRegionTable results = new DataRegionTable("query", getDriver());
-        assertEquals("Wrong row count in snd.Pkgs",1, results.getDataRowCount());
+        assertTrue("Expect the package we registered in this test to be there",
+                results.getColumnDataAsText("Description").contains("Vitals"));
 
         List<List<String>> rows = results.getRows("PkgId", "Description", "Active", "Repeatable", "Narrative");
         List<String> row_expected = Arrays.asList("2", "Vitals", "true", "true", "Check Vitals Test");

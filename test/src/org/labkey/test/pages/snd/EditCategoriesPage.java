@@ -43,12 +43,13 @@ public class EditCategoriesPage extends LabKeyPage<EditCategoriesPage.ElementCac
 
     public CategoryEditRow getCategory(String category)
     {
-        return CategoryEditRow.finder(getDriver()).withDescription(category).findOrNull();
+        return CategoryEditRow.finder(getDriver()).withDescription(category).timeout(3000).findOrNull();
     }
 
     public EditCategoriesPage deleteCategory(String category)
     {
-        CategoryEditRow toDelete = CategoryEditRow.finder(getDriver()).withDescription(category).find();
+        CategoryEditRow toDelete = CategoryEditRow.finder(getDriver())
+                .withDescription(category).timeout(4000).find();
         toDelete.delete();
         return this;
     }
@@ -63,6 +64,7 @@ public class EditCategoriesPage extends LabKeyPage<EditCategoriesPage.ElementCac
         waitFor(()-> elementCache().saveButton.getAttribute("disabled")==null,
                 "'Save' button is disabled", 2000);
         elementCache().saveButton.click();
+        sleep(1000);    // todo: wait for save button to detatch/unmount before re-mounting into next page view
         return new EditCategoriesPage(getDriver());
     }
 
