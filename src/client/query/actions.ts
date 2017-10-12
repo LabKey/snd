@@ -225,7 +225,7 @@ export function queryEditSetSubmitted(editableModel: EditableQueryModel) {
 
 export function queryEditSetSubmitting(editableModel: EditableQueryModel) {
     return {
-        type: QUERY_TYPES.QUERY_EDIT_SET_SUBMITTED,
+        type: QUERY_TYPES.QUERY_EDIT_SET_SUBMITTING,
         editableModel
     };
 }

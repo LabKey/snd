@@ -9,53 +9,72 @@ import { AppModel } from './model'
 
 export const app = handleActions({
 
-    [APP_TYPES.APP_ERROR]: (state: AppModel, action: any) => {
-        const { error } = action;
-
-        console.log('App Error', error);
-        return new AppModel(Object.assign({}, state, {
-            isError: true,
-            message: error.exception ? error.exception : 'Something went wrong'
-        }));
-    },
+    [APP_TYPES.APP_ERROR]: setErrorMessages,
 
     [APP_TYPES.APP_ERROR_RESET]: (state: AppModel, action: any) => {
+        const { id } = action;
 
-        return new AppModel({
-            isError: false,
-            isWarning: false,
-            message: undefined
+        const messages = state.messages.filter(msg => {
+            return msg.id !== id;
         });
+
+        return new AppModel(Object.assign({}, state, {
+            isError: messages.length > 0,
+            isWarning: false,
+            messages
+        }));
     },
 
     [APP_TYPES.APP_MESSAGE]: (state: AppModel, action: any) => {
         const { message } = action;
+        let messages = [].concat(state.messages);
+
+        messages.push({
+            id: state.messages.length,
+            message,
+            role: 'success'
+        });
 
         return new AppModel(Object.assign({}, state, {
-            message
+            messages
         }));
     },
 
-    [QUERY_TYPES.QUERY_ERROR]: (state: AppModel, action: any) => {
-        const { error } = action;
+    [APP_TYPES.APP_CLEAR_MESSAGE]: (state: AppModel, action: any) => {
+        const { id, message } = action.values;
 
-        console.log('Query Error', error);
+        const messages = state.messages.filter(msg => {
+            return msg.id !== id && msg.message !== message;
+        });
+
         return new AppModel(Object.assign({}, state, {
-            isError: true,
-            message: error.exception ? error.exception : 'Something went wrong'
+            messages
         }));
     },
 
+    [QUERY_TYPES.QUERY_ERROR]: setErrorMessages,
 
-    [PKG_WIZARD_TYPES.PACKAGE_ERROR]: (state: AppModel, action: any) => {
-        const { error } = action;
 
-        console.log('Package Error', error);
-        return new AppModel(Object.assign({}, state, {
-            isError: true,
-            message: error.exception ? error.exception : 'Something went wrong'
-        }));
-    },
+    [PKG_WIZARD_TYPES.PACKAGE_ERROR]: setErrorMessages,
 
 
 }, new AppModel());
+
+// This functionality is shared for multiple actions listened to by this reducer
+function setErrorMessages(state: AppModel, action: any) {
+    const { error } = action;
+
+    const message = error.exception ? error.exception : 'Something went wrong';
+    let messages = [].concat(state.messages);
+
+    messages.push({
+        id: state.messages.length,
+        message,
+        role: 'error'
+    });
+
+    return new AppModel(Object.assign({}, state, {
+        isError: true,
+        messages
+    }));
+}

@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { Dispatch } from 'redux'
 import { Route, RouteComponentProps, RouteProps, Switch } from 'react-router-dom';
 
-import { AppModel } from './model'
+import { AppMessage, AppModel } from './model'
 import * as actions from './actions'
 import { UserModel } from '../SignIn/model'
 import { SignIn } from '../SignIn/SignIn'
@@ -15,7 +15,7 @@ interface AppOwnProps extends RouteComponentProps<{}> {}
 interface AppStateDispatch {
     dispatch?: Dispatch<any>
 
-    dismissWarning?: () => any
+    dismissWarning?: (id?: number) => any
 }
 interface AppStateProps {
     dispatch?: Dispatch<any>
@@ -34,24 +34,24 @@ function mapStateToProps(state: APP_STATE_PROPS) {
 
 function mapDispatchToProps(dispatch: Dispatch<any>): AppStateDispatch {
     return {
-        dismissWarning: () => dispatch(actions.resetAppError())
+        dismissWarning: (id?: number) => dispatch(actions.resetAppError(id))
     }
 }
 
 export class AppImpl extends React.Component<AppProps, {}> {
 
-    static getMessageTypes(app: AppModel): {
+    static getMessageTypes(msg: AppMessage): {
         alertClassName: string
         alertType: string
     } {
         let alertClassName,
             alertType;
 
-        if (app.isError === true) {
+        if (msg.role === 'error') {
             alertClassName = 'alert-danger';
             alertType = 'alert';
         }
-        else if (app.isWarning) {
+        else if (msg.role === 'warning') {
             alertClassName = 'alert-warning';
             alertType = 'warning';
         }
@@ -67,20 +67,25 @@ export class AppImpl extends React.Component<AppProps, {}> {
     }
 
     renderMessage() {
-        const { app } = this.props;
+        const { app, dismissWarning } = this.props;
 
-        if (app.message) {
-            const alerts = AppImpl.getMessageTypes(app);
-            const { alertClassName, alertType } = alerts;
-
+        if (app.messages && app.messages.length) {
             return (
-                <div className="app-error">
-                    <div className={[styles['alert-dismiss'], alertClassName].join(' ')}>
-                        <i className='fa fa-times' onClick={this.props.dismissWarning}/>
-                    </div>
-                    <div className={['alert', alertClassName].join(' ')} role={alertType}>
-                        {app.message}
-                    </div>
+                <div className='app-alert-container'>
+                    {app.messages.map(msg => {
+                        const alerts = AppImpl.getMessageTypes(msg);
+                        const { alertClassName, alertType } = alerts;
+                        return (
+                            <div className="app-error" key={msg.message + msg.id}>
+                                <div className={[styles['alert-dismiss'], alertClassName].join(' ')}>
+                                    <i className='fa fa-times' onClick={() => dismissWarning(msg.id)}/>
+                                </div>
+                                <div className={['alert', alertClassName].join(' ')} role={alertType}>
+                                    {msg.message}
+                                </div>
+                            </div>
+                        )
+                    })}
                 </div>
             );
         }
