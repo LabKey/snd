@@ -32,7 +32,7 @@ export const OrderSelect = (props: OrderSelectProps) => {
             <div style={{float: 'left', width: '75%'}}>
                 <select
                     className="form-control"
-                    disabled={props.disabled === true}
+                    disabled={(props.disabled === true) || (props.first && props.last)}
                     name={props.name}
                     onChange={props.onChange}
                     required={props.required === true}
