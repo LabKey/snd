@@ -1,7 +1,10 @@
 import { push } from 'react-router-redux'
 
-import { PKG_WIZARD_TYPES } from './constants'
-import { PackageModel, PackageModelAttribute, PackageWizardModel, PackageSubmissionModel } from './model'
+import {PKG_WIZARD_TYPES, VALIDATOR_GTE, VALIDATOR_LTE} from './constants'
+import {
+    PackageModel, PackageModelAttribute, PackageWizardModel, PackageSubmissionModel,
+    PackageModelValidator
+} from './model'
 
 import { setAppError } from "../../App/actions";
 
@@ -290,7 +293,7 @@ function formatAttributes(attributes: Array<PackageModelAttribute>): Array<Packa
     if (attributes.length) {
         return attributes.map((attribute, i) => {
             // loop through the attribute keys and strip off the _# like name_0 = name
-            return new PackageModelAttribute(Object.keys(attribute).reduce((prev, next) => {
+            let pkgAttribute = new PackageModelAttribute(Object.keys(attribute).reduce((prev, next) => {
                 const nextKey = next.split('_')[0];
                 if (next === 'lookupKey') {
                     if (attribute[next]) {
@@ -314,10 +317,40 @@ function formatAttributes(attributes: Array<PackageModelAttribute>): Array<Packa
 
                 return prev;
             }, {}));
+
+            pkgAttribute = addValidator(pkgAttribute);
+            return pkgAttribute;
         });
     }
 
     return [];
+}
+
+function addValidator(attribute: PackageModelAttribute) : PackageModelAttribute {
+    let type = attribute.rangeURI;
+    let min = attribute.min;
+    let max = attribute.max;
+    let newValidator = new PackageModelValidator();
+    newValidator.type = (type === 'string' ? 'length' : 'range');
+    newValidator.name = (type === 'string' ? 'SND Length' : 'SND Range');  // Name must start with SND
+    newValidator.description = (type === 'string' ? 'SND String Length' : 'SND Numeric Range');
+
+    // Create expression
+    if (min && max) {
+        newValidator.expression = VALIDATOR_GTE + min + '&' + VALIDATOR_LTE + max;
+    }
+    else if (min && !max) {
+        newValidator.expression = VALIDATOR_GTE + min;
+    }
+    else if (!min && max) {
+        newValidator.expression = VALIDATOR_LTE + max;
+    }
+    else {
+        newValidator.expression = '';
+    }
+
+    attribute['validators'] = [newValidator];
+    return attribute;
 }
 
 function savePackage(jsonData) {

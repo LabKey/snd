@@ -5,7 +5,7 @@ import {
     PackageModelAttribute,
     PackageModel,
     PackageWizardModel,
-    PackageWizardContainer, PackageModelValidator
+    PackageWizardContainer
 } from './model'
 import { PACKAGE_VIEW } from "../../Packages/Forms/PackageFormContainer";
 import { arraysMatch } from '../../../utils/actions'
@@ -155,46 +155,6 @@ export const packages = handleActions({
                 // move the existing attribute to replace the changed attribute
                 attributes[attributeValue] = new PackageModelAttribute(
                     Object.assign({}, model.data.attributes[attributeValue], {['sortOrder']: prevValue})
-                );
-            }
-
-            if (attributeField === 'min' || attributeField === 'max') {
-                let type = attributes[index].rangeURI;
-                let min = (attributeField === 'min' ? attributeValue :
-                    (attributes[index].min != null ? attributes[index].min : undefined));
-                let max = (attributeField === 'max' ? attributeValue :
-                    (attributes[index].max != null ? attributes[index].max : undefined));
-
-                let newValidator = new PackageModelValidator();
-                newValidator.type = (type === 'string' ? 'length' : 'range');
-                newValidator.name = (type === 'string' ? 'SND Length' : 'SND Range');  // Name must start with SND
-                newValidator.description = (type === 'string' ? 'SND String Length' : 'SND Numeric Range');
-
-                // Create expression
-                if (min && max) {
-                    newValidator.expression = VALIDATOR_GTE + min + '&' + VALIDATOR_LTE + max;
-                }
-                else if (min && !max) {
-                    newValidator.expression = VALIDATOR_GTE + min;
-                }
-                else if (!min && max) {
-                    newValidator.expression = VALIDATOR_LTE + max;
-                }
-                else {
-                    newValidator.expression = '';
-                }
-
-                model.data.attributes[index] = new PackageModelAttribute(
-                    Object.assign({}, model.data.attributes[index], {['validators']: [newValidator]})
-                );
-            }
-
-            // Update validator type if field type changes
-            if (attributeField === 'rangeURI' && attributes[index].validators && attributes[index].validators.length > 0) {
-                let validator = attributes[index].validators[0];
-                validator.type = (attributeValue === 'string' ? 'length' : 'range');
-                model.data.attributes[index] = new PackageModelAttribute(
-                    Object.assign({}, model.data.attributes[index], {['validators']: [validator]})
                 );
             }
 
