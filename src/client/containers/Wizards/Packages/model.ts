@@ -13,6 +13,24 @@ interface PackageModelValidatorProps {
     type: string
 }
 
+export class PackageModelValidator implements PackageModelValidatorProps {
+    description: string = undefined;
+    errorMessage: string = undefined;
+    expression: string = undefined;
+    name: string = undefined;
+    type: string = undefined;
+
+    constructor(props?: Partial<PackageModelValidator>) {
+        if (props) {
+            for (let k in props) {
+                if (this.hasOwnProperty(k) && props.hasOwnProperty(k)) {
+                    this[k] = props[k];
+                }
+            }
+        }
+    }
+}
+
 interface PackageModelAttributeLookupProps {
     value: string
     label: string
@@ -54,7 +72,7 @@ export class PackageModelAttribute implements PackageModelAttributeProps {
     required: boolean | 'on' = false;
     scale: number = 0;
     sortOrder: number = 0;
-    validators: Array<PackageModelValidatorProps>;
+    validators: Array<PackageModelValidatorProps> = [];
     [key: string]: any;
 
     constructor(props?: Partial<PackageModelAttribute>) {

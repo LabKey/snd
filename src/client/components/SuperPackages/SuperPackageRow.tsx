@@ -113,8 +113,8 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
                             : null
                         }
                         <MenuItem onClick={() => handleFullNarrative(model)}>Full Narrative</MenuItem>
-                        <MenuItem disabled>Packages Using</MenuItem>
-                        <MenuItem disabled>Projects Using</MenuItem>
+                        {/*<MenuItem disabled>Packages Using</MenuItem>*/}
+                        {/*<MenuItem disabled>Projects Using</MenuItem>*/}
                     </DropdownButton>
                 </div>
             </div>

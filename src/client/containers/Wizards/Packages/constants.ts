@@ -1,5 +1,8 @@
 const PKG_PREFIX = 'wizards/packages/';
 
+export const VALIDATOR_LTE = '~lte=';
+export const VALIDATOR_GTE = '~gte=';
+
 export const PKG_WIZARD_TYPES = {
     PACKAGE_CHECK_VALID: PKG_PREFIX + 'PACKAGE_CHECK_VALID',
     PACKAGE_INIT: PKG_PREFIX + 'PACKAGE_INIT',

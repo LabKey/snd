@@ -79,6 +79,10 @@ public class SNDController extends SpringActionController
                 json.put("conceptURI", "http://cpas.labkey.com/Study#" + Package.RANGE_PARTICIPANTID);
                 rangeUri = "string";
             }
+            if (rangeUri.equals("string"))
+            {
+                json.put("scale", 4000);
+            }
 
             json.put("rangeURI", "http://www.w3.org/2001/XMLSchema#" + rangeUri);
 
