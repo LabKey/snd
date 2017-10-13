@@ -299,13 +299,13 @@ function formatAttributes(attributes: Array<PackageModelAttribute>): Array<Packa
                     if (attribute[next]) {
                         const splitKey = attribute[next].split('.');
                         if (splitKey && splitKey.length > 1) {
-                            prev['lookupSchema'] = splitKey[0];
-                            prev['lookupQuery'] = splitKey[1];
+                            attribute['lookupSchema'] = splitKey[0];
+                            attribute['lookupQuery'] = splitKey[1];
                         }
                     }
                     else {
-                        prev['lookupSchema'] = "";
-                        prev['lookupQuery'] = "";
+                        attribute['lookupSchema'] = "";
+                        attribute['lookupQuery'] = "";
                     }
                 }
                 else if (next === 'required') {
