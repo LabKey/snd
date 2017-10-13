@@ -25,6 +25,7 @@ import org.labkey.api.action.SimpleApiJsonForm;
 import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
 import org.labkey.api.exp.api.ExperimentService;
+import org.labkey.api.gwt.client.DefaultValueType;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.permissions.AdminPermission;
@@ -84,6 +85,7 @@ public class SNDController extends SpringActionController
                 json.put("scale", 4000);
             }
 
+            json.put("defaultValueType", DefaultValueType.FIXED_EDITABLE.toString());
             json.put("rangeURI", "http://www.w3.org/2001/XMLSchema#" + rangeUri);
 
             return ExperimentService.get().convertJsonToPropertyDescriptor(json);
