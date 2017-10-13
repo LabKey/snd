@@ -296,6 +296,7 @@ function formatAttributes(attributes: Array<PackageModelAttribute>): Array<Packa
             let pkgAttribute = new PackageModelAttribute(Object.keys(attribute).reduce((prev, next) => {
                 const nextKey = next.split('_')[0];
                 if (next === 'lookupKey') {
+                    // Set lookup values in attribute and prev so they don't get overwritten when iterating through
                     if (attribute[next]) {
                         const splitKey = attribute[next].split('.');
                         if (splitKey && splitKey.length > 1) {
@@ -331,9 +332,14 @@ function formatAttributes(attributes: Array<PackageModelAttribute>): Array<Packa
 }
 
 function addValidator(attribute: PackageModelAttribute) : PackageModelAttribute {
+
     let type = attribute.rangeURI;
     let min = attribute.min;
     let max = attribute.max;
+
+    if (!min && !max)
+        return attribute;
+
     let newValidator = new PackageModelValidator();
     newValidator.type = (type === 'string' ? 'length' : 'range');
     newValidator.name = (type === 'string' ? 'SND Length' : 'SND Range');  // Name must start with SND
@@ -349,7 +355,7 @@ function addValidator(attribute: PackageModelAttribute) : PackageModelAttribute 
     else if (!min && max) {
         newValidator.expression = VALIDATOR_LTE + max;
     }
-    else {
+    else { // Should never get here
         newValidator.expression = '';
     }
 
