@@ -24,6 +24,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.labkey.remoteapi.CommandException;
+import org.labkey.remoteapi.CommandResponse;
 import org.labkey.remoteapi.Connection;
 import org.labkey.remoteapi.query.DeleteRowsCommand;
 import org.labkey.remoteapi.query.Filter;
@@ -37,7 +38,6 @@ import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.TestFileUtils;
 import org.labkey.test.TestTimeoutException;
-import org.labkey.test.WebDriverWrapper;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.components.CustomizeView;
 import org.labkey.test.components.bootstrap.ModalDialog;
@@ -62,7 +62,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -392,6 +391,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 
         //insert package categories
         runScript(CREATECATEGORIESAPI);
+        populateLookups();
 
         // this needs to run first; it has hard-coded IDs
         testPackageApis();
@@ -407,6 +407,74 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     {
         String result = (String) executeAsyncScript(script);
         assertEquals("JavaScript API failure.", "Success!", result);
+    }
+
+    private void populateLookups()
+    {
+        Connection connection = createDefaultConnection(true);
+        CommandResponse resp;
+
+        InsertRowsCommand command = new InsertRowsCommand("snd", "LookupSets");
+        List<Map<String, Object>> lookupSetRows = Arrays.asList(
+                new HashMap<String, Object>(Maps.of("SetName", "SurgeryType",
+                        "Label", "Surgery Type",
+                        "Description", "These are surgery types")),
+                new HashMap<String, Object>(Maps.of("SetName", "BloodDrawType")),
+                new HashMap<String, Object>(Maps.of("SetName", "GenderType",
+                        "Label", "Gender")),
+                new HashMap<String, Object>(Maps.of("SetName", "VolumeUnitTypes",
+                        "Label", "Volume",
+                        "Description", "Units of volume")));
+
+        command.setRows(lookupSetRows);
+
+        try
+        {
+            resp = command.execute(connection, getProjectName());
+        }
+        catch(Exception e)
+        {
+            throw new RuntimeException(e);
+        }
+
+        List<Map<String, Object>> data = (List<Map<String, Object>>)resp.getParsedData().get("rows");
+        List<Map<String, Object>> lookupRows = Arrays.asList(
+                new HashMap<>(Maps.of("LookupSetId", data.get(0).get("lookupSetId"),
+                        "Value", "Research",
+                        "Displayable", "true")),
+                new HashMap<>(Maps.of("LookupSetId", data.get(0).get("lookupSetId"),
+                        "Value", "Clinical",
+                        "Displayable", "true")),
+                new HashMap<>(Maps.of("LookupSetId", data.get(1).get("lookupSetId"),
+                        "Value", "Research Blood Draw",
+                        "Displayable", "true")),
+                new HashMap<>(Maps.of("LookupSetId", data.get(1).get("lookupSetId"),
+                        "Value", "Clinical Blood Draw",
+                        "Displayable", "true")),
+                new HashMap<>(Maps.of("LookupSetId", data.get(2).get("lookupSetId"),
+                        "Value", "Male",
+                        "Displayable", "true")),
+                new HashMap<>(Maps.of("LookupSetId", data.get(2).get("lookupSetId"),
+                        "Value", "Female",
+                        "Displayable", "true")),
+                new HashMap<>(Maps.of("LookupSetId", data.get(3).get("lookupSetId"),
+                        "Value", "mL",
+                        "Displayable", "true")),
+                new HashMap<>(Maps.of("LookupSetId", data.get(3).get("lookupSetId"),
+                        "Value", "L",
+                        "Displayable", "true")));
+
+        command = new InsertRowsCommand("snd", "Lookups");
+        command.setRows(lookupRows);
+
+        try
+        {
+            command.execute(connection, getProjectName());
+        }
+        catch(Exception e)
+        {
+            throw new RuntimeException(e);
+        }
     }
 
     @Before
