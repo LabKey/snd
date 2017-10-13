@@ -301,11 +301,15 @@ function formatAttributes(attributes: Array<PackageModelAttribute>): Array<Packa
                         if (splitKey && splitKey.length > 1) {
                             attribute['lookupSchema'] = splitKey[0];
                             attribute['lookupQuery'] = splitKey[1];
+                            prev['lookupSchema'] = splitKey[0];
+                            prev['lookupQuery'] = splitKey[1];
                         }
                     }
                     else {
                         attribute['lookupSchema'] = "";
                         attribute['lookupQuery'] = "";
+                        prev['lookupSchema'] = "";
+                        prev['lookupQuery'] = "";
                     }
                 }
                 else if (next === 'required') {
