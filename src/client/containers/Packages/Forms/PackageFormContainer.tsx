@@ -101,6 +101,7 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
         this.handleFieldChange = this.handleFieldChange.bind(this);
         this.handleNarrativeChange = this.handleNarrativeChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.parseAttributes = this.parseAttributes.bind(this);
         this.renderNarrative = this.renderNarrative.bind(this);
         this.setModelWarning = this.setModelWarning.bind(this);
         this.showFullNarrative = this.showFullNarrative.bind(this);
@@ -112,6 +113,13 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
 
     componentWillReceiveProps(nextProps?: PackageFormContainerProps) {
         this.initModel(nextProps);
+    }
+
+    componentWillUnmount() {
+        const { dispatch, model } = this.props;
+        if (model) {
+            dispatch(model.invalidate());
+        }
     }
 
     initModel(props: PackageFormContainerProps) {
@@ -140,6 +148,11 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
         if (model) {
             dispatch(model.saveNarrative(value));
         }
+    }
+
+    parseAttributes() {
+        const { dispatch, model } = this.props;
+        dispatch(model.parseAttribtues());
     }
 
     showFullNarrative(pkg: AssignedPackageModel, shouldQuery: boolean) {
@@ -183,7 +196,7 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
     renderBody() {
         const { model } = this.props;
 
-        if (model && model.packageLoaded) {
+        if (model && model.packageLoaded && !model.isError) {
             return <PackageForm
                         handleCancel={this.handleCancel}
                         handleFieldChange={this.handleFieldChange}
@@ -193,7 +206,11 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
                         handleWarning={this.setModelWarning}
                         isValid={model.isValid}
                         model={model.data}
+                        parseAttributes={this.parseAttributes}
                         view={model.formView}/>;
+        }
+        else if (model && model.isError) {
+            return <div className='alert alert-danger package-wizard-model__error'>{model.message ? model.message : ''}</div>;
         }
 
         return <div><i className="fa fa-spinner fa-spin fa-fw"/> Loading...</div>;

@@ -141,7 +141,7 @@ class AttributesGridBody extends React.Component<AttributesGridProps, {}> {
                                         required: col.required
                                     };
                                     return (
-                                        <td key={j}>
+                                        <td key={j + attribute.name}>
                                             {React.createElement(col.inputComponent, props)}
                                         </td>
                                     )

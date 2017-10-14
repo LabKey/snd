@@ -62,3 +62,7 @@
 .disabled__block-with-text:after {
     background: rgb(238, 238, 238);
 }
+
+.attributes__parse-button {
+    cursor: pointer;
+}

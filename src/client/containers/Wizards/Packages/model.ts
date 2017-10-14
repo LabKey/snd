@@ -94,10 +94,10 @@ interface PackageModelProps {
     container?: string
     description?: string
     extraFields?: Array<PackageModelAttributeProps>
-    hasEvent?: boolean;
-    hasProject?: boolean;
+    hasEvent?: boolean
+    hasProject?: boolean
     narrative?: string
-    narrativeKeywords?: Array<string>
+    narrativeKeywords?: {[key:string] : number}
     pkgId?: number
     qcState?: any
     repeatable?: boolean
@@ -115,7 +115,7 @@ export class PackageModel implements PackageModelProps {
     hasEvent: boolean = false;
     hasProject: boolean = false;
     narrative: string = undefined;
-    narrativeKeywords: Array<string> = [];
+    narrativeKeywords: {[key:string] : number} = {};
     pkgId: number = undefined;
     qcState: any = null; // todo: find out qcState type
     repeatable: boolean = false;
@@ -227,12 +227,20 @@ export class PackageWizardModel implements PackageWizardModelProps {
         return actions.formatPackageValues(this, active);
     }
 
+    invalidate() {
+        return actions.invalidateModel(this);
+    }
+
     loaded() {
         return actions.packageLoaded(this);
     }
 
     loading() {
         return actions.packageLoading(this);
+    }
+
+    parseAttribtues() {
+        return actions.parseAttributes(this);
     }
 
     saveField(name, value) {

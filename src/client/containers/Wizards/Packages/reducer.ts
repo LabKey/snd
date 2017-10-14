@@ -13,9 +13,17 @@ import { arraysMatch } from '../../../utils/actions'
 export const packages = handleActions({
 
     [PKG_WIZARD_TYPES.PACKAGE_ERROR]: (state: PackageWizardContainer, action: any) => {
-        //const { model } = action;
+        const { error, model } = action;
 
-        return state;
+
+        const errorModel = new PackageWizardModel(Object.assign({}, model, {
+            isError: true,
+            message: error && error.exception ? error.exception : 'Something went wrong.'
+        }));
+
+        return new PackageWizardContainer(Object.assign({}, state, {packageData: {
+            [errorModel.packageId]: errorModel
+        }}));
     },
 
     [PKG_WIZARD_TYPES.PACKAGE_WARNING]: (state: PackageWizardContainer, action: any) => {
@@ -40,6 +48,14 @@ export const packages = handleActions({
 
         return new PackageWizardContainer(Object.assign({}, state, {packageData: {
             [packageId]: model
+        }}));
+    },
+
+    [PKG_WIZARD_TYPES.PACKAGE_INVALIDATE]: (state: PackageWizardContainer, action: any) => {
+        const { model } = action;
+
+        return new PackageWizardContainer(Object.assign({}, state, {packageData: {
+            [model.packageId]: new PackageModel()
         }}));
     },
 
@@ -91,6 +107,8 @@ export const packages = handleActions({
             return d.pkgId = pkgId;
         });
 
+        let sourceKeywords = {};
+
         data.attributes = data.attributes.map((attribute, i) => {
             let attributeValues = Object.assign({}, attribute, {
                 rangeURI: attribute.rangeURI ? attribute.rangeURI : 'string',
@@ -114,6 +132,8 @@ export const packages = handleActions({
                 }
             }
 
+            sourceKeywords[attributeValues.name] = attributeValues.sortOrder;
+
             return new PackageModelAttribute(attributeValues);
         }).sort((attA, attB) => {
             const a = attA.sortOrder,
@@ -121,7 +141,15 @@ export const packages = handleActions({
             return a < b ? -1 : a == b ? 0 : 1;
         });
 
-        data.narrativeKeywords = parseNarrativeKeywords(data.narrative);
+        const keywords = parseNarrativeKeywords(data.narrative);
+        if (!arraysMatch(keywords, Object.keys(sourceKeywords))) {
+            console.warn('Server assigned attributes do not match parsed values', keywords, Object.keys(sourceKeywords));
+            // if the server attribute names do not match the parsed narrative
+            data.narrativeKeywords = keywords;
+        }
+        else {
+            data.narrativeKeywords = sourceKeywords;
+        }
 
         const modelData = new PackageModel(Object.assign({}, state.packageData[pkgId].data, data));
         const successModel = new PackageWizardModel(Object.assign({}, model, {
@@ -129,6 +157,67 @@ export const packages = handleActions({
             formView: view,
             initialData: modelData,
             isValid: isFormValid(modelData, modelData, view)
+        }));
+
+        return new PackageWizardContainer(Object.assign({}, state, {packageData: {
+            [successModel.packageId]: successModel
+        }}));
+    },
+
+
+    [PKG_WIZARD_TYPES.PARSE_ATTRIBUTES]: (state: PackageWizardContainer, action: any) => {
+        const { model } = action;
+
+        const narrative = model.data.narrative;
+        const parsedKeywords = parseNarrativeKeywords(narrative);
+
+        let data = Object.assign({}, model.data);
+
+        // compare the parsed and existing keyword arrays to see if they match
+        if (!arraysMatch(parsedKeywords, Object.keys(model.data.narrativeKeywords))) {
+
+            let changedIndex = parsedKeywords.findIndex((e) => {
+                return model.data.narrativeKeywords[e] === undefined;
+            });
+
+            // create a new object to store the narrative keywords and their index
+            const narrativeKeywords = parsedKeywords.reduce((prev, next, currentIndex) => {
+                let existingIndex = model.data.narrativeKeywords[next];
+                let index = existingIndex !== undefined ? existingIndex : currentIndex;
+
+                // if the attribute key already existed, make sure we are inserting it into the correct
+                // place in the array
+                if (
+                    (existingIndex && existingIndex > changedIndex) ||
+                    (currentIndex === changedIndex && changedIndex !== (parsedKeywords.length - 1))
+                ) {
+                    index++;
+                }
+
+                prev[next] = index;
+
+                return prev;
+            }, {});
+
+            data.narrativeKeywords = narrativeKeywords;
+
+            data.attributes = Object.keys(narrativeKeywords).map(keyword => {
+                const existingIndex = model.data.narrativeKeywords[keyword];
+                return new PackageModelAttribute(Object.assign({},
+                    model.data.attributes[existingIndex],
+                    {
+                        name: keyword,
+                        sortOrder: narrativeKeywords[keyword]
+                    }
+                ));
+            }).sort((a,b) => {
+                return a.sortOrder < b.sortOrder ? -1 : a.sortOrder === b.sortOrder ? 0 : 1;
+            });
+        }
+
+        const successModel = new PackageWizardModel(Object.assign({}, model, {
+            data: new PackageModel(Object.assign({}, state.packageData[model.packageId].data, data)),
+            isValid: isFormValid(data, model.initialData, model.formView)
         }));
 
         return new PackageWizardContainer(Object.assign({}, state, {packageData: {
@@ -147,14 +236,25 @@ export const packages = handleActions({
             const attributeField = parts[2];
             let attributeValue = value;
             let attributes = [].concat(model.data.attributes);
-
+            let narrativeKeywords = model.data.narrativeKeywords;
             if (attributeField === 'sortOrder') {
-                const prevValue = model.data.attributes[index].sortOrder;
+                const prevValue = model.data.attributes[index].sortOrder,
+                    attributeName = model.data.attributes[index].name;
                 attributeValue = value === 'up' ? prevValue - 1 : prevValue + 1;
+                const prevName = model.data.attributes[attributeValue].name;
 
                 // move the existing attribute to replace the changed attribute
                 attributes[attributeValue] = new PackageModelAttribute(
                     Object.assign({}, model.data.attributes[attributeValue], {['sortOrder']: prevValue})
+                );
+
+                // ensure the index for the keywords is updated as well if sort order has changed
+                narrativeKeywords = Object.assign({},
+                    model.data.narrativeKeywords,
+                    {
+                        [attributeName]: attributeValue,
+                        [prevName]: prevValue,
+                    }
                 );
             }
 
@@ -167,7 +267,8 @@ export const packages = handleActions({
                     const a = attA.sortOrder,
                         b = attB.sortOrder;
                     return a < b ? -1 : a == b ? 0 : 1;
-                })
+                }),
+                narrativeKeywords
             }));
         }
         else if (name.indexOf('extraFields') !== -1) {
@@ -201,26 +302,6 @@ export const packages = handleActions({
         const { model, narrative } = action;
 
         let data = Object.assign({}, model.data, {narrative});
-        const narrativeKeywords = parseNarrativeKeywords(narrative);
-
-        // compare the parsed and existing keyword arrays to see if they match
-        if (!arraysMatch(narrativeKeywords, model.data.narrativeKeywords)) {
-
-            data.narrativeKeywords = narrativeKeywords;
-
-            // look for more efficient method to set attributes/keywords
-            // sort order is set based on order or keywords, but if a different order has been set, the original will
-            // override
-            data.attributes = narrativeKeywords.map((keyword, i) => {
-                return new PackageModelAttribute(Object.assign({},
-                    {
-                        name: keyword,
-                        sortOrder: i
-                    },
-                    model.data.attributes[i]
-                ));
-            });
-        }
 
         const successModel = new PackageWizardModel(Object.assign({}, model, {
             data: new PackageModel(Object.assign({}, state.packageData[model.packageId].data, data)),

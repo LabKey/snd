@@ -118,7 +118,8 @@ export function init(id: string | number, view: PACKAGE_VIEW) {
                 dispatch(packageModel.loaded());
             }).catch((error) => {
                 // set error
-                console.log('error', error)
+                console.log('error', error);
+                dispatch(packageModel.setError(error));
             });
         }
 
@@ -135,8 +136,15 @@ export function initPackageModel(props: {[key: string]: any}) {
     }
 }
 
+export function invalidateModel(model: PackageWizardModel) {
+    return {
+        type: PKG_WIZARD_TYPES.PACKAGE_INVALIDATE,
+        model
+    };
+}
+
 function shouldFetch(model: PackageWizardModel): boolean {
-    return !model.packageLoaded && !model.packageLoading;
+    return !model.packageLoaded && !model.packageLoading && !model.isError;
 }
 
 export function packageCheckValid(model: PackageWizardModel) {
@@ -191,6 +199,15 @@ export function saveNarrative(model: PackageWizardModel, narrative: string) {
             type: PKG_WIZARD_TYPES.SAVE_NARRATIVE,
             model,
             narrative
+        });
+    }
+}
+
+export function parseAttributes(model: PackageWizardModel) {
+    return (dispatch) => {
+        dispatch({
+            type: PKG_WIZARD_TYPES.PARSE_ATTRIBUTES,
+            model
         });
     }
 }

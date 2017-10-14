@@ -55,6 +55,7 @@ interface PackageFormOwnProps {
     handleWarning?: (warning?: string) => void
     isValid?: boolean
     model?: PackageModel
+    parseAttributes?: () => void
     view?: PACKAGE_VIEW
 }
 
@@ -416,7 +417,11 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
 
                     <div className="row clearfix">
                         <div className={"col-sm-12 " + styles['margin-top']}>
-                            <strong>Attributes</strong>
+                            <strong>Attributes</strong>&nbsp;
+                            <Button onClick={this.props.parseAttributes}>
+                                <i className={"fa fa-refresh " + styles['attributes__parse-button']}/>
+                                &nbsp;<small>Parse Attributes</small>
+                            </Button>
                         </div>
                         <div className={"col-sm-12 " + styles['margin-top']}>
                             {this.renderAttributes()}
