@@ -45,10 +45,31 @@ public class AttributeGridRow extends WebDriverComponent<AttributeGridRow.Elemen
         return this;
     }
 
+    public String getDataType()
+    {
+        return elementCache().dataTypeSelect.getFirstSelectedOption().getText();
+    }
+
+    public AttributeGridRow selectLookupKey(String key)
+    {
+        elementCache().lookupKeySelect.selectByVisibleText(key);
+        return this;
+    }
+
+    public String getLookupKey()
+    {
+        return elementCache().lookupKeySelect.getFirstSelectedOption().getText();
+    }
+
     public AttributeGridRow setLabel(String dataType)
     {
         elementCache().labelInput.set(dataType);
         return this;
+    }
+
+    public String getLabel()
+    {
+        return elementCache().labelInput.get();
     }
 
     public AttributeGridRow setMin(int min)
@@ -57,16 +78,31 @@ public class AttributeGridRow extends WebDriverComponent<AttributeGridRow.Elemen
         return this;
     }
 
+    public String getMin()
+    {
+        return elementCache().minInput.get();
+    }
+
     public AttributeGridRow setMax(int min)
     {
         elementCache().maxInput.set(Integer.toString(min));
         return this;
     }
 
+    public String getMax()
+    {
+        return elementCache().maxInput.get();
+    }
+
     public AttributeGridRow setDefault(String defaultValue)
     {
         elementCache().defaultValueInput.set(defaultValue);
         return this;
+    }
+
+    public String getDefault()
+    {
+        return elementCache().defaultValueInput.get();
     }
 
     public AttributeGridRow selectOrder(String order)   // values: "Move Up", "Move Down"
@@ -81,10 +117,20 @@ public class AttributeGridRow extends WebDriverComponent<AttributeGridRow.Elemen
         return this;
     }
 
+    public boolean getRequired()
+    {
+        return elementCache().requiredBox.get();
+    }
+
     public AttributeGridRow setRedactedText(String text)
     {
         elementCache().redactedTextInput.set(text);
         return this;
+    }
+
+    public String getRedactedText()
+    {
+        return elementCache().redactedTextInput.get();
     }
 
     protected ElementCache newElementCache()
