@@ -99,11 +99,6 @@ public class SuperPackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSche
             super(ti, ti.getRealTable());
         }
 
-        public UpdateService(SimpleUserSchema.SimpleTable simpleTable, TableInfo table, DomainUpdateHelper helper)
-        {
-            super(simpleTable, table, helper);
-        }
-
         @Override
         protected Map<String, Object> deleteRow(User user, Container container, Map<String, Object> oldRowMap) throws QueryUpdateServiceException, SQLException, InvalidKeyException
         {
@@ -112,7 +107,7 @@ public class SuperPackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSche
                 throw new QueryUpdateServiceException("Package in use, cannot delete.");
 
             // if top-level super package
-            if ((Integer) oldRowMap.get("ParentSuperPkgId") == null)
+            if (oldRowMap.get("ParentSuperPkgId") == null)
             {
                 // then delete all child super packages pointing to this top-level super package
                 List<Integer> childSuperPackageIds = SNDManager.getChildSuperPkgs(container, user, superPkgId);

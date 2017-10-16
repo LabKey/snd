@@ -79,11 +79,6 @@ public class CategoriesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             super(ti, ti.getRealTable());
         }
 
-        public UpdateService(SimpleUserSchema.SimpleTable simpleTable, TableInfo table, DomainUpdateHelper helper)
-        {
-            super(simpleTable, table, helper);
-        }
-
         @Override
         protected Map<String, Object> deleteRow(User user, Container container, Map<String, Object> oldRowMap) throws QueryUpdateServiceException, SQLException, InvalidKeyException
         {
@@ -94,15 +89,38 @@ public class CategoriesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             return super.deleteRow(user, container, oldRowMap);
         }
 
+        private Map<String, Object> ensureCategoryId(Container container, Map<String, Object> row)
+        {
+            Object id;
+            Integer intId = null;
+            id = row.get("CategoryId");
+            if (id == null)
+                id = row.get("categoryId");
+
+            if (id != null)
+            {
+                if (id.getClass() == String.class)
+                {
+                    intId = Integer.parseInt((String) id);
+                }
+                else
+                {
+                    intId = (Integer) id;
+                }
+            }
+
+            row.put("CategoryId", SNDManager.get().ensureCategoryId(container, intId));
+
+            return row;
+        }
+
+        @Override
         public List<Map<String, Object>> insertRows(User user, Container container, List<Map<String, Object>> rows, BatchValidationException errors, @Nullable Map<Enum, Object> configParameters, Map<String, Object> extraScriptContext)
                 throws DuplicateKeyException, QueryUpdateServiceException, SQLException
         {
             for (Map<String, Object> row : rows)
             {
-                if((!row.containsKey("CategoryId") && !row.containsKey("categoryId")) || (row.get("CategoryId") == null))
-                {
-                    row.put("CategoryId", SNDManager.get().generateCategoryId(container));
-                }
+                ensureCategoryId(container, row);
             }
 
             return super.insertRows(user, container, rows, errors, configParameters, extraScriptContext);
@@ -112,11 +130,7 @@ public class CategoriesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
         protected Map<String, Object> insertRow(User user, Container container, Map<String, Object> row)
                 throws DuplicateKeyException, ValidationException, QueryUpdateServiceException, SQLException
         {
-            if(!row.containsKey("CategoryId") && !row.containsKey("categoryId"))
-            {
-                row.put("CategoryId", SNDManager.get().generateCategoryId(container));
-            }
-
+            ensureCategoryId(container, row);
             return super.insertRow(user, container, row);
         }
     }

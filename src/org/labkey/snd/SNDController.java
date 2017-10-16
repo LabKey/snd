@@ -71,7 +71,6 @@ public class SNDController extends SpringActionController
     @RequiresPermission(AdminPermission.class)
     public class SavePackageAction extends ApiAction<SimpleApiJsonForm>
     {
-
         private GWTPropertyDescriptor convertJsonToPropertyDescriptor(JSONObject json)
         {
             String rangeUri = json.getString("rangeURI");
@@ -85,7 +84,7 @@ public class SNDController extends SpringActionController
                 json.put("scale", 4000);
             }
 
-            json.put("defaultValueType", DefaultValueType.FIXED_EDITABLE.toString());
+            json.put("defaultTypeValue", DefaultValueType.FIXED_EDITABLE.toString());
             json.put("rangeURI", "http://www.w3.org/2001/XMLSchema#" + rangeUri);
 
             return ExperimentService.get().convertJsonToPropertyDescriptor(json);
@@ -156,7 +155,7 @@ public class SNDController extends SpringActionController
             if(superPackage == null)
             {
                 superPackage = new SuperPackage();
-                rootSuperPackageId = SNDManager.get().generateSuperPackageId(getContainer());
+                rootSuperPackageId = SNDManager.get().ensureSuperPkgId(getContainer(), null);
                 superPackage.setSuperPkgId(rootSuperPackageId);
                 superPackage.setSuperPkgPath(Integer.toString(rootSuperPackageId));
             }
@@ -195,7 +194,7 @@ public class SNDController extends SpringActionController
                     {
                         topLevelSuperPackage.setSortOrder(superPkgIdToSortOrderMap.get(topLevelSuperPackage.getSuperPkgId()));
                         // now set new super package ID (so that this can be a properly-created child super package later)
-                        topLevelSuperPackage.setSuperPkgId(SNDManager.get().generateSuperPackageId(getContainer()));
+                        topLevelSuperPackage.setSuperPkgId(SNDManager.get().ensureSuperPkgId(getContainer(), null));
                         // the parent for this child super package is the current super package being saved
                         topLevelSuperPackage.setParentSuperPkgId(rootSuperPackageId);
                     }

@@ -49,10 +49,8 @@ public class SNDServiceImpl implements SNDService
         }
         else
         {
-            if (null == pkg.getPkgId() || pkg.getPkgId() < 0)
-            {
-                pkg.setPkgId(SNDManager.get().generatePackageId(c));
-            }
+            pkg.setPkgId(SNDManager.get().ensurePkgId(c, pkg.getPkgId()));
+
             if (superPkg != null)
                 superPkg.setPkgId(pkg.getPkgId());
 

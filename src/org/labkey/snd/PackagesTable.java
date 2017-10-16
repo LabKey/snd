@@ -26,8 +26,8 @@ import org.labkey.api.query.SimpleQueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
-import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.snd.Package;
+import org.labkey.api.snd.PackageDomainKind;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -108,11 +108,6 @@ public class PackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
         public UpdateService(SimpleUserSchema.SimpleTable ti)
         {
             super(ti, ti.getRealTable());
-        }
-
-        public UpdateService(SimpleUserSchema.SimpleTable simpleTable, TableInfo table, DomainUpdateHelper helper)
-        {
-            super(simpleTable, table, helper);
         }
 
         @Override

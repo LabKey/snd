@@ -57,9 +57,9 @@ import java.util.Set;
 public class SNDManager
 {
     private static final SNDManager _instance = new SNDManager();
-    private static final int _minPkgId = 10000;
-    private static final int _minSuperPkgId = 1000;
-    private static final int _minCategoryId = 100;
+    public static final int MINPKGID = 10000;
+    public static final int MINSUPERPKGID = 1000;
+    public static final int MINCATEGORYID = 100;
     private static final String SND_DBSEQUENCE_NAME = "org.labkey.snd.api.Package";
     private static final String SND_SUPER_PACKAGE_DBSEQUENCE_NAME = "ord.labkey.snd.api.SuperPackage";
     private static final String SND_CATEGORY_DBSEQUENCE_NAME = "org.labkey.snd.api.Categories";
@@ -85,22 +85,52 @@ public class SNDManager
     public Integer generatePackageId(Container c)
     {
         DbSequence sequence = DbSequenceManager.get(c, SND_DBSEQUENCE_NAME);
-        sequence.ensureMinimum(_minPkgId);
+        sequence.ensureMinimum(MINPKGID);
         return sequence.next();
     }
 
-    public Integer generateSuperPackageId(Container c)
+    private Integer generateSuperPackageId(Container c)
     {
         DbSequence sequence = DbSequenceManager.get(c, SND_SUPER_PACKAGE_DBSEQUENCE_NAME);
-        sequence.ensureMinimum(_minSuperPkgId);
+        sequence.ensureMinimum(MINSUPERPKGID);
         return sequence.next();
     }
 
     public Integer generateCategoryId(Container c)
     {
         DbSequence sequence = DbSequenceManager.get(c, SND_CATEGORY_DBSEQUENCE_NAME);
-        sequence.ensureMinimum(_minCategoryId);
+        sequence.ensureMinimum(MINCATEGORYID);
         return sequence.next();
+    }
+
+    public Integer ensurePkgId(Container container, Integer id)
+    {
+        if(id == null || id >= SNDManager.MINPKGID || id < 0)
+        {
+            return generatePackageId(container);
+        }
+
+        return id;
+    }
+
+    public Integer ensureSuperPkgId(Container container, Integer id)
+    {
+        if(id == null || id >= SNDManager.MINSUPERPKGID)
+        {
+            return generateSuperPackageId(container);
+        }
+
+        return id;
+    }
+
+    public Integer ensureCategoryId(Container container, Integer id)
+    {
+        if(id == null || id >= SNDManager.MINCATEGORYID)
+        {
+            return generateCategoryId(container);
+        }
+
+        return id;
     }
 
     public static String getPackageName(int id)
