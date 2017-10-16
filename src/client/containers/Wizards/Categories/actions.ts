@@ -147,37 +147,33 @@ function getChanges(editableModel: EditableQueryModel, values: {[key: string]: a
         }
     });
 
-    added = added.map((row) => {
-
-        // req should be enforced in the grid itself
-        return editableModel.getRequiredInsertColumns().reduce((prev, next: QueryColumn) => {
-            const name = next.name,
-                type = next.jsonType,
-                hasValue = row[name] !== undefined;
-
-            if (hasValue) {
-                prev[name] = row[name]['value'];
-            }
-            else if (!hasValue && type === 'boolean') {
-                prev[name] = false;
-            }
-
-            return prev;
-        }, {});
-    });
-
-    edited = edited.map((row) => {
-        return Object.keys(row).reduce((prev, next) => {
-            if (row && row[next]) {
-                prev[next] = row[next]['value'];
-            }
-            return prev;
-        }, {});
-    });
-
     return {
-        added,
-        edited,
+        added: formatChanges(added, editableModel),
+        edited: formatChanges(edited, editableModel),
         removed
     }
+}
+
+function formatChanges(changed: Array<any>, editableModel: EditableQueryModel) {
+    if (changed && changed.length) {
+        return changed.map((row) => {
+            return editableModel.getRequiredInsertColumns().reduce((prev, next: QueryColumn) => {
+                const name = next.name,
+                    type = next.jsonType,
+                    hasValue = row[name] !== undefined;
+
+                // Checkbox inputs will not hand back true/false as values, so we need to correctly set booleans here
+                if (type === 'boolean' && (!hasValue || row[name]['value'] !== true)) {
+                    prev[name] = false;
+                }
+                else if (hasValue) {
+                    prev[name] = row[name]['value'];
+                }
+
+                return prev;
+            }, {});
+        });
+    }
+
+    return [];
 }
