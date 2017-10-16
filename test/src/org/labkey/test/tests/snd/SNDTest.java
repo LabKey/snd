@@ -78,6 +78,11 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     private static final String EXTCOLTESTDATA2 = "testString 2";
     private static final String EXTCOLTESTDATA3 = "testString 3";
     private static final String EXTCOLTESTDATA3A = "updated testString 3";
+
+    // When creating packages and categories, the preferred method is to allow the id to be set automatically
+    // by the auto incrementing column.  If the package id or category id must be set manually, package ids must be
+    // less than 1000 and category ids must be less than 100.  If they do not meet those restrictions, the package
+    // or category will be created but the id will be set using the auto incremented identity column.
     private static final int TEST_PKG_ID = 900;
     private static final int TEST_PKG_ID1 = 901;
     private static final int TEST_PKG_ID2 = 902;
@@ -87,6 +92,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     private static final int TEST_CATEGORY_ID2 = 51;
     private static final int TEST_CATEGORY_ID3 = 52;
     private static final int TEST_CATEGORY_ID4 = 53;
+
     private static final int TEST_PARTICIPANT_ID = 1;
 
 
