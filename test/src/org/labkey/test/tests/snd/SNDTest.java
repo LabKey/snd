@@ -119,7 +119,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         "        'description': 'My package description',                       \n" +
         "        'active': true,                                                \n" +
         "        'repeatable': true,                                            \n" +
-        "        'narrative': 'This is a narrative',                            \n" +
+        "        'narrative': 'This is a narrative for {SNDName} ({SNDUser}), age {SNDAge}',\n" +
         "        'categories': ['" + TEST_CATEGORY_ID3 + "', '" + TEST_CATEGORY_ID4 + "'],\n" +
         "        'subPackages': [],                                             \n" +
         "        'extraFields': {'UsdaCode':'B'},                               \n" +
@@ -365,19 +365,6 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
             deleteCmd.execute(cn, path);
         }
     }
-
-//    @LogMethod
-//    private void deleteTest1Data() throws CommandException, IOException
-//    {
-//        if (_containerHelper.doesFolderExist(PROJECTNAME, PROJECTNAME, TEST1SUBFOLDER))
-//        {
-//            log("Deleting test 1 data");
-//
-//            deleteIfNeeded(TEST1PATH, "snd", "Pkgs", TEST1ROW1MAP, "PkgId");
-//            deleteIfNeeded(TEST1PATH, "snd", "Pkgs", TEST1ROW2MAP, "PkgId");
-//            deleteIfNeeded(TEST1PATH, "snd", "Pkgs", TEST1ROW3MAP, "PkgId");
-//        }
-//    }
 
     @BeforeClass
     public static void setupProject()
@@ -816,7 +803,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         //get package json
         String result = (String) executeAsyncScript(getPackageWithId(newPackageId));
         JSONObject resultAsJson = new JSONObject(result);
-        assertEquals("Wrong narrative","This is a narrative", resultAsJson.getString("narrative"));
+        assertEquals("Wrong narrative","This is a narrative for {SNDName} ({SNDUser}), age {SNDAge}", resultAsJson.getString("narrative"));
 
         JSONArray attributes = resultAsJson.getJSONArray("attributes");
         assertEquals("Wrong attribute count",3,attributes.length());
