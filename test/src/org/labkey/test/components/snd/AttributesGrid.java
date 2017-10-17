@@ -72,7 +72,8 @@ public class AttributesGrid extends WebDriverComponent<AttributesGrid.ElementCac
 
         public AttributeGridRow getRow(String key)
         {
-            return AttributeGridRow.finder(AttributesGrid.this).withKey(key).find(getComponentElement());
+            return AttributeGridRow.finder(AttributesGrid.this).withKey(key)
+                    .timeout(4000).find(getComponentElement());
         }
 
         public List<WebElement> getHeaderCells()
@@ -83,7 +84,6 @@ public class AttributesGrid extends WebDriverComponent<AttributesGrid.ElementCac
 
     public static class Locators
     {
-        //public static final Locator responsiveGrid = Locator.css("div.table-responsive");
         public static final Locator rows = Locator.css("tbody tr");
         public static final Locator headerCells = Locator.xpath("//thead/tr/th/strong");
     }

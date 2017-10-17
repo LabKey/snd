@@ -197,7 +197,7 @@ public class EditPackagePage extends LabKeyPage<EditPackagePage.ElementCache>
                 Locator.tagWithClassContaining("div", "PackageForm__margin")
                         .withChild(Locator.tagWithText("strong", "Attributes"))
                         .followingSibling("div").withDescendant(Locator.tag("table"))
-                        .findWhenNeeded(getDriver()).withTimeout(4000),
+                        .refindWhenNeeded(getDriver()).withTimeout(4000),
                 getDriver());
 
         WebElement categoryEditPanel = Locator.xpath("//div[@class='col-sm-4']")
