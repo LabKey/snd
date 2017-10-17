@@ -25,7 +25,6 @@ public class LookupSetTable extends SimpleUserSchema.SimpleTable
     {
         super(schema, table);
 
-        setTitleColumn(SETNAME_COL);
         _lookupSetId = (Integer) map.get(LOOKUPSETID_COL);
 
         if (map.containsKey(LABEL_COL))

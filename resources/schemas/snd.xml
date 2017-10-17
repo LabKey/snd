@@ -280,6 +280,7 @@
     </table>
     <table tableName="Lookups" tableDbType="TABLE">
         <columns>
+            <column columnName="LookupId"/>
             <column columnName="LookupSetId"/>
             <column columnName="Value"/>
             <column columnName="Displayable"/>

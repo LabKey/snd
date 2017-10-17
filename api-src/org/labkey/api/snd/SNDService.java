@@ -25,4 +25,5 @@ public interface SNDService
     List<Package> getPackages(Container c, User u, List<Integer> pkgIds, boolean includeExtraFields, boolean includeLookups);
     void registerAttributeLookup(Container c, User u, String schema, @Nullable String table);
     Map<String, String> getAttributeLookups(Container c, User u);
+    Object getDefaultLookupDisplayValue(User u, Container c, String schema, String table, Object key);
 }

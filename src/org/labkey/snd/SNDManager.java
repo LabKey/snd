@@ -166,6 +166,55 @@ public class SNDManager
         return qus;
     }
 
+    public Object getDefaultLookupDisplayValue(User u, Container c, String schema, String table, Object key)
+    {
+        UserSchema userSchema = QueryService.get().getUserSchema(u, c, schema);
+
+        TableInfo tableInfo = getTableInfo(userSchema, table);
+        QueryUpdateService lookupQus = getQueryUpdateService(tableInfo);
+
+        Map<String, Object> keyRow = new HashMap<>();
+        String pk = tableInfo.getPkColumnNames().get(0);  // Only handling single value pks
+        keyRow.put(pk, key);
+
+        List<Map<String, Object>> pkRows = new ArrayList<>();
+        pkRows.add(keyRow);
+
+        List<Map<String, Object>> rows;
+        try
+        {
+            rows = lookupQus.getRows(u, c, pkRows);
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException(e);
+        }
+
+        if ( rows == null || rows.size() < 1 )
+            return null;
+
+        return rows.get(0).get(tableInfo.getTitleColumn());
+    }
+
+    public Object normalizeLookupDefaultValue(User u, Container c, String schema, String table, String display)
+    {
+        UserSchema userSchema = QueryService.get().getUserSchema(u, c, schema);
+
+        TableInfo tableInfo = getTableInfo(userSchema, table);
+        String pk = tableInfo.getPkColumnNames().get(0);  // Only handling single value pks
+
+        SQLFragment sql = new SQLFragment("SELECT " + pk + " FROM ");
+        sql.append(tableInfo, "l");
+        sql.append(" WHERE " + tableInfo.getTitleColumn() + " = ?").add(display);
+        SqlSelector selector = new SqlSelector(userSchema.getDbSchema(), sql);
+        List<Object> lookupRows = selector.getArrayList(Object.class);
+
+        if (lookupRows.size() < 1)
+            return null;
+
+        return lookupRows.get(0);
+    }
+
     public void updatePackage(User u, Container c, @NotNull Package pkg, @Nullable SuperPackage superPkg, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);

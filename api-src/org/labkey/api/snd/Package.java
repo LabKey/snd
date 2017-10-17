@@ -278,7 +278,14 @@ public class Package
         json.put("format", pd.getFormat());
         json.put("lookupSchema", pd.getLookupSchema());
         json.put("lookupQuery", pd.getLookupQuery());
-        json.put("defaultValue", pd.getDefaultValue());
+        if (pd.getLookupSchema() != null && pd.getLookupQuery() != null && pd.getDefaultValue() != null)
+        {
+            json.put("defaultValue", SNDService.get().getDefaultLookupDisplayValue(u, c, pd.getLookupSchema(), pd.getLookupQuery(), pd.getDefaultValue()));
+        }
+        else
+        {
+            json.put("defaultValue", pd.getDefaultValue());
+        }
         json.put("redactedText", pd.getRedactedText());
         json.put("validators", convertPropertyValidatorsToJson(pd));
         if (resolveLookupValues && (pd.getLookupSchema() != null) && (pd.getLookupQuery() != null))

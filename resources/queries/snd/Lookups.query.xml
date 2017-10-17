@@ -1,0 +1,9 @@
+<query xmlns="http://labkey.org/data/xml/query">
+    <metadata>
+        <tables xmlns="http://labkey.org/data/xml">
+            <table tableName="Lookups" tableDbType="NOT_IN_DB">
+                <titleColumn>Value</titleColumn>
+            </table>
+        </tables>
+    </metadata>
+</query>

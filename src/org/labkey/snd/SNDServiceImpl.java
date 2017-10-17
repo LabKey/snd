@@ -94,4 +94,10 @@ public class SNDServiceImpl implements SNDService
     {
         return SNDManager.get().getAttributeLookups(c, u);
     }
+
+    @Override
+    public Object getDefaultLookupDisplayValue(User u, Container c, String schema, String table, Object key)
+    {
+        return SNDManager.get().getDefaultLookupDisplayValue(u, c, schema, table, key);
+    }
 }

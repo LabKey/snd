@@ -71,7 +71,7 @@ public class SNDController extends SpringActionController
     @RequiresPermission(AdminPermission.class)
     public class SavePackageAction extends ApiAction<SimpleApiJsonForm>
     {
-        private GWTPropertyDescriptor convertJsonToPropertyDescriptor(JSONObject json)
+        private GWTPropertyDescriptor convertJsonToPropertyDescriptor(JSONObject json, BindException errors)
         {
             String rangeUri = json.getString("rangeURI");
             if (rangeUri.equals(Package.RANGE_PARTICIPANTID))
@@ -84,8 +84,35 @@ public class SNDController extends SpringActionController
                 json.put("scale", 4000);
             }
 
-            json.put("defaultTypeValue", DefaultValueType.FIXED_EDITABLE.toString());
             json.put("rangeURI", "http://www.w3.org/2001/XMLSchema#" + rangeUri);
+            json.put("defaultTypeValue", DefaultValueType.FIXED_EDITABLE.toString());
+
+            String defaultValue = (String) json.get("defaultValue");
+            String lookupSchema = (String) json.get("lookupSchema");
+            String lookupQuery = (String) json.get("lookupQuery");
+            if (!defaultValue.isEmpty() && !lookupSchema.isEmpty() && !lookupQuery.isEmpty())
+            {
+                Object defPk = SNDManager.get().normalizeLookupDefaultValue(getUser(), getContainer(), lookupSchema, lookupQuery, defaultValue);
+                if (defPk == null)
+                {
+                    errors.reject(ERROR_MSG, "Unable to resolve default value " + defaultValue + " for assigned lookup key.");
+                }
+                else
+                {
+                    String defStrPk = "";
+                    if (String.class.isInstance(defPk))
+                    {
+                        defStrPk = (String) defPk;
+                    }
+                    else if (Integer.class.isInstance(defPk))
+                    {
+                        defStrPk = Integer.toString((Integer) defPk);
+                    }
+
+                    if (!defStrPk.equals(""))
+                        json.put("defaultValue", defStrPk);
+                }
+            }
 
             return ExperimentService.get().convertJsonToPropertyDescriptor(json);
         }
@@ -140,91 +167,94 @@ public class SNDController extends SpringActionController
                 List<GWTPropertyDescriptor> pds = new ArrayList<>();
                 for (int i = 0; i < attribs.length(); i++)
                 {
-                    pds.add(convertJsonToPropertyDescriptor(attribs.getJSONObject(i)));
+                    pds.add(convertJsonToPropertyDescriptor(attribs.getJSONObject(i), errors));
                 }
                 pkg.setAttributes(pds);
             }
 
-            // Get super packages
-            JSONArray jsonSubPackages = json.getJSONArray("subPackages");  // only first-level children (as super package IDs) should be here
-            Map<Integer, Integer> superPkgIdToSortOrderMap = new HashMap<>();
-            // create super package for root, if needed
+            if (!errors.hasErrors())
+            {
+                // Get super packages
+                JSONArray jsonSubPackages = json.getJSONArray("subPackages");  // only first-level children (as super package IDs) should be here
+                Map<Integer, Integer> superPkgIdToSortOrderMap = new HashMap<>();
+                // create super package for root, if needed
 
-            SuperPackage superPackage = SNDManager.getTopLevelSuperPkg(getContainer(), getUser(), pkg.getPkgId());
-            Integer rootSuperPackageId;
-            if(superPackage == null)
-            {
-                superPackage = new SuperPackage();
-                rootSuperPackageId = SNDManager.get().ensureSuperPkgId(getContainer(), null);
-                superPackage.setSuperPkgId(rootSuperPackageId);
-                superPackage.setSuperPkgPath(Integer.toString(rootSuperPackageId));
-            }
-            else
-            {
-                rootSuperPackageId = superPackage.getSuperPkgId();
-            }
-
-            if (null != jsonSubPackages && jsonSubPackages.length() > 0)
-            {
-                for (int i = 0; i < jsonSubPackages.length(); i++)
+                SuperPackage superPackage = SNDManager.getTopLevelSuperPkg(getContainer(), getUser(), pkg.getPkgId());
+                Integer rootSuperPackageId;
+                if (superPackage == null)
                 {
-                    JSONObject jsonSubPackage = jsonSubPackages.getJSONObject(i);
-                    superPkgIdToSortOrderMap.put(jsonSubPackage.getInt("superPkgId"), jsonSubPackage.getInt("sortOrder"));
-                }
-
-                // get top-level packages that correspond to children
-
-                Set<Integer> superPackageIds = superPkgIdToSortOrderMap.keySet();
-                List<SuperPackage> topLevelSuperPackages;
-
-                // if cloning, need to make all new child super packages by getting all top-level super packages for this super package
-                if(jsonCloneFlag)
-                {
-                    topLevelSuperPackages = SNDManager.getTopLevelSuperPkgs(getContainer(), getUser(), jsonPkgId);
+                    superPackage = new SuperPackage();
+                    rootSuperPackageId = SNDManager.get().ensureSuperPkgId(getContainer(), null);
+                    superPackage.setSuperPkgId(rootSuperPackageId);
+                    superPackage.setSuperPkgPath(Integer.toString(rootSuperPackageId));
                 }
                 else
                 {
-                    topLevelSuperPackages = SNDManager.getTopLevelSuperPkgs(getContainer(), getUser(), superPackageIds);
+                    rootSuperPackageId = superPackage.getSuperPkgId();
                 }
 
-                if (topLevelSuperPackages != null)
+                if (null != jsonSubPackages && jsonSubPackages.length() > 0)
                 {
-                    // sort order is only thing we need from UI, so set it here in the mostly-complete super packages
-                    for (SuperPackage topLevelSuperPackage : topLevelSuperPackages)
+                    for (int i = 0; i < jsonSubPackages.length(); i++)
                     {
-                        topLevelSuperPackage.setSortOrder(superPkgIdToSortOrderMap.get(topLevelSuperPackage.getSuperPkgId()));
-                        // now set new super package ID (so that this can be a properly-created child super package later)
-                        topLevelSuperPackage.setSuperPkgId(SNDManager.get().ensureSuperPkgId(getContainer(), null));
-                        // the parent for this child super package is the current super package being saved
-                        topLevelSuperPackage.setParentSuperPkgId(rootSuperPackageId);
+                        JSONObject jsonSubPackage = jsonSubPackages.getJSONObject(i);
+                        superPkgIdToSortOrderMap.put(jsonSubPackage.getInt("superPkgId"), jsonSubPackage.getInt("sortOrder"));
                     }
-                }
 
-                // topLevelSuperPackages is now actually a collection of child super packages
-                // next get existing child super packages and set their sort orders
+                    // get top-level packages that correspond to children
 
-                List<SuperPackage> childSuperPackages = null;
-                if(!jsonCloneFlag)
-                {
-                    childSuperPackages = SNDManager.getChildSuperPkgs(getContainer(), getUser(), superPackageIds, rootSuperPackageId);
-                    if (childSuperPackages != null)
+                    Set<Integer> superPackageIds = superPkgIdToSortOrderMap.keySet();
+                    List<SuperPackage> topLevelSuperPackages;
+
+                    // if cloning, need to make all new child super packages by getting all top-level super packages for this super package
+                    if (jsonCloneFlag)
                     {
-                        for (SuperPackage childSuperPackage : childSuperPackages)
+                        topLevelSuperPackages = SNDManager.getTopLevelSuperPkgs(getContainer(), getUser(), jsonPkgId);
+                    }
+                    else
+                    {
+                        topLevelSuperPackages = SNDManager.getTopLevelSuperPkgs(getContainer(), getUser(), superPackageIds);
+                    }
+
+                    if (topLevelSuperPackages != null)
+                    {
+                        // sort order is only thing we need from UI, so set it here in the mostly-complete super packages
+                        for (SuperPackage topLevelSuperPackage : topLevelSuperPackages)
                         {
-                            childSuperPackage.setSortOrder(superPkgIdToSortOrderMap.get(childSuperPackage.getSuperPkgId()));
+                            topLevelSuperPackage.setSortOrder(superPkgIdToSortOrderMap.get(topLevelSuperPackage.getSuperPkgId()));
+                            // now set new super package ID (so that this can be a properly-created child super package later)
+                            topLevelSuperPackage.setSuperPkgId(SNDManager.get().ensureSuperPkgId(getContainer(), null));
+                            // the parent for this child super package is the current super package being saved
+                            topLevelSuperPackage.setParentSuperPkgId(rootSuperPackageId);
                         }
                     }
+
+                    // topLevelSuperPackages is now actually a collection of child super packages
+                    // next get existing child super packages and set their sort orders
+
+                    List<SuperPackage> childSuperPackages = null;
+                    if (!jsonCloneFlag)
+                    {
+                        childSuperPackages = SNDManager.getChildSuperPkgs(getContainer(), getUser(), superPackageIds, rootSuperPackageId);
+                        if (childSuperPackages != null)
+                        {
+                            for (SuperPackage childSuperPackage : childSuperPackages)
+                            {
+                                childSuperPackage.setSortOrder(superPkgIdToSortOrderMap.get(childSuperPackage.getSuperPkgId()));
+                            }
+                        }
+                    }
+
+                    ArrayList<SuperPackage> subPackages = new ArrayList<>();
+                    if (topLevelSuperPackages != null)
+                        subPackages.addAll(topLevelSuperPackages);
+                    if (childSuperPackages != null)
+                        subPackages.addAll(childSuperPackages);
+                    pkg.setSubpackages(subPackages);
                 }
 
-                ArrayList<SuperPackage> subPackages = new ArrayList<>();
-                if (topLevelSuperPackages != null)
-                    subPackages.addAll(topLevelSuperPackages);
-                if (childSuperPackages != null)
-                    subPackages.addAll(childSuperPackages);
-                pkg.setSubpackages(subPackages);
+                SNDService.get().savePackage(getViewContext().getContainer(), getUser(), pkg, superPackage, jsonCloneFlag);
             }
-
-            SNDService.get().savePackage(getViewContext().getContainer(), getUser(), pkg, superPackage, jsonCloneFlag);
 
             return new ApiSimpleResponse();
         }
