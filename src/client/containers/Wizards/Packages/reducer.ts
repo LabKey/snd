@@ -176,28 +176,53 @@ export const packages = handleActions({
         // compare the parsed and existing keyword arrays to see if they match
         if (!arraysMatch(parsedKeywords, Object.keys(model.data.narrativeKeywords))) {
 
-            let changedIndex = parsedKeywords.findIndex((e) => {
-                return model.data.narrativeKeywords[e] === undefined;
-            });
-
             // create a new object to store the narrative keywords and their index
-            const narrativeKeywords = parsedKeywords.reduce((prev, next, currentIndex) => {
-                let existingIndex = model.data.narrativeKeywords[next];
-                let index = existingIndex !== undefined ? existingIndex : currentIndex;
+            let narrativeKeywords;
 
-                // if the attribute key already existed, make sure we are inserting it into the correct
-                // place in the array
-                if (
-                    (existingIndex && existingIndex > changedIndex) ||
-                    (currentIndex === changedIndex && changedIndex !== (parsedKeywords.length - 1))
-                ) {
-                    index++;
-                }
+            if (Object.keys(model.data.narrativeKeywords).length === 0) {
+                // if there we don't have an existing keyword object, the parsed keywords are all we have
+                narrativeKeywords = parsedKeywords.reduce((prev, next, currentIndex) => {
+                    prev[next] = currentIndex;
 
-                prev[next] = index;
+                    return prev;
+                }, {});
+            }
+            else {
+                // get the changed keywords and their index
+                let changed = parsedKeywords.reduce((prev, next, index) => {
+                    if (model.data.narrativeKeywords[next] === undefined) {
+                        prev.push(index);
+                    }
 
-                return prev;
-            }, {});
+                    return prev;
+                }, []).sort();
+
+                narrativeKeywords = parsedKeywords.reduce((prev, next, currentIndex) => {
+                    const existingIndex = model.data.narrativeKeywords[next];
+                    let index = existingIndex !== undefined ? existingIndex : currentIndex;
+                    let firstChanged = changed[0];
+
+                    if (existingIndex !== undefined && existingIndex >= firstChanged) {
+                        // check the full changed array to make sure we are setting our index as high as it needs to go
+                        changed.forEach((e) => {
+                            if (index >= e) {
+                                index ++;
+                            }
+                        });
+
+                        // ensure that the current index isn't already bigger than the first changed value
+                        prev.splice((index), 0, next);
+                    }
+                    else {
+                        prev.splice(index, 0, next);
+                    }
+
+                    return prev;
+                }, []).reduce((prev, next, currentIndex) => {
+                    prev[next] = currentIndex;
+                    return prev;
+                }, {});
+            }
 
             data.narrativeKeywords = narrativeKeywords;
 
