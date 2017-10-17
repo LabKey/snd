@@ -90,7 +90,9 @@ public class SNDController extends SpringActionController
             String defaultValue = (String) json.get("defaultValue");
             String lookupSchema = (String) json.get("lookupSchema");
             String lookupQuery = (String) json.get("lookupQuery");
-            if (!defaultValue.isEmpty() && !lookupSchema.isEmpty() && !lookupQuery.isEmpty())
+            if ((defaultValue != null && !defaultValue.isEmpty())
+                    && (lookupSchema != null && !lookupSchema.isEmpty())
+                    && (lookupQuery != null && !lookupQuery.isEmpty()))
             {
                 Object defPk = SNDManager.get().normalizeLookupDefaultValue(getUser(), getContainer(), lookupSchema, lookupQuery, defaultValue);
                 if (defPk == null)
