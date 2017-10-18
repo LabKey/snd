@@ -86,13 +86,13 @@ public class PackageViewerResult extends WebDriverComponent<PackageViewerResult.
 
         public PackageViewerResultFinder containingText(String partialText)
         {
-            _locator = Locator.tagWithClassContaining("div", "package_viewer__result").withDescendant(
+            _locator = Locator.tagWithClassContaining("div", "PackageRow__package-row").withDescendant(
                     Locator.tagContainingText("div", partialText));
             return this;
         }
         public PackageViewerResultFinder withText(String fullText)
         {
-            _locator = Locator.tagWithClassContaining("div", "package_viewer__result").withDescendant(
+            _locator = Locator.tagWithClassContaining("div", "PackageRow__package-row").withDescendant(
                     Locator.tagWithText("div", fullText));
             return this;
         }

@@ -6,6 +6,7 @@ import org.labkey.test.components.WebDriverComponent;
 import org.labkey.test.components.html.BootstrapMenu;
 import org.labkey.test.components.html.Input;
 import org.labkey.test.pages.LabKeyPage;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
@@ -69,8 +70,13 @@ public class SuperPackageRow extends WebDriverComponent<SuperPackageRow.ElementC
                        .containing(menuText));
        getWrapper().waitFor(()-> menuItem.findElement(getComponentElement()).isEnabled(), 2000);
        menuItem.findElement(getComponentElement()).click();
-       // wait for the menu to collapse
-       getWrapper().waitFor(()-> newElementCache().menuToggle.getAttribute("aria-expanded").equals("false"), 1000);
+       // wait for the menu to collapse (or disappear, if 'remove' was the action')
+       getWrapper().waitFor(()-> {
+           try
+           {
+               return newElementCache().menuToggle.getAttribute("aria-expanded").equals("false");
+           }catch (StaleElementReferenceException sere){return true;}
+           }, 1000);
        return this;
     }
 

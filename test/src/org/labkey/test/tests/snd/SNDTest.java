@@ -46,6 +46,7 @@ import org.labkey.test.components.snd.AttributesGrid;
 import org.labkey.test.components.snd.CategoryEditRow;
 import org.labkey.test.components.snd.FilterSelect;
 import org.labkey.test.components.snd.PackageViewerResult;
+import org.labkey.test.components.snd.SuperPackageRow;
 import org.labkey.test.pages.snd.EditCategoriesPage;
 import org.labkey.test.pages.snd.EditPackagePage;
 import org.labkey.test.pages.snd.PackageListPage;
@@ -494,420 +495,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 //        assertEquals("Wrong hello message", expectedHello, beginPage.getHelloMessage());
     }
 
-    @Override
-    protected BrowserType bestBrowser()
-    {
-        return BrowserType.CHROME;
-    }
 
-    @Override
-    protected String getProjectName()
-    {
-        return PROJECTNAME;
-    }
-
-    @Override
-    public List<String> getAssociatedModules()
-    {
-        return Collections.singletonList("SND");
-    }
-
-    @Test
-    @Ignore
-    public void submitDraftPackageForReview()
-    {
-        String description = "Our first package draft. Ambitious!";
-        String narrative = "Shall I {compare} thee to a summer's day?" +
-                "{Thou} art more lovely, and more {temperate};" +
-                "Rough {winds} do shake the {darling} buds of May," +
-                "And summer's {lease} hath all too short a date";
-        PackageListPage listPage = PackageListPage.beginAt(this, getProjectName());
-        EditPackagePage editPage = listPage.clickNewPackage();
-        editPage.setDescription(description);
-        editPage.setNarrative(narrative);
-
-        AttributesGrid grid = editPage.getAttributesGrid();
-        grid.waitForRows(6);
-
-        // now edit a row
-        AttributeGridRow windsRow = grid.getRow("winds")
-                .setDataType("String")
-                .setLabel("blustery")
-                .setMin(2)
-                .setMax(7)
-                .setDefault("breeze")
-                .setRequired(true)
-                .setRedactedText("lol");
-
-        listPage = editPage.clickSaveAsDraft();
-        listPage.showDrafts(true);
-        listPage.setSearchFilter(description);
-        PackageViewerResult packageViewerResult = listPage.getPackage(description);
-
-        EditPackagePage reviewPage = packageViewerResult.clickEdit();
-        assertEquals("narrative should equal what we set" ,narrative, reviewPage.getNarrative());
-        assertEquals("description should equal what we set" ,description, reviewPage.getDescription());
-        reviewPage.clickSubmitForReview();
-    }
-
-    @Test
-    public void cloneDraftPackage()
-    {
-        String description = "more sonnets. Ambitious!";
-        String narrative = "Sometimes too hot the {eye} of heaven shines" +
-                "and often is is {gold} complexion dimm'd, " +
-                "and every {fair} from {fair} sometime declines, " +
-                "by chance, or nature's changing {course} untrimmed";
-        PackageListPage listPage = PackageListPage.beginAt(this, getProjectName());
-        EditPackagePage editPage = listPage.clickNewPackage();
-        editPage.setDescription(description);
-        editPage.setNarrative(narrative);
-
-        AttributesGrid grid = editPage.getAttributesGrid();
-        grid.waitForRows(4);    // should this pass? duplicate token?
-
-        // now edit a row
-        AttributeGridRow fairRow = grid.getRow("fair")
-                .setDataType("String")
-                .setLabel("appearance")
-                .setMin(2)
-                .setMax(7)
-                .setDefault(":-)")
-                .setRequired(true)
-                .setRedactedText("lol");
-
-        listPage = editPage.clickSaveAsDraft();
-        listPage.showDrafts(true);
-        listPage.setSearchFilter(description);
-        PackageViewerResult packageViewerResult = listPage.getPackage(description);
-
-        EditPackagePage reviewPage = packageViewerResult.clickClone();
-        assertEquals("narrative should equal what we set" ,narrative, reviewPage.getNarrative());
-        assertEquals("description should equal what we set" ,description, reviewPage.getDescription());
-        reviewPage.setDescription("clone of more sonnets narrative.  Ugh, derivative!")
-                .setNarrative(narrative + "But thy eternal summer shall not fade, nor lose possession of that fair thou ow'st" +
-                        "when in eternal lines to time thou grow'st," +
-                        "so long as men can breathe or eyes can see, " +
-                        "so long lives this, and this gives life to thee.")
-                .clickSaveAsDraft();
-    }
-
-    @Test
-    public void saveNewPackage()
-    {
-        String description = "Our first package. Adorable!";
-        String narrative = "Four {score} and seven {years} ago, our {forefathers} brought forth," +
-                " upon this {continent}, a new {nation}, conceived in liberty, " +
-                "and dedicated to the proposition that all {men} are created equal.";
-        PackageListPage listPage = PackageListPage.beginAt(this , getProjectName());
-
-        EditPackagePage editPage = listPage.clickNewPackage();
-        FilterSelect categoriesSelect = editPage.getCategoriesSelect();
-        categoriesSelect
-                .selectItem("Surgery")
-                .selectItem("Blood Draw")
-                .close();
-
-        editPage.setDescription(description);
-        editPage.setNarrative(narrative);
-
-        AttributesGrid grid = editPage.getAttributesGrid();
-        grid.waitForRows(6);
-
-        // now edit a row
-        AttributeGridRow menRow = grid.getRow("men")
-                .setDataType("String")
-                .setLabel("gender-generic term")
-                .setMin(2)
-                .setMax(7)
-                .setDefault("men")
-                .setRequired(true)
-                .setRedactedText("and women");
-        // move a row Up
-        AttributeGridRow nationRow = grid.getRow("nation")
-                .selectOrder("Move Down");
-
-        listPage = editPage.clickSave();
-        listPage.setSearchFilter(description);
-        PackageViewerResult packageViewerResult = listPage.getPackage(description);
-
-        EditPackagePage viewPage = packageViewerResult.clickView();
-        assertEquals("narrative should equal what we set" ,narrative, viewPage.getNarrative());
-        assertEquals("description should equal what we set" ,description, viewPage.getDescription());
-
-        List<String> selectedCategories = viewPage.getCategoriesSelect().getSelections();
-        assertTrue("Expect Blood Draw category", selectedCategories.stream().anyMatch((a)-> a.contains("Blood Draw")));
-        assertTrue("Expect Surgery category", selectedCategories.stream().anyMatch((a)-> a.contains("Surgery")));
-    }
-
-
-    @Test
-    public void assignPackageToNewPackage()
-    {
-        String description = "Our latest package. Has Vitals!";
-        String narrative = "When, in the course of human events, it becomes necessary for one people to" +
-                " {dissolve} the political bonds which have {connected} them with another, " +
-                "and to assume among the powers of the {earth}...";
-        PackageListPage listPage = PackageListPage.beginAt(this , getProjectName());
-
-        EditPackagePage editPage = listPage.clickNewPackage();
-        FilterSelect categoriesSelect = editPage.getCategoriesSelect();
-        categoriesSelect
-                .selectItem("Surgery")
-                .selectItem("Blood Draw")
-                .close();
-
-        editPage.setDescription(description);
-        editPage.setNarrative(narrative);
-
-        AttributesGrid grid = editPage.getAttributesGrid();
-        grid.waitForRows(3);
-
-        // now edit a row
-        AttributeGridRow earthRow = grid.getRow("earth")
-                .setDataType("String")
-                .selectLookupKey("Volume")
-                .setLabel("Terra")
-                .setMin(2)
-                .setMax(7)
-                .setDefault("mL")
-                .setRequired(true)
-                .setRedactedText("and rocks");
-
-        // add the 'vitals' package
-        //editPage.filterAvailablePackage("Vi");
-        editPage.getAvailablePackage("Vitals")
-                .clickMenuItem("Add");
-        //editPage.getAssignedPackage("Vitals").select();
-        String vitalsNarrative = editPage.getAssignedPackageText("Vitals");
-
-        listPage = editPage.clickSave();
-        listPage.setSearchFilter(description);
-        PackageViewerResult packageViewerResult = listPage.getPackage(description);
-
-        EditPackagePage viewPage = packageViewerResult.clickView();
-        assertEquals("narrative should equal what we set" ,narrative, viewPage.getNarrative());
-        assertEquals("description should equal what we set" ,description, viewPage.getDescription());
-
-        List<String> selectedCategories = viewPage.getCategoriesSelect().getSelections();
-        assertTrue("Expect Blood Draw category", selectedCategories.stream().anyMatch((a)-> a.contains("Blood Draw")));
-        assertTrue("Expect Surgery category", selectedCategories.stream().anyMatch((a)-> a.contains("Surgery")));
-
-        // and verify the narrative attributes we set
-        // now edit a row
-        AttributeGridRow verifyEarthRow = grid.getRow("earth");
-        assertEquals("String", verifyEarthRow.getDataType());
-        assertEquals("Volume", verifyEarthRow.getLookupKey());
-        assertEquals("Terra", verifyEarthRow.getLabel());
-        assertEquals("2", verifyEarthRow.getMin());
-        assertEquals("7", verifyEarthRow.getMax());
-        assertEquals("mL", verifyEarthRow.getDefault());
-        assertEquals("and rocks", verifyEarthRow.getRedactedText());
-    }
-
-    @Test
-    public void addCategoryViaUI() throws Exception
-    {
-        String ourNewCategory = "a test category, created via the UI";
-        PackageListPage listPage = PackageListPage.beginAt(this , getProjectName());
-        EditCategoriesPage catPage = listPage.clickEditCategories();
-
-        // create a new one via the UI
-        catPage.addCategory(ourNewCategory, true);
-        catPage = catPage.clickSave();
-        waitFor(()-> false, 2000);
-
-        SelectRowsCommand catsCmd = new SelectRowsCommand("snd", "PkgCategories");
-        SelectRowsResponse afterCats = catsCmd.execute(createDefaultConnection(false), getProjectName());
-
-        assertTrue("our category should have been created, but was not",
-                afterCats.getRows().stream().anyMatch((a)-> a.get("Description").equals(ourNewCategory)));
-    }
-
-    @Test
-    public void deleteCategoryViaUI() throws Exception
-    {
-        // insert the category via API
-        String ourCategory = "a category to be deleted for test purposes";
-        InsertRowsCommand cmd = new InsertRowsCommand("snd", "PkgCategories");
-        Map<String, Object> catMap = new HashMap<>();
-        catMap.put("Description", ourCategory);
-        catMap.put("Active", true);
-        catMap.put("Comment", "delete me");
-        cmd.addRow(catMap);
-        SaveRowsResponse response = cmd.execute(createDefaultConnection(false), getProjectName());
-
-        PackageListPage listPage = PackageListPage.beginAt(this , getProjectName());
-        EditCategoriesPage catPage = listPage.clickEditCategories();
-
-        // after clicking 'save' we expect to have to dismiss the dialog for deleting the 'weight' category
-
-        catPage.deleteCategory(ourCategory);
-        catPage.clickSave();
-        ModalDialog.finder(getDriver())
-                .withBodyTextContaining("Are you sure you want to delete row").find()
-                .dismiss("Submit Changes");
-        waitFor(()-> false, 2000);
-
-        SelectRowsCommand catsCmd = new SelectRowsCommand("snd", "PkgCategories");
-        SelectRowsResponse afterCats = catsCmd.execute(createDefaultConnection(false), getProjectName());
-
-        assertFalse("our category should have been deleted, but was not",
-                afterCats.getRows().stream().anyMatch((a)-> a.get("Description").equals(ourCategory)));
-    }
-
-
-    @Test
-    public void editCategories() throws Exception
-    {
-        String ourCategory = "a category to be edited for test purposes";
-        String editedCategory = "a category that has been edited for test purposes";
-        InsertRowsCommand cmd = new InsertRowsCommand("snd", "PkgCategories");
-        Map<String, Object> catMap = new HashMap<>();
-        catMap.put("Description", ourCategory);
-        catMap.put("Active", true);
-        catMap.put("Comment", "edit me so hard!");
-        cmd.addRow(catMap);
-        SaveRowsResponse response = cmd.execute(createDefaultConnection(false), getProjectName());
-
-        PackageListPage listPage = PackageListPage.beginAt(this , getProjectName());
-
-        EditCategoriesPage catPage = listPage.clickEditCategories();
-
-        // edit an existing one
-        CategoryEditRow editRow = CategoryEditRow.finder(getDriver()).withDescription(ourCategory).timeout(5000).find();
-        editRow
-                .setActive(false)
-                .setDescription(editedCategory);
-        catPage = catPage.clickSave();
-        sleep(2000);
-
-        CategoryEditRow surgeryRowCat = catPage.getCategory("Surgery");
-        assertNotNull("Surgery category should exist", surgeryRowCat);
-        assertEquals("Surgery category should be active", true, surgeryRowCat.getIsActive());
-
-        CategoryEditRow ourCat = catPage.getCategory(editedCategory);
-        assertNotNull("test edit category should exist", ourCat);
-        assertEquals("test edit category should be inactive", false, ourCat.getIsActive());
-        assertEquals("test edit category should have new description", editedCategory, ourCat.getDescription());
-
-        SelectRowsCommand catsCmd = new SelectRowsCommand("snd", "PkgCategories");
-        SelectRowsResponse afterCats = catsCmd.execute(createDefaultConnection(false), getProjectName());
-        assertFalse("our category should have been edited, but was not",
-                afterCats.getRows().stream().anyMatch((a)-> a.get("Description").equals(editedCategory)));
-    }
-
-    @Test
-    public void testExtensibleColumns() throws Exception
-    {
-        clickFolder(TEST1SUBFOLDER);
-
-        Connection cn = createDefaultConnection(false);
-
-        InsertRowsCommand insertRowsCommand = new InsertRowsCommand("snd", "Pkgs");
-        insertRowsCommand.addRow(TEST1ROW1MAP);
-        insertRowsCommand.addRow(TEST1ROW2MAP);
-        insertRowsCommand.addRow(TEST1ROW3MAP);
-        SaveRowsResponse resp = insertRowsCommand.execute(cn, getProjectName() + "/" + TEST1SUBFOLDER);
-        assertEquals(resp.getRowsAffected().intValue(), 3);
-
-        goToSchemaBrowser();
-        selectQuery("snd", "Pkgs");
-        assertTextPresent(PKGSTESTCOL);
-        waitAndClickAndWait(Locator.linkWithText("view data"));
-
-        CustomizeView customizeViewHelper = new CustomizeView(this);
-
-        customizeViewHelper.openCustomizeViewPanel();
-        customizeViewHelper.addColumn("testPkgs");
-        customizeViewHelper.clickViewGrid();
-        waitForText("This grid view has been modified.");
-
-        assertTextPresent(EXTCOLTESTDATA1, EXTCOLTESTDATA2, EXTCOLTESTDATA3);
-
-        clickFolder(TEST1SUBFOLDER);
-
-        UpdateRowsCommand updateRowsCommand = new UpdateRowsCommand("snd", "Pkgs");
-        updateRowsCommand.addRow(TEST1ROW3AMAP);
-        resp = updateRowsCommand.execute(cn, getProjectName() + "/" + TEST1SUBFOLDER);
-        assertEquals(resp.getRowsAffected().intValue(), 1);
-
-        goToSchemaBrowser();
-        selectQuery("snd", "Pkgs");
-        waitAndClickAndWait(Locator.linkWithText("view data"));
-        assertTextPresent(EXTCOLTESTDATA1, EXTCOLTESTDATA2, EXTCOLTESTDATA3A, "Updated Description 3");
-
-        clickFolder(TEST1SUBFOLDER);
-
-        DeleteRowsCommand deleteRowsCommand = new DeleteRowsCommand("snd", "Pkgs");
-        deleteRowsCommand.addRow(TEST1ROW2MAP);
-        resp = deleteRowsCommand.execute(cn, getProjectName() + "/" + TEST1SUBFOLDER);
-        assertEquals(resp.getRowsAffected().intValue(), 1);
-
-        goToSchemaBrowser();
-        selectQuery("snd", "Pkgs");
-        waitAndClickAndWait(Locator.linkWithText("view data"));
-        assertTextNotPresent(EXTCOLTESTDATA2, "Description 2");
-    }
-
-    public void testPackageApis()
-    {   DataRegionTable dataRegionTable;
-
-        goToProjectHome();
-        goToSchemaBrowser();
-        viewQueryData("snd", "PkgCategories");
-        assertTextPresent("Surgery", "Blood Draw", "Weight", "Vitals");
-
-        //insert package
-        runScript(SAVEPACKAGEAPI);
-        goToSchemaBrowser();
-        viewQueryData("snd", "Pkgs");
-        assertTextPresent("My package description", 1);
-
-        List<Map<String, Object>> packages = executeSelectRowCommand("snd", "Pkgs").getRows();
-        String newPackageId = packages.stream()
-                .filter(a->a.get("Description").equals("My package description"))
-                .findAny().get()
-                .get("PkgId").toString();
-
-        //get package json
-        String result = (String) executeAsyncScript(getPackageWithId(newPackageId));
-        JSONObject resultAsJson = new JSONObject(result);
-        assertEquals("Wrong narrative","This is a narrative for {SNDName} ({SNDUser}), age {SNDAge}", resultAsJson.getString("narrative"));
-
-        JSONArray attributes = resultAsJson.getJSONArray("attributes");
-        assertEquals("Wrong attribute count",3,attributes.length());
-
-        JSONArray categories = resultAsJson.getJSONArray("categories");
-        assertEquals("Wrong category count",2,categories.length());
-        assertEquals("Wrong categories", Arrays.asList(TEST_CATEGORY_ID3, TEST_CATEGORY_ID4), Arrays.asList(categories.toArray()));
-
-
-        JSONArray validators = attributes.getJSONObject(0).getJSONArray("validators");
-        assertEquals("Wrong validator count",1,validators.length());
-
-        //confirm package currently has no event
-        goToSchemaBrowser();
-        dataRegionTable = viewQueryData("snd", "Pkgs");
-        assertEquals("Has event not false","false",dataRegionTable.getDataAsText(0,"Has Event"));
-        assertEquals("Has project not false","false",dataRegionTable.getDataAsText(0,"Has Project"));
-
-        //create event
-        runScript(ADDEVENT);
-        refresh();
-        dataRegionTable = new DataRegionTable("query",this);
-        int rowIndex = dataRegionTable.getRowIndex("Description", "My package description");
-        assertEquals("Has event not true","true",dataRegionTable.getDataAsText(rowIndex,"Has Event"));
-        assertEquals("Has project not false","false",dataRegionTable.getDataAsText(rowIndex,"Has Project"));
-
-        //add package to project
-        runScript(ADDPACKAGETOPROJECT);
-        refresh();
-        dataRegionTable = new DataRegionTable("query",this);
-        rowIndex = dataRegionTable.getRowIndex("Description", "My package description");
-        assertEquals("Has event not true","true",dataRegionTable.getDataAsText(rowIndex,"Has Event"));
-        assertEquals("Has project not true","true",dataRegionTable.getDataAsText(rowIndex,"Has Project"));
-    }
 
     @Test
     public void testSNDImport() throws Exception
@@ -1032,6 +620,492 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         checkExpectedErrors(1);
     }
 
+    @Test
+    @Ignore
+    public void submitDraftPackageForReview()
+    {
+        String description = "Our first package draft. Ambitious!";
+        String narrative = "Shall I {compare} thee to a summer's day?" +
+                "{Thou} art more lovely, and more {temperate};" +
+                "Rough {winds} do shake the {darling} buds of May," +
+                "And summer's {lease} hath all too short a date";
+        PackageListPage listPage = PackageListPage.beginAt(this, getProjectName());
+        EditPackagePage editPage = listPage.clickNewPackage();
+        editPage.setDescription(description);
+        editPage.setNarrative(narrative);
+
+        AttributesGrid grid = editPage.getAttributesGrid();
+        grid.waitForRows(6);
+
+        // now edit a row
+        AttributeGridRow windsRow = grid.getRow("winds")
+                .setDataType("String")
+                .setLabel("blustery")
+                .setMin(2)
+                .setMax(7)
+                .setDefault("breeze")
+                .setRequired(true)
+                .setRedactedText("lol");
+
+        listPage = editPage.clickSaveAsDraft();
+        listPage.showDrafts(true);
+        listPage.setSearchFilter(description);
+        PackageViewerResult packageViewerResult = listPage.getPackage(description);
+
+        EditPackagePage reviewPage = packageViewerResult.clickEdit();
+        assertEquals("narrative should equal what we set" ,narrative, reviewPage.getNarrative());
+        assertEquals("description should equal what we set" ,description, reviewPage.getDescription());
+        reviewPage.clickSubmitForReview();
+    }
+
+    @Test
+    public void cloneDraftPackage()
+    {
+        String description = "more sonnets. Ambitious!";
+        String cloneDescription = "clone of more sonnets narrative.  Ugh, derivative!";
+        String narrative = "Sometimes too hot the {eye} of heaven shines" +
+                "and often is is {gold} complexion dimm'd, " +
+                "and every {fair} from {fair} sometime declines, " +
+                "by chance, or nature's changing {course} untrimmed";
+        PackageListPage listPage = PackageListPage.beginAt(this, getProjectName());
+        EditPackagePage editPage = listPage.clickNewPackage();
+        editPage.setDescription(description);
+        editPage.setNarrative(narrative);
+
+        AttributesGrid grid = editPage.getAttributesGrid();
+        grid.waitForRows(4);    // should this pass? duplicate token?
+
+        // now edit a row
+        AttributeGridRow fairRow = grid.getRow("fair")
+                .setDataType("String")
+                .setLabel("appearance")
+                .setMin(2)
+                .setMax(7)
+                .setDefault(":-)")
+                .setRequired(true)
+                .setRedactedText("lol");
+
+        listPage = editPage.clickSaveAsDraft();
+        listPage.showDrafts(true);
+        listPage.setSearchFilter(description);
+        PackageViewerResult packageViewerResult = listPage.getPackage(description);
+
+        EditPackagePage reviewPage = packageViewerResult.clickClone();
+        assertEquals("narrative should equal what we set" ,narrative, reviewPage.getNarrative());
+        assertEquals("description should equal what we set" ,description, reviewPage.getDescription());
+        listPage = reviewPage.setDescription(cloneDescription)
+                .setNarrative(narrative + "But thy eternal summer shall not fade, nor lose possession of that fair thou ow'st" +
+                        "when in eternal lines to time thou grow'st," +
+                        "so long as men can breathe or eyes can see, " +
+                        "so long lives this, and this gives life to thee.")
+                .clickSaveAsDraft();
+
+        // now validate
+        listPage.setSearchFilter("clone of more sonnets narrative")
+                .showDrafts(true);
+        PackageViewerResult newClonedPackage = listPage.getPackage(cloneDescription);
+        EditPackagePage cloneReviewPage = newClonedPackage.clickView();
+
+        // confirm the cloned package has the same values in the 'fair' row
+        AttributeGridRow fairReviewRow = cloneReviewPage.getAttributesGrid().getRow("fair");
+        assertEquals("String", fairReviewRow.getDataType());
+        assertEquals("appearance", fairReviewRow.getLabel());
+        assertEquals("2", fairReviewRow.getMin());
+        assertEquals("7", fairReviewRow.getMax());
+        assertEquals(":-)", fairReviewRow.getDefault());
+        assertEquals(true, fairReviewRow.getRequired());
+        assertEquals("lol", fairReviewRow.getRedactedText());
+    }
+
+    @Test
+    public void saveNewPackage()
+    {
+        String description = "Our first package. Adorable!";
+        String narrative = "Four {score} and seven {years} ago, our {forefathers} brought forth," +
+                " upon this {continent}, a new {nation}, conceived in liberty, " +
+                "and dedicated to the proposition that all {men} are created equal.";
+        PackageListPage listPage = PackageListPage.beginAt(this , getProjectName());
+
+        EditPackagePage editPage = listPage.clickNewPackage();
+        FilterSelect categoriesSelect = editPage.getCategoriesSelect();
+        categoriesSelect
+                .selectItem("Surgery")
+                .selectItem("Blood Draw")
+                .close();
+
+        editPage.setDescription(description);
+        editPage.setNarrative(narrative);
+
+        AttributesGrid grid = editPage.getAttributesGrid();
+        grid.waitForRows(6);
+
+        // now edit a row
+        AttributeGridRow menRow = grid.getRow("men")
+                .setDataType("String")
+                .setLabel("gender-generic term")
+                .setMin(2)
+                .setMax(7)
+                .setDefault("men")
+                .setRequired(true)
+                .setRedactedText("and women");
+        // move a row Up
+        AttributeGridRow nationRow = grid.getRow("nation")
+                .selectOrder("Move Down");
+
+        listPage = editPage.clickSave();
+        listPage.setSearchFilter(description);
+        PackageViewerResult packageViewerResult = listPage.getPackage(description);
+
+        EditPackagePage viewPage = packageViewerResult.clickView();
+        assertEquals("narrative should equal what we set" ,narrative, viewPage.getNarrative());
+        assertEquals("description should equal what we set" ,description, viewPage.getDescription());
+
+        List<String> selectedCategories = viewPage.getCategoriesSelect().getSelections();
+        assertTrue("Expect Blood Draw category", selectedCategories.stream().anyMatch((a)-> a.contains("Blood Draw")));
+        assertTrue("Expect Surgery category", selectedCategories.stream().anyMatch((a)-> a.contains("Surgery")));
+
+        // confirm the package has the same values we set
+        AttributeGridRow reviewRow = viewPage.getAttributesGrid().getRow("men");
+        assertEquals("String", reviewRow.getDataType());
+        assertEquals("gender-generic term", reviewRow.getLabel());
+        assertEquals("2", reviewRow.getMin());
+        assertEquals("7", reviewRow.getMax());
+        assertEquals("men", reviewRow.getDefault());
+        assertEquals(true, reviewRow.getRequired());
+        assertEquals("and women", reviewRow.getRedactedText());
+    }
+
+    @Test
+    public void assignPackageToNewPackage()
+    {
+        String description = "Our latest package. Has Vitals! And Therapy!";    // todo: don't rely on vitals and therapy being already there;
+                                                                                // the test should handle its own dependencies and not count on other test cases
+        String narrative = "When, in the course of human events, it becomes necessary for one people to" +
+                " {dissolve} the political bonds which have {connected} them with another, " +
+                "and to assume among the powers of the {earth}...";
+        PackageListPage listPage = PackageListPage.beginAt(this , getProjectName());
+
+        EditPackagePage editPage = listPage.clickNewPackage();
+        FilterSelect categoriesSelect = editPage.getCategoriesSelect();
+        categoriesSelect
+                .selectItem("Surgery")
+                .selectItem("Blood Draw")
+                .close();
+
+        editPage.setDescription(description);
+        editPage.setNarrative(narrative);
+
+        AttributesGrid grid = editPage.getAttributesGrid();
+        grid.waitForRows(3);
+
+        // now edit a row
+        AttributeGridRow earthRow = grid.getRow("earth")
+                .setDataType("String")
+                .selectLookupKey("Volume")
+                .setLabel("Terra")
+                .setMin(2)
+                .setMax(7)
+                .setDefault("mL")
+                .setRequired(true)
+                .setRedactedText("and rocks");
+
+        // add the 'vitals' and 'therapy' packages
+        editPage.getAvailablePackage("Vitals")
+                .clickMenuItem("Add");
+        editPage.getAvailablePackage("Therapy")
+                .clickMenuItem("Add");
+        String vitalsNarrative = editPage.getAssignedPackageText("Vitals");
+        String therapyNarrative = editPage.getAssignedPackageText("Therapy");
+
+        listPage = editPage.clickSave();
+        listPage.setSearchFilter(description);
+        PackageViewerResult packageViewerResult = listPage.getPackage(description);
+
+        EditPackagePage viewPage = packageViewerResult.clickEdit();
+        assertEquals("narrative should equal what we set" ,narrative, viewPage.getNarrative());
+        assertEquals("description should equal what we set" ,description, viewPage.getDescription());
+
+        List<String> selectedCategories = viewPage.getCategoriesSelect().getSelections();
+        assertTrue("Expect Blood Draw category", selectedCategories.stream().anyMatch((a)-> a.contains("Blood Draw")));
+        assertTrue("Expect Surgery category", selectedCategories.stream().anyMatch((a)-> a.contains("Surgery")));
+
+        // and verify the narrative attributes we set
+        AttributeGridRow verifyEarthRow = grid.getRow("earth");
+        assertEquals("String", verifyEarthRow.getDataType());
+        assertEquals("Volume", verifyEarthRow.getLookupKey());
+        assertEquals("Terra", verifyEarthRow.getLabel());
+        assertEquals("2", verifyEarthRow.getMin());
+        assertEquals("7", verifyEarthRow.getMax());
+        assertEquals("mL", verifyEarthRow.getDefault());
+        assertEquals("and rocks", verifyEarthRow.getRedactedText());
+    }
+
+    @Test
+    public void removeAssignedPackage()
+    {
+        String description = "Our latest package. From Canterbury!";
+        String narrative = "WHAN that Aprille with his shoures {soote} " +  // prologue to the canterbury tales, yo
+                "The droghte 2 of Marche hath perced to the {roote}, " +
+                "And bathed every veyne in swich {licour}, " +
+                "Of which vertu engendred is the {flour}; [...]";
+        PackageListPage listPage = PackageListPage.beginAt(this , getProjectName());
+
+        EditPackagePage editPage = listPage.clickNewPackage();
+
+        editPage.setDescription(description);
+        editPage.setNarrative(narrative);
+
+        AttributesGrid grid = editPage.getAttributesGrid();
+        grid.waitForRows(4);
+
+        // now edit a row
+        AttributeGridRow rootRow = grid.getRow("roote")
+                .setDataType("String")
+                .selectLookupKey("Volume")
+                .setLabel("as it sounds")
+                .setMin(2)
+                .setMax(7)
+                .setDefault("mL")
+                .setRequired(true)
+                .setRedactedText("radishes");
+
+        listPage = editPage.clickSave();
+        listPage.setSearchFilter(description);
+        PackageViewerResult packageViewerResult = listPage.getPackage(description);
+
+        // now create another package, add the first one to it
+        String canterburySuperPackageDescription = "The latest! With more yeomen and ploughmen!";
+        String canterburySuperPackageNarrative = "Than longen folk to goon on pilgrimages, " +
+                "And palmers for to seken {straunge} strondes";
+        editPage = listPage.clickNewPackage();
+        editPage.setNarrative(canterburySuperPackageNarrative);
+        editPage.setDescription(canterburySuperPackageDescription);
+        editPage.getAvailablePackage(description).clickMenuItem("Add");
+        listPage = editPage.clickSave();
+
+        // then remove it
+        editPage = listPage.getPackage(canterburySuperPackageDescription).clickEdit();
+        editPage.getAssignedPackage(description).clickMenuItem("Remove");
+        listPage = editPage.clickSave();
+
+
+        EditPackagePage viewPage = listPage.getPackage(canterburySuperPackageDescription).clickView();
+        // verify vitals isn't an assigned package any more
+
+        List<SuperPackageRow> assignedPackages = viewPage.getAssignedPackages();
+        assertFalse("Don't expect to see Canterbury package assigned to the current package",
+                assignedPackages
+                        .stream()
+                        .anyMatch((a)-> a.getLabel().contains(description)));
+    }
+
+    @Test
+    public void addCategoryViaUI() throws Exception
+    {
+        String ourNewCategory = "a test category, created via the UI";
+        PackageListPage listPage = PackageListPage.beginAt(this , getProjectName());
+        EditCategoriesPage catPage = listPage.clickEditCategories();
+
+        // create a new one via the UI
+        catPage.addCategory(ourNewCategory, true);
+        catPage = catPage.clickSave();
+        waitFor(()-> false, 2000);
+
+        SelectRowsCommand catsCmd = new SelectRowsCommand("snd", "PkgCategories");
+        SelectRowsResponse afterCats = catsCmd.execute(createDefaultConnection(false), getProjectName());
+
+        assertTrue("our category should have been created, but was not",
+                afterCats.getRows().stream().anyMatch((a)-> a.get("Description").equals(ourNewCategory)));
+    }
+
+    @Test
+    public void deleteCategoryViaUI() throws Exception
+    {
+        // insert the category via API
+        String ourCategory = "a category to be deleted for test purposes";
+        InsertRowsCommand cmd = new InsertRowsCommand("snd", "PkgCategories");
+        Map<String, Object> catMap = new HashMap<>();
+        catMap.put("Description", ourCategory);
+        catMap.put("Active", true);
+        catMap.put("Comment", "delete me");
+        cmd.addRow(catMap);
+        SaveRowsResponse response = cmd.execute(createDefaultConnection(false), getProjectName());
+
+        PackageListPage listPage = PackageListPage.beginAt(this , getProjectName());
+        EditCategoriesPage catPage = listPage.clickEditCategories();
+
+        // after clicking 'save' we expect to have to dismiss the dialog for deleting the 'weight' category
+
+        catPage.deleteCategory(ourCategory);
+        catPage.clickSave();
+        ModalDialog.finder(getDriver())
+                .withBodyTextContaining("Are you sure you want to delete row").find()
+                .dismiss("Submit Changes");
+        waitFor(()-> false, 2000);
+
+        SelectRowsCommand catsCmd = new SelectRowsCommand("snd", "PkgCategories");
+        SelectRowsResponse afterCats = catsCmd.execute(createDefaultConnection(false), getProjectName());
+
+        assertFalse("our category should have been deleted, but was not",
+                afterCats.getRows().stream().anyMatch((a)-> a.get("Description").equals(ourCategory)));
+    }
+
+
+    @Test
+    public void editCategories() throws Exception
+    {
+        String ourCategory = "a category to be edited for test purposes";
+        String editedCategory = "a category that has been edited for test purposes";
+        InsertRowsCommand cmd = new InsertRowsCommand("snd", "PkgCategories");
+        Map<String, Object> catMap = new HashMap<>();
+        catMap.put("Description", ourCategory);
+        catMap.put("Active", true);
+        catMap.put("Comment", "edit me so hard!");
+        cmd.addRow(catMap);
+        SaveRowsResponse response = cmd.execute(createDefaultConnection(false), getProjectName());
+
+        PackageListPage listPage = PackageListPage.beginAt(this , getProjectName());
+
+        EditCategoriesPage catPage = listPage.clickEditCategories();
+
+        // edit an existing one
+        CategoryEditRow editRow = CategoryEditRow.finder(getDriver()).withDescription(ourCategory).timeout(5000).find();
+        editRow.setActive(false)
+                .setDescription(editedCategory);
+        catPage = catPage.clickSave();
+        sleep(2000);
+
+        CategoryEditRow surgeryRowCat = catPage.getCategory("Surgery");
+        assertNotNull("Surgery category should exist", surgeryRowCat);
+        assertEquals("Surgery category should be active", true, surgeryRowCat.getIsActive());
+
+        CategoryEditRow ourCat = catPage.getCategory(editedCategory);
+        assertNotNull("test edit category should exist", ourCat);
+        assertEquals("test edit category should be inactive", false, ourCat.getIsActive());
+        assertEquals("test edit category should have new description", editedCategory, ourCat.getDescription());
+
+        SelectRowsCommand catsCmd = new SelectRowsCommand("snd", "PkgCategories");
+        SelectRowsResponse afterCats = catsCmd.execute(createDefaultConnection(false), getProjectName());
+        assertTrue("our category should have been edited, but was not",
+                afterCats.getRows().stream().anyMatch((a)-> a.get("Description").equals(editedCategory)));
+        assertFalse("our category should have been edited, but was not",
+                afterCats.getRows().stream().anyMatch((a)-> a.get("Description").equals(ourCategory)));
+    }
+
+    @Test
+    public void testExtensibleColumns() throws Exception
+    {
+        clickFolder(TEST1SUBFOLDER);
+
+        Connection cn = createDefaultConnection(false);
+
+        InsertRowsCommand insertRowsCommand = new InsertRowsCommand("snd", "Pkgs");
+        insertRowsCommand.addRow(TEST1ROW1MAP);
+        insertRowsCommand.addRow(TEST1ROW2MAP);
+        insertRowsCommand.addRow(TEST1ROW3MAP);
+        SaveRowsResponse resp = insertRowsCommand.execute(cn, getProjectName() + "/" + TEST1SUBFOLDER);
+        assertEquals(resp.getRowsAffected().intValue(), 3);
+
+        goToSchemaBrowser();
+        selectQuery("snd", "Pkgs");
+        assertTextPresent(PKGSTESTCOL);
+        waitAndClickAndWait(Locator.linkWithText("view data"));
+
+        CustomizeView customizeViewHelper = new CustomizeView(this);
+
+        customizeViewHelper.openCustomizeViewPanel();
+        customizeViewHelper.addColumn("testPkgs");
+        customizeViewHelper.clickViewGrid();
+        waitForText("This grid view has been modified.");
+
+        assertTextPresent(EXTCOLTESTDATA1, EXTCOLTESTDATA2, EXTCOLTESTDATA3);
+
+        clickFolder(TEST1SUBFOLDER);
+
+        UpdateRowsCommand updateRowsCommand = new UpdateRowsCommand("snd", "Pkgs");
+        updateRowsCommand.addRow(TEST1ROW3AMAP);
+        resp = updateRowsCommand.execute(cn, getProjectName() + "/" + TEST1SUBFOLDER);
+        assertEquals(resp.getRowsAffected().intValue(), 1);
+
+        goToSchemaBrowser();
+        selectQuery("snd", "Pkgs");
+        waitAndClickAndWait(Locator.linkWithText("view data"));
+        assertTextPresent(EXTCOLTESTDATA1, EXTCOLTESTDATA2, EXTCOLTESTDATA3A, "Updated Description 3");
+
+        clickFolder(TEST1SUBFOLDER);
+
+        DeleteRowsCommand deleteRowsCommand = new DeleteRowsCommand("snd", "Pkgs");
+        deleteRowsCommand.addRow(TEST1ROW2MAP);
+        resp = deleteRowsCommand.execute(cn, getProjectName() + "/" + TEST1SUBFOLDER);
+        assertEquals(resp.getRowsAffected().intValue(), 1);
+
+        goToSchemaBrowser();
+        selectQuery("snd", "Pkgs");
+        waitAndClickAndWait(Locator.linkWithText("view data"));
+        assertTextNotPresent(EXTCOLTESTDATA2, "Description 2");
+    }
+
+    public void testPackageApis()
+    {   DataRegionTable dataRegionTable;
+
+        goToProjectHome();
+        goToSchemaBrowser();
+        viewQueryData("snd", "PkgCategories");
+        assertTextPresent("Surgery", "Blood Draw", "Weight", "Vitals");
+
+        //insert package
+        runScript(SAVEPACKAGEAPI);
+        goToSchemaBrowser();
+        viewQueryData("snd", "Pkgs");
+        assertTextPresent("My package description", 1);
+
+        List<Map<String, Object>> packages = executeSelectRowCommand("snd", "Pkgs").getRows();
+        String newPackageId = packages.stream()
+                .filter(a->a.get("Description").equals("My package description"))
+                .findAny().get()
+                .get("PkgId").toString();
+
+        //get package json
+        String result = (String) executeAsyncScript(getPackageWithId(newPackageId));
+        JSONObject resultAsJson = new JSONObject(result);
+        assertEquals("Wrong narrative","This is a narrative for {SNDName} ({SNDUser}), age {SNDAge}", resultAsJson.getString("narrative"));
+
+        JSONArray attributes = resultAsJson.getJSONArray("attributes");
+        assertEquals("Wrong attribute count",3,attributes.length());
+
+        JSONArray categories = resultAsJson.getJSONArray("categories");
+        assertEquals("Wrong category count",2,categories.length());
+        assertEquals("Wrong categories", Arrays.asList(TEST_CATEGORY_ID3, TEST_CATEGORY_ID4), Arrays.asList(categories.toArray()));
+
+
+        JSONArray validators = attributes.getJSONObject(0).getJSONArray("validators");
+        assertEquals("Wrong validator count",1,validators.length());
+
+        //confirm package currently has no event
+        goToSchemaBrowser();
+        dataRegionTable = viewQueryData("snd", "Pkgs");
+        assertEquals("Has event not false","false",dataRegionTable.getDataAsText(0,"Has Event"));
+        assertEquals("Has project not false","false",dataRegionTable.getDataAsText(0,"Has Project"));
+
+        //create event
+        runScript(ADDEVENT);
+        refresh();
+        dataRegionTable = new DataRegionTable("query",this);
+        int rowIndex = dataRegionTable.getRowIndex("Description", "My package description");
+        assertEquals("Has event not true","true",dataRegionTable.getDataAsText(rowIndex,"Has Event"));
+        assertEquals("Has project not false","false",dataRegionTable.getDataAsText(rowIndex,"Has Project"));
+
+        //add package to project
+        runScript(ADDPACKAGETOPROJECT);
+        refresh();
+        dataRegionTable = new DataRegionTable("query",this);
+        rowIndex = dataRegionTable.getRowIndex("Description", "My package description");
+        assertEquals("Has event not true","true",dataRegionTable.getDataAsText(rowIndex,"Has Event"));
+        assertEquals("Has project not true","true",dataRegionTable.getDataAsText(rowIndex,"Has Project"));
+    }
+
+
+
     private void truncateSndPkg() throws Exception
     {
         //cleanup - truncate snd.pkgs
@@ -1043,5 +1117,23 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         SelectRowsCommand selectRowsCommand = new SelectRowsCommand("snd", "Pkgs");
         SelectRowsResponse selectRowsResponse = selectRowsCommand.execute(conn, getProjectName());
         assertEquals("Zero row count expected after truncating snd.Pkgs", 0, selectRowsResponse.getRows().size());
+    }
+
+    @Override
+    protected BrowserType bestBrowser()
+    {
+        return BrowserType.CHROME;
+    }
+
+    @Override
+    protected String getProjectName()
+    {
+        return PROJECTNAME;
+    }
+
+    @Override
+    public List<String> getAssociatedModules()
+    {
+        return Collections.singletonList("SND");
     }
 }
