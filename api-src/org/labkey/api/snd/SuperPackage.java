@@ -5,6 +5,7 @@ import org.json.JSONObject;
 import org.labkey.api.collections.ArrayListMap;
 import org.labkey.api.data.Container;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -22,6 +23,7 @@ public class SuperPackage
     private String _narrative; // From referenced package
     private Integer _sortOrder;
     private Boolean _repeatable;
+    // NOTE: if you add a variable here, add it to the copy constructor, getSuperPackageRow(), and toJson() too!
 
     public static final String SUPERPKG_ID = "SuperPkgId";
     public static final String SUPERPKG_PARENTID = "ParentSuperPkgId";
@@ -31,6 +33,31 @@ public class SuperPackage
     public static final String SUPERPKG_ORDER = "SortOrder";
     public static final String SUPERPKG_REPEATABLE = "Repeatable";
     public static final String SUPERPKG_PATH = "SuperPkgPath";
+
+    public SuperPackage()
+    {
+
+    }
+
+    // copy constructor
+    public SuperPackage(SuperPackage _superPackage)
+    {
+        this._superPkgId = _superPackage.getSuperPkgId();  // Integers are immutable
+        this._childPackages = new ArrayList<>();
+        List<SuperPackage> childPackages = _superPackage.getChildPackages();
+        if (childPackages != null)
+        {
+            for (SuperPackage childPackage : _superPackage.getChildPackages())
+                this._childPackages.add(new SuperPackage(childPackage));
+        }
+        this._pkgId = _superPackage.getPkgId();
+        this._superPkgId = _superPackage.getSuperPkgId();  // Strings are also immutable
+        this._parentSuperPkgId = _superPackage.getParentSuperPkgId();
+        this._description = _superPackage.getDescription();
+        this._narrative = _superPackage.getNarrative();
+        this._sortOrder = _superPackage.getSortOrder();
+        this._repeatable = _superPackage.getRepeatable();
+    }
 
     public Integer getParentSuperPkgId()
     {

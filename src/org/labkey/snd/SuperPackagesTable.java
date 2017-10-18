@@ -14,6 +14,7 @@ import org.labkey.api.query.QueryUpdateServiceException;
 import org.labkey.api.query.SimpleQueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.security.User;
+import org.labkey.api.snd.SuperPackage;
 
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -110,13 +111,13 @@ public class SuperPackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSche
             if (oldRowMap.get("ParentSuperPkgId") == null)
             {
                 // then delete all child super packages pointing to this top-level super package
-                List<Integer> childSuperPackageIds = SNDManager.getChildSuperPkgs(container, user, superPkgId);
-                if (childSuperPackageIds != null)
+                List<SuperPackage> childSuperPackages = SNDManager.getChildSuperPkgs(container, user, superPkgId);
+                if (childSuperPackages != null)
                 {
-                    for (Integer childSuperPackageId : childSuperPackageIds)
+                    for (SuperPackage childSuperPackage : childSuperPackages)
                     {
                         Map<String, Object> superPackageRow = new HashMap<>(1);
-                        superPackageRow.put("SuperPkgId", childSuperPackageId);
+                        superPackageRow.put("SuperPkgId", childSuperPackage.getSuperPkgId());
                         super.deleteRow(user, container, superPackageRow);
                     }
                 }
