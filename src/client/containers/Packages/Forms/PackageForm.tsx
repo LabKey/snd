@@ -418,7 +418,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                     <div className="row clearfix">
                         <div className={"col-sm-12 " + styles['margin-top']}>
                             <strong>Attributes</strong>&nbsp;
-                            <Button onClick={this.props.parseAttributes}>
+                            <Button onClick={this.props.parseAttributes} className={styles['attributes__parse']}>
                                 <i className={"fa fa-refresh " + styles['attributes__parse-button']}/>
                                 &nbsp;<small>Parse Attributes</small>
                             </Button>

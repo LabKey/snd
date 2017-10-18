@@ -66,3 +66,7 @@
 .attributes__parse-button {
     cursor: pointer;
 }
+
+.attributes__parse {
+    margin-left: 5px;
+}
