@@ -83,11 +83,10 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     // by the auto incrementing column.  If the package id or category id must be set manually, package ids must be
     // less than 1000 and category ids must be less than 100.  If they do not meet those restrictions, the package
     // or category will be created but the id will be set using the auto incremented identity column.
-    private static final int TEST_PKG_ID = 900;
-    private static final int TEST_PKG_ID1 = 901;
-    private static final int TEST_PKG_ID2 = 902;
-    private static final int TEST_PKG_ID3 = 903;
-    private static final int TEST_PKG_ID4 = 904;
+    private static final int TEST_PKG_ID = 800;
+    private static final int TEST_PKG_ID1 = 801;
+    private static final int TEST_PKG_ID2 = 802;
+    private static final int TEST_PKG_ID3 = 806;
     private static final int TEST_CATEGORY_ID1 = 50;
     private static final int TEST_CATEGORY_ID2 = 51;
     private static final int TEST_CATEGORY_ID3 = 52;
@@ -336,7 +335,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     private final Map<String, Object> TEST1ROW1MAP = Maps.of("PkgId", TEST_PKG_ID1, "Description", "Description 1", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223451b901", "testPkgs", EXTCOLTESTDATA1);
     private final Map<String, Object> TEST1ROW2MAP = Maps.of("PkgId", TEST_PKG_ID2, "Description", "Description 2", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223751b901", "testPkgs", EXTCOLTESTDATA2);
     private final Map<String, Object> TEST1ROW3MAP = Maps.of("PkgId", TEST_PKG_ID3, "Description", "Description 3", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223481b901", "testPkgs", EXTCOLTESTDATA3);
-    private final Map<String, Object> TEST1ROW3AMAP = Maps.of("PkgId", TEST_PKG_ID4, "Description", "Updated Description 3", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223481b901", "testPkgs", EXTCOLTESTDATA3A);
+    private final Map<String, Object> TEST1ROW3AMAP = Maps.of("PkgId", TEST_PKG_ID3, "Description", "Updated Description 3", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223481b901", "testPkgs", EXTCOLTESTDATA3A);
 
     //Sample files for import to be used in this order
     private static final File INITIAL_IMPORT_FILE = TestFileUtils.getSampleData("snd/pipeline/import/1_initial.snd.xml");
@@ -938,8 +937,8 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
                 results.getColumnDataAsText("Description").contains("Vitals"));
 
         List<List<String>> rows = results.getRows("PkgId", "Description", "Active", "Repeatable", "Narrative");
-        List<String> row_expected = Arrays.asList("2", "Vitals", "true", "true", "Check Vitals Test");
-        assertEquals("Initial package insert - data not as expected in snd.Pkgs", row_expected, rows.get(0));
+        List<String> row_expected = Arrays.asList("878", "Vitals", "true", "true", "Check Vitals Test");
+        assertEquals("Initial package insert - data not as expected in snd.Pkgs", row_expected, rows.get(1));
 
         //TODO: Uncomment below and test for validity - I was unable to test since these tables are not exposed yet
 //        //DomainDescriptor
@@ -981,8 +980,8 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 
         results = new DataRegionTable("query", getDriver());
         rows = results.getRows("PkgId", "Description", "Active", "Repeatable", "Narrative");
-        row_expected = Arrays.asList("2", "Vitals", "true", "true", "Check Vitals");
-        assertEquals("Updated narrative - data not as expected in snd.Pkgs", row_expected, rows.get(0));
+        row_expected = Arrays.asList("878", "Vitals", "true", "true", "Check Vitals");
+        assertEquals("Updated narrative - data not as expected in snd.Pkgs", row_expected, rows.get(1));
 
         //import 3_insertPackage.snd.xml
         goToModule("Pipeline");
@@ -1000,8 +999,8 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         //assertEquals("Wrong row count in snd.Pkgs",2, results.getDataRowCount()); //todo: better test for rows that should and should not be present
 
         rows = results.getRows("PkgId", "Description", "Active", "Repeatable", "Narrative");
-        row_expected = Arrays.asList("1", "Therapy", "false", "true", "Therapy started");
-        assertEquals("New Package inserted - data not as expected in snd.Pkgs", row_expected, rows.get(0));
+        row_expected = Arrays.asList("877", "Therapy", "false", "true", "Therapy started");
+        assertEquals("New Package inserted - data not as expected in snd.Pkgs", row_expected, rows.get(1));
 
         //import 4_addAttribute.snd.xml
         goToModule("Pipeline");

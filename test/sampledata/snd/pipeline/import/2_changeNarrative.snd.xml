@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <export xmlns="http://txbiomed.org/snd" xmlns:dat="http://labkey.org/data/xml">
     <packages>
-        <package id="2" description="Vitals" repeatable="true" displayable="true" usda-category="U">
+        <package id="878" description="Vitals" repeatable="true" displayable="true" usda-category="U">
             <narrative>Check Vitals</narrative> <!-- Changed from 'Check Vitals Test' to 'Check Vitals' -->
             <attributes>
                 <attribute columnName="vital1">
                     <dat:datatype>string</dat:datatype>
                     <dat:nullable>false</dat:nullable>
                     <dat:columnTitle>Vital 1</dat:columnTitle>
-                    <dat:defaultValue>Default 1</dat:defaultValue>
+                    <dat:defaultValue>1</dat:defaultValue>
                     <dat:inputType>select</dat:inputType>
-                    <dat:redactedText>veterinarian</dat:redactedText>
+                    <dat:redactedText>redacted vital</dat:redactedText>
                     <dat:fk>
-                        <dat:fkTable>table1</dat:fkTable>
-                        <dat:fkColumnName>title</dat:fkColumnName>
+                        <dat:fkTable>GenderType</dat:fkTable>
                         <dat:fkDbSchema>snd</dat:fkDbSchema>
                     </dat:fk>
                 </attribute>
@@ -33,7 +32,7 @@
         </package>
     </packages>
     <superPackages>
-        <superPackage superPkgId="2" pkgId="2">
+        <superPackage superPkgId="878" pkgId="878">
             <children/>
         </superPackage>
     </superPackages>
