@@ -124,7 +124,7 @@ public class SNDController extends SpringActionController
         {
             JSONObject json = form.getJsonObject();
             Package pkg = new Package();
-            boolean cloneFlag = json.optBoolean("isCloning");
+            boolean cloneFlag = json.optBoolean("clone");
             Integer testIdNumberStart = json.optInt("testIdNumberStart", -1);
             Integer pkgId = json.optInt("id", -1);
             pkg.setPkgId(pkgId);

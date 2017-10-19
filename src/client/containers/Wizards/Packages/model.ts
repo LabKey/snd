@@ -49,7 +49,7 @@ interface PackageModelAttributeProps {
     name?: string
     rangeURI?: string
     redactedText?: string
-    required?: boolean | 'on'
+    required?: boolean
     scale?: number
     sortOrder?: number
     validators?: Array<PackageModelValidatorProps>
@@ -69,7 +69,7 @@ export class PackageModelAttribute implements PackageModelAttributeProps {
     name: string = undefined;
     rangeURI: string = 'string';
     redactedText: string = undefined;
-    required: boolean | 'on' = false;
+    required: boolean = false;
     scale: number = 0;
     sortOrder: number = 0;
     validators: Array<PackageModelValidatorProps> = [];

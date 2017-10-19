@@ -271,7 +271,7 @@ export function formatPackageValues(model: PackageWizardModel, active: boolean):
     const { formView } = model;
     const { categories, description, extraFields, narrative, pkgId, repeatable } = model.data;
     let id;
-    if ((formView !== PACKAGE_VIEW.CLONE) && (formView !== PACKAGE_VIEW.NEW)) {
+    if (formView !== PACKAGE_VIEW.NEW) {
         id = pkgId;
     }
 
@@ -329,9 +329,6 @@ function formatAttributes(attributes: Array<PackageModelAttribute>): Array<Packa
                         prev['lookupSchema'] = "";
                         prev['lookupQuery'] = "";
                     }
-                }
-                else if (next === 'required') {
-                    prev['required'] = attribute[next] === 'on';
                 }
                 else {
                     prev[nextKey] = attribute[next];
