@@ -192,15 +192,10 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
     getNonmatchingSubpackages(assignedPackage: AssignedPackageModel) {
         const { model } = this.props;
 
-        // if the assignedPackage is a previously saved assigned package, we can match by SuperPkgId
-        // otherwise use the generated altId to match
+        // use the generated altId to match as that will be unique for
+        // both previously existing and newly added assigned packages
         return model.subPackages.filter((subPackage) => {
-            if (assignedPackage.SuperPkgId != undefined) {
-                return subPackage.SuperPkgId != assignedPackage.SuperPkgId;
-            }
-            else {
-                return subPackage.altId != assignedPackage.altId;
-            }
+            return subPackage.altId != assignedPackage.altId;
         });
     }
 

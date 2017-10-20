@@ -45,7 +45,6 @@ export class SubpackageViewerImpl extends React.Component<SubpackageViewerProps,
 
         if (model) {
             let id = this.getModelId(model);
-            // TODO issue with adding the same pkg to the tree having subpackages that get the same id
 
             if (collapsed[id] != undefined) {
                 collapsed[id] = !collapsed[id];
