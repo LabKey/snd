@@ -19,6 +19,10 @@
 <tables xsi:schemaLocation="http://labkey.org/data/xml ..\..\..\..\schemas\tableInfo.xsd"
         xmlns="http://labkey.org/data/xml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <table tableName="Pkgs" tableDbType="TABLE">
+        <insertUrl>/snd/app.view?#/packages/new</insertUrl>
+        <updateUrl></updateUrl> <!--TODO: /snd/app.view?#/packages/edit/{PkgId}-->
+        <importUrl></importUrl>
+        <deleteUrl></deleteUrl>
         <columns>
             <column columnName="PkgId"/>
             <column columnName="Description"/>
@@ -47,6 +51,10 @@
         </columns>
     </table>
     <table tableName="SuperPkgs" tableDbType="TABLE">
+        <insertUrl>/snd/app.view?#/packages/new</insertUrl>
+        <updateUrl></updateUrl> <!--TODO: /snd/app.view?#/packages/edit/{PkgId}-->
+        <importUrl></importUrl>
+        <deleteUrl></deleteUrl>
         <columns>
             <column columnName="SuperPkgId"/>
             <column columnName="ParentSuperPkgId"/>
@@ -73,6 +81,10 @@
         </columns>
     </table>
     <table tableName="PkgCategories" tableDbType="TABLE">
+        <insertUrl>/snd/app.view?#/categories</insertUrl>
+        <updateUrl></updateUrl> <!--TODO: /snd/app.view?#/categories-->
+        <importUrl></importUrl>
+        <deleteUrl></deleteUrl>
         <columns>
             <column columnName="CategoryId"/>
             <column columnName="Description"/>
