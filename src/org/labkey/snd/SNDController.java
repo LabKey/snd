@@ -21,8 +21,8 @@ import org.json.JSONObject;
 import org.labkey.api.action.ApiAction;
 import org.labkey.api.action.ApiResponse;
 import org.labkey.api.action.ApiSimpleResponse;
+import org.labkey.api.action.RedirectAction;
 import org.labkey.api.action.SimpleApiJsonForm;
-import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
 import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.gwt.client.DefaultValueType;
@@ -33,10 +33,10 @@ import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.SNDService;
 import org.labkey.api.snd.SuperPackage;
-import org.labkey.api.view.NavTree;
+import org.labkey.api.util.URLHelper;
+import org.labkey.api.view.ActionURL;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
-import org.springframework.web.servlet.ModelAndView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,16 +55,18 @@ public class SNDController extends SpringActionController
     }
 
     @RequiresPermission(ReadPermission.class)
-    public class BeginAction extends SimpleViewAction
+    public class BeginAction extends RedirectAction
     {
-        public ModelAndView getView(Object o, BindException errors) throws Exception
+        @Override
+        public URLHelper getSuccessURL(Object o)
         {
-            return null;
+            return new ActionURL("snd", "app", getContainer());
         }
 
-        public NavTree appendNavTrail(NavTree root)
+        @Override
+        public boolean doAction(Object o, BindException errors) throws Exception
         {
-            return root;
+            return true;
         }
     }
 

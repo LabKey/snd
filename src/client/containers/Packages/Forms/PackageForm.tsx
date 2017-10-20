@@ -332,7 +332,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                             view={view}/>
                     </div>
                     <div className={"row clearfix col-xs-12 " + styles['margin-top']}>
-                        <ListGroupItem className="data-search__container" style={{height: '90px'}}>
+                        <ListGroupItem className="data-search__container" style={{height: '90px', overflowY: 'auto'}}>
                             <div className="data-search__row">
                                 {selectedSubPackage != undefined
                                     ? selectedSubPackage.Narrative
