@@ -611,24 +611,26 @@ public class SNDManager
     // return list of super package IDs that should be deleted based on passed-in superPackageIds and parentSuperPackage ID
     public static List<Integer> getDeletedChildSuperPkgs(Container c, User u, List<SuperPackage> superPackageIds, Integer parentSuperPackageId)
     {
-        if((superPackageIds == null) || (superPackageIds.size() == 0))
-            return null;
-
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
         SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
-        sql.append(" WHERE SuperPkgId NOT IN (");
-        Iterator<SuperPackage> superPackageIdIterator = superPackageIds.iterator();
-        while (superPackageIdIterator.hasNext())
+        sql.append(" WHERE");
+        if((superPackageIds != null) && (superPackageIds.size() > 0))
         {
-            Integer superPkgId = superPackageIdIterator.next().getSuperPkgId();
-            if (!superPackageIdIterator.hasNext())
-                sql.append("?)").add(superPkgId);
-            else
-                sql.append("?,").add(superPkgId);
+            sql.append(" SuperPkgId NOT IN (");
+            Iterator<SuperPackage> superPackageIdIterator = superPackageIds.iterator();
+            while (superPackageIdIterator.hasNext())
+            {
+                Integer superPkgId = superPackageIdIterator.next().getSuperPkgId();
+                if (!superPackageIdIterator.hasNext())
+                    sql.append("?)").add(superPkgId);
+                else
+                    sql.append("?,").add(superPkgId);
+            }
+            sql.append(" AND");
         }
-        sql.append(" AND ParentSuperPkgId = ?").add(parentSuperPackageId);
+        sql.append(" ParentSuperPkgId = ?").add(parentSuperPackageId);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
         if (selector.getArrayList(Integer.class).size() > 0)
