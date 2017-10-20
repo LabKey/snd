@@ -665,7 +665,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         String cloneDescription = "clone of more sonnets narrative.  Ugh, derivative!";
         String narrative = "Sometimes too hot the {eye} of heaven shines" +
                 "and often is is {gold} complexion dimm'd, " +
-                "and every {fair} from {fair} sometime declines, " +
+                "and every {fair} from {fair2} sometime declines, " +
                 "by chance, or nature's changing {course} untrimmed";
         PackageListPage listPage = PackageListPage.beginAt(this, getProjectName());
         EditPackagePage editPage = listPage.clickNewPackage();
@@ -673,7 +673,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         editPage.setNarrative(narrative);
 
         AttributesGrid grid = editPage.getAttributesGrid();
-        grid.waitForRows(4);    // should this pass? duplicate token?
+        grid.waitForRows(5);
 
         // now edit a row
         AttributeGridRow fairRow = grid.getRow("fair")
