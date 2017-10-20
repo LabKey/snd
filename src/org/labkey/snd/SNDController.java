@@ -164,11 +164,20 @@ public class SNDController extends SpringActionController
 
             // Get attributes
             JSONArray attribs = json.optJSONArray("attributes");
+            List<String> attNames = new ArrayList<>();
             if (null != attribs)
             {
                 List<GWTPropertyDescriptor> pds = new ArrayList<>();
+                String name;
                 for (int i = 0; i < attribs.length(); i++)
                 {
+                    name = attribs.getJSONObject(i).getString("name");
+                    if (attNames.contains(name))
+                    {
+                        errors.reject("Attributes must have unique names within a package.");
+                        break;
+                    }
+                    attNames.add(name);
                     pds.add(convertJsonToPropertyDescriptor(attribs.getJSONObject(i), errors));
                 }
                 pkg.setAttributes(pds);
