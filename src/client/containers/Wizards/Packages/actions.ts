@@ -14,6 +14,7 @@ import { PKG_SQ, TOPLEVEL_SUPER_PKG_SQ } from '../../Packages/constants'
 import { AssignedPackageModel } from "../../Packages/model";
 
 import { labkeyAjax, queryInvalidate } from '../../../query/actions'
+import {parseNarrativeKeywords} from "./reducer";
 
 function fetchPackage(id: string | number, includeExtraFields: boolean, includeLookups: boolean) {
     return labkeyAjax(
@@ -205,10 +206,25 @@ export function saveNarrative(model: PackageWizardModel, narrative: string) {
 
 export function parseAttributes(model: PackageWizardModel) {
     return (dispatch) => {
-        dispatch({
-            type: PKG_WIZARD_TYPES.PARSE_ATTRIBUTES,
-            model
+        const narrative = model.data.narrative;
+        const parsedKeywords = parseNarrativeKeywords(narrative);
+
+        // Check for duplicate key words
+        let dupes = parsedKeywords.some((item, index) => {
+            let idx = parsedKeywords.indexOf(item);
+            return (idx > -1 && idx != index);
         });
+
+        // Throw error for duplicates
+        if (dupes) {
+            dispatch(setAppError({exception:"Tokens in narrative must have unique names."}));
+        }
+        else {
+            dispatch({
+                type: PKG_WIZARD_TYPES.PARSE_ATTRIBUTES,
+                model
+            });
+        }
     }
 }
 
