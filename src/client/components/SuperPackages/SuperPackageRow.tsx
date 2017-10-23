@@ -23,6 +23,7 @@ interface SuperPackageRowProps {
 
 interface SuperPackageRowStateProps {
     isHover: boolean
+    isDropup: boolean
 }
 
 export class SuperPackageRow extends React.Component<SuperPackageRowProps, SuperPackageRowStateProps> {
@@ -31,7 +32,8 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
         super(props);
 
         this.state = {
-            isHover: false
+            isHover: false,
+            isDropup: false
         };
 
         this.handleMouseEnter = this.handleMouseEnter.bind(this);
@@ -39,12 +41,17 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
         this.handleOnClick = this.handleOnClick.bind(this);
     }
 
-    handleMouseEnter() {
-        this.setState({isHover: true});
+    handleMouseEnter(e) {
+        // use dropup for bottom half of the container
+        const target = jQuery(e.target);
+        const containerHeight = target.closest('.data-search__container').height();
+        const isDropup = target.position().top > (containerHeight / 2);
+
+        this.setState({isHover: true, isDropup});
     }
 
     handleMouseLeave() {
-        this.setState({isHover: false});
+        this.setState({isHover: false, isDropup: false});
     }
 
     handleOnClick(evnt) {
@@ -65,7 +72,7 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
             model, selected, treeLevel, treeArrIndex, treeArrLength, treeCollapsed,
             menuActionName, handleMenuAction, handleMenuReorderAction, handleFullNarrative, view
         } = this.props;
-        const { isHover } = this.state;
+        const { isHover, isDropup } = this.state;
         const isReadyOnly = view == PACKAGE_VIEW.VIEW;
         const treeLevelVal = treeLevel == undefined ? -1 : treeLevel;
         const treeCollapsedVal = treeCollapsed != undefined && treeCollapsed;
@@ -99,7 +106,8 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
                     {[model.PkgId, model.Description].join(' - ')}
                 </div>
                 <div className={styles["superpackage-row-dropdown"]} style={{display: isHover ? 'inline-block' : 'none'}}>
-                    <DropdownButton id="superpackage-actions" title="" pullRight className={styles["superpackage-row-option-btn"]}>
+                    <DropdownButton id="superpackage-actions" title="" pullRight dropup={isDropup}
+                                    className={styles["superpackage-row-option-btn"]}>
                         {!isReadyOnly && menuActionName
                             ? <MenuItem onClick={() => handleMenuAction(model)}>{menuActionName}</MenuItem>
                             : null

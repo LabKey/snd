@@ -34,9 +34,6 @@ import thunk from 'redux-thunk';
 // Components
 import { App } from './containers/App/App';
 
-// Misc
-declare const jQuery: Function;
-
 // Reducers
 import { reducers } from './reducers/index';
 
