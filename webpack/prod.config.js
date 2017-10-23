@@ -3,6 +3,7 @@
  *
  * Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
  */
+require("babel-polyfill");
 const webpack = require("webpack");
 const path = require("path");
 const combineLoaders = require('webpack-combine-loaders');
@@ -14,6 +15,7 @@ module.exports = {
 
     entry: {
         'app': [
+            'babel-polyfill',
             './src/client/app.tsx'
         ]
     },

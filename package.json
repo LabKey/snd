@@ -79,6 +79,7 @@
     "@types/react-router-redux": "5.0.4",
     "@types/redux-actions": "1.2.7",
     "@types/redux-form": "6.6.2",
+    "babel-polyfill": "6.26.0",
     "history": "4.6.3",
     "prop-types": "15.5.10",
     "react": "15.6.1",
