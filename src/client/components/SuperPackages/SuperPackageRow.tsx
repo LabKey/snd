@@ -79,8 +79,8 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
         const indentPx = treeLevel == undefined ? 0 : treeLevelVal * 15;
 
         // boolean to indicate if the reorder up/down menu items should be shown
-        const showMoveUp = handleMenuReorderAction && treeArrIndex != undefined && treeArrIndex > 0;
-        const showMoveDown = handleMenuReorderAction && treeArrIndex != undefined && treeArrLength != undefined && treeArrIndex < (treeArrLength - 1);
+        const showMoveUp = !isReadyOnly && handleMenuReorderAction && treeArrIndex != undefined && treeArrIndex > 0;
+        const showMoveDown = !isReadyOnly && handleMenuReorderAction && treeArrIndex != undefined && treeArrLength != undefined && treeArrIndex < (treeArrLength - 1);
 
         return (
             <div
