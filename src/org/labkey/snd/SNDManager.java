@@ -482,7 +482,7 @@ public class SNDManager
     }
 
     // return all super package IDs which correspond to this package ID
-    public static List<Integer> getSuperPkgs(Container c, User u, Integer packageId)
+    public static List<Integer> getSuperPkgIdsForPkg(Container c, User u, Integer packageId)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -498,14 +498,14 @@ public class SNDManager
     }
 
     // return the top-level super package which corresponds to this package ID
-    public static SuperPackage getTopLevelSuperPkg(Container c, User u, Integer packageId)
+    public static SuperPackage getTopLevelSuperPkgForPkg(Container c, User u, Integer packageId)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
         SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SuperPkgPath, sp.SortOrder FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" WHERE sp.PkgId = ?").add(packageId);
-        sql.append(" AND ParentSuperPkgId IS NULL");
+        sql.append(" AND sp.ParentSuperPkgId IS NULL");
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
         if (selector.getArrayList(SuperPackage.class).size() == 1)
@@ -514,8 +514,34 @@ public class SNDManager
             return null;
     }
 
-    // gets all distinct corresponding top-level child super packages for a certain package ID
-    public static List<SuperPackage> getTopLevelSuperPkgs(Container c, User u, Integer parentSuperPackageId)
+    // return the super packages which correspond to these super package IDs
+    public static List<SuperPackage> getSuperPkgs(Container c, User u, List<Integer> superPackageIds)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SuperPkgPath, sp.SortOrder FROM ");
+        sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
+        sql.append(" WHERE sp.SuperPkgId IN (");
+        Iterator<Integer> superPackageIdsIterator = superPackageIds.iterator();
+        while(superPackageIdsIterator.hasNext())
+        {
+            Integer superPkgId = superPackageIdsIterator.next();
+            if(!superPackageIdsIterator.hasNext())
+                sql.append("?").add(superPkgId);
+            else
+                sql.append("?,").add(superPkgId);
+        }
+        sql.append(")");
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+
+        if (selector.getArrayList(SuperPackage.class).size() > 0)
+            return selector.getArrayList(SuperPackage.class);
+        else
+            return null;
+    }
+
+    // convert all passed-in super packages to distinct top-level super packages
+    public static List<SuperPackage> convertToTopLevelSuperPkgs(Container c, User u, List<Integer> superPackageIds)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -524,8 +550,18 @@ public class SNDManager
         sql.append(" JOIN ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp2");
         sql.append(" ON sp2.PkgId = sp.PkgId");
-        sql.append(" WHERE sp.ParentSuperPkgId = ?").add(parentSuperPackageId);
-        sql.append(" AND sp2.ParentSuperPkgId IS NULL");
+
+        sql.append(" WHERE sp.SuperPkgId IN (");
+        Iterator<Integer> superPackageIdsIterator = superPackageIds.iterator();
+        while(superPackageIdsIterator.hasNext())
+        {
+            Integer superPkgId = superPackageIdsIterator.next();
+            if(!superPackageIdsIterator.hasNext())
+                sql.append("?").add(superPkgId);
+            else
+                sql.append("?,").add(superPkgId);
+        }
+        sql.append(") AND sp2.ParentSuperPkgId IS NULL");
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
         if (selector.getArrayList(SuperPackage.class).size() > 0)
@@ -535,26 +571,26 @@ public class SNDManager
     }
 
     // filters list of superPackageIds down to super packages which have no parent
-    public static List<SuperPackage> filterTopLevelSuperPkgs(Container c, User u, List<SuperPackage> superPackages)
+    public static List<SuperPackage> filterTopLevelSuperPkgs(Container c, User u, List<Integer> superPackageIds)
     {
-        if((superPackages == null) || (superPackages.size() == 0))
+        if((superPackageIds == null) || (superPackageIds.size() == 0))
             return null;
 
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
         SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SuperPkgPath, sp.SortOrder FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
-        sql.append(" WHERE SuperPkgId IN (");
-        Iterator<SuperPackage> superPackageIterator = superPackages.iterator();
-        while(superPackageIterator.hasNext())
+        sql.append(" WHERE sp.SuperPkgId IN (");
+        Iterator<Integer> superPackageIdsIterator = superPackageIds.iterator();
+        while(superPackageIdsIterator.hasNext())
         {
-            SuperPackage superPkg = superPackageIterator.next();
-            if(!superPackageIterator.hasNext())
-                sql.append("?").add(superPkg.getSuperPkgId());
+            Integer superPkgId = superPackageIdsIterator.next();
+            if(!superPackageIdsIterator.hasNext())
+                sql.append("?").add(superPkgId);
             else
-                sql.append("?,").add(superPkg.getSuperPkgId());
+                sql.append("?,").add(superPkgId);
         }
-        sql.append(") AND ParentSuperPkgId IS NULL");
+        sql.append(") AND sp.ParentSuperPkgId IS NULL");
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
         if (selector.getArrayList(SuperPackage.class).size() > 0)
@@ -570,7 +606,7 @@ public class SNDManager
 
         SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SuperPkgPath, sp.SortOrder FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
-        sql.append(" WHERE ParentSuperPkgId = ?").add(parentSuperPackageId);
+        sql.append(" WHERE sp.ParentSuperPkgId = ?").add(parentSuperPackageId);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
         if (selector.getArrayList(Integer.class).size() > 0)
@@ -580,26 +616,26 @@ public class SNDManager
     }
 
     // filters list of superPackageIds down to super packages that have parentSuperPackageId as a parent
-    public static List<SuperPackage> filterChildSuperPkgs(Container c, User u, List<SuperPackage> superPackages, Integer parentSuperPackageId)
+    public static List<SuperPackage> filterChildSuperPkgs(Container c, User u, List<Integer> superPackageIds, Integer parentSuperPackageId)
     {
-        if((superPackages == null) || (superPackages.size() == 0))
+        if((superPackageIds == null) || (superPackageIds.size() == 0))
             return null;
 
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
         SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SuperPkgPath, sp.SortOrder FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
-        sql.append(" WHERE SuperPkgId IN (");
-        Iterator<SuperPackage> superPackageIterator = superPackages.iterator();  // IN clause may have repeats, but query should still be fine
-        while(superPackageIterator.hasNext())
+        sql.append(" WHERE sp.SuperPkgId IN (");
+        Iterator<Integer> superPackageIdsIterator = superPackageIds.iterator();  // IN clause may have repeats, but query should still be fine
+        while(superPackageIdsIterator.hasNext())
         {
-            SuperPackage superPkg = superPackageIterator.next();
-            if (!superPackageIterator.hasNext())
-                sql.append("?)").add(superPkg.getSuperPkgId());
+            Integer superPkgId = superPackageIdsIterator.next();
+            if (!superPackageIdsIterator.hasNext())
+                sql.append("?").add(superPkgId);
             else
-                sql.append("?,").add(superPkg.getSuperPkgId());
+                sql.append("?,").add(superPkgId);
         }
-        sql.append(" AND ParentSuperPkgId = ?").add(parentSuperPackageId);
+        sql.append(") AND sp.ParentSuperPkgId = ?").add(parentSuperPackageId);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
         if (selector.getArrayList(SuperPackage.class).size() > 0)
@@ -609,28 +645,28 @@ public class SNDManager
     }
 
     // return list of super package IDs that should be deleted based on passed-in superPackageIds and parentSuperPackage ID
-    public static List<Integer> getDeletedChildSuperPkgs(Container c, User u, List<SuperPackage> superPackageIds, Integer parentSuperPackageId)
+    public static List<Integer> getDeletedChildSuperPkgs(Container c, User u, List<SuperPackage> superPackages, Integer parentSuperPackageId)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
         SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" WHERE");
-        if((superPackageIds != null) && (superPackageIds.size() > 0))
+        if((superPackages != null) && (superPackages.size() > 0))
         {
-            sql.append(" SuperPkgId NOT IN (");
-            Iterator<SuperPackage> superPackageIdIterator = superPackageIds.iterator();
-            while (superPackageIdIterator.hasNext())
+            sql.append(" sp.SuperPkgId NOT IN (");
+            Iterator<SuperPackage> superPackageIterator = superPackages.iterator();
+            while (superPackageIterator.hasNext())
             {
-                Integer superPkgId = superPackageIdIterator.next().getSuperPkgId();
-                if (!superPackageIdIterator.hasNext())
-                    sql.append("?)").add(superPkgId);
+                Integer superPkgId = superPackageIterator.next().getSuperPkgId();
+                if (!superPackageIterator.hasNext())
+                    sql.append("?").add(superPkgId);
                 else
                     sql.append("?,").add(superPkgId);
             }
-            sql.append(" AND");
+            sql.append(") AND");
         }
-        sql.append(" ParentSuperPkgId = ?").add(parentSuperPackageId);
+        sql.append(" sp.ParentSuperPkgId = ?").add(parentSuperPackageId);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
         if (selector.getArrayList(Integer.class).size() > 0)

@@ -163,7 +163,7 @@ public class PackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             TableInfo superPkgsTable = getTableInfo(schema, SNDSchema.SUPERPKGS_TABLE_NAME);
             QueryUpdateService superPkgQus = getQueryUpdateService(superPkgsTable);
             List<Map<String, Object>> superPkgRows = new ArrayList<Map<String, Object>>();
-            List<Integer> superPkgIds = SNDManager.getSuperPkgs(container, user, pkgId);
+            List<Integer> superPkgIds = SNDManager.getSuperPkgIdsForPkg(container, user, pkgId);
             if(superPkgIds != null)
             {
                 for (Integer superPkgId : superPkgIds)
