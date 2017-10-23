@@ -639,15 +639,33 @@ public class SNDManager
             return null;
     }
 
+    public boolean isDescendent(Container c, User u, int topLevelSuperPkgId, int pkgId)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT PkgId FROM ");
+        sql.append(SNDSchema.NAME + "." + SNDSchema.SUPERPKGS_TABLE_NAME);
+        sql.append(" WHERE SuperPkgId = ?");
+        sql.add(topLevelSuperPkgId);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+        Integer topLevelPkgId = selector.getArrayList(Integer.class).get(0);
+
+        sql = new SQLFragment("SELECT * FROM ");
+        sql.append(SNDSchema.NAME + "." + SNDSchema.SUPERPKGS_FUNCTION_NAME + "(?)");
+        sql.append(" WHERE PkgId = ?");
+        sql.add(topLevelPkgId).add(pkgId);
+
+        selector = new SqlSelector(schema.getDbSchema(), sql);
+        return selector.getRowCount() > 0;
+    }
+
     // recursively get all children for the super package which corresponds to pkgId
     private List<SuperPackage> getAllChildSuperPkgs(Container c, User u, int pkgId)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
-        SQLFragment childSql = new SQLFragment("");
-
-        childSql.append(" SELECT * FROM ");
-        childSql.append("snd." + SNDSchema.SUPERPKGS_FUNCTION_NAME + "(?)").add(pkgId);
+        SQLFragment childSql = new SQLFragment("SELECT * FROM ");
+        childSql.append(SNDSchema.NAME + "." + SNDSchema.SUPERPKGS_FUNCTION_NAME + "(?)").add(pkgId);
 
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), childSql);
         List<SuperPackage> descendants = selector.getArrayList(SuperPackage.class);

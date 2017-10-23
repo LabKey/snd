@@ -174,7 +174,7 @@ public class SNDController extends SpringActionController
                     name = attribs.getJSONObject(i).getString("name");
                     if (attNames.contains(name))
                     {
-                        errors.reject("Attributes must have unique names within a package.");
+                        errors.reject(ERROR_MSG, "Attributes must have unique names within a package.");
                         break;
                     }
                     attNames.add(name);
@@ -225,6 +225,13 @@ public class SNDController extends SpringActionController
                     {
                         JSONObject jsonSubPackage = jsonSubPackages.getJSONObject(i);
                         Integer superPkgId = jsonSubPackage.getInt("superPkgId");
+
+                        if (SNDManager.get().isDescendent(getContainer(), getUser(), superPkgId, pkgId))
+                        {
+                            errors.reject(ERROR_MSG, "Circular package hierarchy error. Verify assigned packages do not contain this package.");
+                            break;
+                        }
+
                         LinkedList<Integer> sortOrders = superPkgIdToSortOrdersMap.get(superPkgId);
                         if (sortOrders == null)
                         {
@@ -245,114 +252,119 @@ public class SNDController extends SpringActionController
                     List<SuperPackage> topLevelSuperPkgs;
                     List<SuperPackage> cloneSuperPkgs = null;
                     List<SuperPackage> topLevelChildSuperPackages = new ArrayList<>();
+                    if (!errors.hasErrors())
+                    {
 
-                    // step 1: process all top level super packages (i.e. super packages that need to have a new child super package created for them)
-                    // if cloning, need to make all new child super packages by getting all top-level super packages for this super package
-                    if (cloneFlag)
-                    {
-                        topLevelSuperPkgs = SNDManager.getTopLevelSuperPkgs(getContainer(), getUser(), originalSuperPackageId);
-                        // when cloning, overwrite UI super packages with child super packages from super package being cloned
-                        cloneSuperPkgs = SNDManager.getChildSuperPkgs(getContainer(), getUser(), originalSuperPackageId);
-                    }
-                    // if not cloning, just make new child super packages for super packages which were just added (meaning top-level ones)
-                    else
-                    {
-                        topLevelSuperPkgs = SNDManager.filterTopLevelSuperPkgs(getContainer(), getUser(), uiSubSuperPkgs);
-                    }
-
-                    if ((!cloneFlag && (uiSubSuperPkgs != null) && (topLevelSuperPkgs != null))
-                            || (cloneFlag && (cloneSuperPkgs != null) && (topLevelSuperPkgs != null)))
-                    {
-                        // now we need to create a list of child super packages based on topLevelSuperPackages and uiSuperPackageIds
-                        // (topLevelSuperPackages is really kind of a list of prototypes to be selected from, sometimes multiple times)
-                        if(!cloneFlag)
+                        // step 1: process all top level super packages (i.e. super packages that need to have a new child super package created for them)
+                        // if cloning, need to make all new child super packages by getting all top-level super packages for this super package
+                        if (cloneFlag)
                         {
-                            // CONSIDER: create maps to speed up lookups here if the number of super packages grows large
-                            for (SuperPackage uiSuperPackage : uiSubSuperPkgs)
+                            topLevelSuperPkgs = SNDManager.getTopLevelSuperPkgs(getContainer(), getUser(), originalSuperPackageId);
+                            // when cloning, overwrite UI super packages with child super packages from super package being cloned
+                            cloneSuperPkgs = SNDManager.getChildSuperPkgs(getContainer(), getUser(), originalSuperPackageId);
+                        }
+                        // if not cloning, just make new child super packages for super packages which were just added (meaning top-level ones)
+                        else
+                        {
+                            topLevelSuperPkgs = SNDManager.filterTopLevelSuperPkgs(getContainer(), getUser(), uiSubSuperPkgs);
+                        }
+
+                        if ((!cloneFlag && (uiSubSuperPkgs != null) && (topLevelSuperPkgs != null))
+                                || (cloneFlag && (cloneSuperPkgs != null) && (topLevelSuperPkgs != null)))
+                        {
+                            // now we need to create a list of child super packages based on topLevelSuperPackages and uiSuperPackageIds
+                            // (topLevelSuperPackages is really kind of a list of prototypes to be selected from, sometimes multiple times)
+                            if (!cloneFlag)
                             {
-                                for (SuperPackage topLevelSuperPackage : topLevelSuperPkgs)
+                                // CONSIDER: create maps to speed up lookups here if the number of super packages grows large
+                                for (SuperPackage uiSuperPackage : uiSubSuperPkgs)
                                 {
-                                    if (uiSuperPackage.getSuperPkgId().equals(topLevelSuperPackage.getSuperPkgId()))
+                                    for (SuperPackage topLevelSuperPackage : topLevelSuperPkgs)
                                     {
-                                        // pick a sort order from the UI for this super package ID
-                                        LinkedList<Integer> sortOrders = superPkgIdToSortOrdersMap.get(uiSuperPackage.getSuperPkgId());
-                                        // set it in the top-level super package
-                                        topLevelSuperPackage.setSortOrder(sortOrders.getFirst());
-                                        // remove this sort order so we don't use it again (only really useful when there are multiples)
-                                        sortOrders.removeFirst();
-                                        // use copy constructor to copy this top-level super package into a new child super package
-                                        // NOTE: this does not create new grandchild super packages! even in the clone case, this is actually the desired behavior
-                                        topLevelChildSuperPackages.add(new SuperPackage(topLevelSuperPackage));
-                                        break;
+                                        if (uiSuperPackage.getSuperPkgId().equals(topLevelSuperPackage.getSuperPkgId()))
+                                        {
+                                            // pick a sort order from the UI for this super package ID
+                                            LinkedList<Integer> sortOrders = superPkgIdToSortOrdersMap.get(uiSuperPackage.getSuperPkgId());
+                                            // set it in the top-level super package
+                                            topLevelSuperPackage.setSortOrder(sortOrders.getFirst());
+                                            // remove this sort order so we don't use it again (only really useful when there are multiples)
+                                            sortOrders.removeFirst();
+                                            // use copy constructor to copy this top-level super package into a new child super package
+                                            // NOTE: this does not create new grandchild super packages! even in the clone case, this is actually the desired behavior
+                                            topLevelChildSuperPackages.add(new SuperPackage(topLevelSuperPackage));
+                                            break;
+                                        }
                                     }
                                 }
                             }
-                        }
-                        else // cloning
-                        {
-                            // CONSIDER: create maps to speed up lookups here if the number of super packages grows large
-                            for (SuperPackage cloneSuperPkg : cloneSuperPkgs)
+                            else // cloning
                             {
-                                for (SuperPackage topLevelSuperPackage : topLevelSuperPkgs)
+                                // CONSIDER: create maps to speed up lookups here if the number of super packages grows large
+                                for (SuperPackage cloneSuperPkg : cloneSuperPkgs)
                                 {
-
-                                    if (cloneSuperPkg.getPkgId().equals(topLevelSuperPackage.getPkgId()))
+                                    for (SuperPackage topLevelSuperPackage : topLevelSuperPkgs)
                                     {
-                                        // set sort order in the top-level super package
-                                        topLevelSuperPackage.setSortOrder(cloneSuperPkg.getSortOrder());
-                                        // use copy constructor to copy this top-level super package into a new child super package
-                                        // NOTE: this does not create new grandchild super packages! even in the clone case, this is actually the desired behavior
-                                        topLevelChildSuperPackages.add(new SuperPackage(topLevelSuperPackage));
-                                        break;
+
+                                        if (cloneSuperPkg.getPkgId().equals(topLevelSuperPackage.getPkgId()))
+                                        {
+                                            // set sort order in the top-level super package
+                                            topLevelSuperPackage.setSortOrder(cloneSuperPkg.getSortOrder());
+                                            // use copy constructor to copy this top-level super package into a new child super package
+                                            // NOTE: this does not create new grandchild super packages! even in the clone case, this is actually the desired behavior
+                                            topLevelChildSuperPackages.add(new SuperPackage(topLevelSuperPackage));
+                                            break;
+                                        }
                                     }
+                                }
+                            }
+
+                            // next we need to transform the top-level super packages from above into new child super packages
+                            for (SuperPackage topLevelChildSuperPackage : topLevelChildSuperPackages)
+                            {
+                                // make new super package ID since we are copying this top-level super package
+                                if (testIdNumberStart != -1)
+                                {
+                                    topLevelChildSuperPackage.setSuperPkgId(SNDManager.get().ensureSuperPkgId(getContainer(), testIdNumberStart));
+                                    testIdNumberStart++;
+                                }
+                                else
+                                {
+                                    topLevelChildSuperPackage.setSuperPkgId(SNDManager.get().ensureSuperPkgId(getContainer(), null));
+                                }
+                                // the parent for this child super package is the current super package being saved
+                                topLevelChildSuperPackage.setParentSuperPkgId(rootSuperPackageId);
+                            }
+                        }
+
+
+                        // step 2: get existing child super packages and set their sort orders
+                        List<SuperPackage> regularChildSuperPackages = null;
+                        if (!cloneFlag)  // should never be using any existing child super packages in the clone case
+                        {
+                            regularChildSuperPackages = SNDManager.filterChildSuperPkgs(getContainer(), getUser(), uiSubSuperPkgs, rootSuperPackageId);
+                            if (regularChildSuperPackages != null)
+                            {
+                                for (SuperPackage childSuperPackage : regularChildSuperPackages)
+                                {
+                                    // pick a sort order from the UI for this super package ID (there should only be one here in this case)
+                                    LinkedList<Integer> sortOrders = superPkgIdToSortOrdersMap.get(childSuperPackage.getSuperPkgId());
+                                    childSuperPackage.setSortOrder(sortOrders.getFirst());
+                                    // don't bother deleting a sort order from sortOrders after using it (like we did above), since repeats should not be possible
                                 }
                             }
                         }
 
-                        // next we need to transform the top-level super packages from above into new child super packages
-                        for (SuperPackage topLevelChildSuperPackage : topLevelChildSuperPackages)
-                        {
-                            // make new super package ID since we are copying this top-level super package
-                            if (testIdNumberStart != -1)
-                            {
-                                topLevelChildSuperPackage.setSuperPkgId(SNDManager.get().ensureSuperPkgId(getContainer(), testIdNumberStart));
-                                testIdNumberStart++;
-                            }
-                            else
-                            {
-                                topLevelChildSuperPackage.setSuperPkgId(SNDManager.get().ensureSuperPkgId(getContainer(), null));
-                            }
-                            // the parent for this child super package is the current super package being saved
-                            topLevelChildSuperPackage.setParentSuperPkgId(rootSuperPackageId);
-                        }
-                    }
-
-                    // step 2: get existing child super packages and set their sort orders
-                    List<SuperPackage> regularChildSuperPackages = null;
-                    if (!cloneFlag)  // should never be using any existing child super packages in the clone case
-                    {
-                        regularChildSuperPackages = SNDManager.filterChildSuperPkgs(getContainer(), getUser(), uiSubSuperPkgs, rootSuperPackageId);
+                        // now that both steps are complete, set subPackages to be all the new or modified super packages and save
+                        ArrayList<SuperPackage> subSuperPackages = new ArrayList<>();
+                        subSuperPackages.addAll(topLevelChildSuperPackages);
                         if (regularChildSuperPackages != null)
-                        {
-                            for (SuperPackage childSuperPackage : regularChildSuperPackages)
-                            {
-                                // pick a sort order from the UI for this super package ID (there should only be one here in this case)
-                                LinkedList<Integer> sortOrders = superPkgIdToSortOrdersMap.get(childSuperPackage.getSuperPkgId());
-                                childSuperPackage.setSortOrder(sortOrders.getFirst());
-                                // don't bother deleting a sort order from sortOrders after using it (like we did above), since repeats should not be possible
-                            }
-                        }
+                            subSuperPackages.addAll(regularChildSuperPackages);
+                        pkg.setSubpackages(subSuperPackages);
                     }
-
-                    // now that both steps are complete, set subPackages to be all the new or modified super packages and save
-                    ArrayList<SuperPackage> subSuperPackages = new ArrayList<>();
-                    subSuperPackages.addAll(topLevelChildSuperPackages);
-                    if (regularChildSuperPackages != null)
-                        subSuperPackages.addAll(regularChildSuperPackages);
-                    pkg.setSubpackages(subSuperPackages);
                 }
 
-                SNDService.get().savePackage(getViewContext().getContainer(), getUser(), pkg, superPackage, cloneFlag);
+                if (!errors.hasErrors())
+                    SNDService.get().savePackage(getViewContext().getContainer(), getUser(), pkg, superPackage, cloneFlag);
             }
 
             return new ApiSimpleResponse();
