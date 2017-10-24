@@ -111,7 +111,7 @@ public class EditPackagePage extends LabKeyPage<EditPackagePage.ElementCache>
 
     public List<SuperPackageRow> getAssignedPackages()
     {
-        return SuperPackageRow.finder(getDriver()).timeout(4000)
+        return SuperPackageRow.finder(getDriver())
                 .findAll(elementCache().assignedPackageContainer);
     }
 

@@ -816,6 +816,8 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
                 .clickMenuItem("Add");
         String vitalsNarrative = editPage.getAssignedPackageText("Vitals");
         String therapyNarrative = editPage.getAssignedPackageText("Therapy");
+        assertEquals("incorrect narrative text from the UI","Check Vitals", vitalsNarrative);
+        assertEquals("incorrect narrative text from the UI","Therapy started", therapyNarrative);
 
         listPage = editPage.clickSave();
         listPage.setSearchFilter(description);
@@ -888,9 +890,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         editPage.getAssignedPackage(description).clickMenuItem("Remove");
         listPage = editPage.clickSave();
 
-
         EditPackagePage viewPage = listPage.getPackage(canterburySuperPackageDescription).clickView();
-        // verify vitals isn't an assigned package any more
 
         List<SuperPackageRow> assignedPackages = viewPage.getAssignedPackages();
         assertFalse("Don't expect to see Canterbury package assigned to the current package",
@@ -960,9 +960,10 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         Map<String, Object> catMap = new HashMap<>();
         catMap.put("Description", ourCategory);
         catMap.put("Active", true);
-        catMap.put("Comment", "edit me so hard!");
+        catMap.put("Comment", "edit me so hard!"); // comment is not shown in the UI
         cmd.addRow(catMap);
         SaveRowsResponse response = cmd.execute(createDefaultConnection(false), getProjectName());
+        assertEquals(200, response.getStatusCode());
 
         PackageListPage listPage = PackageListPage.beginAt(this , getProjectName());
 
