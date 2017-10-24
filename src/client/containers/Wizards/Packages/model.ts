@@ -53,6 +53,7 @@ interface PackageModelAttributeProps {
     scale?: number
     sortOrder?: number
     validators?: Array<PackageModelValidatorProps>
+    value?: any
     [key: string]: any
 }
 
@@ -73,6 +74,7 @@ export class PackageModelAttribute implements PackageModelAttributeProps {
     scale: number = 0;
     sortOrder: number = 0;
     validators: Array<PackageModelValidatorProps> = [];
+    value: any = undefined;
     [key: string]: any;
 
     constructor(props?: Partial<PackageModelAttribute>) {
