@@ -61,7 +61,7 @@ public class PackageListPage extends LabKeyPage<PackageListPage.ElementCache>
     public PackageViewerResult getPackage(String partialText)
     {
         return PackageViewerResult.finder(getDriver()).containingText(partialText)
-                .timeout(2000).findWhenNeeded(elementCache().container);
+                .timeout(4000).findWhenNeeded(elementCache().container);
     }
 
     protected ElementCache newElementCache()
