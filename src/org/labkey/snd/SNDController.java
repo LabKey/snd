@@ -367,10 +367,10 @@ public class SNDController extends SpringActionController
                         if (regularChildSuperPackages != null)
                             subSuperPackages.addAll(regularChildSuperPackages);
                         pkg.setSubpackages(subSuperPackages);
-
-                        SNDService.get().savePackage(getViewContext().getContainer(), getUser(), pkg, superPackage, cloneFlag);
                     }
                 }
+                if (!errors.hasErrors())
+                    SNDService.get().savePackage(getViewContext().getContainer(), getUser(), pkg, superPackage, cloneFlag);
             }
 
             return new ApiSimpleResponse();
