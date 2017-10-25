@@ -104,7 +104,7 @@ public class SNDManager
 
     public Integer ensurePkgId(Container container, Integer id)
     {
-        if(id == null || id >= SNDManager.MINPKGID || id < 0)
+        if (id == null || id >= SNDManager.MINPKGID || id < 0)
         {
             return generatePackageId(container);
         }
@@ -114,7 +114,7 @@ public class SNDManager
 
     public Integer ensureSuperPkgId(Container container, Integer id)
     {
-        if(id == null || id >= SNDManager.MINSUPERPKGID)
+        if (id == null || id >= SNDManager.MINSUPERPKGID)
         {
             return generateSuperPackageId(container);
         }
@@ -124,7 +124,7 @@ public class SNDManager
 
     public Integer ensureCategoryId(Container container, Integer id)
     {
-        if(id == null || id >= SNDManager.MINCATEGORYID)
+        if (id == null || id >= SNDManager.MINCATEGORYID)
         {
             return generateCategoryId(container);
         }
@@ -189,7 +189,7 @@ public class SNDManager
             throw new RuntimeException(e);
         }
 
-        if ( rows == null || rows.size() < 1 )
+        if (rows == null || rows.size() < 1)
             return null;
 
         return rows.get(0).get(tableInfo.getTitleColumn());
@@ -242,7 +242,7 @@ public class SNDManager
         }
 
         // If package is in use (either assigned to an event or project) then do not update the domain
-        if (!errors.hasErrors() && !((PackagesTable)pkgsTable).isPackageInUse(pkg.getPkgId()))
+        if (!errors.hasErrors() && !((PackagesTable) pkgsTable).isPackageInUse(pkg.getPkgId()))
         {
             String domainURI = PackageDomainKind.getDomainURI(PackageDomainKind.getPackageSchemaName(), getPackageName(pkg.getPkgId()), c, u);
 
@@ -316,7 +316,7 @@ public class SNDManager
             }
         }
     }
-    
+
     private List<Integer> getSavedSuperPkgs(Container c, User u)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -367,7 +367,7 @@ public class SNDManager
         for (SuperPackage parent : superPkgs)
         {
             flatSuperPackages.add(parent);
-            if(parent.getChildPackages() != null)
+            if (parent.getChildPackages() != null)
             {
                 for (SuperPackage child : parent.getChildPackages())
                 {
@@ -375,7 +375,7 @@ public class SNDManager
                 }
             }
         }
-        
+
         List<Integer> savedSuperPkgs = getSavedSuperPkgs(c, u);
         List<Map<String, Object>> updates = new ArrayList<>();
         List<Map<String, Object>> inserts = new ArrayList<>();
@@ -397,7 +397,7 @@ public class SNDManager
         try (DbScope.Transaction tx = superPkgsTable.getSchema().getScope().ensureTransaction())
         {
             superPkgQus.insertRows(u, c, inserts, errors, null, null);
-            superPkgQus.updateRows(u, c, updates, null,null, null);
+            superPkgQus.updateRows(u, c, updates, null, null, null);
             tx.commit();
         }
         catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException | InvalidKeyException e)
@@ -523,10 +523,10 @@ public class SNDManager
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" WHERE sp.SuperPkgId IN (");
         Iterator<Integer> superPackageIdsIterator = superPackageIds.iterator();
-        while(superPackageIdsIterator.hasNext())
+        while (superPackageIdsIterator.hasNext())
         {
             Integer superPkgId = superPackageIdsIterator.next();
-            if(!superPackageIdsIterator.hasNext())
+            if (!superPackageIdsIterator.hasNext())
                 sql.append("?").add(superPkgId);
             else
                 sql.append("?,").add(superPkgId);
@@ -553,10 +553,10 @@ public class SNDManager
 
         sql.append(" WHERE sp.SuperPkgId IN (");
         Iterator<Integer> superPackageIdsIterator = superPackageIds.iterator();
-        while(superPackageIdsIterator.hasNext())
+        while (superPackageIdsIterator.hasNext())
         {
             Integer superPkgId = superPackageIdsIterator.next();
-            if(!superPackageIdsIterator.hasNext())
+            if (!superPackageIdsIterator.hasNext())
                 sql.append("?").add(superPkgId);
             else
                 sql.append("?,").add(superPkgId);
@@ -573,7 +573,7 @@ public class SNDManager
     // filters list of superPackageIds down to super packages which have no parent
     public static List<SuperPackage> filterTopLevelSuperPkgs(Container c, User u, List<Integer> superPackageIds)
     {
-        if((superPackageIds == null) || (superPackageIds.size() == 0))
+        if ((superPackageIds == null) || (superPackageIds.size() == 0))
             return null;
 
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -582,10 +582,10 @@ public class SNDManager
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" WHERE sp.SuperPkgId IN (");
         Iterator<Integer> superPackageIdsIterator = superPackageIds.iterator();
-        while(superPackageIdsIterator.hasNext())
+        while (superPackageIdsIterator.hasNext())
         {
             Integer superPkgId = superPackageIdsIterator.next();
-            if(!superPackageIdsIterator.hasNext())
+            if (!superPackageIdsIterator.hasNext())
                 sql.append("?").add(superPkgId);
             else
                 sql.append("?,").add(superPkgId);
@@ -618,7 +618,7 @@ public class SNDManager
     // filters list of superPackageIds down to super packages that have parentSuperPackageId as a parent
     public static List<SuperPackage> filterChildSuperPkgs(Container c, User u, List<Integer> superPackageIds, Integer parentSuperPackageId)
     {
-        if((superPackageIds == null) || (superPackageIds.size() == 0))
+        if ((superPackageIds == null) || (superPackageIds.size() == 0))
             return null;
 
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -627,7 +627,7 @@ public class SNDManager
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" WHERE sp.SuperPkgId IN (");
         Iterator<Integer> superPackageIdsIterator = superPackageIds.iterator();  // IN clause may have repeats, but query should still be fine
-        while(superPackageIdsIterator.hasNext())
+        while (superPackageIdsIterator.hasNext())
         {
             Integer superPkgId = superPackageIdsIterator.next();
             if (!superPackageIdsIterator.hasNext())
@@ -652,7 +652,7 @@ public class SNDManager
         SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" WHERE");
-        if((superPackages != null) && (superPackages.size() > 0))
+        if ((superPackages != null) && (superPackages.size() > 0))
         {
             sql.append(" sp.SuperPkgId NOT IN (");
             Iterator<SuperPackage> superPackageIterator = superPackages.iterator();
@@ -742,14 +742,14 @@ public class SNDManager
     public Package addLookupsToPkg(Container c, User u, Package pkg)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
-        Map<String, Map<String, Object>> sndLookups = ((SNDUserSchema)schema).getLookupSets();
+        Map<String, Map<String, Object>> sndLookups = ((SNDUserSchema) schema).getLookupSets();
         Map<String, String> lookups = new HashMap<>();
 
         String key, label;
         for (String sndLookup : sndLookups.keySet())
         {
             key = "snd." + sndLookup;
-            label = ((String)sndLookups.get(sndLookup).get("Label"));
+            label = ((String) sndLookups.get(sndLookup).get("Label"));
             if (label != null)
             {
                 lookups.put(key, label);
@@ -774,7 +774,7 @@ public class SNDManager
     private Package createPackage(Container c, User u, Map<String, Object> row, boolean includeExtraFields, boolean includeLookups)
     {
         Package pkg = new Package();
-        if(row != null)
+        if (row != null)
         {
             pkg.setPkgId((Integer) row.get(Package.PKG_ID));
             pkg.setDescription((String) row.get(Package.PKG_DESCRIPTION));

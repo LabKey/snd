@@ -199,7 +199,7 @@ public class SNDController extends SpringActionController
                 if ((superPackage == null) || cloneFlag)
                 {
                     superPackage = new SuperPackage();
-                    if(testIdNumberStart != -1)
+                    if (testIdNumberStart != -1)
                     {
                         rootSuperPackageId = SNDManager.get().ensureSuperPkgId(getContainer(), testIdNumberStart);
                         testIdNumberStart++;
