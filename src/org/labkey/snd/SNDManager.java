@@ -522,15 +522,7 @@ public class SNDManager
         SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SuperPkgPath, sp.SortOrder FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" WHERE sp.SuperPkgId IN (");
-        Iterator<Integer> superPackageIdsIterator = superPackageIds.iterator();
-        while (superPackageIdsIterator.hasNext())
-        {
-            Integer superPkgId = superPackageIdsIterator.next();
-            if (!superPackageIdsIterator.hasNext())
-                sql.append("?").add(superPkgId);
-            else
-                sql.append("?,").add(superPkgId);
-        }
+        addSubPkgParameters(sql, superPackageIds.iterator());
         sql.append(")");
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
@@ -552,15 +544,7 @@ public class SNDManager
         sql.append(" ON sp2.PkgId = sp.PkgId");
 
         sql.append(" WHERE sp.SuperPkgId IN (");
-        Iterator<Integer> superPackageIdsIterator = superPackageIds.iterator();
-        while (superPackageIdsIterator.hasNext())
-        {
-            Integer superPkgId = superPackageIdsIterator.next();
-            if (!superPackageIdsIterator.hasNext())
-                sql.append("?").add(superPkgId);
-            else
-                sql.append("?,").add(superPkgId);
-        }
+        addSubPkgParameters(sql, superPackageIds.iterator());
         sql.append(") AND sp2.ParentSuperPkgId IS NULL");
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
@@ -581,15 +565,7 @@ public class SNDManager
         SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SuperPkgPath, sp.SortOrder FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" WHERE sp.SuperPkgId IN (");
-        Iterator<Integer> superPackageIdsIterator = superPackageIds.iterator();
-        while (superPackageIdsIterator.hasNext())
-        {
-            Integer superPkgId = superPackageIdsIterator.next();
-            if (!superPackageIdsIterator.hasNext())
-                sql.append("?").add(superPkgId);
-            else
-                sql.append("?,").add(superPkgId);
-        }
+        addSubPkgParameters(sql, superPackageIds.iterator());
         sql.append(") AND sp.ParentSuperPkgId IS NULL");
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
@@ -626,15 +602,7 @@ public class SNDManager
         SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SuperPkgPath, sp.SortOrder FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" WHERE sp.SuperPkgId IN (");
-        Iterator<Integer> superPackageIdsIterator = superPackageIds.iterator();  // IN clause may have repeats, but query should still be fine
-        while (superPackageIdsIterator.hasNext())
-        {
-            Integer superPkgId = superPackageIdsIterator.next();
-            if (!superPackageIdsIterator.hasNext())
-                sql.append("?").add(superPkgId);
-            else
-                sql.append("?,").add(superPkgId);
-        }
+        addSubPkgParameters(sql, superPackageIds.iterator());
         sql.append(") AND sp.ParentSuperPkgId = ?").add(parentSuperPackageId);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
@@ -673,6 +641,18 @@ public class SNDManager
             return selector.getArrayList(Integer.class);
         else
             return null;
+    }
+
+    private static void addSubPkgParameters(SQLFragment sql, Iterator<Integer> subPkgIterator)
+    {
+        while (subPkgIterator.hasNext())
+        {
+            Integer superPkgId = subPkgIterator.next();
+            if (!subPkgIterator.hasNext())
+                sql.append("?").add(superPkgId);
+            else
+                sql.append("?,").add(superPkgId);
+        }
     }
 
     public boolean isDescendent(Container c, User u, int topLevelSuperPkgId, int pkgId)
