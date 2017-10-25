@@ -4,6 +4,7 @@ import org.labkey.test.Locator;
 import org.labkey.test.WebDriverWrapper;
 import org.labkey.test.WebTestHelper;
 import org.labkey.test.components.html.BootstrapMenu;
+import org.labkey.test.components.html.Checkbox;
 import org.labkey.test.components.html.Input;
 import org.labkey.test.components.snd.PackageViewerResult;
 import org.labkey.test.pages.LabKeyPage;
@@ -37,10 +38,10 @@ public class PackageListPage extends LabKeyPage<PackageListPage.ElementCache>
 
     public PackageListPage showDrafts(boolean set)
     {
-        if (set)
-            checkCheckbox(elementCache().showDraftsToggle);
-        else
-            uncheckCheckbox(elementCache().showDraftsToggle);
+        Checkbox.Checkbox(elementCache().showDraftsLoc)
+                .timeout(WAIT_FOR_JAVASCRIPT)
+                .findWhenNeeded(elementCache().container)
+                .set(set);
         return this;
     }
 
@@ -76,12 +77,13 @@ public class PackageListPage extends LabKeyPage<PackageListPage.ElementCache>
                 .refindWhenNeeded(this).withTimeout(WAIT_FOR_JAVASCRIPT);
         WebElement searchHeader = Locator.tagWithClass("div", "package-viewer__header")
                 .refindWhenNeeded(container);
-        WebElement newPackageButton = Locator.button("New Package").findWhenNeeded(searchHeader).withTimeout(2000);
-        WebElement showDraftsToggle = Locator.tagWithClassContaining("div", "PackageSearch__packages-show_drafts")
+        WebElement newPackageButton = Locator.button("New Package").findWhenNeeded(searchHeader)
+                .withTimeout(WAIT_FOR_JAVASCRIPT);
+        Locator showDraftsLoc = Locator.tagWithClassContaining("div", "PackageSearch__packages-show_drafts")
                 .withText("Show drafts")
-                .child("input")
-                .findWhenNeeded(searchHeader).withTimeout(4000);
-        Input searchFilter = Input.Input(Locator.input("packageSearch"), getDriver()).timeout(4000)
-            .findWhenNeeded(container);
+                .child("input");
+        Input searchFilter = Input.Input(Locator.input("packageSearch"), getDriver())
+                .timeout(WAIT_FOR_JAVASCRIPT)
+                .findWhenNeeded(container);
     }
 }
