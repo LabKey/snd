@@ -392,8 +392,9 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         runScript(CREATECATEGORIESAPI);
         populateLookups();
 
-        // this needs to run first; it has hard-coded IDs
+        // These will run as part of project setup to populate data
         testPackageApis();
+        testSNDImport();
     }
 
     private void setupTest1Project()
@@ -495,10 +496,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 //        assertEquals("Wrong hello message", expectedHello, beginPage.getHelloMessage());
     }
 
-
-
-    @Test
-    public void testSNDImport() throws Exception
+    public void testSNDImport()
     {
         //go to SND Project
         clickProject(PROJECTNAME);
