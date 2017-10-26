@@ -20,8 +20,16 @@
 .searchinput-clear {
     position: absolute;
     cursor: pointer;
-    right: 21px;
-    fontSize: 1.1em;
+    right: 41px;
+    font-size: 1.1em;
     top: 8px;
     color: lightgray;
+}
+
+.searchinput-caret {
+    position: absolute;
+    cursor: pointer;
+    font-size: 1.1em;
+    right: 25px;
+    top: 8px;
 }

@@ -4,15 +4,18 @@ const styles = require<any>('./SearchInput.css');
 
 interface SearchInputProps {
     allowClear?: boolean
+    allowToggle?: boolean
     disabled?: boolean
     handleClear?: any
     handleFocus?: (el: React.FocusEvent<HTMLInputElement>) => void
     handleInputChange?: (input) => any
+    handleToggle?: () => void
     input?: string
+    inputClassName?: string
     inputRef?: any
     name: string
+    toggled?: boolean
     wrapperClassName?: string
-    inputClassName?: string
 }
 
 
@@ -20,8 +23,10 @@ export class SearchInput extends React.Component<SearchInputProps, {}> {
 
     static defaultProps = {
         allowClear: true,
+        allowToggle: false,
+        disabled: false,
+        toggled: false,
         wrapperClassName: 'col-sm-6 col-sm-8',
-        disabled: false
     };
 
     handleFocus(el: React.FocusEvent<HTMLInputElement>) {
@@ -30,6 +35,30 @@ export class SearchInput extends React.Component<SearchInputProps, {}> {
             handleFocus(el);
         }
 
+    }
+
+    handleToggle() {
+        const { handleToggle } = this.props;
+        if (handleToggle && typeof handleToggle === 'function') {
+            handleToggle();
+        }
+    }
+
+    renderToggle() {
+        const { allowToggle, toggled } = this.props;
+
+        if (allowToggle) {
+            let classes = [styles['searchinput-caret']];
+            if (toggled) {
+                classes.push("fa fa-caret-down");
+            }
+            else if (!toggled) {
+                classes.push("fa fa-caret-right")
+            }
+            return <i className={classes.join(' ')} onClick={() => this.handleToggle()}/>;
+        }
+
+        return null;
     }
 
     render() {
@@ -51,6 +80,7 @@ export class SearchInput extends React.Component<SearchInputProps, {}> {
                 {allowClear && input !== '' ?
                     <i className={"fa fa-times-circle " + styles['searchinput-clear']} onClick={handleClear}/>
                 : null}
+                {this.renderToggle()}
                 <input
                     className={[styles['searchinput-search'], inputClassName].join(' ')}
                     disabled={disabled}

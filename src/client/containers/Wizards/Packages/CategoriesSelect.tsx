@@ -55,6 +55,7 @@ export class CategoriesSelect extends React.Component<CategoriesSelectProps, Cat
         this.handleFocus = this.handleFocus.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleSelect = this.handleSelect.bind(this);
+        this.handleToggle = this.handleToggle.bind(this);
     }
 
     componentDidMount() {
@@ -110,10 +111,9 @@ export class CategoriesSelect extends React.Component<CategoriesSelectProps, Cat
     handleFocus(el: React.FocusEvent<HTMLInputElement>) {
         const { focused } = this.state;
         if (!focused) {
-            this.setState({focused: true})
+            this.setState({focused: true});
         }
     }
-
 
     handleInputChange(evt: React.ChangeEvent<HTMLInputElement>) {
         const input = evt.currentTarget.value;
@@ -149,6 +149,11 @@ export class CategoriesSelect extends React.Component<CategoriesSelectProps, Cat
         }
     }
 
+    handleToggle() {
+        const { focused } = this.state;
+        this.setState({focused: !focused});
+    }
+
     setInput(input: string) {
         const { model } = this.props;
 
@@ -162,26 +167,31 @@ export class CategoriesSelect extends React.Component<CategoriesSelectProps, Cat
         const { disabled, model } = this.props;
         const { data, focused, input, selected } = this.state;
         return (
-            <div className='row input-row' ref={(el) => this.wrapper = el}>
+            <div className='row input-row'>
                 <div className={"clearfix col-sm-12 " + styles['margin-top']}>
                     <ControlLabel>Categories</ControlLabel >
                 </div>
-                <SearchInput
-                    disabled={disabled}
-                    handleClear={this.handleClear}
-                    handleFocus={this.handleFocus}
-                    handleInputChange={this.handleInputChange}
-                    input={input}
-                    inputRef={(el) => this.inputRef = el}
-                    name="query-search-input"
-                    wrapperClassName="col-sm-12 clearfix"/>
-                <CategoriesSelectResults
-                    data={model.data}
-                    dataIds={data}
-                    disabled={disabled}
-                    handleSelect={this.handleSelect}
-                    focused={focused}
-                    selected={selected}/>
+                <div ref={(el) => this.wrapper = el}>
+                    <SearchInput
+                        allowToggle={true}
+                        disabled={disabled}
+                        handleClear={this.handleClear}
+                        handleFocus={this.handleFocus}
+                        handleToggle={this.handleToggle}
+                        handleInputChange={this.handleInputChange}
+                        input={input}
+                        inputRef={(el) => this.inputRef = el}
+                        name="query-search-input"
+                        toggled={focused}
+                        wrapperClassName="col-sm-12 clearfix"/>
+                    <CategoriesSelectResults
+                        data={model.data}
+                        dataIds={data}
+                        disabled={disabled}
+                        handleSelect={this.handleSelect}
+                        focused={focused}
+                        selected={selected}/>
+                </div>
             </div>
         )
     }
