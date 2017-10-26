@@ -88,6 +88,14 @@ public class EditPackagePage extends LabKeyPage<EditPackagePage.ElementCache>
     public EditPackagePage filterAvailablePackage(String filter)
     {
         setFormElement(elementCache().packageSearchFilterInput, filter);
+
+        // block until all rows in the searchContainer contain the filter expression
+        waitFor(()-> !SuperPackageRow.finder(getDriver())
+                .findAll(elementCache().querySearchContainer)
+                .stream()
+                .noneMatch((a)-> !a.getLabel().contains(filter))
+                , 2000);
+
         return this;
     }
 

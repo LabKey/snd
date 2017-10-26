@@ -4,11 +4,9 @@ import org.labkey.test.Locator;
 import org.labkey.test.WebDriverWrapper;
 import org.labkey.test.components.WebDriverComponent;
 import org.labkey.test.components.html.Input;
-import org.labkey.test.pages.LabKeyPage;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
-import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -43,19 +41,16 @@ public class FilterSelect extends WebDriverComponent<FilterSelect.ElementCache>
         return _driver;
     }
 
-
     public boolean isOpen()
-    {   // this assumes any buttons/items exist
-        WebElement searchContainer = Locator.tagWithClassContaining("div", "data-search__container")
-                .child(Locator.tag("div").child(Locator.tag("div").child("button")))
-                .findElementOrNull(getComponentElement());
-        return searchContainer != null && searchContainer.isDisplayed();
+    {
+        String caretClass = elementCache().toggle.getAttribute("class");
+        return caretClass.contains("fa-caret-down"); // if it's closed, it will be fa-caret-right
     }
 
     public FilterSelect open()
     {
         if (!isOpen())
-            elementCache().input.getComponentElement().click();
+            elementCache().toggle.click();
         getWrapper().waitFor(()-> isOpen(), 1000);
         return this;
     }
@@ -63,10 +58,7 @@ public class FilterSelect extends WebDriverComponent<FilterSelect.ElementCache>
     public FilterSelect close()
     {
         if (isOpen())
-        {
-            // click just to the right of the input element
-            getWrapper().clickAt(elementCache().input.getComponentElement(), -10, 180, 0);
-        }
+            elementCache().toggle.click();
         getWrapper().waitFor(()-> !isOpen(), 1000);
         return this;
     }
@@ -74,6 +66,10 @@ public class FilterSelect extends WebDriverComponent<FilterSelect.ElementCache>
     public FilterSelect setFilter(String value)
     {
         elementCache().input.set(value);
+        getWrapper().waitFor(()-> elementCache().options()
+                        .stream()
+                        .allMatch((a)-> a.getText().contains(value))
+                , 2000);
         return this;
     }
 
@@ -116,7 +112,10 @@ public class FilterSelect extends WebDriverComponent<FilterSelect.ElementCache>
 
     protected class ElementCache extends WebDriverComponent.ElementCache
     {
-        Input input = Input(Locator.tagWithName("input", "query-search-input"), getDriver()).findWhenNeeded(this);
+        Input input = Input(Locator.tagWithName("input", "query-search-input"), getDriver())
+                .findWhenNeeded(this);
+        WebElement toggle = Locator.tagWithClassContaining("i", "SearchInput__searchinput-caret")
+                .findWhenNeeded(this);
 
         WebElement option(String text)
         {

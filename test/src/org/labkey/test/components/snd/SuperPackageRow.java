@@ -3,14 +3,12 @@ package org.labkey.test.components.snd;
 import org.labkey.test.Locator;
 import org.labkey.test.WebDriverWrapper;
 import org.labkey.test.components.WebDriverComponent;
-import org.labkey.test.components.html.BootstrapMenu;
-import org.labkey.test.components.html.Input;
-import org.labkey.test.pages.LabKeyPage;
+
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
-import static org.labkey.test.components.html.Input.Input;
+import static org.labkey.test.BaseWebDriverTest.WAIT_FOR_JAVASCRIPT;
 
 public class SuperPackageRow extends WebDriverComponent<SuperPackageRow.ElementCache>
 {
@@ -45,7 +43,7 @@ public class SuperPackageRow extends WebDriverComponent<SuperPackageRow.ElementC
         return getComponentElement().getAttribute("class").contains("superpackage-selected-row");
     }
 
-    public SuperPackageRow select()
+    public SuperPackageRow select() // note: this 'selection' behavior is expressed among assigned packages, not among available packages
     {
         if (!isSelected())
             newElementCache().desc.click();
@@ -64,12 +62,14 @@ public class SuperPackageRow extends WebDriverComponent<SuperPackageRow.ElementC
        getWrapper().fireEvent(newElementCache().menuToggle, WebDriverWrapper.SeleniumEvent.mouseover);
        newElementCache().menuToggle.click();
        // wait for the menu to expand
-       getWrapper().waitFor(()-> newElementCache().menuToggle.getAttribute("aria-expanded").equals("true"), 1000);
+       getWrapper().waitFor(()-> newElementCache().menuToggle.getAttribute("class").contains("open"), 1000);
        Locator menuItem = Locator.tagWithAttribute("li", "role", "presentation")
                .child(Locator.tagWithAttribute("a", "role", "menuitem")
                        .containing(menuText));
-       getWrapper().waitFor(()-> menuItem.findElement(getComponentElement()).isEnabled(), 2000);
-       menuItem.findElement(getComponentElement()).click();
+       WebElement itemToClick = menuItem.waitForElement(getComponentElement(), 2000);
+       getWrapper().fireEvent(newElementCache().menuToggle, WebDriverWrapper.SeleniumEvent.mouseover);
+       getWrapper().waitFor(()-> itemToClick.isEnabled(), 2000);
+       itemToClick.click();
        // wait for the menu to collapse (or disappear, if 'remove' was the action')
        getWrapper().waitFor(()-> {
            try
@@ -87,9 +87,9 @@ public class SuperPackageRow extends WebDriverComponent<SuperPackageRow.ElementC
 
     protected class ElementCache extends WebDriverComponent.ElementCache
     {
-        public WebElement menuToggle = Locator.tagWithClassContaining("div", "dropdown")
+        public WebElement menuToggle = Locator.tagWithClassContaining("div", "btn-group") // sometimes dropdown, dropup
                         .child(Locator.id("superpackage-actions"))
-                        .findWhenNeeded(getComponentElement()).withTimeout(4000);
+                        .findWhenNeeded(getComponentElement()).withTimeout(WAIT_FOR_JAVASCRIPT);
 
         public WebElement menuList = Locator.tagWithAttribute("ul", "role", "menu")
                 .findWhenNeeded(getComponentElement()).withTimeout(1000);
@@ -100,8 +100,9 @@ public class SuperPackageRow extends WebDriverComponent<SuperPackageRow.ElementC
 
     public static class Locators
     {
-        public static Locator.XPathLocator body = Locator.tagWithClassContaining("div", "superpackage_viewer__result");
         public static Locator.XPathLocator desc = Locator.tagWithClass("div", "pull-left");
+        public static Locator.XPathLocator body = Locator.tagWithClassContaining("div", "SuperPackageRow__superpackage-row___")
+                .withChild(desc);
     }
 
     public static class SuperPackageRowFinder extends WebDriverComponent.WebDriverComponentFinder<SuperPackageRow, SuperPackageRowFinder>
