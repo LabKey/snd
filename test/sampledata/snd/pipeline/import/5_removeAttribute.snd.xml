@@ -122,5 +122,17 @@
                 <child superPkgId="5201" pkgId="400"/>
             </children>
         </superPackage>
+        <superPackage superPkgId="5250" pkgId="250">
+            <children />
+        </superPackage>
+        <superPackage superPkgId="5300" pkgId="300">
+            <children />
+        </superPackage>
+        <superPackage superPkgId="5350" pkgId="350">
+            <children />
+        </superPackage>
+        <superPackage superPkgId="5400" pkgId="400">
+            <children />
+        </superPackage>
     </superPackages>
 </export>
