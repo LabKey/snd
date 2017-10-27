@@ -70,7 +70,6 @@ import static org.junit.Assert.assertTrue;
 @Category ({CustomModules.class})
 public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 {
-    {setIsBootstrapWhitelisted(true);}
     private static final String PROJECTNAME = "SNDTest Project";
     private static final String TEST1SUBFOLDER = "Test1";
     private static final String TEST1PATH = PROJECTNAME + "/" + TEST1SUBFOLDER;
