@@ -87,10 +87,19 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     private static final int TEST_PKG_ID1 = 801;
     private static final int TEST_PKG_ID2 = 802;
     private static final int TEST_PKG_ID3 = 806;
+    private static final int TEST_PKG_ID4 = 807;
     private static final int TEST_CATEGORY_ID1 = 50;
     private static final int TEST_CATEGORY_ID2 = 51;
     private static final int TEST_CATEGORY_ID3 = 52;
     private static final int TEST_CATEGORY_ID4 = 53;
+    private static final int TEST_SUPER_PKG_START_ID1 = 130;
+    private static final int TEST_SUPER_PKG_START_ID2 = 140;
+    private static final int TEST_SUPER_PKG_START_ID3 = 150;
+    private static final int TEST_SUPER_PKG_START_ID4 = 160;
+    private static final String TEST_SUPER_PKG_DESCRIPTION_1 = "My package description2";
+    private static final String TEST_SUPER_PKG_DESCRIPTION_2 = "My package description3";
+    private static final String TEST_SUPER_PKG_DESCRIPTION_3 = "My package description4";
+    private static final String TEST_SUPER_PKG_DESCRIPTION_4 = "My package description5";
 
     private static final int TEST_PARTICIPANT_ID = 1;
 
@@ -114,10 +123,10 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
             "}                              \n";
 
 
-    private static final String SAVEPACKAGEAPI = "LABKEY.Ajax.request({         \n" +
+    private static final String SAVEPACKAGEAPI_NOCHILDREN = "LABKEY.Ajax.request({         \n" +
         "    method: 'POST',                                                    \n" +
         "    url: LABKEY.ActionURL.buildURL('snd', 'savePackage.api'),          \n" +
-        "    success: function(){ callback('Success!'); },                      \n" +
+        "    success: function(){ callback('Success!'); },\n" +
         "    failure: function(e){ callback(e.responseText); },                 \n" +
         "    jsonData: {                                                        \n" +
         "        'id' : '" + TEST_PKG_ID + "',                                  \n" +
@@ -163,6 +172,273 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         "        }]                                                             \n" +
         "    }                                                                  \n" +
         "})";
+
+    private static String SAVEPACKAGEAPI_CHILDREN = "LABKEY.Ajax.request({      \n" +
+        "       method: 'POST',                                                 \n" +
+        "		url: LABKEY.ActionURL.buildURL('snd', 'savePackage.api'),       \n" +
+        "		success: function(){ callback('Success!'); },                   \n" +
+        "		failure: function(e){ callback(e.responseText); },              \n" +
+        "		jsonData: {                                                     \n" +
+        "           'id' : '" + TEST_PKG_ID4 + "',                              \n" +
+        "			'testIdNumberStart': '" + TEST_SUPER_PKG_START_ID1 + "',    \n" +
+        "			'description': '" + TEST_SUPER_PKG_DESCRIPTION_1 + "',      \n" +
+        "			'active': true,                                             \n" +
+        "			'repeatable': true,                                         \n" +
+        "			'narrative': 'This is a narrative2',                        \n" +
+        "           'categories': ['" + TEST_CATEGORY_ID3 + "', '" + TEST_CATEGORY_ID4 + "'],\n" +
+        "			'subPackages': [{                                           \n" +
+        "				'superPkgId': 5150,                                     \n" +
+        "				'sortOrder': 2                                          \n" +
+        "			},{                                                         \n" +
+        "				'superPkgId': 5200,                                     \n" +
+        "				'sortOrder': 1                                          \n" +
+        "			},{                                                         \n" +
+        "				'superPkgId': 5250,                                     \n" +
+        "				'sortOrder': 3                                          \n" +
+        "			},{                                                         \n" +
+        "				'superPkgId': 5150,                                     \n" +
+        "				'sortOrder': 4                                          \n" +
+        "			}],                                                         \n" +
+        "			'extraFields': [{name:'UsdaCode', value:'B', rangeURI:'string'}],\n" +
+        "			'attributes': [{                                            \n" +
+        "				'name': 'SNDName',                                      \n" +
+        "				'label': 'Name',                                        \n" +
+        "				'rangeURI': 'string',                                   \n" +
+        "				'required': false,                                      \n" +
+        "				'scale': 500,                                           \n" +
+        "				'sortOrder': 2,                                         \n" +
+        "				'validators': [{                                        \n" +
+        "					'name': 'SNDLength',                                \n" +
+        "					'description': 'This will check the length of the field',\n" +
+        "					'type': 'length',                                   \n" +
+        "					'expression': '~gte=1&amp;~lte=400',                \n" +
+        "					'errorMessage': 'This value must be between 1 and 400 characters long'\n" +
+        "				}]                                                      \n" +
+        "			},{                                                         \n" +
+        "				'name': 'SNDUser',                                      \n" +
+        "				'label': 'User',                                        \n" +
+        "				'rangeURI': 'int',                                      \n" +
+        "				'required': true,                                       \n" +
+        "				'sortOrder': 1,                                         \n" +
+        "				'lookupSchema': 'core',                                 \n" +
+        "				'lookupQuery': 'Principals'                             \n" +
+        "			},{                                                         \n" +
+        "				'name': 'SNDAge',                                       \n" +
+        "				'label': 'Age',                                         \n" +
+        "				'rangeURI': 'double',                                   \n" +
+        "				'sortOrder': 3,                                         \n" +
+        "				'format': '0.##',                                       \n" +
+        "				'validators': [{                                        \n" +
+        "					'name': 'SNDRange',                                 \n" +
+        "					'description': 'This will check the range of the field',\n" +
+        "					'type': 'range',                                    \n" +
+        "					'expression': '~gte=1&amp;~lte=100',                \n" +
+        "					'errorMessage': 'No centenarians allowed'           \n" +
+        "				}]                                                      \n" +
+        "			}]                                                          \n" +
+        "		}                                                               \n" +
+        "	});";
+
+    private static String UPDATESUPERPACKAGEAPI_CHILDREN = "LABKEY.Ajax.request({\n" +
+        "		method: 'POST',                                                 \n" +
+        "		url: LABKEY.ActionURL.buildURL('snd', 'savePackage.api'),       \n" +
+        "		success: function(){ callback('Success!'); },\n" +
+        "		failure: function(e){ callback(e.responseText); },              \n" +
+        "		jsonData: {                                                     \n" +
+        "           'id' : '" + TEST_PKG_ID4 + "',                              \n" +
+        "			'testIdNumberStart': '" + TEST_SUPER_PKG_START_ID2 + "',    \n" +
+        "			'description': '" + TEST_SUPER_PKG_DESCRIPTION_2 + "',      \n" +
+        "			'active': true,                                             \n" +
+        "			'repeatable': true,                                         \n" +
+        "			'narrative': 'This is a narrative3',                        \n" +
+        "           'categories': ['" + TEST_CATEGORY_ID3 + "', '" + TEST_CATEGORY_ID4 + "'],\n" +
+        "			'subPackages': [{                                           \n" +
+        "				'superPkgId': '" + (TEST_SUPER_PKG_START_ID1 + 2) + "', \n" +
+        "				'sortOrder': 1                                          \n" +
+        "			},{                                                         \n" +
+        "				'superPkgId': '" + (TEST_SUPER_PKG_START_ID1 + 4) + "', \n" +
+        "				'sortOrder': 2                                          \n" +
+        "			},{                                                         \n" +
+        "				'superPkgId': 5150,                                     \n" +
+        "				'sortOrder': 4                                          \n" +
+        "			},{                                                         \n" +
+        "				'superPkgId': 5150,                                     \n" +
+        "				'sortOrder': 6                                          \n" +
+        "			},{                                                         \n" +
+        "				'superPkgId': 5300,                                     \n" +
+        "				'sortOrder': 3                                          \n" +
+        "			},{                                                         \n" +
+        "				'superPkgId': 5350,                                     \n" +
+        "				'sortOrder': 5                                          \n" +
+        "			}                                                           \n" +
+        "			],                                                          \n" +
+        "			'extraFields': [{name:'UsdaCode', value:'B', rangeURI:'string'}],\n" +
+        "			'attributes': [{                                            \n" +
+        "				'name': 'SNDName',                                      \n" +
+        "				'label': 'Name',                                        \n" +
+        "				'rangeURI': 'string',                                   \n" +
+        "				'required': false,                                      \n" +
+        "				'scale': 500,                                           \n" +
+        "				'sortOrder': 2,                                         \n" +
+        "				'validators': [{                                        \n" +
+        "					'name': 'SNDLength',                                \n" +
+        "					'description': 'This will check the length of the field',\n" +
+        "					'type': 'length',                                   \n" +
+        "					'expression': '~gte=1&amp;~lte=400',                \n" +
+        "					'errorMessage': 'This value must be between 1 and 400 characters long'\n" +
+        "				}]                                                      \n" +
+        "			},{                                                         \n" +
+        "				'name': 'SNDUser',                                      \n" +
+        "				'label': 'User',                                        \n" +
+        "				'rangeURI': 'int',                                      \n" +
+        "				'required': true,                                       \n" +
+        "				'sortOrder': 1,                                         \n" +
+        "				'lookupSchema': 'core',                                 \n" +
+        "				'lookupQuery': 'Principals'                             \n" +
+        "			},{                                                         \n" +
+        "				'name': 'SNDAge',                                       \n" +
+        "				'label': 'Age',                                         \n" +
+        "				'rangeURI': 'double',                                   \n" +
+        "				'sortOrder': 3,                                         \n" +
+        "				'format': '0.##',                                       \n" +
+        "				'validators': [{                                        \n" +
+        "					'name': 'SNDRange',                                 \n" +
+        "					'description': 'This will check the range of the field',\n" +
+        "					'type': 'range',                                    \n" +
+        "					'expression': '~gte=1&amp;~lte=100',                \n" +
+        "					'errorMessage': 'No centenarians allowed'           \n" +
+        "				}]                                                      \n" +
+        "			}]                                                          \n" +
+        "		}                                                               \n" +
+        "	});";
+
+    private static String UPDATESUPERPACKAGEAPI_CLONE = "LABKEY.Ajax.request({      \n" +
+            "		method: 'POST',                                                 \n" +
+            "		url: LABKEY.ActionURL.buildURL('snd', 'savePackage.api'),       \n" +
+            "		success: function(){ callback('Success!'); },                   \n" +
+            "		failure: function(e){ callback(e.responseText); },              \n" +
+            "		jsonData: {                                                     \n" +
+            "			'clone': true,                                              \n" +
+            "           'id' : '" + TEST_PKG_ID4 + "',                              \n" +
+            "			'testIdNumberStart': '" + TEST_SUPER_PKG_START_ID3 + "',    \n" +
+            "			'description': '" + TEST_SUPER_PKG_DESCRIPTION_3 + "',      \n" +
+            "			'active': true,                                             \n" +
+            "			'repeatable': true,                                         \n" +
+            "			'narrative': 'This is a narrative4',                        \n" +
+            "           'categories': ['" + TEST_CATEGORY_ID3 + "', '" + TEST_CATEGORY_ID4 + "'],\n" +
+            "			'subPackages': [{                                           \n" +
+            "				'superPkgId': '" + (TEST_SUPER_PKG_START_ID1 + 2) + "', \n" +
+            "				'sortOrder': 1                                          \n" +
+            "			},{                                                         \n" +
+            "				'superPkgId': '" + (TEST_SUPER_PKG_START_ID1 + 4) + "', \n" +
+            "				'sortOrder': 2                                          \n" +
+            "			},{                                                         \n" +
+            "				'superPkgId': 5150,                                     \n" +
+            "				'sortOrder': 4                                          \n" +
+            "			},{                                                         \n" +
+            "				'superPkgId': 5150,                                     \n" +
+            "				'sortOrder': 6                                          \n" +
+            "			},{                                                         \n" +
+            "				'superPkgId': 5300,                                     \n" +
+            "				'sortOrder': 5                                          \n" +
+            "			},{                                                         \n" +
+            "				'superPkgId': 5400,                                     \n" +
+            "				'sortOrder': 3                                          \n" +
+            "			}                                                           \n" +
+            "			],                                                          \n" +
+            "			'extraFields': [{name:'UsdaCode', value:'B', rangeURI:'string'}],\n" +
+            "			'attributes': [{                                            \n" +
+            "				'name': 'SNDName',                                      \n" +
+            "				'label': 'Name',                                        \n" +
+            "				'rangeURI': 'string',                                   \n" +
+            "				'required': false,                                      \n" +
+            "				'scale': 500,                                           \n" +
+            "				'sortOrder': 2,                                         \n" +
+            "				'validators': [{                                        \n" +
+            "					'name': 'SNDLength',                                \n" +
+            "					'description': 'This will check the length of the field',\n" +
+            "					'type': 'length',                                   \n" +
+            "					'expression': '~gte=1&amp;~lte=400',                \n" +
+            "					'errorMessage': 'This value must be between 1 and 400 characters long'\n" +
+            "				}]                                                      \n" +
+            "			},{                                                         \n" +
+            "				'name': 'SNDUser',                                      \n" +
+            "				'label': 'User',                                        \n" +
+            "				'rangeURI': 'int',                                      \n" +
+            "				'required': true,                                       \n" +
+            "				'sortOrder': 1,                                         \n" +
+            "				'lookupSchema': 'core',                                 \n" +
+            "				'lookupQuery': 'Principals'                             \n" +
+            "			},{                                                         \n" +
+            "				'name': 'SNDAge',                                       \n" +
+            "				'label': 'Age',                                         \n" +
+            "				'rangeURI': 'double',                                   \n" +
+            "				'sortOrder': 3,                                         \n" +
+            "				'format': '0.##',                                       \n" +
+            "				'validators': [{                                        \n" +
+            "					'name': 'SNDRange',                                 \n" +
+            "					'description': 'This will check the range of the field',\n" +
+            "					'type': 'range',                                    \n" +
+            "					'expression': '~gte=1&amp;~lte=100',                \n" +
+            "					'errorMessage': 'No centenarians allowed'           \n" +
+            "				}]                                                      \n" +
+            "			}]                                                          \n" +
+            "		}                                                               \n" +
+            "	});";
+
+    private static String UPDATESUPERPACKAGEAPI_NOCHILDREN = "LABKEY.Ajax.request({ \n" +
+            "		method: 'POST',                                                 \n" +
+            "		url: LABKEY.ActionURL.buildURL('snd', 'savePackage.api'),       \n" +
+            "		success: function(){ callback('Success!'); },                   \n" +
+            "		failure: function(e){ callback(e.responseText); },              \n" +
+            "		jsonData: {                                                     \n" +
+            "           'id' : '" + TEST_PKG_ID4 + "',                              \n" +
+            "			'testIdNumberStart': '" + TEST_SUPER_PKG_START_ID4 + "',    \n" +
+            "			'description': '" + TEST_SUPER_PKG_DESCRIPTION_4 + "',      \n" +
+            "			'active': true,                                             \n" +
+            "			'repeatable': true,                                         \n" +
+            "			'narrative': 'This is a narrative5',                        \n" +
+            "           'categories': ['" + TEST_CATEGORY_ID3 + "', '" + TEST_CATEGORY_ID4 + "'],\n" +
+            "			'subPackages': [],                                          \n" +
+            "			'extraFields': [{name:'UsdaCode', value:'B', rangeURI:'string'}],\n" +
+            "			'attributes': [{                                            \n" +
+            "				'name': 'SNDName',                                      \n" +
+            "				'label': 'Name',                                        \n" +
+            "				'rangeURI': 'string',                                   \n" +
+            "				'required': false,                                      \n" +
+            "				'scale': 500,                                           \n" +
+            "				'sortOrder': 2,                                         \n" +
+            "				'validators': [{                                        \n" +
+            "					'name': 'SNDLength',                                \n" +
+            "					'description': 'This will check the length of the field',\n" +
+            "					'type': 'length',                                   \n" +
+            "					'expression': '~gte=1&amp;~lte=400',                \n" +
+            "					'errorMessage': 'This value must be between 1 and 400 characters long'\n" +
+            "				}]                                                      \n" +
+            "			},{                                                         \n" +
+            "				'name': 'SNDUser',                                      \n" +
+            "				'label': 'User',                                        \n" +
+            "				'rangeURI': 'int',                                      \n" +
+            "				'required': true,                                       \n" +
+            "				'sortOrder': 1,                                         \n" +
+            "				'lookupSchema': 'core',                                 \n" +
+            "				'lookupQuery': 'Principals'                             \n" +
+            "			},{                                                         \n" +
+            "				'name': 'SNDAge',                                       \n" +
+            "				'label': 'Age',                                         \n" +
+            "				'rangeURI': 'double',                                   \n" +
+            "				'sortOrder': 3,                                         \n" +
+            "				'format': '0.##',                                       \n" +
+            "				'validators': [{                                        \n" +
+            "					'name': 'SNDRange',                                 \n" +
+            "					'description': 'This will check the range of the field',\n" +
+            "					'type': 'range',                                    \n" +
+            "					'expression': '~gte=1&amp;~lte=100',                \n" +
+            "					'errorMessage': 'No centenarians allowed'           \n" +
+            "				}]                                                      \n" +
+            "			}]                                                          \n" +
+            "		}                                                               \n" +
+            "	});";
 
     private static String getPackageWithId(String packageId)
     {
@@ -1044,7 +1320,8 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     }
 
     public void testPackageApis()
-    {   DataRegionTable dataRegionTable;
+    {
+        DataRegionTable dataRegionTable;
 
         goToProjectHome();
         goToSchemaBrowser();
@@ -1052,7 +1329,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         assertTextPresent("Surgery", "Blood Draw", "Weight", "Vitals");
 
         //insert package
-        runScript(SAVEPACKAGEAPI);
+        runScript(SAVEPACKAGEAPI_NOCHILDREN);
         goToSchemaBrowser();
         viewQueryData("snd", "Pkgs");
         assertTextPresent("My package description", 1);
@@ -1102,7 +1379,83 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         assertEquals("Has project not true","true",dataRegionTable.getDataAsText(rowIndex,"Has Project"));
     }
 
+    @Test
+    public void testSuperPackageApis() throws Exception
+    {
+        goToProjectHome();
+        goToSchemaBrowser();
 
+        //insert super package
+        runScript(SAVEPACKAGEAPI_CHILDREN);
+        goToSchemaBrowser();
+        viewQueryData("snd", "SuperPkgs");
+        assertTextPresent(TEST_SUPER_PKG_DESCRIPTION_1, 1);
+        checkResults(TEST_SUPER_PKG_DESCRIPTION_1,
+                Arrays.asList(TEST_SUPER_PKG_START_ID1 + 1,  // top-level super package is the + 0, so start at + 1
+                              TEST_SUPER_PKG_START_ID1 + 2,
+                              TEST_SUPER_PKG_START_ID1 + 3,
+                              TEST_SUPER_PKG_START_ID1 + 4));
+
+        //update super package without cloning, with children
+        runScript(UPDATESUPERPACKAGEAPI_CHILDREN);
+        goToSchemaBrowser();
+        viewQueryData("snd", "SuperPkgs");
+        assertTextPresent(TEST_SUPER_PKG_DESCRIPTION_2, 1);
+        assertTextNotPresent(TEST_SUPER_PKG_DESCRIPTION_1);
+        checkResults(TEST_SUPER_PKG_DESCRIPTION_2,
+                Arrays.asList(TEST_SUPER_PKG_START_ID1 + 2,
+                              TEST_SUPER_PKG_START_ID1 + 4,
+                              TEST_SUPER_PKG_START_ID2,
+                              TEST_SUPER_PKG_START_ID2 + 1,
+                              TEST_SUPER_PKG_START_ID2 + 2,
+                              TEST_SUPER_PKG_START_ID2 + 3));
+
+        //update super package with cloning
+        runScript(UPDATESUPERPACKAGEAPI_CLONE);
+        goToSchemaBrowser();
+        viewQueryData("snd", "SuperPkgs");
+        assertTextPresent(TEST_SUPER_PKG_DESCRIPTION_3, 1);
+        assertTextPresent(TEST_SUPER_PKG_DESCRIPTION_2, 1);
+        checkResults(TEST_SUPER_PKG_DESCRIPTION_3,
+                Arrays.asList(TEST_SUPER_PKG_START_ID3 + 1,  // top-level super package is the + 0, so start at + 1
+                              TEST_SUPER_PKG_START_ID3 + 2,
+                              TEST_SUPER_PKG_START_ID3 + 3,
+                              TEST_SUPER_PKG_START_ID3 + 4,
+                              TEST_SUPER_PKG_START_ID3 + 5,
+                              TEST_SUPER_PKG_START_ID3 + 6));
+
+        //update super package without cloning, without children
+        runScript(UPDATESUPERPACKAGEAPI_NOCHILDREN);
+        goToSchemaBrowser();
+        viewQueryData("snd", "SuperPkgs");
+        assertTextPresent(TEST_SUPER_PKG_DESCRIPTION_4, 1);
+        assertTextPresent(TEST_SUPER_PKG_DESCRIPTION_3, 1);
+        assertTextNotPresent(TEST_SUPER_PKG_DESCRIPTION_2);
+        checkResults(TEST_SUPER_PKG_DESCRIPTION_4,
+                Arrays.asList());
+    }
+
+    private void checkResults(String pkgDescription, List<Integer> subPackageIds)
+    {
+        List<Map<String, Object>> packages = executeSelectRowCommand("snd", "Pkgs").getRows();
+        String newPackageId = packages.stream()
+                .filter(a->a.get("Description").equals(pkgDescription))
+                .findAny().get()
+                .get("PkgId").toString();
+
+        //get package json and assert subpackages have proper values
+        String result = (String) executeAsyncScript(getPackageWithId(newPackageId));
+        JSONObject resultAsJson = new JSONObject(result);
+        JSONArray jsonSubPackages = resultAsJson.getJSONArray("subPackages");
+
+        assertEquals(jsonSubPackages.length(), subPackageIds.size());
+        for (int i = 0; i < jsonSubPackages.length(); i++)
+        {
+            JSONObject jsonSubPackage = jsonSubPackages.getJSONObject(i);
+            Integer superPkgId = jsonSubPackage.getInt("SuperPkgId");
+            assertTrue("Expected superPkgId of '" + superPkgId + "' was not found in list: '" + subPackageIds.toString() + "'", subPackageIds.contains(superPkgId));
+        }
+    }
 
     private void truncateSndPkg() throws Exception
     {
