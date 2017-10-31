@@ -12,6 +12,7 @@ import org.labkey.test.pages.LabKeyPage;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.util.List;
 
@@ -144,6 +145,7 @@ public class EditPackagePage extends LabKeyPage<EditPackagePage.ElementCache>
         waitFor(()-> elementCache().saveButton.getAttribute("disabled")==null,
                 "'Save' button is disabled", 2000);
         elementCache().saveButton.click();
+        shortWait().until(ExpectedConditions.stalenessOf(elementCache().saveButton));
         return new PackageListPage(getDriver());
     }
 
@@ -158,6 +160,7 @@ public class EditPackagePage extends LabKeyPage<EditPackagePage.ElementCache>
         waitFor(()-> elementCache().saveAsDraftButton.getAttribute("disabled")==null,
                 "'Save as Draft' button is disabled", 2000);
         elementCache().saveAsDraftButton.click();
+        shortWait().until(ExpectedConditions.stalenessOf(elementCache().saveAsDraftButton));
         return new PackageListPage(getDriver());
     }
 
@@ -166,6 +169,7 @@ public class EditPackagePage extends LabKeyPage<EditPackagePage.ElementCache>
         waitFor(()-> elementCache().submitForReveiwButton.getAttribute("disabled")==null,
                 "'Submit for Review' button is disabled", 2000);
         elementCache().submitForReveiwButton.click();
+        shortWait().until(ExpectedConditions.stalenessOf(elementCache().submitForReveiwButton));
         return new PackageListPage(getDriver());
     }
 
