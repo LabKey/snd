@@ -250,9 +250,9 @@ public class EditPackagePage extends LabKeyPage<EditPackagePage.ElementCache>
                 .withChild(Locator.tagWithClass("label", "control-label").withText("Assigned Packages")).followingSibling("div")
                 .findWhenNeeded(getDriver()).withTimeout(4000);
 
-        WebElement cancelButton = Locator.button("Cancel").findWhenNeeded(getDriver());
-        WebElement saveButton = Locator.button("Save").findWhenNeeded(getDriver());
-        WebElement saveAsDraftButton = Locator.button("Save as Draft").findWhenNeeded(getDriver());
-        WebElement submitForReveiwButton = Locator.button("Submit for Review").findWhenNeeded(getDriver());
+        WebElement cancelButton = Locator.tagWithId("button", "cancelButton").findWhenNeeded(getDriver());
+        WebElement saveButton = Locator.tagWithId("button", "save").findWhenNeeded(getDriver());
+        WebElement saveAsDraftButton = Locator.tagWithId("button","saveAsDraft").findWhenNeeded(getDriver());
+        WebElement submitForReveiwButton = Locator.tagWithId("button", "submitReview").findWhenNeeded(getDriver());
     }
 }

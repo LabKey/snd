@@ -219,7 +219,7 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
                         handleNarrativeChange={this.handleNarrativeChange}
                         handleFullNarrative={this.showFullNarrative}
                         handleWarning={this.setModelWarning}
-                        isValid={model.isValid}
+                        isValid={model.isValid && !model.isSubmitting}
                         model={model.data}
                         parseAttributes={this.parseAttributes}
                         view={model.formView}/>;

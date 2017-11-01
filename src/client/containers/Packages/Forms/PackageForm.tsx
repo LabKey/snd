@@ -39,23 +39,27 @@ const styles = require<any>('./PackageForm.css');
 interface ButtonListProps {
     action: string
     disabled?: boolean
+    id: string
     label: string
     type: string
 }
 const buttons: Array<ButtonListProps> = [
     {
         action: 'saveDraft',
+        id: 'saveAsDraft',
         label: 'Save as Draft',
         type: 'submit'
     },
     {
         action: 'submitReview',
+        id: 'submitReview',
         disabled: true,
         label: 'Submit for Review',
         type: 'submit'
     },
     {
         action: 'save',
+        id: 'save',
         label: 'Save',
         type: 'submit'
     },
@@ -246,16 +250,19 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
     renderButtons() {
         const { isValid, view } = this.props;
 
+
         if (view !== PACKAGE_VIEW.VIEW) {
             return (
                 <div className="btn-group pull-right">
                     <Button
+                        className='cancelButton'
                         onClick={() => this.handleButtonAction('cancel')}>
                         Cancel
                     </Button>
                     {buttons.map((button: ButtonListProps, i: number) => {
                         return (
                             <Button
+                                id={button.id}
                                 disabled={button.disabled === true || !isValid}
                                 key={i}
                                 onClick={() => this.handleButtonAction(button.action)}>
