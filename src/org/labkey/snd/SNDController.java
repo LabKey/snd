@@ -27,9 +27,9 @@ import org.labkey.api.action.SpringActionController;
 import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.gwt.client.DefaultValueType;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
+import org.labkey.api.security.RequiresLogin;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.permissions.AdminPermission;
-import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.SNDService;
 import org.labkey.api.snd.SuperPackage;
@@ -54,13 +54,13 @@ public class SNDController extends SpringActionController
         setActionResolver(_actionResolver);
     }
 
-    @RequiresPermission(ReadPermission.class)
+    @RequiresLogin 
     public class BeginAction extends RedirectAction
     {
         @Override
         public URLHelper getSuccessURL(Object o)
         {
-            return new ActionURL("snd", "app", getContainer());
+            return new ActionURL(NAME, "app", getContainer());
         }
 
         @Override

@@ -21,7 +21,6 @@ import { Route, RouteComponentProps, RouteProps, Switch } from 'react-router-dom
 import { AppMessage, AppModel } from './model'
 import * as actions from './actions'
 import { UserModel } from '../SignIn/model'
-import { SignIn } from '../SignIn/SignIn'
 
 import { CrumbRoutes, Routes } from '../../routing/Routes'
 const styles = require<any>('./App.css');
@@ -111,9 +110,7 @@ export class AppImpl extends React.Component<AppProps, {}> {
 
         if (!user.isSignedIn) {
             return (
-                <div>
-                    <SignIn/>
-                </div>
+                <div className="error">Login Required</div>
             );
         }
 
