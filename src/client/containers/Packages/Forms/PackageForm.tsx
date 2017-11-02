@@ -250,12 +250,11 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
     renderButtons() {
         const { isValid, view } = this.props;
 
-
         if (view !== PACKAGE_VIEW.VIEW) {
             return (
                 <div className="btn-group pull-right">
                     <Button
-                        className='cancelButton'
+                        id='cancelButton'
                         onClick={() => this.handleButtonAction('cancel')}>
                         Cancel
                     </Button>
