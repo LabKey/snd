@@ -366,8 +366,6 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
 
     submit(active: boolean = false) {
         const { handleFormSubmit } = this.props;
-        event.preventDefault();
-
         handleFormSubmit(active);
     }
 
