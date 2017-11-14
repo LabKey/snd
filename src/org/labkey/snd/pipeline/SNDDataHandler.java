@@ -41,7 +41,8 @@ import org.labkey.api.util.XmlValidationException;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.ViewBackgroundInfo;
 import org.labkey.data.xml.ColumnType;
-import org.labkey.data.xml.PropertyValidatorType;
+import org.labkey.data.xml.ValidatorType;
+import org.labkey.data.xml.ValidatorsType;
 import org.txbiomed.snd.AttributesType;
 import org.txbiomed.snd.ChildType;
 import org.txbiomed.snd.ExportDocument;
@@ -234,19 +235,24 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
                 gwtpd.setFormat(pr.toString());
             }
 
-            //validator
-            PropertyValidatorType validator = ct.getValidator();
-            if (null != validator)
+            //validators
+            ValidatorsType validators = ct.getValidators();
+            if (null != validators)
             {
-                GWTPropertyValidator gwtPropertyValidator = new GWTPropertyValidator();
                 List<GWTPropertyValidator> gwtPropertyValidatorList = new LinkedList<>();
-                gwtPropertyValidator.setName(validator.getName()); //name
-                gwtPropertyValidator.setExpression(validator.getExpression()); //expression
 
-                Lsid lsid = new Lsid(validator.getTypeURI());
-                gwtPropertyValidator.setType(org.labkey.api.gwt.client.model.PropertyValidatorType.getType(lsid.getObjectId()));//typeURI
+                for (ValidatorType validator : validators.getValidatorArray())
+                {
+                    GWTPropertyValidator gwtPropertyValidator = new GWTPropertyValidator();
+                    gwtPropertyValidator.setName(validator.getName()); //name
+                    gwtPropertyValidator.setExpression(validator.getExpression()); //expression
 
-                gwtPropertyValidatorList.add(gwtPropertyValidator);
+                    Lsid lsid = new Lsid(validator.getTypeURI());
+                    gwtPropertyValidator.setType(org.labkey.api.gwt.client.model.PropertyValidatorType.getType(lsid.getObjectId()));//typeURI
+
+                    gwtPropertyValidatorList.add(gwtPropertyValidator);
+                }
+
                 gwtpd.setPropertyValidators(gwtPropertyValidatorList);
             }
             attributesList.add(gwtpd);
