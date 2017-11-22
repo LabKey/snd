@@ -13,12 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// SignIn
-export interface SignInProps {
-    email: string;
-    password: string;
-    remember: boolean;
-}
 
 // User
 interface UserProps {
