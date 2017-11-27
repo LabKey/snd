@@ -45,7 +45,7 @@ interface ButtonListProps {
 }
 const buttons: Array<ButtonListProps> = [
     {
-        action: 'saveDraft',
+        action:  'saveDraft',
         id: 'saveAsDraft',
         label: 'Save as Draft',
         type: 'submit'
