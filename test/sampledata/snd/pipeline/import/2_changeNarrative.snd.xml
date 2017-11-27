@@ -22,11 +22,13 @@
                     <dat:columnTitle>Vital 2</dat:columnTitle>
                     <dat:precision>2</dat:precision>
                     <dat:inputType>text</dat:inputType>
-                    <dat:validator>
-                        <dat:name>Range</dat:name>
-                        <dat:typeURI>urn:lsid:labkey.com:PropertyValidator:range</dat:typeURI>
-                        <dat:expression>~lte=109&amp;~gte=80.0000</dat:expression>
-                    </dat:validator>
+                    <dat:validators>
+                        <dat:validator>
+                            <dat:name>Range</dat:name>
+                            <dat:typeURI>urn:lsid:labkey.com:PropertyValidator:range</dat:typeURI>
+                            <dat:expression>~lte=109&amp;~gte=80.0000</dat:expression>
+                        </dat:validator>
+                    </dat:validators>
                 </attribute>
             </attributes>
         </package>

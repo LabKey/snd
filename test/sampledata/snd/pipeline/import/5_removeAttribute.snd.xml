@@ -31,11 +31,13 @@
                     <dat:nullable>false</dat:nullable>
                     <dat:columnTitle>Weight</dat:columnTitle>
                     <dat:inputType>text</dat:inputType>
-                    <dat:validator>
-                        <dat:name>Range</dat:name>
-                        <dat:typeURI>urn:lsid:labkey.com:PropertyValidator:range</dat:typeURI>
-                        <dat:expression>~lte=1&amp;~gte=0.0000</dat:expression>
-                    </dat:validator>
+                    <dat:validators>
+                        <dat:validator>
+                            <dat:name>Range</dat:name>
+                            <dat:typeURI>urn:lsid:labkey.com:PropertyValidator:range</dat:typeURI>
+                            <dat:expression>~lte=1&amp;~gte=0.0000</dat:expression>
+                        </dat:validator>
+                    </dat:validators>
                 </attribute>
             </attributes>
         </package>
@@ -59,11 +61,13 @@
                     <dat:nullable>false</dat:nullable>
                     <dat:columnTitle>Amount</dat:columnTitle>
                     <dat:inputType>text</dat:inputType>
-                    <dat:validator>
-                        <dat:name>Range</dat:name>
-                        <dat:typeURI>urn:lsid:labkey.com:PropertyValidator:range</dat:typeURI>
-                        <dat:expression>~lte=999&amp;~gte=0</dat:expression>
-                    </dat:validator>
+                    <dat:validators>
+                        <dat:validator>
+                            <dat:name>Range</dat:name>
+                            <dat:typeURI>urn:lsid:labkey.com:PropertyValidator:range</dat:typeURI>
+                            <dat:expression>~lte=999&amp;~gte=0</dat:expression>
+                        </dat:validator>
+                    </dat:validators>
                 </attribute>
             </attributes>
         </package>
