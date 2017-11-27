@@ -47,7 +47,7 @@ import java.util.Map;
 public class SNDController extends SpringActionController
 {
     private static final DefaultActionResolver _actionResolver = new DefaultActionResolver(SNDController.class);
-    public static final String NAME = "snd";
+    public static final String NAME = "snd" ;
 
     public SNDController()
     {
