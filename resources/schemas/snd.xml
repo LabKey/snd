@@ -143,6 +143,7 @@
             <column columnName="StartDate"/>
             <column columnName="EndDate"/>
             <column columnName="Description"/>
+            <column columnName="Active"/>
             <column columnName="ObjectId"/>
             <column columnName="Container"/>
             <column columnName="CreatedBy"/>
