@@ -22,12 +22,11 @@ import org.labkey.api.cache.CacheManager;
 import org.labkey.api.cache.StringKeyCache;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DbScope;
-import org.labkey.api.data.DbSequence;
-import org.labkey.api.data.DbSequenceManager;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SqlExecutor;
 import org.labkey.api.data.SqlSelector;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.data.TableResultSet;
 import org.labkey.api.exp.property.DomainUtil;
 import org.labkey.api.gwt.client.model.GWTDomain;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
@@ -759,28 +758,64 @@ public class SNDManager
         return packages;
     }
 
-    public void createProject(Container c, User u, Project project, BatchValidationException errors)
+    public boolean validProject(Container c, User u, Project project, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
-        TableInfo projectTable = getTableInfo(schema, SNDSchema.PROJECTS_TABLE_NAME);
-        QueryUpdateService projectQus = getQueryUpdateService(projectTable);
+        SQLFragment sql = new SQLFragment("SELECT RevisionNum, EndDate FROM ");
+        sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_TABLE_NAME);
+        sql.append(" WHERE ProjectId = ?");
+        sql.add(project.getProjectId());
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+        TableResultSet rows = selector.getResultSet();
 
-        TableInfo projectItemsTable = getTableInfo(schema, SNDSchema.PROJECTITEMS_TABLE_NAME);
-        QueryUpdateService projectItemsQus = getQueryUpdateService(projectItemsTable);
-
-        List<Map<String, Object>> projectRows = new ArrayList<>();
-        projectRows.add(project.getProjectRow(c));
-
-        try (DbScope.Transaction tx = projectTable.getSchema().getScope().ensureTransaction())
+        boolean validRevision = (project.getRevisionNum() == 0);
+        for (Map<String, Object> row : rows)
         {
-            projectQus.insertRows(u, c, projectRows, errors, null, null);
-            projectItemsQus.insertRows(u, c, project.getProjectItemRows(c), errors, null, null);
-            tx.commit();
+            // Verify not multiple revisions with null end date
+            if ((project.getEndDate() == null && row.get("EndDate") == null)
+                    && (project.getRevisionNum() != (Integer)row.get("RevisionNum")))
+            {
+                errors.addRowError(new ValidationException("Only one revision can have no end date. Revision "
+                        + row.get("RevisionNum") + " also has no end date."));
+            }
+
+            if (project.getRevisionNum() == ((Integer)row.get("RevisionNum") + 1))
+                validRevision = true;
         }
-        catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException e)
+
+        if (!validRevision)
+            errors.addRowError(new ValidationException("Invalid revision number."));
+
+        return !errors.hasErrors();
+
+    }
+
+    public void createProject(Container c, User u, Project project, BatchValidationException errors)
+    {
+        if (validProject(c, u, project, errors))
         {
-            errors.addRowError(new ValidationException(e.getMessage()));
+            UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+            TableInfo projectTable = getTableInfo(schema, SNDSchema.PROJECTS_TABLE_NAME);
+            QueryUpdateService projectQus = getQueryUpdateService(projectTable);
+
+            TableInfo projectItemsTable = getTableInfo(schema, SNDSchema.PROJECTITEMS_TABLE_NAME);
+            QueryUpdateService projectItemsQus = getQueryUpdateService(projectItemsTable);
+
+            List<Map<String, Object>> projectRows = new ArrayList<>();
+            projectRows.add(project.getProjectRow(c));
+
+            try (DbScope.Transaction tx = projectTable.getSchema().getScope().ensureTransaction())
+            {
+                projectQus.insertRows(u, c, projectRows, errors, null, null);
+                projectItemsQus.insertRows(u, c, project.getProjectItemRows(c), errors, null, null);
+                tx.commit();
+            }
+            catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException e)
+            {
+                errors.addRowError(new ValidationException(e.getMessage()));
+            }
         }
     }
 
