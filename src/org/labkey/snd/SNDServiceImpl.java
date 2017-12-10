@@ -23,6 +23,8 @@ import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.PackageDomainKind;
+import org.labkey.api.snd.Project;
+import org.labkey.api.snd.SNDSequencer;
 import org.labkey.api.snd.SNDService;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.util.UnexpectedException;
@@ -64,7 +66,7 @@ public class SNDServiceImpl implements SNDService
         }
         else
         {
-            pkg.setPkgId(SNDManager.get().ensurePkgId(c, pkg.getPkgId()));
+            pkg.setPkgId(SNDSequencer.PKGID.ensureId(c, pkg.getPkgId()));
 
             if (superPkg != null)
                 superPkg.setPkgId(pkg.getPkgId());
@@ -114,5 +116,15 @@ public class SNDServiceImpl implements SNDService
     public Object getDefaultLookupDisplayValue(User u, Container c, String schema, String table, Object key)
     {
         return SNDManager.get().getDefaultLookupDisplayValue(u, c, schema, table, key);
+    }
+
+    public void saveProject(Container c, User u, Project project)
+    {
+        BatchValidationException errors = new BatchValidationException();
+
+        SNDManager.get().createProject(c, u, project, errors);
+
+        if (errors.hasErrors())
+            throw new UnexpectedException(errors);
     }
 }

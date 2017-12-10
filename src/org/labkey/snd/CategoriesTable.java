@@ -33,6 +33,7 @@ import org.labkey.api.query.SimpleQueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
+import org.labkey.api.snd.SNDSequencer;
 
 import java.sql.SQLException;
 import java.util.Collections;
@@ -124,7 +125,7 @@ public class CategoriesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
                 }
             }
 
-            row.put("CategoryId", SNDManager.get().ensureCategoryId(container, intId));
+            row.put("CategoryId", SNDSequencer.CATEGORYID.ensureId(container, intId));
 
             return row;
         }

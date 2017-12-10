@@ -31,6 +31,9 @@ import org.labkey.api.security.RequiresLogin;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.snd.Package;
+import org.labkey.api.snd.Project;
+import org.labkey.api.snd.ProjectItem;
+import org.labkey.api.snd.SNDSequencer;
 import org.labkey.api.snd.SNDService;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.util.URLHelper;
@@ -38,6 +41,7 @@ import org.labkey.api.view.ActionURL;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -201,12 +205,12 @@ public class SNDController extends SpringActionController
                     superPackage = new SuperPackage();
                     if (testIdNumberStart != -1)
                     {
-                        rootSuperPackageId = SNDManager.get().ensureSuperPkgId(getContainer(), testIdNumberStart);
+                        rootSuperPackageId = SNDSequencer.SUPERPKGID.ensureId(getContainer(), testIdNumberStart);
                         testIdNumberStart++;
                     }
                     else
                     {
-                        rootSuperPackageId = SNDManager.get().ensureSuperPkgId(getContainer(), null);
+                        rootSuperPackageId = SNDSequencer.SUPERPKGID.ensureId(getContainer(), null);
                     }
                     superPackage.setSuperPkgId(rootSuperPackageId);
                     superPackage.setSuperPkgPath(Integer.toString(rootSuperPackageId));
@@ -332,12 +336,12 @@ public class SNDController extends SpringActionController
                                 // make new super package ID since we are copying this top-level super package
                                 if (testIdNumberStart != -1)
                                 {
-                                    topLevelChildSuperPackage.setSuperPkgId(SNDManager.get().ensureSuperPkgId(getContainer(), testIdNumberStart));
+                                    topLevelChildSuperPackage.setSuperPkgId(SNDSequencer.SUPERPKGID.ensureId(getContainer(), testIdNumberStart));
                                     testIdNumberStart++;
                                 }
                                 else
                                 {
-                                    topLevelChildSuperPackage.setSuperPkgId(SNDManager.get().ensureSuperPkgId(getContainer(), null));
+                                    topLevelChildSuperPackage.setSuperPkgId(SNDSequencer.SUPERPKGID.ensureId(getContainer(), null));
                                 }
                                 // the parent for this child super package is the current super package being saved
                                 topLevelChildSuperPackage.setParentSuperPkgId(rootSuperPackageId);
@@ -440,6 +444,66 @@ public class SNDController extends SpringActionController
 
             response.put("json", jsonOut);
             return response;
+        }
+    }
+
+    @RequiresPermission(AdminPermission.class)
+    public class SaveProjectAction extends ApiAction<SimpleApiJsonForm>
+    {
+
+        @Override
+        public Object execute(SimpleApiJsonForm form, BindException errors) throws Exception
+        {
+            JSONObject json = form.getJsonObject();
+
+            int id = json.optInt("id", -1);
+            Project project = new Project(id, null, null, getViewContext().getContainer());
+
+            project.setDescription(json.getString("description"));
+            project.setActive(json.getBoolean("active"));
+            project.setRefId(json.getInt("referenceId"));
+
+            SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+            project.setStartDate(formatter.parse(json.getString("startDate")));
+            project.setStartDate(formatter.parse(json.getString("endDate")));
+
+            // Get extra fields
+            JSONArray jsonExtras = json.optJSONArray("extraFields");
+            if (null != jsonExtras)
+            {
+                Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
+                JSONObject extra;
+                for (int e = 0; e < jsonExtras.length(); e++)
+                {
+                    extra = jsonExtras.getJSONObject(e);
+                    extras.put(ExperimentService.get().convertJsonToPropertyDescriptor(extra), extra.get("value"));
+                }
+                project.setExtraFields(extras);
+            }
+
+            JSONArray jsonPkgs = json.optJSONArray("packages");
+            if (null != jsonPkgs)
+            {
+                List<ProjectItem> projectItems = new ArrayList<>();
+                JSONObject jsonItem;
+                ProjectItem projectItem;
+                for (int i = 0; i < jsonPkgs.length(); i++)
+                {
+                    jsonItem = jsonPkgs.getJSONObject(i);
+                    projectItem = new ProjectItem();
+                    projectItem.setActive(jsonItem.getBoolean("active"));
+                    projectItem.setSuperPkgId(jsonItem.getInt("superPkgId"));
+                    projectItem.setParentObjectId(project.getObjectId());
+
+                    projectItems.add(projectItem);
+                }
+                project.setProjectItems(projectItems);
+            }
+
+            if (!errors.hasErrors())
+                SNDService.get().saveProject(getViewContext().getContainer(), getUser(), project);
+
+            return new ApiSimpleResponse();
         }
     }
 }

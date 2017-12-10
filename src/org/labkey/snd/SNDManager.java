@@ -42,6 +42,7 @@ import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.PackageDomainKind;
+import org.labkey.api.snd.Project;
 import org.labkey.api.snd.SNDDomainKind;
 import org.labkey.api.snd.SuperPackage;
 
@@ -56,12 +57,7 @@ import java.util.Map;
 public class SNDManager
 {
     private static final SNDManager _instance = new SNDManager();
-    public static final int MINPKGID = 10000;
-    public static final int MINSUPERPKGID = 1000;
-    public static final int MINCATEGORYID = 100;
-    private static final String SND_DBSEQUENCE_NAME = "org.labkey.snd.api.Package";
-    private static final String SND_SUPER_PACKAGE_DBSEQUENCE_NAME = "ord.labkey.snd.api.SuperPackage";
-    private static final String SND_CATEGORY_DBSEQUENCE_NAME = "org.labkey.snd.api.Categories";
+
     private final StringKeyCache<Object> _cache;
 
     private List<TableInfo> _attributeLookups = new ArrayList<>();
@@ -79,57 +75,6 @@ public class SNDManager
     public StringKeyCache getCache()
     {
         return _cache;
-    }
-
-    public Integer generatePackageId(Container c)
-    {
-        DbSequence sequence = DbSequenceManager.get(c, SND_DBSEQUENCE_NAME);
-        sequence.ensureMinimum(MINPKGID);
-        return sequence.next();
-    }
-
-    private Integer generateSuperPackageId(Container c)
-    {
-        DbSequence sequence = DbSequenceManager.get(c, SND_SUPER_PACKAGE_DBSEQUENCE_NAME);
-        sequence.ensureMinimum(MINSUPERPKGID);
-        return sequence.next();
-    }
-
-    public Integer generateCategoryId(Container c)
-    {
-        DbSequence sequence = DbSequenceManager.get(c, SND_CATEGORY_DBSEQUENCE_NAME);
-        sequence.ensureMinimum(MINCATEGORYID);
-        return sequence.next();
-    }
-
-    public Integer ensurePkgId(Container container, Integer id)
-    {
-        if (id == null || id >= SNDManager.MINPKGID || id < 0)
-        {
-            return generatePackageId(container);
-        }
-
-        return id;
-    }
-
-    public Integer ensureSuperPkgId(Container container, Integer id)
-    {
-        if (id == null || id >= SNDManager.MINSUPERPKGID)
-        {
-            return generateSuperPackageId(container);
-        }
-
-        return id;
-    }
-
-    public Integer ensureCategoryId(Container container, Integer id)
-    {
-        if (id == null || id >= SNDManager.MINCATEGORYID)
-        {
-            return generateCategoryId(container);
-        }
-
-        return id;
     }
 
     public static String getPackageName(int id)
@@ -812,6 +757,31 @@ public class SNDManager
         }
 
         return packages;
+    }
+
+    public void createProject(Container c, User u, Project project, BatchValidationException errors)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        TableInfo projectTable = getTableInfo(schema, SNDSchema.PROJECTS_TABLE_NAME);
+        QueryUpdateService projectQus = getQueryUpdateService(projectTable);
+
+        TableInfo projectItemsTable = getTableInfo(schema, SNDSchema.PROJECTITEMS_TABLE_NAME);
+        QueryUpdateService projectItemsQus = getQueryUpdateService(projectItemsTable);
+
+        List<Map<String, Object>> projectRows = new ArrayList<>();
+        projectRows.add(project.getProjectRow(c));
+
+        try (DbScope.Transaction tx = projectTable.getSchema().getScope().ensureTransaction())
+        {
+            projectQus.insertRows(u, c, projectRows, errors, null, null);
+            projectItemsQus.insertRows(u, c, project.getProjectItemRows(c), errors, null, null);
+            tx.commit();
+        }
+        catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException e)
+        {
+            errors.addRowError(new ValidationException(e.getMessage()));
+        }
     }
 
     public void registerAttributeLookups(Container c, User u, String schema, String table)
