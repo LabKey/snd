@@ -35,26 +35,11 @@ public class Project
     public static final String PROJECT_REVNUM = "RevisionNum";
     public static final String PROJECT_REFID = "ReferenceId";
 
-    public Project (int id, String objectId, Integer revNum, Container c)
+    public Project (int id, Integer revNum, boolean edit, Container c)
     {
-        _projectId = SNDSequencer.PROJECTID.ensureId(c, id);
-        if (objectId == null)
-        {
-            _objectId = GUID.makeGUID();
-        }
-        else
-        {
-            _objectId = objectId;
-        }
-
-        if (revNum == null)
-        {
-            _revisionNum = 0;
-        }
-        else
-        {
-            _revisionNum = revNum;
-        }
+        _projectId = (edit ? id : SNDSequencer.PROJECTID.ensureId(c, id));
+        _objectId = (edit ? null : GUID.makeGUID());
+        _revisionNum = (edit ? revNum : 0);
     }
 
     public int getProjectId()
@@ -64,8 +49,6 @@ public class Project
 
     public void setProjectId(int projectId)
     {
-
-
         _projectId = projectId;
     }
 

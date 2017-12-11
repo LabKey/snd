@@ -452,20 +452,75 @@ public class SNDController extends SpringActionController
     {
 
         @Override
+        public void validateForm(SimpleApiJsonForm form, Errors errors)
+        {
+            JSONObject json = form.getJsonObject();
+            if (json == null)
+            {
+                errors.reject(ERROR_MSG, "Missing json parameter.");
+                return;
+            }
+
+            if (!json.has("description") || json.getString("description") == null)
+            {
+                errors.reject(ERROR_MSG, "Missing description.");
+            }
+
+            if (!json.has("active"))
+            {
+                errors.reject(ERROR_MSG, "Missing active.");
+            }
+
+            if (!json.has("referenceId"))
+            {
+                errors.reject(ERROR_MSG, "Missing referenceId.");
+            }
+
+            if (!json.has("startDate"))
+            {
+                errors.reject(ERROR_MSG, "Missing startDate.");
+            }
+
+            if (!json.has("edit"))
+            {
+                errors.reject(ERROR_MSG, "Missing edit.");
+            }
+
+            if (json.has("edit") && json.getBoolean("edit"))
+            {
+                if (!json.has("id") || json.getInt("id") < 0)
+                {
+                    errors.reject(ERROR_MSG, "Edit must provide valid id.");
+                }
+                else
+                {
+                    if (!json.has("revNum") || json.getInt("id") < 0)
+                    {
+                        errors.reject(ERROR_MSG, "Edit must provide valid revision number.");
+                    }
+                }
+            }
+        }
+
+        @Override
         public Object execute(SimpleApiJsonForm form, BindException errors) throws Exception
         {
             JSONObject json = form.getJsonObject();
 
             int id = json.optInt("id", -1);
-            Project project = new Project(id, null, null, getViewContext().getContainer());
+            Project project = new Project(id, json.optInt("revNum", 0), json.getBoolean("edit"),
+                    getViewContext().getContainer());
 
             project.setDescription(json.getString("description"));
             project.setActive(json.getBoolean("active"));
             project.setRefId(json.getInt("referenceId"));
 
-            SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
             project.setStartDate(formatter.parse(json.getString("startDate")));
-            project.setStartDate(formatter.parse(json.getString("endDate")));
+            if (json.getString("endDate") != null)
+                project.setEndDate(formatter.parse(json.getString("endDate")));
+            else
+                project.setEndDate(null);
 
             // Get extra fields
             JSONArray jsonExtras = json.optJSONArray("extraFields");

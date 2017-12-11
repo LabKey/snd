@@ -122,7 +122,16 @@ public class SNDServiceImpl implements SNDService
     {
         BatchValidationException errors = new BatchValidationException();
 
-        SNDManager.get().createProject(c, u, project, errors);
+        String objectId = SNDManager.get().getProjectObjectId(c, u, project, errors);
+        if (objectId != null)
+        {
+            project.setObjectId(objectId);
+            SNDManager.get().updateProject(c, u, project, errors);
+        }
+        else
+        {
+            SNDManager.get().createProject(c, u, project, errors);
+        }
 
         if (errors.hasErrors())
             throw new UnexpectedException(errors);

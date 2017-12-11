@@ -819,6 +819,59 @@ public class SNDManager
         }
     }
 
+    public void updateProject(Container c, User u, Project project, BatchValidationException errors)
+    {
+        if (validProject(c, u, project, errors))
+        {
+            UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+            // Erase all project items for this project
+            SQLFragment sql = new SQLFragment("DELETE FROM ");
+            sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTITEMS_TABLE_NAME);
+            sql.append(" WHERE ParentObjectId = ?");
+            sql.add(project.getObjectId());
+
+            SqlExecutor executor = new SqlExecutor(schema.getDbSchema());
+            executor.execute(sql);
+
+            //Update and insert new project items
+            TableInfo projectTable = getTableInfo(schema, SNDSchema.PROJECTS_TABLE_NAME);
+            QueryUpdateService projectQus = getQueryUpdateService(projectTable);
+
+            TableInfo projectItemsTable = getTableInfo(schema, SNDSchema.PROJECTITEMS_TABLE_NAME);
+            QueryUpdateService projectItemsQus = getQueryUpdateService(projectItemsTable);
+
+            List<Map<String, Object>> projectRows = new ArrayList<>();
+            projectRows.add(project.getProjectRow(c));
+
+            try (DbScope.Transaction tx = projectTable.getSchema().getScope().ensureTransaction())
+            {
+                projectQus.updateRows(u, c, projectRows, null, null, null);
+                projectItemsQus.insertRows(u, c, project.getProjectItemRows(c), errors, null, null);
+                tx.commit();
+            }
+            catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException | InvalidKeyException e)
+            {
+                errors.addRowError(new ValidationException(e.getMessage()));
+            }
+        }
+    }
+
+    public String getProjectObjectId(Container c, User u, Project project, BatchValidationException errors)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT ObjectId FROM ");
+        sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_TABLE_NAME);
+        sql.append(" WHERE ProjectId = ? AND RevisionNum = ?");
+        sql.add(project.getProjectId()).add(project.getRevisionNum());
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+        if (selector.getRowCount() < 1)
+            return null;
+
+        return selector.getArrayList(String.class).get(0);
+    }
+
     public void registerAttributeLookups(Container c, User u, String schema, String table)
     {
         UserSchema userSchema = QueryService.get().getUserSchema(u, c, schema);
