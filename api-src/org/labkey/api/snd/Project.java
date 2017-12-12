@@ -25,6 +25,9 @@ public class Project
     private List<ProjectItem> _projectItems;
     private Map<GWTPropertyDescriptor, Object> _extraFields = new HashMap<>();
 
+    private String _revisedObjectId;
+    private int _revisedRevNum;
+
     public static final String PROJECT_ID = "ProjectId";
     public static final String PROJECT_DESCRIPTION = "Description";
     public static final String PROJECT_ACTIVE = "Active";
@@ -35,11 +38,17 @@ public class Project
     public static final String PROJECT_REVNUM = "RevisionNum";
     public static final String PROJECT_REFID = "ReferenceId";
 
-    public Project (int id, Integer revNum, boolean edit, Container c)
+    public Project (int id, Integer revNum, boolean edit, boolean revision, Container c)
     {
-        _projectId = (edit ? id : SNDSequencer.PROJECTID.ensureId(c, id));
-        _objectId = (edit ? null : GUID.makeGUID());
-        _revisionNum = (edit ? revNum : 0);
+        _projectId = ((edit || revision) ? id : SNDSequencer.PROJECTID.ensureId(c, id));
+        _objectId = ((edit || revision) ? null : GUID.makeGUID());
+        _revisionNum = ((edit || revision) ? revNum : 0);
+
+        if (revision)
+        {
+            _revisedObjectId = GUID.makeGUID();
+            _revisedRevNum = ++revNum;
+        }
     }
 
     public int getProjectId()
@@ -80,6 +89,26 @@ public class Project
     public void setObjectId(String objectId)
     {
         _objectId = objectId;
+    }
+
+    public String getRevisedObjectId()
+    {
+        return _revisedObjectId;
+    }
+
+    public void setRevisedObjectId(String revisedObjectId)
+    {
+        _revisedObjectId = revisedObjectId;
+    }
+
+    public int getRevisedRevNum()
+    {
+        return _revisedRevNum;
+    }
+
+    public void setRevisedRevNum(int revisedRevNum)
+    {
+        _revisedRevNum = revisedRevNum;
     }
 
     public int getChargeId()

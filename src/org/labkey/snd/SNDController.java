@@ -481,22 +481,49 @@ public class SNDController extends SpringActionController
                 errors.reject(ERROR_MSG, "Missing startDate.");
             }
 
-            if (!json.has("edit"))
+            if (!json.has("isEdit"))
             {
-                errors.reject(ERROR_MSG, "Missing edit.");
+                json.put("isEdit", false);
+                form.bindProperties(json);
             }
 
-            if (json.has("edit") && json.getBoolean("edit"))
+            if (!json.has("isRevision"))
+            {
+                json.put("isRevision", false);
+                form.bindProperties(json);
+            }
+
+            if (json.getBoolean("isEdit") && json.getBoolean("isRevision"))
+            {
+                errors.reject(ERROR_MSG, "isEdit and isRevision cannot both be true.");
+            }
+
+            if (json.has("isEdit") && json.getBoolean("isEdit"))
             {
                 if (!json.has("id") || json.getInt("id") < 0)
                 {
-                    errors.reject(ERROR_MSG, "Edit must provide valid id.");
+                    errors.reject(ERROR_MSG, "Must provide valid project id when isEdit is true.");
                 }
                 else
                 {
                     if (!json.has("revNum") || json.getInt("id") < 0)
                     {
-                        errors.reject(ERROR_MSG, "Edit must provide valid revision number.");
+                        errors.reject(ERROR_MSG, "Must provide valid revision number when isEdit is true.");
+                    }
+                }
+            }
+
+            if (json.has("isRevision") && json.getBoolean("isRevision"))
+            {
+                if (!json.has("id") || json.getInt("id") < 0)
+                {
+                    errors.reject(ERROR_MSG, "Must provide valid project id when isRevision is true.");
+                }
+                else
+                {
+                    if (!json.has("revNum") || json.getInt("id") < 0)
+                    {
+                        errors.reject(ERROR_MSG, "Must provide valid revision number when isRevision is true.");
                     }
                 }
             }
@@ -508,8 +535,8 @@ public class SNDController extends SpringActionController
             JSONObject json = form.getJsonObject();
 
             int id = json.optInt("id", -1);
-            Project project = new Project(id, json.optInt("revNum", 0), json.getBoolean("edit"),
-                    getViewContext().getContainer());
+            Project project = new Project(id, json.optInt("revNum", 0), json.getBoolean("isEdit"),
+                    json.getBoolean("isRevision"), getViewContext().getContainer());
 
             project.setDescription(json.getString("description"));
             project.setActive(json.getBoolean("active"));
@@ -556,7 +583,7 @@ public class SNDController extends SpringActionController
             }
 
             if (!errors.hasErrors())
-                SNDService.get().saveProject(getViewContext().getContainer(), getUser(), project);
+                SNDService.get().saveProject(getViewContext().getContainer(), getUser(), project, json.getBoolean("isRevision"));
 
             return new ApiSimpleResponse();
         }

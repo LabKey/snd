@@ -118,7 +118,7 @@ public class SNDServiceImpl implements SNDService
         return SNDManager.get().getDefaultLookupDisplayValue(u, c, schema, table, key);
     }
 
-    public void saveProject(Container c, User u, Project project)
+    public void saveProject(Container c, User u, Project project, boolean isRevision)
     {
         BatchValidationException errors = new BatchValidationException();
 
@@ -126,10 +126,18 @@ public class SNDServiceImpl implements SNDService
         if (objectId != null)
         {
             project.setObjectId(objectId);
-            SNDManager.get().updateProject(c, u, project, errors);
+            if (isRevision)
+            {
+                SNDManager.get().reviseProject(c, u, project, errors);
+            }
+            else
+            {
+                SNDManager.get().updateProject(c, u, project, errors);
+            }
         }
         else
         {
+            project.setRevisionNum(0);
             SNDManager.get().createProject(c, u, project, errors);
         }
 

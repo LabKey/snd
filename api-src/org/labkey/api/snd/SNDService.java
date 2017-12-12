@@ -41,5 +41,5 @@ public interface SNDService
     void registerAttributeLookup(Container c, User u, String schema, @Nullable String table);
     Map<String, String> getAttributeLookups(Container c, User u);
     Object getDefaultLookupDisplayValue(User u, Container c, String schema, String table, Object key);
-    void saveProject(Container c, User u, Project project);
+    void saveProject(Container c, User u, Project project, boolean isRevision);
 }

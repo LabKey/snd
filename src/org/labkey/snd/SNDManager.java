@@ -46,8 +46,11 @@ import org.labkey.api.snd.SNDDomainKind;
 import org.labkey.api.snd.SuperPackage;
 
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -758,29 +761,113 @@ public class SNDManager
         return packages;
     }
 
-    public boolean validProject(Container c, User u, Project project, BatchValidationException errors)
+    private boolean projectRevisionExists(Container c, User u, int id, int rev)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
-        SQLFragment sql = new SQLFragment("SELECT RevisionNum, EndDate FROM ");
+        SQLFragment sql = new SQLFragment("SELECT ProjectId FROM ");
+        sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_TABLE_NAME);
+        sql.append(" WHERE ProjectId = ? AND RevisionNum = ?");
+        sql.add(id).add(rev);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+
+        return selector.getRowCount() > 0;
+    }
+
+    private boolean projectNullDateExists(Container c, User u, int id)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT ProjectId FROM ");
+        sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_TABLE_NAME);
+        sql.append(" WHERE ProjectId = ? AND EndDate IS NULL");
+        sql.add(id);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+
+        return selector.getRowCount() > 0;
+    }
+
+    public boolean validProject(Container c, User u, Project project, BatchValidationException errors)
+    {
+        if (projectRevisionExists(c, u, project.getProjectId(), project.getRevisedRevNum()))
+        {
+            errors.addRowError(new ValidationException("Revision already exists for this project."));
+            return false;
+        }
+
+        if (project.getEndDate() == null && projectNullDateExists(c, u, project.getProjectId()))
+        {
+            errors.addRowError(new ValidationException("Only one revision can have no end date. Another revision of this project has a null date."));
+            return false;
+        }
+
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT RevisionNum, StartDate, EndDate FROM ");
         sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_TABLE_NAME);
         sql.append(" WHERE ProjectId = ?");
         sql.add(project.getProjectId());
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
         TableResultSet rows = selector.getResultSet();
 
-        boolean validRevision = (project.getRevisionNum() == 0);
+        // If creating project for first time revNum is zero and there is no revised revNum
+        boolean validRevision = (project.getRevisionNum() == 0 && project.getRevisedRevNum() == 0);
+        Date rowEnd = null, rowStart = null;
+        boolean overlap;
+
+        // Iterate through rows to check date overlap and ensure revision is incremented properly
         for (Map<String, Object> row : rows)
         {
-            // Verify not multiple revisions with null end date
-            if ((project.getEndDate() == null && row.get("EndDate") == null)
-                    && (project.getRevisionNum() != (Integer)row.get("RevisionNum")))
+            // Check for overlapping dates
+            overlap = false;
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+            try
             {
-                errors.addRowError(new ValidationException("Only one revision can have no end date. Revision "
-                        + row.get("RevisionNum") + " also has no end date."));
+                rowStart = formatter.parse((String) row.get("StartDate"));
+                rowEnd = null;
+                if (row.get("EndDate") != null)
+                {
+                    rowEnd = formatter.parse((String) row.get("EndDate"));
+                }
+            }
+            catch (ParseException e)
+            {
+                errors.addRowError(new ValidationException("Unable to parse date: " + e.getMessage()));
             }
 
-            if (project.getRevisionNum() == ((Integer)row.get("RevisionNum") + 1))
+            if (rowStart != null)
+            {
+                // Overlap scenarios
+                if (project.getStartDate().after(rowStart) || project.getStartDate().equals(rowStart))
+                {
+                    if (rowEnd == null)
+                    {
+                        overlap = true;
+                    }
+                    else if (project.getStartDate().before(rowEnd))
+                    {
+                        overlap = true;
+                    }
+                }
+                else if (rowStart.after(project.getStartDate()))
+                {
+                    if (project.getEndDate() == null)
+                    {
+                        overlap = true;
+                    }
+                    else if (rowStart.before(project.getEndDate()))
+                    {
+                        overlap = true;
+                    }
+                }
+            }
+
+            // Date overlap found
+            if (overlap)
+                errors.addRowError(new ValidationException("Overlapping date with revision: " + row.get("RevisionNum")));
+
+            // Verify revision numbers are sequential
+            if (project.getRevisedRevNum() == ((Integer)row.get("RevisionNum") + 1))
                 validRevision = true;
         }
 
@@ -810,6 +897,56 @@ public class SNDManager
             {
                 projectQus.insertRows(u, c, projectRows, errors, null, null);
                 projectItemsQus.insertRows(u, c, project.getProjectItemRows(c), errors, null, null);
+                tx.commit();
+            }
+            catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException e)
+            {
+                errors.addRowError(new ValidationException(e.getMessage()));
+            }
+        }
+    }
+
+    public void reviseProject(Container c, User u, Project project, BatchValidationException errors)
+    {
+        if (validProject(c, u, project, errors))
+        {
+            UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+            // First get copy of the project items from the original project
+            SQLFragment sql = new SQLFragment("SELECT SuperPkgId, Active FROM ");
+            sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTITEMS_TABLE_NAME);
+            sql.append(" WHERE ParentObjectId = ?");
+            sql.add(project.getObjectId());
+
+            SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+            TableResultSet projectItems = selector.getResultSet();
+
+            // Update project items with new parentobjectid
+            List<Map<String, Object>> updatedProjectItems = new ArrayList<>();
+            for (Map<String, Object> row : projectItems)
+            {
+                row.put("ParentObjectId", project.getRevisedObjectId());
+                updatedProjectItems.add(row);
+            }
+
+            // Set project objectid and revision
+            project.setObjectId(project.getRevisedObjectId());
+            project.setRevisionNum(project.getRevisionNum() + 1);
+
+            TableInfo projectTable = getTableInfo(schema, SNDSchema.PROJECTS_TABLE_NAME);
+            QueryUpdateService projectQus = getQueryUpdateService(projectTable);
+
+            TableInfo projectItemsTable = getTableInfo(schema, SNDSchema.PROJECTITEMS_TABLE_NAME);
+            QueryUpdateService projectItemsQus = getQueryUpdateService(projectItemsTable);
+
+            List<Map<String, Object>> projectRows = new ArrayList<>();
+            projectRows.add(project.getProjectRow(c));
+
+            // Create revised projects and insert copies of project items
+            try (DbScope.Transaction tx = projectTable.getSchema().getScope().ensureTransaction())
+            {
+                projectQus.insertRows(u, c, projectRows, errors, null, null);
+                projectItemsQus.insertRows(u, c, updatedProjectItems, errors, null, null);
                 tx.commit();
             }
             catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException e)
