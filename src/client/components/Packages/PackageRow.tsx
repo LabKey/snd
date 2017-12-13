@@ -18,8 +18,6 @@ import { Link } from 'react-router-dom'
 import { OverlayTrigger, Tooltip, TooltipProps } from 'react-bootstrap'
 import { QueryPackageModel } from '../../containers/Packages/model'
 
-const styles = require<any>('./PackageRow.css');
-
 interface PackageRowProps {
     data: QueryPackageModel
     dataId: number
@@ -66,23 +64,23 @@ export class PackageRow extends React.Component<PackageRowProps, PackageRowState
         // todo: URLs should be more resilient
         return (
             <div
-                className={"package_viewer__result clearfix " + styles["package-row"]}
+                className="package_viewer__result clearfix package-row"
                 data-packageId={PkgId.value}
                 onMouseEnter={this.handleMouseEnter}
                 onMouseLeave={this.handleMouseLeave}>
                 <div className="result-icons pull-left">
                     <OverlayTrigger overlay={PackageRow.generateToolTip('View', PkgId.value)} placement="top">
-                        <Link to={'/packages/view/' + PkgId.value} className={styles["package-row_icon"]}>
+                        <Link to={'/packages/view/' + PkgId.value} className="package-row_icon">
                             <i className={"fa fa-eye"}/>
                         </Link>
                     </OverlayTrigger>
                     <OverlayTrigger overlay={PackageRow.generateToolTip('Edit', PkgId.value)} placement="top">
-                        <Link to={'/packages/edit/' + PkgId.value} className={styles["package-row_icon"]}>
+                        <Link to={'/packages/edit/' + PkgId.value} className="package-row_icon">
                             <i className="fa fa-pencil"/>
                         </Link>
                     </OverlayTrigger>
                     <OverlayTrigger overlay={PackageRow.generateToolTip('Clone', PkgId.value)} placement="top">
-                        <Link to={'/packages/clone/' + PkgId.value} className={styles["package-row_icon"]}>
+                        <Link to={'/packages/clone/' + PkgId.value} className="package-row_icon">
                             <i className="fa fa-files-o"/>
                         </Link>
                     </OverlayTrigger>

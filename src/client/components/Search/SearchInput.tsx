@@ -15,8 +15,6 @@
  */
 import * as React from 'react';
 
-const styles = require<any>('./SearchInput.css');
-
 interface SearchInputProps {
     allowClear?: boolean
     allowToggle?: boolean
@@ -63,14 +61,7 @@ export class SearchInput extends React.Component<SearchInputProps, {}> {
         const { allowToggle, toggled } = this.props;
 
         if (allowToggle) {
-            let classes = [styles['searchinput-caret']];
-            if (toggled) {
-                classes.push("fa fa-caret-down");
-            }
-            else if (!toggled) {
-                classes.push("fa fa-caret-right")
-            }
-            return <i className={classes.join(' ')} onClick={() => this.handleToggle()}/>;
+            return <i className={'searchinput-caret fa-caret-' + (toggled ? 'down' : 'right')} onClick={() => this.handleToggle()}/>;
         }
 
         return null;
@@ -91,13 +82,13 @@ export class SearchInput extends React.Component<SearchInputProps, {}> {
 
         return (
             <div className={wrapperClassName}>
-                <i className={"fa fa-search " + styles['searchinput-icon']}/>
-                {allowClear && input !== '' ?
-                    <i className={"fa fa-times-circle " + styles['searchinput-clear']} onClick={handleClear}/>
-                : null}
+                <i className="fa fa-search searchinput-icon"/>
+                {allowClear && input !== '' && (
+                    <i className="fa fa-times-circle searchinput-clear" onClick={handleClear}/>
+                )}
                 {this.renderToggle()}
                 <input
-                    className={[styles['searchinput-search'], inputClassName].join(' ')}
+                    className={['searchinput-search', inputClassName].join(' ')}
                     disabled={disabled}
                     name={name}
                     onChange={handleInputChange}

@@ -4,11 +4,11 @@
   "description": "Structured Narrative Datasets",
   "scripts": {
     "build": "better-npm-run build:prod",
-    "build-dev": "better-npm-run build:dev",
     "build-prod": "npm run build",
+    "build-style": "npm run build:style",
     "clean": "better-npm-run clean",
     "setup": "npm install",
-    "start": "better-npm-run build:watch",
+    "start": "better-npm-run build:style && better-npm-run build:watch",
     "test": "better-npm-run build:jest-test",
     "teamcity": "better-npm-run build:jest-teamcity"
   },
@@ -19,8 +19,11 @@
         "NODE_ENV": "production"
       }
     },
-    "build:dev": {
-      "command": "webpack --config webpack/dev.config.js"
+    "build:style": {
+      "command": "webpack --config webpack/dev-style.config.js",
+      "env": {
+        "NODE_ENV": "development"
+      }
     },
     "build:watch": {
       "command": "node webpack/dev-server.js",
@@ -126,7 +129,6 @@
     "ts-loader": "2.3.2",
     "typescript": "2.4.2",
     "webpack": "3.4.1",
-    "webpack-combine-loaders": "^2.0.3",
     "webpack-dev-middleware": "1.11.0",
     "webpack-hot-middleware": "2.18.2"
   }

@@ -23,8 +23,6 @@ import { SearchInput } from '../../../components/Search/SearchInput'
 import { CategoriesSelectResults } from '../../../components/Categories/CategoriesSelectResults'
 import { arraysMatch } from '../../../utils/actions'
 
-const styles = require<any>('../../Packages/Forms/PackageForm.css');
-
 interface CategoriesSelectOwnProps {
     disabled?: boolean
     handleChange?: any // type this
@@ -182,8 +180,8 @@ export class CategoriesSelect extends React.Component<CategoriesSelectProps, Cat
         const { disabled, model } = this.props;
         const { data, focused, input, selected } = this.state;
         return (
-            <div className='row input-row'>
-                <div className={"clearfix col-sm-12 " + styles['margin-top']}>
+            <div className="row input-row">
+                <div className="clearfix col-sm-12 margin-top">
                     <ControlLabel>Categories</ControlLabel >
                 </div>
                 <div ref={(el) => this.wrapper = el}>

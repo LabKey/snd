@@ -6,7 +6,7 @@
 require("babel-polyfill");
 const webpack = require("webpack");
 const path = require("path");
-const combineLoaders = require('webpack-combine-loaders');
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = {
     context: path.resolve(__dirname, '..'),
@@ -16,6 +16,7 @@ module.exports = {
     entry: {
         'app': [
             'babel-polyfill',
+            './src/client/theme/style.js',
             './src/client/app.tsx'
         ]
     },
@@ -34,17 +35,24 @@ module.exports = {
             },
             {
                 test: /\.css$/,
-                loader: combineLoaders([
-                    {
-                        loader: 'style-loader'
-                    }, {
+                loader: ExtractTextPlugin.extract({
+                    use: [{
                         loader: 'css-loader',
-                        query: {
-                            modules: true,
-                            localIdentName: '[name]__[local]___[hash:base64:5]'
+                        options: {
+                            sourceMap: true
                         }
+                    }],
+                    fallback: 'style-loader'
+                })
+            },
+            {
+                test: /style.js/,
+                loaders: [{
+                    loader: 'babel-loader',
+                    options: {
+                        cacheDirectory: true
                     }
-                ])
+                }]
             }
         ]
     },
@@ -56,6 +64,10 @@ module.exports = {
     plugins: [
         new webpack.DefinePlugin({
             'process.env.NODE_ENV': '"production"'
+        }),
+        new ExtractTextPlugin({
+            allChunks: true,
+            filename: '[name].css'
         })
     ]
 };

@@ -34,8 +34,6 @@ import { CAT_SQ, REQUIRED_COLUMNS, TOPLEVEL_SUPER_PKG_SQ } from '../constants'
 import { CategoriesSelect } from '../../Wizards/Packages/CategoriesSelect'
 import { querySubPackageDetails } from '../../Wizards/Packages/actions'
 
-const styles = require<any>('./PackageForm.css');
-
 interface ButtonListProps {
     action: string
     disabled?: boolean
@@ -317,7 +315,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
             <div className="row clearfix">
                 {!isReadyOnly ?
                     <div className="col-sm-6">
-                        <div className={"row clearfix col-xs-12 " + styles['margin-top']}>
+                        <div className="row clearfix col-xs-12 margin-top">
                             <ControlLabel>Available Packages</ControlLabel >
                         </div>
                         <div className="row col-xs-12">
@@ -336,7 +334,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                     : null
                 }
                 <div className={isReadyOnly ? "col-sm-12" : "col-sm-6"}>
-                    <div className={"row clearfix col-xs-12 " + styles['margin-top']}>
+                    <div className="row clearfix col-xs-12 margin-top">
                         <ControlLabel>Assigned Packages</ControlLabel >
                         <SubpackageViewer
                             subPackages={model.subPackages}
@@ -347,12 +345,12 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                             handleFullNarrative={handleFullNarrative}
                             view={view}/>
                     </div>
-                    <div className={"row clearfix col-xs-12 " + styles['margin-top']}>
+                    <div className="row clearfix col-xs-12 margin-top">
                         <ListGroupItem className="data-search__container" style={{height: '90px', overflowY: 'auto'}}>
                             <div className="data-search__row">
                                 {selectedSubPackage != undefined
                                     ? selectedSubPackage.Narrative
-                                    : <div className={styles['narrative-none']}>
+                                    : <div className="narrative-none">
                                         Select a package to view its narrative.
                                       </div>
                                 }
@@ -404,7 +402,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                                         value={model.description}/>
                                 </div>
                             </div>
-                            <div className={"row clearfix " + styles['margin-top']}>
+                            <div className="row clearfix margin-top">
                                 <div className="col-xs-12">
                                     <ControlLabel htmlFor='narrative'>Narrative *</ControlLabel>
                                 </div>
@@ -430,17 +428,17 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                     </div>
 
                     <div className="row clearfix">
-                        <div className={"col-sm-12 " + styles['margin-top']}>
+                        <div className="col-sm-12 margin-top">
                             <strong>Attributes</strong>&nbsp;
-                            <Button onClick={this.props.parseAttributes} className={styles['attributes__parse']}>
-                                <i className={"fa fa-refresh " + styles['attributes__parse-button']}/>
+                            <Button onClick={this.props.parseAttributes} className="attributes__parse">
+                                <i className="fa fa-refresh attributes__parse-button"/>
                                 &nbsp;<small>Parse Attributes</small>
                             </Button>
                         </div>
-                        <div className={"col-sm-12 " + styles['margin-top']}>
+                        <div className="col-sm-12 margin-top">
                             {this.renderAttributes()}
                         </div>
-                        <div className={"col-sm-12 " + styles['margin-bottom']}>
+                        <div className="col-sm-12 margin-bottom">
                             <CheckboxInput
                                 disabled={disabled}
                                 name='repeatable'
@@ -454,7 +452,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                     {this.renderSubpackages()}
 
                     <div className="row clearfix">
-                        <div className={"col-sm-12 " + styles['margin-top']}>
+                        <div className="col-sm-12 margin-top">
                             {this.renderButtons()}
                         </div>
                     </div>

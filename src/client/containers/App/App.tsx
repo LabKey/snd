@@ -23,7 +23,6 @@ import * as actions from './actions'
 import { UserModel } from '../SignIn/model'
 
 import { CrumbRoutes, Routes } from '../../routing/Routes'
-const styles = require<any>('./App.css');
 
 interface AppOwnProps extends RouteComponentProps<{}> {}
 interface AppStateDispatch {
@@ -91,7 +90,7 @@ export class AppImpl extends React.Component<AppProps, {}> {
                         const { alertClassName, alertType } = alerts;
                         return (
                             <div className="app-error" key={msg.message + msg.id}>
-                                <div className={[styles['alert-dismiss'], alertClassName].join(' ')}>
+                                <div className={['alert-dismiss', alertClassName].join(' ')}>
                                     <i className='fa fa-times' onClick={() => dismissWarning(msg.id)}/>
                                 </div>
                                 <div className={['alert', alertClassName].join(' ')} role={alertType}>
@@ -115,7 +114,7 @@ export class AppImpl extends React.Component<AppProps, {}> {
         }
 
         return (
-            <div className={styles['content-wrapper']}>
+            <div className="content-wrapper">
                 <div className="container">
                     <Switch>
                         {CrumbRoutes.map((route: RouteProps, index: number) => {

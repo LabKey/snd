@@ -30,8 +30,6 @@ import { PKG_WIZARD_TYPES } from '../../Wizards/Packages/constants'
 import { queryPackageFullNarrative } from '../../Wizards/Packages/actions'
 import NarrativeRow from './NarrativeRow'
 
-const styles = require<any>('./PackageForm.css');
-
 export enum PACKAGE_VIEW {
     CLONE,
     EDIT,
@@ -324,7 +322,7 @@ function resolvePackageHeader(view: PACKAGE_VIEW, id) {
     }
 
     return (
-        <div className={styles['header--border__bottom']}>
+        <div className="header--border__bottom">
             <h4>{text}</h4>
         </div>
     );

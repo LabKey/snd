@@ -2,4 +2,7 @@
     <permissions>
         <permission name="login"/>
     </permissions>
+    <dependencies>
+        <dependency path="snd/app.css"/>
+    </dependencies>
 </view>

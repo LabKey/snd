@@ -16,12 +16,7 @@
 import * as React from 'react';
 import { ListGroupItem } from 'react-bootstrap'
 
-const styles = require<any>('../../containers/Packages/Forms/PackageForm.css');
-
-import {
-    LabKeyQueryFieldProps,
-    LabKeyQueryRowPropertyProps,
-} from '../../query/model'
+import { LabKeyQueryRowPropertyProps } from '../../query/model'
 
 // Results
 interface CategoriesSelectResultsProps {
@@ -89,7 +84,7 @@ export class CategoriesSelectResults extends React.Component<CategoriesSelectRes
                 <div
                     className={"data-search__row_selected"}
                     style={{padding: '10px 15px'}}>
-                    <div className={disabled ? styles['disabled__block-with-text'] : styles['block-with-text']}>
+                    <div className={disabled ? 'disabled__block-with-text' : 'block-with-text'}>
                         {text}
                     </div>
                     <span/>

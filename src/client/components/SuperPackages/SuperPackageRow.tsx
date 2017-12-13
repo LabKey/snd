@@ -18,8 +18,6 @@ import { DropdownButton, MenuItem } from 'react-bootstrap'
 import { PACKAGE_VIEW } from '../../containers/Packages/Forms/PackageFormContainer'
 import { AssignedPackageModel } from '../../containers/Packages/model'
 
-const styles = require<any>('./SuperPackageRow.css');
-
 interface SuperPackageRowProps {
     model: AssignedPackageModel
     selected?: boolean
@@ -99,10 +97,7 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
 
         return (
             <div
-                className={"superpackage_viewer__result clearfix "
-                            + styles["superpackage-row"]
-                            + (selected ? ' ' + styles["superpackage-selected-row"] : '')
-                          }
+                className={"superpackage_viewer__result clearfix superpackage-row" + (selected ? ' superpackage-selected-row' : '')}
                 onMouseEnter={this.handleMouseEnter}
                 onMouseLeave={this.handleMouseLeave}
                 onClick={this.handleOnClick}
@@ -114,15 +109,15 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
                             : !treeCollapsedVal && model.SubPackages.length > 0
                                 ? <i className="icon-tree-toggle fa fa-caret-down">&nbsp;</i>
                                 : model.SubPackages.length == 0
-                                    ? <i className={"icon-tree-toggle fa fa-circle " + styles["superpackage-row-leaf"]}>&nbsp;&nbsp;&nbsp;</i>
+                                    ? <i className={"icon-tree-toggle fa fa-circle superpackage-row-leaf"}>&nbsp;&nbsp;&nbsp;</i>
                                     : <i className="icon-tree-toggle fa fa-caret-right">&nbsp;</i>
                         : null
                     }
                     {[model.PkgId, model.Description].join(' - ')}
                 </div>
-                <div className={styles["superpackage-row-dropdown"]} style={{display: isHover ? 'inline-block' : 'none'}}>
+                <div className="superpackage-row-dropdown" style={{display: isHover ? 'inline-block' : 'none'}}>
                     <DropdownButton id="superpackage-actions" title="" pullRight dropup={isDropup}
-                                    className={styles["superpackage-row-option-btn"]}>
+                                    className="superpackage-row-option-btn">
                         {!isReadyOnly && menuActionName
                             ? <MenuItem onClick={() => handleMenuAction(model)}>{menuActionName}</MenuItem>
                             : null

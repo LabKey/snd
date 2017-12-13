@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 import * as React from 'react';
-
 import { Button, DropdownButton, MenuItem } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
-import { SearchInput } from "../Search/SearchInput";
 
-const styles = require<any>('../../containers/Packages/Forms/PackageSearch.css');
+import { SearchInput } from "../Search/SearchInput";
 
 interface PackageSearchInputProps {
     changeLocation?: (loc: string) => any
@@ -47,9 +45,9 @@ export class PackageSearchInput extends React.Component<PackageSearchInputProps,
         return(
             <div>
                 <div className="package-viewer__header clearfix" style={{paddingBottom: '20px', paddingTop: '10px'}}>
-                    <div className={"col-sm-3 col-md-2 " + styles['packages-button']}>
+                    <div className={"col-sm-3 col-md-2 packages-button"}>
                         <Link to="/packages/new">
-                            <Button className={styles['packages-new_pkg_btn']}>New Package</Button>
+                            <Button className="packages-new_pkg_btn">New Package</Button>
                         </Link>
                     </div>
                     <SearchInput
@@ -59,8 +57,8 @@ export class PackageSearchInput extends React.Component<PackageSearchInputProps,
                         handleClear={handleClear}
                         name="packageSearch"
                         wrapperClassName={"col-sm-6 col-md-8"}/>
-                    <div className={"col-sm-3 col-md-2 " + styles['packages-button']}>
-                        <div className={styles['packages-options']}>
+                    <div className={"col-sm-3 col-md-2 packages-button"}>
+                        <div className="packages-options">
                             <DropdownButton id="package-actions" title="Options" pullRight style={{width: '105px'}}>
                                 <MenuItem onClick={() => changeLocation('/categories')}>
                                         Edit Categories
@@ -69,7 +67,7 @@ export class PackageSearchInput extends React.Component<PackageSearchInputProps,
                             </DropdownButton>
                         </div>
                     </div>
-                    <div className={"col-xs-12 " + styles['packages-show_drafts']} onClick={toggleDrafts}>
+                    <div className="col-xs-12 packages-show_drafts" onClick={toggleDrafts}>
                         <input type="checkbox" checked={showDrafts}/> Show drafts
                     </div>
                 </div>
