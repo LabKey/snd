@@ -787,17 +787,17 @@ public class SNDManager
         return selector.getRowCount() > 0;
     }
 
-    public boolean validProject(Container c, User u, Project project, BatchValidationException errors)
+    public boolean validProject(Container c, User u, Project project, boolean revision, BatchValidationException errors)
     {
-        if (projectRevisionExists(c, u, project.getProjectId(), project.getRevisedRevNum()))
+        if (revision && projectRevisionExists(c, u, project.getProjectId(), project.getRevisedRevNum()))
         {
-            errors.addRowError(new ValidationException("Revision already exists for this project."));
+            errors.addRowError(new ValidationException("Revision " + project.getRevisedRevNum() + " already exists for this project."));
             return false;
         }
 
         if (project.getEndDate() == null && projectNullDateExists(c, u, project.getProjectId()))
         {
-            errors.addRowError(new ValidationException("Only one revision can have no end date. Another revision of this project has a null date."));
+            errors.addRowError(new ValidationException("Only one revision can have no end date. Another revision of this project already has no end date."));
             return false;
         }
 
@@ -810,14 +810,17 @@ public class SNDManager
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
         TableResultSet rows = selector.getResultSet();
 
-        // If creating project for first time revNum is zero and there is no revised revNum
-        boolean validRevision = (project.getRevisionNum() == 0 && project.getRevisedRevNum() == 0);
+        // If creating project for first time revNum is zero and not a revision
+        boolean validRevision = (project.getRevisionNum() == 0 && !revision);
         Date rowEnd = null, rowStart = null;
+        int rowRev;
         boolean overlap;
 
         // Iterate through rows to check date overlap and ensure revision is incremented properly
         for (Map<String, Object> row : rows)
         {
+            rowRev = (int) row.get("RevisionNum");
+
             // Check for overlapping dates
             overlap = false;
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
@@ -837,27 +840,31 @@ public class SNDManager
 
             if (rowStart != null)
             {
-                // Overlap scenarios
-                if (project.getStartDate().after(rowStart) || project.getStartDate().equals(rowStart))
+                // Don't compare to the current row being edited
+                if (revision || rowRev != project.getRevisionNum())
                 {
-                    if (rowEnd == null)
+                    // Overlap scenarios
+                    if (project.getStartDate().after(rowStart) || project.getStartDate().equals(rowStart))
                     {
-                        overlap = true;
+                        if (rowEnd == null)
+                        {
+                            overlap = true;
+                        }
+                        else if (project.getStartDate().before(rowEnd))
+                        {
+                            overlap = true;
+                        }
                     }
-                    else if (project.getStartDate().before(rowEnd))
+                    else if (rowStart.after(project.getStartDate()))
                     {
-                        overlap = true;
-                    }
-                }
-                else if (rowStart.after(project.getStartDate()))
-                {
-                    if (project.getEndDate() == null)
-                    {
-                        overlap = true;
-                    }
-                    else if (rowStart.before(project.getEndDate()))
-                    {
-                        overlap = true;
+                        if (project.getEndDate() == null)
+                        {
+                            overlap = true;
+                        }
+                        else if (rowStart.before(project.getEndDate()))
+                        {
+                            overlap = true;
+                        }
                     }
                 }
             }
@@ -867,7 +874,8 @@ public class SNDManager
                 errors.addRowError(new ValidationException("Overlapping date with revision: " + row.get("RevisionNum")));
 
             // Verify revision numbers are sequential
-            if (project.getRevisedRevNum() == ((Integer)row.get("RevisionNum") + 1))
+            if ((revision && project.getRevisedRevNum() == ((Integer)row.get("RevisionNum") + 1))
+                || project.getRevisionNum() == ((Integer)row.get("RevisionNum") + 1))
                 validRevision = true;
         }
 
@@ -880,7 +888,7 @@ public class SNDManager
 
     public void createProject(Container c, User u, Project project, BatchValidationException errors)
     {
-        if (validProject(c, u, project, errors))
+        if (validProject(c, u, project, false, errors))
         {
             UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -908,7 +916,7 @@ public class SNDManager
 
     public void reviseProject(Container c, User u, Project project, BatchValidationException errors)
     {
-        if (validProject(c, u, project, errors))
+        if (validProject(c, u, project, true, errors))
         {
             UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -931,7 +939,7 @@ public class SNDManager
 
             // Set project objectid and revision
             project.setObjectId(project.getRevisedObjectId());
-            project.setRevisionNum(project.getRevisionNum() + 1);
+            project.setRevisionNum(project.getRevisedRevNum());
 
             TableInfo projectTable = getTableInfo(schema, SNDSchema.PROJECTS_TABLE_NAME);
             QueryUpdateService projectQus = getQueryUpdateService(projectTable);
@@ -958,7 +966,7 @@ public class SNDManager
 
     public void updateProject(Container c, User u, Project project, BatchValidationException errors)
     {
-        if (validProject(c, u, project, errors))
+        if (validProject(c, u, project, false, errors))
         {
             UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 

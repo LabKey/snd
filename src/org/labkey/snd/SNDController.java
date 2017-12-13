@@ -41,8 +41,10 @@ import org.labkey.api.view.ActionURL;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -451,6 +453,8 @@ public class SNDController extends SpringActionController
     public class SaveProjectAction extends ApiAction<SimpleApiJsonForm>
     {
 
+        public static final String dateFormat = "yyyy/MM/dd";
+
         @Override
         public void validateForm(SimpleApiJsonForm form, Errors errors)
         {
@@ -484,13 +488,12 @@ public class SNDController extends SpringActionController
             if (!json.has("isEdit"))
             {
                 json.put("isEdit", false);
-                form.bindProperties(json);
             }
 
             if (!json.has("isRevision"))
             {
                 json.put("isRevision", false);
-                form.bindProperties(json);
+
             }
 
             if (json.getBoolean("isEdit") && json.getBoolean("isRevision"))
@@ -498,7 +501,7 @@ public class SNDController extends SpringActionController
                 errors.reject(ERROR_MSG, "isEdit and isRevision cannot both be true.");
             }
 
-            if (json.has("isEdit") && json.getBoolean("isEdit"))
+            if (json.getBoolean("isEdit"))
             {
                 if (!json.has("id") || json.getInt("id") < 0)
                 {
@@ -513,7 +516,7 @@ public class SNDController extends SpringActionController
                 }
             }
 
-            if (json.has("isRevision") && json.getBoolean("isRevision"))
+            if (json.getBoolean("isRevision"))
             {
                 if (!json.has("id") || json.getInt("id") < 0)
                 {
@@ -527,6 +530,30 @@ public class SNDController extends SpringActionController
                     }
                 }
             }
+
+            if (json.has("endDate") && json.getString("endDate").equals(""))
+            {
+                json.remove("endDate");
+            }
+
+            if (json.has("endDate") && json.getString("endDate") != null)
+            {
+                SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
+                try
+                {
+                    Date start = formatter.parse(json.getString("startDate"));
+                    Date end = formatter.parse(json.getString("endDate"));
+
+                    if (end.before(start))
+                        errors.reject(ERROR_MSG, "End date must not be before start date.");
+                }
+                catch (ParseException e)
+                {
+                    errors.reject(ERROR_MSG, e.getMessage());
+                }
+            }
+
+            form.bindProperties(json);
         }
 
         @Override
@@ -542,9 +569,9 @@ public class SNDController extends SpringActionController
             project.setActive(json.getBoolean("active"));
             project.setRefId(json.getInt("referenceId"));
 
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
+            SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
             project.setStartDate(formatter.parse(json.getString("startDate")));
-            if (json.getString("endDate") != null)
+            if (json.has("endDate") && json.getString("endDate") != null)
                 project.setEndDate(formatter.parse(json.getString("endDate")));
             else
                 project.setEndDate(null);

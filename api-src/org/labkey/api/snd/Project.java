@@ -26,7 +26,7 @@ public class Project
     private Map<GWTPropertyDescriptor, Object> _extraFields = new HashMap<>();
 
     private String _revisedObjectId;
-    private int _revisedRevNum;
+    private Integer _revisedRevNum;
 
     public static final String PROJECT_ID = "ProjectId";
     public static final String PROJECT_DESCRIPTION = "Description";
@@ -101,12 +101,12 @@ public class Project
         _revisedObjectId = revisedObjectId;
     }
 
-    public int getRevisedRevNum()
+    public Integer getRevisedRevNum()
     {
         return _revisedRevNum;
     }
 
-    public void setRevisedRevNum(int revisedRevNum)
+    public void setRevisedRevNum(Integer revisedRevNum)
     {
         _revisedRevNum = revisedRevNum;
     }
