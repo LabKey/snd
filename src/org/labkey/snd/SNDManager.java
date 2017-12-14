@@ -1017,6 +1017,29 @@ public class SNDManager
         return selector.getArrayList(String.class).get(0);
     }
 
+    public List<Map<String, Object>> getProjectItems(Container c, User u, int projectId, int revNum)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT ProjectItemId FROM ");
+        sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTITEMS_TABLE_NAME + " pi");
+        sql.append(" JOIN " + SNDSchema.NAME + "." + SNDSchema.PROJECTS_TABLE_NAME + " pr");
+        sql.append(" ON pi.ParentObjectId = pr.ObjectId");
+        sql.append(" WHERE ProjectId = ? AND RevisionNum = ?");
+        sql.add(projectId).add(revNum);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+        TableResultSet rs = selector.getResultSet();
+
+        List<Map<String, Object>> projectItems = new ArrayList<>();
+        for (Map<String, Object> row : rs)
+        {
+            projectItems.add(row);
+        }
+
+        return projectItems;
+    }
+
+
     public void registerAttributeLookups(Container c, User u, String schema, String table)
     {
         UserSchema userSchema = QueryService.get().getUserSchema(u, c, schema);
