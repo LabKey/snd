@@ -19,16 +19,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.labkey.api.collections.ArrayListMap;
 import org.labkey.api.data.Container;
-import org.labkey.api.data.TableInfo;
-import org.labkey.api.data.TableSelector;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
-import org.labkey.api.gwt.client.model.GWTPropertyValidator;
-import org.labkey.api.query.QueryService;
-import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -66,8 +59,6 @@ public class Package
     public static final String PKG_CATEGORIES = "categories";
     public static final String PKG_ATTRIBUTES = "attributes";
     public static final String PKG_SUBPACKAGES = "subPackages";
-
-    public static final String RANGE_PARTICIPANTID = "ParticipantId";
 
     public Integer getPkgId()
     {
@@ -236,90 +227,6 @@ public class Package
         return rows;
     }
 
-    public JSONArray lookupValuesToJson(Container c, User u, String schema, String query)
-    {
-        JSONArray array = new JSONArray();
-
-        UserSchema userSchema = QueryService.get().getUserSchema(u, c, schema);
-        TableInfo table = userSchema.getTable(query);
-
-        if (null != table)
-        {
-            List<String> pks = table.getPkColumnNames();
-            TableSelector ts = new TableSelector(table);
-            Object value;
-            try(ResultSet rs = ts.getResultSet())
-            {
-                while (rs.next())
-                {
-                    value = rs.getObject(pks.get(0));
-                    array.put(value);
-                }
-            }
-            catch (SQLException e)
-            {
-                throw new RuntimeException(e);
-            }
-        }
-
-        return array;
-    }
-
-    public JSONArray convertPropertyValidatorsToJson(GWTPropertyDescriptor pd)
-    {
-        JSONArray json = new JSONArray();
-        JSONObject obj;
-        for (GWTPropertyValidator pv : pd.getPropertyValidators())
-        {
-            obj = new JSONObject();
-            obj.put("name", pv.getName());
-            obj.put("description", pv.getDescription());
-            obj.put("type", pv.getType().getTypeName());
-            obj.put("expression", pv.getExpression());
-            obj.put("errorMessage", pv.getErrorMessage());
-            json.put(obj);
-        }
-
-        return json;
-    }
-
-    public JSONObject convertPropertyDescriptorToJson(Container c, User u, GWTPropertyDescriptor pd, boolean resolveLookupValues)
-    {
-        JSONObject json = new JSONObject();
-        json.put("name", pd.getName());
-        json.put("required", pd.isRequired());
-        json.put("label", pd.getLabel());
-        json.put("scale", pd.getScale());
-        json.put("format", pd.getFormat());
-        json.put("lookupSchema", pd.getLookupSchema());
-        json.put("lookupQuery", pd.getLookupQuery());
-        if (pd.getLookupSchema() != null && pd.getLookupQuery() != null && pd.getDefaultValue() != null)
-        {
-            json.put("defaultValue", SNDService.get().getDefaultLookupDisplayValue(u, c, pd.getLookupSchema(), pd.getLookupQuery(), pd.getDefaultValue()));
-        }
-        else
-        {
-            json.put("defaultValue", pd.getDefaultValue());
-        }
-        json.put("redactedText", pd.getRedactedText());
-        json.put("validators", convertPropertyValidatorsToJson(pd));
-        if (resolveLookupValues && (pd.getLookupSchema() != null) && (pd.getLookupQuery() != null))
-        {
-            json.put("lookupValues", lookupValuesToJson(c, u, pd.getLookupSchema(), pd.getLookupQuery()));
-        }
-
-        // Not passing in full range URI also need to handle participantid
-        String type = pd.getRangeURI().split("#")[1];
-        String conceptUri = pd.getConceptURI();
-        if (conceptUri != null && conceptUri.contains(RANGE_PARTICIPANTID))
-        {
-            type = RANGE_PARTICIPANTID;
-        }
-        json.put("rangeURI", type);
-
-        return json;
-    }
-
     public JSONObject toJSON(Container c, User u)
     {
         JSONObject json = new JSONObject();
@@ -348,7 +255,7 @@ public class Package
         {
             for (GWTPropertyDescriptor pd : getAttributes())
             {
-                attributes.put(convertPropertyDescriptorToJson(c, u, pd, false));
+                attributes.put(SNDService.get().convertPropertyDescriptorToJson(c, u, pd, false));
             }
             json.put(PKG_ATTRIBUTES, attributes);
         }
@@ -370,7 +277,7 @@ public class Package
             JSONObject jsonExtra;
             for (GWTPropertyDescriptor extraPd : extraFields.keySet())
             {
-                jsonExtra = convertPropertyDescriptorToJson(c, u, extraPd, true);
+                jsonExtra = SNDService.get().convertPropertyDescriptorToJson(c, u, extraPd, true);
                 jsonExtra.put("value", extraFields.get(extraPd));
                 extras.put(jsonExtra);
             }

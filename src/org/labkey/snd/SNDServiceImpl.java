@@ -16,10 +16,18 @@
 package org.labkey.snd;
 
 import org.jetbrains.annotations.Nullable;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.TableInfo;
+import org.labkey.api.data.TableSelector;
+import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.exp.property.Domain;
 import org.labkey.api.exp.property.PropertyService;
+import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.query.BatchValidationException;
+import org.labkey.api.query.QueryService;
+import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.PackageDomainKind;
@@ -29,6 +37,8 @@ import org.labkey.api.snd.SNDService;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.util.UnexpectedException;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -101,6 +111,12 @@ public class SNDServiceImpl implements SNDService
     }
 
     @Override
+    public Project getProject(Container c, User u, int projectId, int revNum)
+    {
+        return SNDManager.get().getProject(c, u, projectId, revNum);
+    }
+
+    @Override
     public void registerAttributeLookup(Container c, User u, String schema, @Nullable String table)
     {
         SNDManager.get().registerAttributeLookups(c, u, schema, table);
@@ -143,5 +159,60 @@ public class SNDServiceImpl implements SNDService
 
         if (errors.hasErrors())
             throw new UnexpectedException(errors);
+    }
+
+    public JSONObject convertPropertyDescriptorToJson(Container c, User u, GWTPropertyDescriptor pd, boolean resolveLookupValues)
+    {
+        JSONObject json = ExperimentService.get().convertPropertyDescriptorToJson(pd);
+
+        if (pd.getLookupSchema() != null && pd.getLookupQuery() != null && pd.getDefaultValue() != null)
+        {
+            json.put("defaultValue", SNDService.get().getDefaultLookupDisplayValue(u, c, pd.getLookupSchema(), pd.getLookupQuery(), pd.getDefaultValue()));
+        }
+
+        if (resolveLookupValues && (pd.getLookupSchema() != null) && (pd.getLookupQuery() != null))
+        {
+            json.put("lookupValues", lookupValuesToJson(c, u, pd.getLookupSchema(), pd.getLookupQuery()));
+        }
+
+        // Not passing in full range URI also need to handle participantid
+        String type = pd.getRangeURI().split("#")[1];
+        String conceptUri = pd.getConceptURI();
+        if (conceptUri != null && conceptUri.contains(SNDManager.RANGE_PARTICIPANTID))
+        {
+            type = SNDManager.RANGE_PARTICIPANTID;
+        }
+        json.put("rangeURI", type);
+
+        return json;
+    }
+
+    public JSONArray lookupValuesToJson(Container c, User u, String schema, String query)
+    {
+        JSONArray array = new JSONArray();
+
+        UserSchema userSchema = QueryService.get().getUserSchema(u, c, schema);
+        TableInfo table = userSchema.getTable(query);
+
+        if (null != table)
+        {
+            List<String> pks = table.getPkColumnNames();
+            TableSelector ts = new TableSelector(table);
+            Object value;
+            try(ResultSet rs = ts.getResultSet())
+            {
+                while (rs.next())
+                {
+                    value = rs.getObject(pks.get(0));
+                    array.put(value);
+                }
+            }
+            catch (SQLException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return array;
     }
 }

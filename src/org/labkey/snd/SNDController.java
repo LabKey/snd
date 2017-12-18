@@ -82,9 +82,9 @@ public class SNDController extends SpringActionController
         private GWTPropertyDescriptor convertJsonToPropertyDescriptor(JSONObject json, BindException errors)
         {
             String rangeUri = json.getString("rangeURI");
-            if (rangeUri.equals(Package.RANGE_PARTICIPANTID))
+            if (rangeUri.equals(SNDManager.RANGE_PARTICIPANTID))
             {
-                json.put("conceptURI", "http://cpas.labkey.com/Study#" + Package.RANGE_PARTICIPANTID);
+                json.put("conceptURI", "http://cpas.labkey.com/Study#" + SNDManager.RANGE_PARTICIPANTID);
                 rangeUri = "string";
             }
             if (rangeUri.equals("string"))
@@ -567,7 +567,7 @@ public class SNDController extends SpringActionController
 
             project.setDescription(json.getString("description"));
             project.setActive(json.getBoolean("active"));
-            project.setRefId(json.getInt("referenceId"));
+            project.setReferenceId(json.getInt("referenceId"));
 
             SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
             project.setStartDate(formatter.parse(json.getString("startDate")));
@@ -613,6 +613,58 @@ public class SNDController extends SpringActionController
                 SNDService.get().saveProject(getViewContext().getContainer(), getUser(), project, json.getBoolean("isRevision"));
 
             return new ApiSimpleResponse();
+        }
+    }
+
+    @RequiresPermission(AdminPermission.class)
+    public class GetProjectAction extends ApiAction<SimpleApiJsonForm>
+    {
+        @Override
+        public void validateForm(SimpleApiJsonForm form, Errors errors)
+        {
+            JSONObject json = form.getJsonObject();
+            if (json == null)
+            {
+                errors.reject(ERROR_MSG, "Missing json parameter.");
+                return;
+            }
+
+            if (!json.has("projectId") || json.get("projectId") == null)
+            {
+                errors.reject(ERROR_MSG, "Missing required json parameter: projectId.");
+            }
+
+            if (!json.has("revisionNum") || json.get("revisionNum") == null)
+            {
+                errors.reject(ERROR_MSG, "Missing required json parameter: revisionNum.");
+            }
+        }
+
+        @Override
+        public ApiResponse execute(SimpleApiJsonForm form, BindException errors) throws Exception
+        {
+            JSONObject json = form.getJsonObject();
+            ApiSimpleResponse response = new ApiSimpleResponse();
+
+            int projectId = json.getInt("projectId");
+            int revisionNum = json.getInt("revisionNum");
+
+            Project project = null;
+
+            // Query on new form to get form metadata
+            if (projectId == -1)
+            {
+                project = new Project();
+                project = SNDManager.get().addExtraFieldsToProject(getViewContext().getContainer(), getUser(), project, null);
+            }
+            else // Existing project
+            {
+                project = SNDService.get().getProject(getViewContext().getContainer(), getUser(), projectId, revisionNum);
+            }
+
+            response.put("json", project.toJSON(getViewContext().getContainer(), getUser()));
+            return response;
+
         }
     }
 }

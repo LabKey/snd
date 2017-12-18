@@ -20,18 +20,22 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.cache.CacheManager;
 import org.labkey.api.cache.StringKeyCache;
+import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DbScope;
 import org.labkey.api.data.SQLFragment;
+import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.SqlExecutor;
 import org.labkey.api.data.SqlSelector;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableResultSet;
+import org.labkey.api.data.TableSelector;
 import org.labkey.api.exp.property.DomainUtil;
 import org.labkey.api.gwt.client.model.GWTDomain;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.DuplicateKeyException;
+import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.InvalidKeyException;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.query.QueryUpdateService;
@@ -42,6 +46,7 @@ import org.labkey.api.security.User;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.snd.Project;
+import org.labkey.api.snd.ProjectItem;
 import org.labkey.api.snd.SNDDomainKind;
 import org.labkey.api.snd.SuperPackage;
 
@@ -63,6 +68,8 @@ public class SNDManager
     private final StringKeyCache<Object> _cache;
 
     private List<TableInfo> _attributeLookups = new ArrayList<>();
+
+    public static final String RANGE_PARTICIPANTID = "ParticipantId";
 
     private SNDManager()
     {
@@ -381,9 +388,9 @@ public class SNDManager
         return selector.getArrayList(Integer.class);
     }
 
-    private List<GWTPropertyDescriptor> getPackageExtraFields(Container c, User u)
+    private List<GWTPropertyDescriptor> getExtraFields(Container c, User u, String tableName)
     {
-        String uri = SNDDomainKind.getDomainURI(SNDSchema.NAME, SNDSchema.PKGS_TABLE_NAME, c, u);
+        String uri = SNDDomainKind.getDomainURI(SNDSchema.NAME, tableName, c, u);
         GWTDomain<GWTPropertyDescriptor> domain = DomainUtil.getDomainDescriptor(u, uri, c);
         if (domain != null)
             return domain.getFields();
@@ -393,7 +400,7 @@ public class SNDManager
 
     public Package addExtraFieldsToPackage(Container c, User u, Package pkg, @Nullable Map<String, Object> row)
     {
-        List<GWTPropertyDescriptor> extraFields = getPackageExtraFields(c, u);
+        List<GWTPropertyDescriptor> extraFields = getExtraFields(c, u, SNDSchema.PKGS_TABLE_NAME);
         Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
         for (GWTPropertyDescriptor extraField : extraFields)
         {
@@ -1039,6 +1046,52 @@ public class SNDManager
         return projectItems;
     }
 
+    public Project addExtraFieldsToProject(Container c, User u, Project project, @Nullable Map<String, Object> row)
+    {
+        List<GWTPropertyDescriptor> extraFields = getExtraFields(c, u, SNDSchema.PROJECTS_TABLE_NAME);
+        Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
+        for (GWTPropertyDescriptor extraField : extraFields)
+        {
+            if (row == null)
+            {
+                extras.put(extraField, "");
+            }
+            else
+            {
+                extras.put(extraField, row.get(extraField.getName()));
+            }
+        }
+        project.setExtraFields(extras);
+
+        return project;
+    }
+
+    public Project getProject(Container c, User u, int projectId, int revNum)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        TableInfo projectsTable = getTableInfo(schema, SNDSchema.PROJECTS_TABLE_NAME);
+
+        // Get from projects table
+        SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("ProjectId"), projectId, CompareType.EQUAL);
+        filter.addCondition(FieldKey.fromParts("RevisionNum"), revNum, CompareType.EQUAL);
+        TableSelector ts = new TableSelector(projectsTable, filter, null);
+
+        // Unique constraint enforces only one project for projectId/revisionNum
+        Project project = ts.getObject(Project.class);
+
+        // Get projectItems
+        SQLFragment sql = new SQLFragment("SELECT * FROM ");
+        sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_FUNCTION_NAME + "(?, ?)").add(projectId).add(revNum);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+        project.setProjectItems(selector.getArrayList(ProjectItem.class));
+
+        // Extensible columns
+        addExtraFieldsToProject(c, u, project, ts.getMap());
+
+        return project;
+
+    }
 
     public void registerAttributeLookups(Container c, User u, String schema, String table)
     {

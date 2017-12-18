@@ -1,5 +1,6 @@
 package org.labkey.api.snd;
 
+import org.json.JSONObject;
 import org.labkey.api.collections.ArrayListMap;
 import org.labkey.api.data.Container;
 
@@ -11,12 +12,13 @@ public class ProjectItem
     int _projectItemId;
     int _superPkgId;
     String _parentObjectId;
+    String _container;
 
-    public static final String PROJECTITEM_ID = "ProjectItemId";
-    public static final String PROJECTITEM_PARENTOBJECTID = "ParentObjectId";
-    public static final String PROJECTITEM_ACTIVE = "Active";
-    public static final String PROJECTITEM_CONTAINER = "Container";
-    public static final String PROJECTITEM_SUPERPKGID = "SuperPkgId";
+    public static final String PROJECTITEM_ID = "projectItemId";
+    public static final String PROJECTITEM_PARENTOBJECTID = "parentObjectId";
+    public static final String PROJECTITEM_ACTIVE = "active";
+    public static final String PROJECTITEM_CONTAINER = "container";
+    public static final String PROJECTITEM_SUPERPKGID = "superPkgId";
 
     public int getProjectItemId()
     {
@@ -58,6 +60,16 @@ public class ProjectItem
         _parentObjectId = parentObjectId;
     }
 
+    public String getContainer()
+    {
+        return _container;
+    }
+
+    public void setContainer(String container)
+    {
+        _container = container;
+    }
+
     public Map<String, Object> getRow(Container c)
     {
         Map<String, Object> projectItemValues = new ArrayListMap<>();
@@ -68,5 +80,15 @@ public class ProjectItem
         projectItemValues.put(PROJECTITEM_CONTAINER, c);
 
         return projectItemValues;
+    }
+
+    public JSONObject toJSON()
+    {
+        JSONObject json = new JSONObject();
+        json.put(PROJECTITEM_ID, getProjectItemId());
+        json.put(PROJECTITEM_ACTIVE, isActive());
+        json.put(PROJECTITEM_SUPERPKGID, getSuperPkgId());
+
+        return json;
     }
 }
