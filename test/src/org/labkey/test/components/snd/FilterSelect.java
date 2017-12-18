@@ -129,7 +129,7 @@ public class FilterSelect extends WebDriverComponent<FilterSelect.ElementCache>
     {
         Input input = Input(Locator.tagWithName("input", "query-search-input"), getDriver())
                 .findWhenNeeded(this);
-        WebElement toggle = Locator.tagWithClassContaining("i", "SearchInput__searchinput-caret")
+        WebElement toggle = Locator.tagWithClassContaining("i", "searchinput-caret")
                 .findWhenNeeded(this);
 
         WebElement option(String text)

@@ -212,7 +212,7 @@ public class EditPackagePage extends LabKeyPage<EditPackagePage.ElementCache>
         WebElement narrativeTextArea = Locator.tagWithClass("textarea", "form-control")
                 .findWhenNeeded(packageEditPanel);
         WebElement parseAttributesButton = Locator.tagWithClass("button", "btn btn-default")
-                .withChild((Locator.tagWithClassContaining("i", "PackageForm__attributes__parse-button")))
+                .withChild((Locator.tagWithClassContaining("i", "attributes__parse-button")))
                 .refindWhenNeeded(getDriver());
 
         // container for narrative attributes grid
@@ -221,7 +221,7 @@ public class EditPackagePage extends LabKeyPage<EditPackagePage.ElementCache>
                 .findWhenNeeded(panelBody);
 
         AttributesGrid grid = new AttributesGrid(
-                Locator.tagWithClassContaining("div", "PackageForm__margin")
+                Locator.tagWithClassContaining("div", "margin")
                         .withChild(Locator.tagWithText("strong", "Attributes"))
                         .followingSibling("div").withDescendant(Locator.tag("table"))
                         .refindWhenNeeded(getDriver()).withTimeout(4000),
@@ -243,10 +243,10 @@ public class EditPackagePage extends LabKeyPage<EditPackagePage.ElementCache>
         WebElement primitivesOnlyCheckBox = Locator.tagWithAttribute("input", "type", "checkbox")
                 .findWhenNeeded(querySearchContainer).withTimeout(4000);
         // TODO: Assigned Packages summary  (remove package)
-        WebElement assignedPackageContainer = Locator.tagWithClassContaining("div", "PackageForm")
+        WebElement assignedPackageContainer = Locator.tagWithClassContaining("div", "row")
                 .withChild(Locator.tagWithClass("label", "control-label").withText("Assigned Packages"))
                 .findWhenNeeded(getDriver()).withTimeout(4000);
-        WebElement selectedPackageNarrativeViewPane = Locator.tagWithClassContaining("div", "PackageForm")
+        WebElement selectedPackageNarrativeViewPane = Locator.tagWithClassContaining("div", "row")
                 .withChild(Locator.tagWithClass("label", "control-label").withText("Assigned Packages")).followingSibling("div")
                 .findWhenNeeded(getDriver()).withTimeout(4000);
 

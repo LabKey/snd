@@ -515,6 +515,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
             "           'ProjectId': " + TEST_PKG_ID + ",                       \n" +
             "           'RevisionNum': 1,                                       \n" +
             "           'ReferenceId': 1,                                       \n" +
+            "           'Active': true,                                         \n" +
             "           'StartDate': new Date(),                                \n" +
             "		    'Description': 'Description for package-' + " + TEST_PKG_ID + ",\n" +
             "           'ObjectId': '657b0012-c94e-4cfb-b4a7-499a57c00900'      \n" +

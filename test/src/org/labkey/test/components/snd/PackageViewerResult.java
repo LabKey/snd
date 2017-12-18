@@ -78,13 +78,13 @@ public class PackageViewerResult extends WebDriverComponent<PackageViewerResult.
 
     protected class ElementCache extends WebDriverComponent.ElementCache
     {
-        WebElement viewLink = Locator.tagWithClassContaining("a", "PackageRow__package-row_icon")
+        WebElement viewLink = Locator.tagWithClassContaining("a", "package-row_icon")
                 .withChild(Locator.tagWithClass("i", "fa fa-eye"))
                 .findWhenNeeded(getComponentElement());
-        WebElement editLink = Locator.tagWithClassContaining("a", "PackageRow__package-row_icon")
+        WebElement editLink = Locator.tagWithClassContaining("a", "package-row_icon")
                 .withChild(Locator.tagWithClass("i", "fa fa-pencil"))
                 .findWhenNeeded(getComponentElement());
-        WebElement cloneLink = Locator.tagWithClassContaining("a", "PackageRow__package-row_icon")
+        WebElement cloneLink = Locator.tagWithClassContaining("a", "package-row_icon")
                 .withChild(Locator.tagWithClass("i", "fa fa-files-o"))
                 .findWhenNeeded(getComponentElement());
     }
@@ -101,13 +101,13 @@ public class PackageViewerResult extends WebDriverComponent<PackageViewerResult.
 
         public PackageViewerResultFinder containingText(String partialText)
         {
-            _locator = Locator.tagWithClassContaining("div", "PackageRow__package-row").withDescendant(
+            _locator = Locator.tagWithClassContaining("div", "package-row").withDescendant(
                     Locator.tagContainingText("div", partialText));
             return this;
         }
         public PackageViewerResultFinder withText(String fullText)
         {
-            _locator = Locator.tagWithClassContaining("div", "PackageRow__package-row").withDescendant(
+            _locator = Locator.tagWithClassContaining("div", "package-row").withDescendant(
                     Locator.tagWithText("div", fullText));
             return this;
         }

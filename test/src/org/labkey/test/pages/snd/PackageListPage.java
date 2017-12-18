@@ -94,7 +94,7 @@ public class PackageListPage extends LabKeyPage<PackageListPage.ElementCache>
                 .refindWhenNeeded(container);
         WebElement newPackageButton = Locator.button("New Package").findWhenNeeded(searchHeader)
                 .withTimeout(WAIT_FOR_JAVASCRIPT);
-        Locator showDraftsLoc = Locator.tagWithClassContaining("div", "PackageSearch__packages-show_drafts")
+        Locator showDraftsLoc = Locator.tagWithClassContaining("div", "packages-show_drafts")
                 .withText("Show drafts")
                 .child("input");
         Input searchFilter = Input.Input(Locator.input("packageSearch"), getDriver())

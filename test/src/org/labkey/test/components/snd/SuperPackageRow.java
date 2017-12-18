@@ -116,7 +116,7 @@ public class SuperPackageRow extends WebDriverComponent<SuperPackageRow.ElementC
     public static class Locators
     {
         public static Locator.XPathLocator desc = Locator.tagWithClass("div", "pull-left");
-        public static Locator.XPathLocator body = Locator.tagWithClassContaining("div", "SuperPackageRow__superpackage-row___")
+        public static Locator.XPathLocator body = Locator.tagWithClassContaining("div", "superpackage-row")
                 .withChild(desc);
     }
 
