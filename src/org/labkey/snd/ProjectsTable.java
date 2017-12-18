@@ -1,9 +1,16 @@
 package org.labkey.snd;
 
 import org.jetbrains.annotations.NotNull;
+import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.JdbcType;
+import org.labkey.api.data.SQLFragment;
+import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.data.TableSelector;
 import org.labkey.api.query.BatchValidationException;
+import org.labkey.api.query.ExprColumn;
+import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.InvalidKeyException;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.query.QueryUpdateService;
@@ -12,10 +19,13 @@ import org.labkey.api.query.SimpleQueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
+import org.labkey.api.snd.Project;
 
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class ProjectsTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
 {
@@ -30,6 +40,37 @@ public class ProjectsTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
     public ProjectsTable(SNDUserSchema schema, TableInfo table)
     {
         super(schema, table);
+    }
+
+    @Override
+    public SimpleUserSchema.SimpleTable init()
+    {
+        super.init();
+
+        SQLFragment hasEventSql = new SQLFragment();
+        hasEventSql.append("(CASE WHEN EXISTS (SELECT pr.ProjectId FROM ");
+        hasEventSql.append(SNDSchema.getInstance().getTableInfoProjects(), "pr");
+        hasEventSql.append(" JOIN ");
+        hasEventSql.append(SNDSchema.getInstance().getTableInfoEvents(), "ev");
+        hasEventSql.append(" ON pr.ObjectId = ev.ParentObjectId");
+        hasEventSql.append(" WHERE " + ExprColumn.STR_TABLE_ALIAS + ".ProjectId = pr.ProjectId AND " + ExprColumn.STR_TABLE_ALIAS + ".RevisionNum = pr.RevisionNum)");
+        hasEventSql.append(" THEN 'true' ELSE 'false' END)");
+        ExprColumn hasDataCol = new ExprColumn(this, "HasEvent", hasEventSql, JdbcType.BOOLEAN);
+        addColumn(hasDataCol);
+
+        return this;
+    }
+
+    public boolean isProjectInUse(int projectId, int revNum)
+    {
+        Set<String> cols = new HashSet<>();
+        cols.add("HasEvent");
+        SimpleFilter filter = new SimpleFilter(FieldKey.fromString("ProjectId"), projectId, CompareType.EQUAL);
+        filter.addCondition(FieldKey.fromString("RevisionNum"), revNum, CompareType.EQUAL);
+        TableSelector ts = new TableSelector(this, cols, filter, null);
+        Map<String, Object> ret = ts.getMap();
+
+        return Boolean.parseBoolean((String) ret.get("HasEvent"));
     }
 
     @Override
@@ -48,12 +89,14 @@ public class ProjectsTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
         @Override
         protected Map<String, Object> deleteRow(User user, Container container, Map<String, Object> oldRowMap) throws QueryUpdateServiceException, SQLException, InvalidKeyException
         {
+            int projectId = (Integer) oldRowMap.get("ProjectId");
+            int revNum = (Integer) oldRowMap.get("RevisionNum");
+            if (isProjectInUse(projectId, revNum))
+                throw new QueryUpdateServiceException("Project in use, cannot delete.");
+
             UserSchema schema = QueryService.get().getUserSchema(user, container, SNDSchema.NAME);
             TableInfo projectItemsTable = getTableInfo(schema, SNDSchema.PROJECTITEMS_TABLE_NAME);
             QueryUpdateService projectItemsQus = getQueryUpdateService(projectItemsTable);
-
-            int projectId = (Integer) oldRowMap.get("ProjectId");
-            int revNum = (Integer) oldRowMap.get("RevisionNum");
 
             List<Map<String, Object>> rows = SNDManager.get().getProjectItems(container, user, projectId, revNum);
             try
@@ -92,12 +135,12 @@ public class ProjectsTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
         {
             Map<String, Object> row = super.getRow(user, container, keys);
 
-//            Set<String> cols = new HashSet<>();
-//            cols.add("HasEvent");
-//            cols.add("HasProject");
-//            TableSelector ts = new TableSelector(this.getQueryTable(), cols, new SimpleFilter(FieldKey.fromString("PkgId"), row.get("PkgId")), null);
-//            row.put(Package.PKG_HASEVENT, Boolean.parseBoolean((String) ts.getMap().get(Package.PKG_HASEVENT)));
-//            row.put(Package.PKG_HASPROJECT, Boolean.parseBoolean((String) ts.getMap().get(Package.PKG_HASPROJECT)));
+            Set<String> cols = new HashSet<>();
+            cols.add("HasEvent");
+            SimpleFilter filter = new SimpleFilter(FieldKey.fromString("ProjectId"), row.get("ProjectId"), CompareType.EQUAL);
+            filter.addCondition(FieldKey.fromString("RevisionNum"), row.get("RevisionNum"), CompareType.EQUAL);
+            TableSelector ts = new TableSelector(this.getQueryTable(), cols, filter, null);
+            row.put(Project.PROJECT_HASEVENT, Boolean.parseBoolean((String) ts.getMap().get(Project.PROJECT_HASEVENT)));
 
             return row;
         }

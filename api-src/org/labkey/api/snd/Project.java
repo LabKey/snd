@@ -42,6 +42,8 @@ public class Project
     public static final String PROJECT_REFID = "referenceId";
     public static final String PROJECT_ITEMS = "projectItems";
 
+    public static final String PROJECT_HASEVENT = "hasEvent";
+
     public Project (int id, Integer revNum, boolean edit, boolean revision, Container c)
     {
         _projectId = ((edit || revision) ? id : SNDSequencer.PROJECTID.ensureId(c, id));
