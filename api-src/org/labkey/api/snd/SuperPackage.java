@@ -173,7 +173,7 @@ public class SuperPackage
         return superPkgValues;
     }
 
-    public JSONObject toJson()
+    public JSONObject toJSON()
     {
         JSONObject json = new JSONObject();
         json.put(SUPERPKG_ID, getSuperPkgId());
@@ -188,7 +188,7 @@ public class SuperPackage
         {
             for (SuperPackage subPackage : getChildPackages())
             {
-                subPackages.put(subPackage.toJson());
+                subPackages.put(subPackage.toJSON());
             }
         }
 

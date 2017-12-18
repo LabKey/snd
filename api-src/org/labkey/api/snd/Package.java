@@ -265,7 +265,7 @@ public class Package
         {
             for (SuperPackage subPackage : getSubpackages())
             {
-                subPackages.put(subPackage.toJson());
+                subPackages.put(subPackage.toJSON());
             }
             json.put(PKG_SUBPACKAGES, subPackages);
         }

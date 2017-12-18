@@ -436,6 +436,7 @@ public class SNDManager
     }
 
     // return all super package IDs which correspond to this package ID
+    @Nullable
     public static List<Integer> getSuperPkgIdsForPkg(Container c, User u, Integer packageId)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -452,6 +453,7 @@ public class SNDManager
     }
 
     // return the top-level super package which corresponds to this package ID
+    @Nullable
     public static SuperPackage getTopLevelSuperPkgForPkg(Container c, User u, Integer packageId)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -469,6 +471,7 @@ public class SNDManager
     }
 
     // return the super packages which correspond to these super package IDs
+    @Nullable
     public static List<SuperPackage> getSuperPkgs(Container c, User u, List<Integer> superPackageIds)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -487,6 +490,7 @@ public class SNDManager
     }
 
     // convert all passed-in super packages to distinct top-level super packages
+    @Nullable
     public static List<SuperPackage> convertToTopLevelSuperPkgs(Container c, User u, List<Integer> superPackageIds)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -509,6 +513,7 @@ public class SNDManager
     }
 
     // filters list of superPackageIds down to super packages which have no parent
+    @Nullable
     public static List<SuperPackage> filterTopLevelSuperPkgs(Container c, User u, List<Integer> superPackageIds)
     {
         if ((superPackageIds == null) || (superPackageIds.size() == 0))
@@ -530,6 +535,7 @@ public class SNDManager
     }
 
     // only gets IDs for all child super packages that point to a certain super package ID
+    @Nullable
     public static List<SuperPackage> getChildSuperPkgs(Container c, User u, Integer parentSuperPackageId)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -546,6 +552,7 @@ public class SNDManager
     }
 
     // filters list of superPackageIds down to super packages that have parentSuperPackageId as a parent
+    @Nullable
     public static List<SuperPackage> filterChildSuperPkgs(Container c, User u, List<Integer> superPackageIds, Integer parentSuperPackageId)
     {
         if ((superPackageIds == null) || (superPackageIds.size() == 0))
@@ -567,6 +574,7 @@ public class SNDManager
     }
 
     // return list of super package IDs that should be deleted based on passed-in superPackageIds and parentSuperPackage ID
+    @Nullable
     public static List<Integer> getDeletedChildSuperPkgs(Container c, User u, List<SuperPackage> superPackages, Integer parentSuperPackageId)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -627,6 +635,27 @@ public class SNDManager
 
         selector = new SqlSelector(schema.getDbSchema(), sql);
         return selector.getRowCount() > 0;
+    }
+
+    @Nullable
+    private SuperPackage getFullSuperPackage(Container c, User u, int superPkgId)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.PkgId, sp.SortOrder, pkg.PkgId, pkg.Description, pkg.Active, pkg.Narrative, pkg.Repeatable FROM ");
+        sql.append(SNDSchema.NAME + "." + SNDSchema.SUPERPKGS_TABLE_NAME + " sp");
+        sql.append(" JOIN " + SNDSchema.NAME + "." + SNDSchema.PKGS_TABLE_NAME + " pkg");
+        sql.append(" ON sp.PkgId = pkg.PkgId");
+        sql.append(" WHERE sp.SuperPkgId = ?");
+        sql.add(superPkgId);
+
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+        SuperPackage superPackage = selector.getObject(SuperPackage.class);
+
+        if (superPackage != null)
+            superPackage.setChildPackages(getAllChildSuperPkgs(c, u, superPackage.getPkgId()));
+
+        return superPackage;
     }
 
     // recursively get all children for the super package which corresponds to pkgId
@@ -1084,7 +1113,19 @@ public class SNDManager
         SQLFragment sql = new SQLFragment("SELECT * FROM ");
         sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_FUNCTION_NAME + "(?, ?)").add(projectId).add(revNum);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
-        project.setProjectItems(selector.getArrayList(ProjectItem.class));
+
+        List<ProjectItem> pItems = new ArrayList<>();
+        SuperPackage superPackage;
+        for (ProjectItem projectItem : selector.getArrayList(ProjectItem.class))
+        {
+            superPackage = getFullSuperPackage(c, u, projectItem.getSuperPkgId());
+            if (superPackage != null)
+            {
+                projectItem.setSuperPackage(superPackage);
+                pItems.add(projectItem);
+            }
+        }
+        project.setProjectItems(pItems);
 
         // Extensible columns
         addExtraFieldsToProject(c, u, project, ts.getMap());

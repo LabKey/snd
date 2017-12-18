@@ -13,12 +13,14 @@ public class ProjectItem
     int _superPkgId;
     String _parentObjectId;
     String _container;
+    SuperPackage _superPackage;
 
     public static final String PROJECTITEM_ID = "projectItemId";
     public static final String PROJECTITEM_PARENTOBJECTID = "parentObjectId";
     public static final String PROJECTITEM_ACTIVE = "active";
     public static final String PROJECTITEM_CONTAINER = "container";
     public static final String PROJECTITEM_SUPERPKGID = "superPkgId";
+    public static final String PROJECTITEM_SUPERPKG = "superPkg";
 
     public int getProjectItemId()
     {
@@ -70,6 +72,16 @@ public class ProjectItem
         _container = container;
     }
 
+    public SuperPackage getSuperPackage()
+    {
+        return _superPackage;
+    }
+
+    public void setSuperPackage(SuperPackage superPackage)
+    {
+        _superPackage = superPackage;
+    }
+
     public Map<String, Object> getRow(Container c)
     {
         Map<String, Object> projectItemValues = new ArrayListMap<>();
@@ -87,7 +99,7 @@ public class ProjectItem
         JSONObject json = new JSONObject();
         json.put(PROJECTITEM_ID, getProjectItemId());
         json.put(PROJECTITEM_ACTIVE, isActive());
-        json.put(PROJECTITEM_SUPERPKGID, getSuperPkgId());
+        json.put(PROJECTITEM_SUPERPKG, getSuperPackage().toJSON());
 
         return json;
     }
