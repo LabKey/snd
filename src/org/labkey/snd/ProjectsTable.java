@@ -1,6 +1,7 @@
 package org.labkey.snd;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.JdbcType;
@@ -129,21 +130,5 @@ public class ProjectsTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
 
             return qus;
         }
-
-        @Override
-        protected Map<String, Object> getRow(User user, Container container, Map<String, Object> keys) throws InvalidKeyException, QueryUpdateServiceException, SQLException
-        {
-            Map<String, Object> row = super.getRow(user, container, keys);
-
-            Set<String> cols = new HashSet<>();
-            cols.add("HasEvent");
-            SimpleFilter filter = new SimpleFilter(FieldKey.fromString("ProjectId"), row.get("ProjectId"), CompareType.EQUAL);
-            filter.addCondition(FieldKey.fromString("RevisionNum"), row.get("RevisionNum"), CompareType.EQUAL);
-            TableSelector ts = new TableSelector(this.getQueryTable(), cols, filter, null);
-            row.put(Project.PROJECT_HASEVENT, Boolean.parseBoolean((String) ts.getMap().get(Project.PROJECT_HASEVENT)));
-
-            return row;
-        }
-
     }
 }

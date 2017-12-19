@@ -823,20 +823,129 @@ public class SNDManager
         return selector.getRowCount() > 0;
     }
 
-    public boolean validProject(Container c, User u, Project project, boolean revision, BatchValidationException errors)
+    private boolean hasOverlap(Project project, Map<String, Object> row, boolean revision, BatchValidationException errors)
     {
-        if (revision && projectRevisionExists(c, u, project.getProjectId(), project.getRevisedRevNum()))
+        int rowRev = (int) row.get("RevisionNum");
+        int projectId = (int) row.get("ProjectId");
+        boolean overlap = false;
+        Date rowStart = null, rowEnd = null;
+
+        // Check for overlapping dates
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        try
         {
-            errors.addRowError(new ValidationException("Revision " + project.getRevisedRevNum() + " already exists for this project."));
-            return false;
+            rowStart = formatter.parse((String) row.get("StartDate"));
+            rowEnd = null;
+            if (row.get("EndDate") != null)
+            {
+                rowEnd = formatter.parse((String) row.get("EndDate"));
+            }
+        }
+        catch (ParseException e)
+        {
+            errors.addRowError(new ValidationException("Unable to parse date. " + e.getMessage()));
         }
 
-        if (project.getEndDate() == null && projectNullDateExists(c, u, project.getProjectId()))
+        if (rowStart != null)
         {
-            errors.addRowError(new ValidationException("Only one revision can have no end date. Another revision of this project already has no end date."));
-            return false;
+            // Don't compare to the current row being edited
+            if (revision || rowRev != project.getRevisionNum() || projectId != project.getProjectId())
+            {
+                // Overlap scenarios
+                if (project.getStartDate().after(rowStart) || project.getStartDate().equals(rowStart))
+                {
+                    if (rowEnd == null)
+                    {
+                        overlap = true;
+                    }
+                    else if (project.getStartDate().before(rowEnd))
+                    {
+                        overlap = true;
+                    }
+                }
+                else if (rowStart.after(project.getStartDate()))
+                {
+                    if (project.getEndDate() == null)
+                    {
+                        overlap = true;
+                    }
+                    else if (rowStart.before(project.getEndDate()))
+                    {
+                        overlap = true;
+                    }
+                }
+            }
         }
 
+        return overlap;
+    }
+
+    private boolean isValidReferenceId(Container c, User u, Project project, boolean revision, BatchValidationException errors)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        TableInfo projectTable = getTableInfo(schema, SNDSchema.PROJECTS_TABLE_NAME);
+        boolean valid = true;
+        List<Map<String, Object>> rows;
+        TableResultSet rs;
+        SimpleFilter filter;
+
+        // First ensure if the referenceId is being updated that it is not an in use project
+        if (!revision)
+        {
+            rows = new ArrayList<>();
+
+            filter = new SimpleFilter(FieldKey.fromString("ProjectId"), project.getProjectId(), CompareType.EQUAL);
+            filter.addCondition(FieldKey.fromString("RevisionNum"), project.getRevisionNum(), CompareType.EQUAL);
+            TableSelector ts = new TableSelector(projectTable, filter, null);
+            rs = ts.getResultSet();
+            for (Map<String, Object> r : rs)
+            {
+                rows.add(r);
+            }
+
+            if (rows.size() > 0)
+            {
+                Map<String, Object> row = rows.get(0);
+                if ((Integer) row.get("ReferenceId") != project.getReferenceId() && (Boolean) row.get("HasEvent"))
+                {
+                    errors.addRowError(new ValidationException("This is an in use project. Reference Id cannot be changed."));
+                    valid = false;
+                }
+            }
+        }
+
+        // Second ensure project does not overlap other projects with same referenceId
+        if (valid)
+        {
+            rows = new ArrayList<>();
+            filter = new SimpleFilter(FieldKey.fromString("ReferenceId"), project.getReferenceId(), CompareType.EQUAL);
+            TableSelector ts = new TableSelector(projectTable, filter, null);
+            rs = ts.getResultSet();
+            for (Map<String, Object> r : rs)
+            {
+                rows.add(r);
+            }
+
+            if (rows.size() > 0)
+            {
+                for (Map<String,Object> row : rows)
+                {
+                    // Check for overlapping dates
+                    if (hasOverlap(project, row, revision, errors))
+                    {
+                        errors.addRowError(new ValidationException("This project has an overlapping use of Reference Id with Project Id "
+                                + row.get("ProjectId") + ", revision " + row.get("RevisionNum")));
+                        valid = false;
+                        break;
+                    }
+                }
+            }
+        }
+        return valid;
+    }
+
+    private boolean isValidRevision(Container c, User u, Project project, boolean revision, BatchValidationException errors)
+    {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
         SQLFragment sql = new SQLFragment("SELECT RevisionNum, StartDate, EndDate FROM ");
@@ -847,76 +956,44 @@ public class SNDManager
         TableResultSet rows = selector.getResultSet();
 
         // If creating project for first time revNum is zero and not a revision
-        boolean validRevision = (project.getRevisionNum() == 0 && !revision);
-        Date rowEnd = null, rowStart = null;
-        int rowRev;
-        boolean overlap;
+        boolean validRevision = (project.getRevisionNum() == 0 && !revision), overlap = false;
 
         // Iterate through rows to check date overlap and ensure revision is incremented properly
         for (Map<String, Object> row : rows)
         {
-            rowRev = (int) row.get("RevisionNum");
-
             // Check for overlapping dates
-            overlap = false;
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-            try
+            if (!overlap && hasOverlap(project, row, revision, errors))
             {
-                rowStart = formatter.parse((String) row.get("StartDate"));
-                rowEnd = null;
-                if (row.get("EndDate") != null)
-                {
-                    rowEnd = formatter.parse((String) row.get("EndDate"));
-                }
-            }
-            catch (ParseException e)
-            {
-                errors.addRowError(new ValidationException("Unable to parse date: " + e.getMessage()));
-            }
-
-            if (rowStart != null)
-            {
-                // Don't compare to the current row being edited
-                if (revision || rowRev != project.getRevisionNum())
-                {
-                    // Overlap scenarios
-                    if (project.getStartDate().after(rowStart) || project.getStartDate().equals(rowStart))
-                    {
-                        if (rowEnd == null)
-                        {
-                            overlap = true;
-                        }
-                        else if (project.getStartDate().before(rowEnd))
-                        {
-                            overlap = true;
-                        }
-                    }
-                    else if (rowStart.after(project.getStartDate()))
-                    {
-                        if (project.getEndDate() == null)
-                        {
-                            overlap = true;
-                        }
-                        else if (rowStart.before(project.getEndDate()))
-                        {
-                            overlap = true;
-                        }
-                    }
-                }
-            }
-
-            // Date overlap found
-            if (overlap)
                 errors.addRowError(new ValidationException("Overlapping date with revision: " + row.get("RevisionNum")));
+                overlap = true;
+            }
 
             // Verify revision numbers are sequential
             if ((revision && project.getRevisedRevNum() == ((Integer)row.get("RevisionNum") + 1))
-                || project.getRevisionNum() == ((Integer)row.get("RevisionNum") + 1))
+                    || project.getRevisionNum() == ((Integer)row.get("RevisionNum") + 1))
                 validRevision = true;
         }
 
         if (!validRevision)
             errors.addRowError(new ValidationException("Invalid revision number."));
+
+        return validRevision;
+    }
+
+    public boolean validProject(Container c, User u, Project project, boolean revision, BatchValidationException errors)
+    {
+        if (revision && projectRevisionExists(c, u, project.getProjectId(), project.getRevisedRevNum()))
+        {
+            errors.addRowError(new ValidationException("Revision " + project.getRevisedRevNum() + " already exists for this project."));
+        }
+
+        if (project.getEndDate() == null && projectNullDateExists(c, u, project.getProjectId()))
+        {
+            errors.addRowError(new ValidationException("Only one revision can have no end date. Another revision of this project already has no end date."));
+        }
+
+        isValidRevision(c, u, project, revision, errors);
+        isValidReferenceId(c, u, project, revision, errors);
 
         return !errors.hasErrors();
 
