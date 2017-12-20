@@ -561,7 +561,7 @@ public class SNDController extends SpringActionController
         {
             JSONObject json = form.getJsonObject();
 
-            int id = json.optInt("id", -1);
+            int id = json.optInt("projectId", -1);
             Project project = new Project(id, json.optInt("revNum", 0), json.getBoolean("isEdit"),
                     json.getBoolean("isRevision"), getViewContext().getContainer());
 

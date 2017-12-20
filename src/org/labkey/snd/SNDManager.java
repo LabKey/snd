@@ -948,7 +948,7 @@ public class SNDManager
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
-        SQLFragment sql = new SQLFragment("SELECT RevisionNum, StartDate, EndDate FROM ");
+        SQLFragment sql = new SQLFragment("SELECT ProjectId, RevisionNum, StartDate, EndDate FROM ");
         sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_TABLE_NAME);
         sql.append(" WHERE ProjectId = ?");
         sql.add(project.getProjectId());

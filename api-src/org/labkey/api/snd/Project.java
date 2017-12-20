@@ -24,7 +24,7 @@ public class Project
     private String _description;
     private boolean _active;
     private int _referenceId;
-    private List<ProjectItem> _projectItems;
+    private List<ProjectItem> _projectItems = new ArrayList<>();
     private Map<GWTPropertyDescriptor, Object> _extraFields = new HashMap<>();
 
     private String _container;
