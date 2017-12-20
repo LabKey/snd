@@ -933,7 +933,7 @@ public class SNDManager
                     // Check for overlapping dates
                     if (hasOverlap(project, row, revision, errors))
                     {
-                        errors.addRowError(new ValidationException("This project has an overlapping use of Reference Id with Project Id "
+                        errors.addRowError(new ValidationException("Overlapping use of Reference Id with Project Id "
                                 + row.get("ProjectId") + ", revision " + row.get("RevisionNum")));
                         valid = false;
                         break;
@@ -984,7 +984,7 @@ public class SNDManager
     {
         if (revision && projectRevisionExists(c, u, project.getProjectId(), project.getRevisedRevNum()))
         {
-            errors.addRowError(new ValidationException("Revision " + project.getRevisedRevNum() + " already exists for this project."));
+            errors.addRowError(new ValidationException("Revision " + project.getRevisedRevNum() + " already exists for this project. Can only make revision from latest revision."));
         }
 
         if (project.getEndDate() == null && projectNullDateExists(c, u, project.getProjectId()))

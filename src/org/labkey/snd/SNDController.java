@@ -503,13 +503,13 @@ public class SNDController extends SpringActionController
 
             if (json.getBoolean("isEdit"))
             {
-                if (!json.has("id") || json.getInt("id") < 0)
+                if (!json.has("projectId") || json.getInt("projectId") < 0)
                 {
                     errors.reject(ERROR_MSG, "Must provide valid project id when isEdit is true.");
                 }
                 else
                 {
-                    if (!json.has("revNum") || json.getInt("id") < 0)
+                    if (!json.has("revisionNum") || json.getInt("projectId") < 0)
                     {
                         errors.reject(ERROR_MSG, "Must provide valid revision number when isEdit is true.");
                     }
@@ -518,13 +518,13 @@ public class SNDController extends SpringActionController
 
             if (json.getBoolean("isRevision"))
             {
-                if (!json.has("id") || json.getInt("id") < 0)
+                if (!json.has("projectId") || json.getInt("projectId") < 0)
                 {
                     errors.reject(ERROR_MSG, "Must provide valid project id when isRevision is true.");
                 }
                 else
                 {
-                    if (!json.has("revNum") || json.getInt("id") < 0)
+                    if (!json.has("revisionNum") || json.getInt("projectId") < 0)
                     {
                         errors.reject(ERROR_MSG, "Must provide valid revision number when isRevision is true.");
                     }
@@ -562,7 +562,7 @@ public class SNDController extends SpringActionController
             JSONObject json = form.getJsonObject();
 
             int id = json.optInt("projectId", -1);
-            Project project = new Project(id, json.optInt("revNum", 0), json.getBoolean("isEdit"),
+            Project project = new Project(id, json.optInt("revisionNum", 0), json.getBoolean("isEdit"),
                     json.getBoolean("isRevision"), getViewContext().getContainer());
 
             project.setDescription(json.getString("description"));

@@ -235,7 +235,7 @@ public class Project
         if (getEndDate() != null)
             json.put(PROJECT_ENDDATE, getEndDate());
 
-        if (getProjectItems() != null)
+        if (getProjectItems().size() > 0)
         {
             JSONArray jsonProjectItems = new JSONArray();
             for (ProjectItem projectItem : getProjectItems())
@@ -247,7 +247,7 @@ public class Project
 
         JSONArray extras = new JSONArray();
         Map<GWTPropertyDescriptor, Object> extraFields = getExtraFields();
-        if(extraFields != null)
+        if(extraFields.size() > 0)
         {
             JSONObject jsonExtra;
             for (GWTPropertyDescriptor extraPd : extraFields.keySet())
