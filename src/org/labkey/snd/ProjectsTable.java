@@ -92,8 +92,14 @@ public class ProjectsTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
         {
             int projectId = (Integer) oldRowMap.get("ProjectId");
             int revNum = (Integer) oldRowMap.get("RevisionNum");
+
+            // Cannot delete in use project
             if (isProjectInUse(projectId, revNum))
                 throw new QueryUpdateServiceException("Project in use, cannot delete.");
+
+            // Can only delete the latest project
+            if (!SNDManager.get().projectRevisionIsLatest(container, user, projectId, revNum))
+                throw new QueryUpdateServiceException("Project is not the latest project, cannot delete.");
 
             UserSchema schema = QueryService.get().getUserSchema(user, container, SNDSchema.NAME);
             TableInfo projectItemsTable = getTableInfo(schema, SNDSchema.PROJECTITEMS_TABLE_NAME);

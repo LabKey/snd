@@ -797,6 +797,19 @@ public class SNDManager
         return packages;
     }
 
+    public boolean projectRevisionIsLatest(Container c, User u, int id, int rev)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT ProjectId FROM ");
+        sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_TABLE_NAME);
+        sql.append(" WHERE ProjectId = ? AND RevisionNum > ?");
+        sql.add(id).add(rev);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+
+        return selector.getRowCount() < 1;
+    }
+
     private boolean projectRevisionExists(Container c, User u, int id, int rev)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
