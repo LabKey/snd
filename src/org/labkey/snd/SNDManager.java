@@ -848,7 +848,7 @@ public class SNDManager
 
         if (rowStart != null)
         {
-            // Don't compare to the current row being edited
+            // Don't compare to the current row unless its a revision
             if (revision || rowRev != project.getRevisionNum() || projectId != project.getProjectId())
             {
                 // Overlap scenarios
@@ -890,7 +890,6 @@ public class SNDManager
         TableInfo projectTable = getTableInfo(schema, SNDSchema.PROJECTS_TABLE_NAME);
         boolean valid = true;
         List<Map<String, Object>> rows;
-        TableResultSet rs;
         SimpleFilter filter;
 
         // First ensure if the referenceId is being updated that it is not an in use project
@@ -901,20 +900,27 @@ public class SNDManager
             filter = new SimpleFilter(FieldKey.fromString("ProjectId"), project.getProjectId(), CompareType.EQUAL);
             filter.addCondition(FieldKey.fromString("RevisionNum"), project.getRevisionNum(), CompareType.EQUAL);
             TableSelector ts = new TableSelector(projectTable, filter, null);
-            rs = ts.getResultSet();
-            for (Map<String, Object> r : rs)
+            try(TableResultSet rs = ts.getResultSet())
             {
-                rows.add(r);
-            }
-
-            if (rows.size() > 0)
-            {
-                Map<String, Object> row = rows.get(0);
-                if ((Integer) row.get("ReferenceId") != project.getReferenceId() && (Boolean) row.get("HasEvent"))
+                for (Map<String, Object> r : rs)
                 {
-                    errors.addRowError(new ValidationException("This is an in use project. Reference Id cannot be changed."));
-                    valid = false;
+                    rows.add(r);
                 }
+
+                if (rows.size() > 0)
+                {
+                    Map<String, Object> row = rows.get(0);
+                    if ((Integer) row.get("ReferenceId") != project.getReferenceId() && (Boolean) row.get("HasEvent"))
+                    {
+                        errors.addRowError(new ValidationException("This is an in use project. Reference Id cannot be changed."));
+                        valid = false;
+                    }
+                }
+            }
+            catch (SQLException e)
+            {
+                errors.addRowError(new ValidationException(e.getMessage()));
+                valid = false;
             }
         }
 
@@ -924,25 +930,32 @@ public class SNDManager
             rows = new ArrayList<>();
             filter = new SimpleFilter(FieldKey.fromString("ReferenceId"), project.getReferenceId(), CompareType.EQUAL);
             TableSelector ts = new TableSelector(projectTable, filter, null);
-            rs = ts.getResultSet();
-            for (Map<String, Object> r : rs)
+            try(TableResultSet rs = ts.getResultSet())
             {
-                rows.add(r);
-            }
-
-            if (rows.size() > 0)
-            {
-                for (Map<String,Object> row : rows)
+                for (Map<String, Object> r : rs)
                 {
-                    // Check for overlapping dates
-                    if (hasOverlap(project, row, revision, errors))
+                    rows.add(r);
+                }
+
+                if (rows.size() > 0)
+                {
+                    for (Map<String, Object> row : rows)
                     {
-                        errors.addRowError(new ValidationException("Overlapping use of Reference Id with Project Id "
-                                + row.get("ProjectId") + ", revision " + row.get("RevisionNum")));
-                        valid = false;
-                        break;
+                        // Check for overlapping dates
+                        if (hasOverlap(project, row, revision, errors))
+                        {
+                            errors.addRowError(new ValidationException("Overlapping use of Reference Id with Project Id "
+                                    + row.get("ProjectId") + ", revision " + row.get("RevisionNum")));
+                            valid = false;
+                            break;
+                        }
                     }
                 }
+            }
+            catch (SQLException e)
+            {
+                errors.addRowError(new ValidationException(e.getMessage()));
+                valid = false;
             }
         }
         return valid;
@@ -957,31 +970,48 @@ public class SNDManager
         sql.append(" WHERE ProjectId = ?");
         sql.add(project.getProjectId());
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
-        TableResultSet rows = selector.getResultSet();
 
         // If creating project for first time revNum is zero and not a revision
         boolean validRevision = (project.getRevisionNum() == 0 && !revision), overlap = false;
+        Integer rev, latestRev = 0;
 
-        // Iterate through rows to check date overlap and ensure revision is incremented properly
-        for (Map<String, Object> row : rows)
+        try(TableResultSet rows = selector.getResultSet())
         {
-            // Check for overlapping dates
-            if (!overlap && hasOverlap(project, row, revision, errors))
+
+            // Iterate through rows to check date overlap and ensure revision is incremented properly
+            for (Map<String, Object> row : rows)
             {
-                errors.addRowError(new ValidationException("Overlapping date with revision: " + row.get("RevisionNum")));
-                overlap = true;
+                rev = (Integer) row.get("RevisionNum");
+                if (rev > latestRev)
+                    latestRev = rev;
+
+                // Check for overlapping dates
+                if (!overlap && hasOverlap(project, row, revision, errors))
+                {
+                    errors.addRowError(new ValidationException("Overlapping date with revision: " + row.get("RevisionNum")));
+                    overlap = true;
+                }
+
+                // Verify revision numbers are sequential
+                if ((revision && project.getRevisedRevNum() == (rev + 1))
+                        || project.getRevisionNum() == (rev + 1))
+                    validRevision = true;
+
             }
 
-            // Verify revision numbers are sequential
-            if ((revision && project.getRevisedRevNum() == ((Integer)row.get("RevisionNum") + 1))
-                    || project.getRevisionNum() == ((Integer)row.get("RevisionNum") + 1))
-                validRevision = true;
+            // Only the latest project revision can have null end date.
+            if (project.getEndDate() == null && project.getRevisionNum() != latestRev)
+                errors.addRowError(new ValidationException("Only the latest revision can have no end date."));
+
+            if (!validRevision)
+                errors.addRowError(new ValidationException("Invalid revision number."));
+        }
+        catch (SQLException e)
+        {
+            errors.addRowError(new ValidationException(e.getMessage()));
         }
 
-        if (!validRevision)
-            errors.addRowError(new ValidationException("Invalid revision number."));
-
-        return validRevision;
+        return errors.hasErrors();
     }
 
     public boolean validProject(Container c, User u, Project project, boolean revision, BatchValidationException errors)
@@ -991,9 +1021,9 @@ public class SNDManager
             errors.addRowError(new ValidationException("Revision " + project.getRevisedRevNum() + " already exists for this project. Can only make revision from latest revision."));
         }
 
-        if (project.getEndDate() == null && projectNullDateExists(c, u, project.getProjectId()))
+        if (projectNullDateExists(c, u, project.getProjectId()) && (revision || project.getEndDate() == null))
         {
-            errors.addRowError(new ValidationException("Only one revision can have no end date. Another revision of this project already has no end date."));
+            errors.addRowError(new ValidationException("Only one revision can have no end date and it must be the latest revision."));
         }
 
         isValidRevision(c, u, project, revision, errors);
@@ -1042,16 +1072,21 @@ public class SNDManager
             sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTITEMS_TABLE_NAME);
             sql.append(" WHERE ParentObjectId = ?");
             sql.add(project.getObjectId());
-
             SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
-            TableResultSet projectItems = selector.getResultSet();
 
             // Update project items with new parentobjectid
             List<Map<String, Object>> updatedProjectItems = new ArrayList<>();
-            for (Map<String, Object> row : projectItems)
+            try(TableResultSet projectItems = selector.getResultSet())
             {
-                row.put("ParentObjectId", project.getRevisedObjectId());
-                updatedProjectItems.add(row);
+                for (Map<String, Object> row : projectItems)
+                {
+                    row.put("ParentObjectId", project.getRevisedObjectId());
+                    updatedProjectItems.add(row);
+                }
+            }
+            catch (SQLException e)
+            {
+                errors.addRowError(new ValidationException(e.getMessage()));
             }
 
             // Set project objectid and revision
@@ -1145,12 +1180,18 @@ public class SNDManager
         sql.append(" WHERE ProjectId = ? AND RevisionNum = ?");
         sql.add(projectId).add(revNum);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
-        TableResultSet rs = selector.getResultSet();
-
         List<Map<String, Object>> projectItems = new ArrayList<>();
-        for (Map<String, Object> row : rs)
+        try(TableResultSet rs = selector.getResultSet())
         {
-            projectItems.add(row);
+
+            for (Map<String, Object> row : rs)
+            {
+                projectItems.add(row);
+            }
+        }
+        catch (SQLException e)
+        {
+            // swallow
         }
 
         return projectItems;
