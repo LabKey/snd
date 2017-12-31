@@ -1230,27 +1230,30 @@ public class SNDManager
 
         // Unique constraint enforces only one project for projectId/revisionNum
         Project project = ts.getObject(Project.class);
-
-        // Get projectItems
-        SQLFragment sql = new SQLFragment("SELECT * FROM ");
-        sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_FUNCTION_NAME + "(?, ?)").add(projectId).add(revNum);
-        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
-
-        List<ProjectItem> pItems = new ArrayList<>();
-        SuperPackage superPackage;
-        for (ProjectItem projectItem : selector.getArrayList(ProjectItem.class))
+        if (project != null)
         {
-            superPackage = getFullSuperPackage(c, u, projectItem.getSuperPkgId());
-            if (superPackage != null)
-            {
-                projectItem.setSuperPackage(superPackage);
-                pItems.add(projectItem);
-            }
-        }
-        project.setProjectItems(pItems);
 
-        // Extensible columns
-        addExtraFieldsToProject(c, u, project, ts.getMap());
+            // Get projectItems
+            SQLFragment sql = new SQLFragment("SELECT * FROM ");
+            sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_FUNCTION_NAME + "(?, ?)").add(projectId).add(revNum);
+            SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+
+            List<ProjectItem> pItems = new ArrayList<>();
+            SuperPackage superPackage;
+            for (ProjectItem projectItem : selector.getArrayList(ProjectItem.class))
+            {
+                superPackage = getFullSuperPackage(c, u, projectItem.getSuperPkgId());
+                if (superPackage != null)
+                {
+                    projectItem.setSuperPackage(superPackage);
+                    pItems.add(projectItem);
+                }
+            }
+            project.setProjectItems(pItems);
+
+            // Extensible columns
+            addExtraFieldsToProject(c, u, project, ts.getMap());
+        }
 
         return project;
 

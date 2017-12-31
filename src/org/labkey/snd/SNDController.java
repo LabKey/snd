@@ -649,7 +649,7 @@ public class SNDController extends SpringActionController
             int projectId = json.getInt("projectId");
             int revisionNum = json.getInt("revisionNum");
 
-            Project project = null;
+            Project project;
 
             // Query on new form to get form metadata
             if (projectId == -1)
@@ -662,7 +662,11 @@ public class SNDController extends SpringActionController
                 project = SNDService.get().getProject(getViewContext().getContainer(), getUser(), projectId, revisionNum);
             }
 
-            response.put("json", project.toJSON(getViewContext().getContainer(), getUser()));
+            if (project != null)
+            {
+                response.put("json", project.toJSON(getViewContext().getContainer(), getUser()));
+            }
+
             return response;
 
         }
