@@ -852,7 +852,11 @@ public class SNDManager
             if (revision || rowRev != project.getRevisionNum() || projectId != project.getProjectId())
             {
                 // Overlap scenarios
-                if (project.getStartDate().after(rowStart) || project.getStartDate().equals(rowStart))
+                if (project.getStartDate().equals(rowStart))
+                {
+                    overlap = true;
+                }
+                else if (project.getStartDate().after(rowStart))
                 {
                     if (rowEnd == null)
                     {
