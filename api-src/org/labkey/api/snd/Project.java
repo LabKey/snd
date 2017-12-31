@@ -24,6 +24,7 @@ public class Project
     private String _description;
     private boolean _active;
     private int _referenceId;
+    private boolean _hasEvent;
     private List<ProjectItem> _projectItems = new ArrayList<>();
     private Map<GWTPropertyDescriptor, Object> _extraFields = new HashMap<>();
 
@@ -169,6 +170,16 @@ public class Project
         _active = active;
     }
 
+    public boolean hasEvent()
+    {
+        return _hasEvent;
+    }
+
+    public void setHasEvent(boolean hasEvent)
+    {
+        _hasEvent = hasEvent;
+    }
+
     public List<ProjectItem> getProjectItems()
     {
         return _projectItems;
@@ -232,6 +243,7 @@ public class Project
         json.put(PROJECT_STARTDATE, getStartDate());
         json.put(PROJECT_REVNUM, getRevisionNum());
         json.put(PROJECT_REFID, getReferenceId());
+        json.put(PROJECT_HASEVENT, hasEvent());
         if (getEndDate() != null)
             json.put(PROJECT_ENDDATE, getEndDate());
 
