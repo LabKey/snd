@@ -923,7 +923,7 @@ public class SNDManager
                 if (rows.size() > 0)
                 {
                     Map<String, Object> row = rows.get(0);
-                    if ((Integer) row.get("ReferenceId") != project.getReferenceId() && (Boolean) row.get("HasEvent"))
+                    if ((Integer) row.get("ReferenceId") != project.getReferenceId() && Boolean.parseBoolean((String)row.get("HasEvent")))
                     {
                         errors.addRowError(new ValidationException("This is an in use project. Reference Id cannot be changed."));
                         valid = false;
