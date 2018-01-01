@@ -823,19 +823,6 @@ public class SNDManager
         return selector.getRowCount() > 0;
     }
 
-    private boolean projectNullDateExists(Container c, User u, int id)
-    {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
-
-        SQLFragment sql = new SQLFragment("SELECT ProjectId FROM ");
-        sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_TABLE_NAME);
-        sql.append(" WHERE ProjectId = ? AND EndDate IS NULL");
-        sql.add(id);
-        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
-
-        return selector.getRowCount() > 0;
-    }
-
     private boolean hasOverlap(Project project, Map<String, Object> row, boolean revision, BatchValidationException errors)
     {
         int rowRev = (int) row.get("RevisionNum");
@@ -986,17 +973,15 @@ public class SNDManager
 
         // If creating project for first time revNum is zero and not a revision
         boolean validRevision = (project.getRevisionNum() == 0 && !revision), overlap = false;
-        Integer rev, latestRev = 0;
+        Integer rev;
+        String endDate;
 
         try(TableResultSet rows = selector.getResultSet())
         {
-
             // Iterate through rows to check date overlap and ensure revision is incremented properly
             for (Map<String, Object> row : rows)
             {
                 rev = (Integer) row.get("RevisionNum");
-                if (rev > latestRev)
-                    latestRev = rev;
 
                 // Check for overlapping dates
                 if (!overlap && hasOverlap(project, row, revision, errors))
@@ -1010,11 +995,24 @@ public class SNDManager
                         || project.getRevisionNum() == (rev + 1))
                     validRevision = true;
 
-            }
+                // Verify only the latest revision of a project has a null end date
+                endDate = (String)row.get("EndDate");
+                if (endDate == null)
+                {
+                    if (rev < project.getRevisionNum() || (revision && rev == project.getRevisionNum()))
+                    {
+                        errors.addRowError(new ValidationException("Only the latest revision of a project may have a null date."));
+                    }
+                }
 
-            // Only the latest project revision can have null end date.
-            if (project.getEndDate() == null && project.getRevisionNum() != latestRev)
-                errors.addRowError(new ValidationException("Only the latest revision can have no end date."));
+                if (project.getEndDate() == null)
+                {
+                    if (rev > project.getRevisionNum())
+                    {
+                        errors.addRowError(new ValidationException("Only the latest revision of a project may have a null date."));
+                    }
+                }
+            }
 
             if (!validRevision)
                 errors.addRowError(new ValidationException("Invalid revision number."));
@@ -1032,11 +1030,6 @@ public class SNDManager
         if (revision && projectRevisionExists(c, u, project.getProjectId(), project.getRevisedRevNum()))
         {
             errors.addRowError(new ValidationException("Revision " + project.getRevisedRevNum() + " already exists for this project. Can only make revision from latest revision."));
-        }
-
-        if (projectNullDateExists(c, u, project.getProjectId()) && (revision || project.getEndDate() == null))
-        {
-            errors.addRowError(new ValidationException("Only one revision can have no end date and it must be the latest revision."));
         }
 
         isValidRevision(c, u, project, revision, errors);
