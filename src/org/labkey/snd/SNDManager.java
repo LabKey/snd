@@ -1240,8 +1240,10 @@ public class SNDManager
         {
 
             // Get projectItems
+            // TODO: If there are perf issues we may be able to use a simpler query
             SQLFragment sql = new SQLFragment("SELECT * FROM ");
-            sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_FUNCTION_NAME + "(?, ?)").add(projectId).add(revNum);
+            sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_FUNCTION_NAME + "(?, ?)");
+            sql.append(" WHERE Level = 1").add(projectId).add(revNum);
             SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
             List<ProjectItem> pItems = new ArrayList<>();

@@ -141,7 +141,7 @@ public class SNDServiceImpl implements SNDService
         String objectId = SNDManager.get().getProjectObjectId(c, u, project, errors);
         if (objectId != null)
         {
-            project.setObjectId(objectId);
+            project.updateObjectId(objectId);
             if (isRevision)
             {
                 SNDManager.get().reviseProject(c, u, project, errors);

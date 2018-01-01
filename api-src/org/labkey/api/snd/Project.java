@@ -110,6 +110,15 @@ public class Project
         _objectId = objectId;
     }
 
+    public void updateObjectId(String objectId)
+    {
+        setObjectId(objectId);
+        for (ProjectItem projectItem : _projectItems)
+        {
+            projectItem.setParentObjectId(objectId);
+        }
+    }
+
     public String getRevisedObjectId()
     {
         return _revisedObjectId;

@@ -590,18 +590,22 @@ public class SNDController extends SpringActionController
                 project.setExtraFields(extras);
             }
 
-            JSONArray jsonPkgs = json.optJSONArray("packages");
+            JSONArray jsonPkgs = json.optJSONArray("projectItems");
             if (null != jsonPkgs)
             {
                 List<ProjectItem> projectItems = new ArrayList<>();
-                JSONObject jsonItem;
+                JSONObject jsonItem, jsonSuperPkg;
                 ProjectItem projectItem;
+                Object superPkgId;
                 for (int i = 0; i < jsonPkgs.length(); i++)
                 {
                     jsonItem = jsonPkgs.getJSONObject(i);
+                    jsonSuperPkg = jsonItem.getJSONObject("superPkg");
                     projectItem = new ProjectItem();
                     projectItem.setActive(jsonItem.getBoolean("active"));
-                    projectItem.setSuperPkgId(jsonItem.getInt("superPkgId"));
+                    superPkgId = jsonSuperPkg.get("superPkgId");
+                    superPkgId = (superPkgId == null ? jsonSuperPkg.get("SuperPkgId") : superPkgId);
+                    projectItem.setSuperPkgId((Integer)superPkgId);
                     projectItem.setParentObjectId(project.getObjectId());
 
                     projectItems.add(projectItem);
