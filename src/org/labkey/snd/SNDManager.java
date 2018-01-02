@@ -964,6 +964,8 @@ public class SNDManager
     private boolean isValidRevision(Container c, User u, Project project, boolean revision, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        Date endDate;
 
         SQLFragment sql = new SQLFragment("SELECT ProjectId, RevisionNum, StartDate, EndDate FROM ");
         sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_TABLE_NAME);
@@ -974,7 +976,7 @@ public class SNDManager
         // If creating project for first time revNum is zero and not a revision
         boolean validRevision = (project.getRevisionNum() == 0 && !revision), overlap = false;
         Integer rev;
-        String endDate;
+        String end;
 
         try(TableResultSet rows = selector.getResultSet())
         {
@@ -996,8 +998,8 @@ public class SNDManager
                     validRevision = true;
 
                 // Verify only the latest revision of a project has a null end date
-                endDate = (String)row.get("EndDate");
-                if (endDate == null)
+                end = (String)row.get("EndDate");
+                if (end == null)
                 {
                     if (rev < project.getRevisionNum() || (revision && rev == project.getRevisionNum()))
                     {
@@ -1012,12 +1014,22 @@ public class SNDManager
                         errors.addRowError(new ValidationException("Only the latest revision of a project may have a null date."));
                     }
                 }
+
+                // Verify endDates of previous revisions are before this revision begins
+                if (end != null && (revision || rev < project.getRevisionNum()))
+                {
+                    endDate = formatter.parse(end);
+                    if (endDate.after(project.getStartDate()))
+                    {
+                        errors.addRowError(new ValidationException("Start date must be after the end date of previous revisions."));
+                    }
+                }
             }
 
             if (!validRevision)
                 errors.addRowError(new ValidationException("Invalid revision number."));
         }
-        catch (SQLException e)
+        catch (SQLException | ParseException e)
         {
             errors.addRowError(new ValidationException(e.getMessage()));
         }
