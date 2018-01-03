@@ -107,6 +107,10 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     private static final int TEST_PROJECT_ID = 50;
     private static final int TEST_PROJECT_REF_ID = 100;
     private static final String TEST_PROJECT_START_DATE = "2018/01/01";
+    private static final String TEST_PROJECT_DB_START_DATE = "2018-01-01";
+    private static final String TEST_PROJECT_END_DATE = "2018/01/02";
+    private static final String TEST_PROJECT_DB_END_DATE = "2018-01-02";
+    private static final String TEST_PROJECT_COMMON_DATE = "2018/02/10";
     private static final String TEST_PROJECT_DESC = "Project Test";
     private static final String TEST_PROJECT_DESC2 = "Project Test2";
     private static final String TEST_EDIT_PROJECT_DESC = "Editted Project";
@@ -1623,7 +1627,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         DataRegionTable dataRegionTable;
 
         goToProjectHome();
-        runScript(createProjectApi(TEST_PROJECT_ID, TEST_PROJECT_DESC, TEST_PROJECT_REF_ID, TEST_PROJECT_START_DATE, "2018/01/02", TEST_PROJECT_DEFAULT_PKGS));
+        runScript(createProjectApi(TEST_PROJECT_ID, TEST_PROJECT_DESC, TEST_PROJECT_REF_ID, TEST_PROJECT_START_DATE, TEST_PROJECT_END_DATE, TEST_PROJECT_DEFAULT_PKGS));
         runScript(reviseProjectApi(TEST_PROJECT_ID, 0, "2018/01/03", "2018/01/04", null, null));
         runScript(reviseProjectApi(TEST_PROJECT_ID, 1, "2018/01/05", null, null, null));
         runScript(editProjectApi(TEST_PROJECT_ID, 1, "description", TEST_EDIT_PROJECT_DESC));
@@ -1632,25 +1636,25 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 
         goToSchemaBrowser();
         dataRegionTable = viewQueryData("snd", "Projects");
-        List<String> expected = Lists.newArrayList("50", "0", "100", "2018-01-01", "2018-01-02", TEST_PROJECT_DESC, "false");
+        List<String> expected = Lists.newArrayList("50", "0", "100", TEST_PROJECT_DB_START_DATE, TEST_PROJECT_DB_END_DATE, TEST_PROJECT_DESC, "false");
         assertEquals("Expected values not found.", expected, dataRegionTable.getRowDataAsText(0));
         expected = Lists.newArrayList("50", "1", "100", "2018-01-03", "2018-01-04", TEST_EDIT_PROJECT_DESC, "true");
         assertEquals("Expected values not found.", expected, dataRegionTable.getRowDataAsText(1));
 
-        runScript(reviseProjectApi(TEST_PROJECT_ID, 1, "2018/02/01", "2018/02/10", null, null));
-        runScript(reviseProjectApi(TEST_PROJECT_ID, 2, "2018/02/15", null, "description", TEST_REV_PROJECT_DESC));
-        runScript(editProjectApi(TEST_PROJECT_ID, 3, "endDate", "2018/02/20"));
+        runScript(reviseProjectApi(TEST_PROJECT_ID, 1, "2018/02/01", TEST_PROJECT_COMMON_DATE, null, null));
+        runScript(reviseProjectApi(TEST_PROJECT_ID, 2, TEST_PROJECT_COMMON_DATE, null, "description", TEST_REV_PROJECT_DESC));
         checkErrors();
 
         // Ensure only last revision can have null end date
-        runScriptExpectedFail(reviseProjectApi(TEST_PROJECT_ID, 1, "2018/02/17", "2018/02/20", null, null));
+        runScriptExpectedFail(editProjectApi(TEST_PROJECT_ID, 2, "endDate", null));
 
         // Check overlap of revision dates
+        runScript(editProjectApi(TEST_PROJECT_ID, 3, "endDate", "2018/02/20"));
         runScriptExpectedFail(editProjectApi(TEST_PROJECT_ID, 2, "endDate", "2018/02/20"));
 
         // Ref id overlap validation
-        runScriptExpectedFail(createProjectApi(TEST_PROJECT_ID + 1, TEST_PROJECT_DESC, TEST_PROJECT_REF_ID, TEST_PROJECT_START_DATE, "2018/01/02", TEST_PROJECT_DEFAULT_PKGS));
-        runScript(createProjectApi(TEST_PROJECT_ID + 1, TEST_PROJECT_DESC2, TEST_PROJECT_REF_ID + 1, TEST_PROJECT_START_DATE, "2018/01/02", null));
+        runScriptExpectedFail(createProjectApi(TEST_PROJECT_ID + 1, TEST_PROJECT_DESC, TEST_PROJECT_REF_ID, TEST_PROJECT_START_DATE, TEST_PROJECT_END_DATE, TEST_PROJECT_DEFAULT_PKGS));
+        runScript(createProjectApi(TEST_PROJECT_ID + 1, TEST_PROJECT_DESC2, TEST_PROJECT_REF_ID + 1, TEST_PROJECT_START_DATE, TEST_PROJECT_END_DATE, null));
 
         // Ref id cannot change once in use
         runScriptExpectedFail(editProjectApi(TEST_PROJECT_ID, 1, "referenceId", Integer.toString(TEST_PROJECT_REF_ID + 1)));
@@ -1674,9 +1678,9 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         assertEquals("Expected row count does not match.", 6, dataRegionTable.getDataRowCount());
         expected = Lists.newArrayList("50", "2", "100", "2018-02-01", "2018-02-10", TEST_EDIT_PROJECT_DESC, "false");
         assertEquals("Expected values not found.", expected, dataRegionTable.getRowDataAsText(2));
-        expected = Lists.newArrayList("50", "3", "100", "2018-02-15", "2018-02-20", TEST_REV_PROJECT_DESC, "true");
+        expected = Lists.newArrayList("50", "3", "100", "2018-02-10", "2018-02-20", TEST_REV_PROJECT_DESC, "true");
         assertEquals("Expected values not found.", expected, dataRegionTable.getRowDataAsText(3));
-        expected = Lists.newArrayList("51", "0", "101", "2018-01-01", "2018-01-02", TEST_PROJECT_DESC2, "false");
+        expected = Lists.newArrayList("51", "0", "101", TEST_PROJECT_DB_START_DATE, TEST_PROJECT_DB_END_DATE, TEST_PROJECT_DESC2, "false");
         assertEquals("Expected values not found.", expected, dataRegionTable.getRowDataAsText(4));
 
         goToSchemaBrowser();
