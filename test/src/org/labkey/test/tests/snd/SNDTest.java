@@ -917,6 +917,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 
     private void runScriptExpectedFail(String script)
     {
+        //TODO: Once error handling refactored we should pass in the expected error message and assert that.
         String result = (String) executeAsyncScript(script);
         assertEquals("JavaScript API error condition failure.", "Failed", result);
     }
