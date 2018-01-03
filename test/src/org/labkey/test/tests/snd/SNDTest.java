@@ -16,6 +16,7 @@
 
 package org.labkey.test.tests.snd;
 
+import com.google.common.collect.Lists;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -103,6 +104,16 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 
     private static final int TEST_PARTICIPANT_ID = 1;
 
+    private static final int TEST_PROJECT_ID = 50;
+    private static final int TEST_PROJECT_REF_ID = 100;
+    private static final String TEST_PROJECT_START_DATE = "2018/01/01";
+    private static final String TEST_PROJECT_DESC = "Project Test";
+    private static final String TEST_PROJECT_DESC2 = "Project Test2";
+    private static final String TEST_EDIT_PROJECT_DESC = "Editted Project";
+    private static final String TEST_REV_PROJECT_DESC = "Revised Project";
+    private static final String TEST_PROJECT_DEFAULT_PKGS = "default";
+    private static final int TEST_IMPORT_SUPERPKG1 = 5100;
+    private static final int TEST_IMPORT_SUPERPKG2 = 5150;
 
     private static final String CREATEDOMAINSAPI ="LABKEY.Domain.create({\n" +
             "   domainGroup: 'test',        \n" +
@@ -588,6 +599,225 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         "	});                                             \n"+
         "}                                                  \n";
 
+    private String createProjectApi(int id, String desc, int refId, String start, String end, String packages)
+    {
+        return "var id = " + id + ";\n" +
+                "var desc = '" + desc + "';\n" +
+                "var refId = " + refId + ";\n" +
+                "var start = '" + start + "';\n" +
+                "var end = '" + end + "';\n" +
+                "var packages = '" + packages + "';\n" +
+                "var json = {\n" +
+                "   \"projectId\": id,\n" +
+                "   \"active\": true,\n" +
+                "   \"description\": desc,\n" +
+                "   \"referenceId\": refId,\n" +
+                "   \"startDate\": start,\n" +
+                "   \"projectItems\": packages\n" +
+                "};\n" +
+                "if (end != null && end != \"\") {\n" +
+                "   json[\"endDate\"] = end;\n" +
+                "}\n" +
+                "if (packages != 'null' && packages != \"\") {\n" +
+                "   if (packages === \"default\") {\n" +
+                "       json[\"projectItems\"] = [{superPkg:{\"superPkgId\":" + TEST_IMPORT_SUPERPKG1 + "}, \"active\":true}, {superPkg:{\"superPkgId\":" + TEST_IMPORT_SUPERPKG2 + "}, \"active\":false}];\n" +
+                "   }\n" +
+                "   else {\n" +
+                "       json[\"projectItems\"] = packages;\n" +
+                "   }\n" +
+                "}\n" +
+                "json[\"extraFields\"] = [];\n" +
+                "LABKEY.Ajax.request({\n" +
+                "   method: 'POST',\n" +
+                "   url: LABKEY.ActionURL.buildURL('snd', 'saveProject.api'),\n" +
+                "   success: function(){ callback('Success!'); },\n" +
+                "   failure: function(e){ callback('Failed'); },\n" +
+                "   jsonData: json\n" +
+                "});" +
+                "\n";
+    }
+
+    private String editProjectApi(int id, int rev, String name, String value)
+    {
+        return "var id = " + id + ";\n" +
+                "var rev = " + rev + ";\n" +
+                "var name = '" + name + "';\n" +
+                "var value = '" + value + "';\n" +
+                "LABKEY.Ajax.request({\n" +
+                "   method: 'POST',\n" +
+                "   url: LABKEY.ActionURL.buildURL('snd', 'getProject.api'),\n" +
+                "   failure: function(e){ callback(e.exception); },\n" +
+                "   jsonData: {\n" +
+                "       \"projectId\": id,\n" +
+                "       \"revisionNum\": rev\n" +
+                "   },\n" +
+                "   success: function(data) {\n" +
+                "       var json = JSON.parse(data.response).json;\n" +
+                "       if (json === undefined || json[\"projectId\"] === undefined) {\n" +
+                "           callback(\"Project Id not found\");\n" +
+                "       }\n" +
+                "       else {\n" +
+                "           json[\"isEdit\"] = true;\n" +
+                "           try {\n" +
+                "               json[name] = JSON.parse(value);\n" +
+                "           }\n" +
+                "           catch (e) {\n" +
+                "               json[name] = value;\n" +
+                "           }\n" +
+                "           LABKEY.Ajax.request({\n" +
+                "               method: 'POST',\n" +
+                "               url: LABKEY.ActionURL.buildURL('snd', 'saveProject.api'),\n" +
+                "               success: function(){ callback('Success!'); },\n" +
+                "               failure: function(e){ callback('Failed'); },\n" +
+                "               jsonData: json\t\t\n" +
+                "           });\n" +
+                "       }\n" +
+                "   }\n" +
+                "});\n";
+    }
+
+    private String reviseProjectApi(int id, int rev, String start, String end, String name, String value)
+    {
+        return "var id = " + id + ";\n" +
+                "var rev = " + rev + ";\n" +
+                "var start = '" + start + "';\n" +
+                "var end = '" + end + "';\n" +
+                "var name = '" + name + "';\n" +
+                "var value = '" + value + "';\n" +
+                "LABKEY.Ajax.request({\n" +
+                "   method: 'POST',\n" +
+                "   url: LABKEY.ActionURL.buildURL('snd', 'getProject.api'),\n" +
+                "   failure: function(e){ callback('Failed'); },\n" +
+                "   jsonData: {\n" +
+                "       \"projectId\": id,\n" +
+                "       \"revisionNum\": rev\n" +
+                "   },\n" +
+                "   success: function(data) {\n" +
+                "       var json = JSON.parse(data.response).json;\n" +
+                "       if (json === undefined || json[\"projectId\"] === undefined) {\n" +
+                "           callback(\"Project not found\");\n" +
+                "       }\n" +
+                "       else {\n" +
+                "           if (end !== 'null') {\n" +
+                "               json[\"endDate\"] = end;\n" +
+                "           }\n" +
+                "           else {\n" +
+                "               json[\"endDate\"] = '';\n" +
+                "           }\n" +
+                "           json[\"startDate\"] = start;\n" +
+                "           json[\"isRevision\"] = true;\n" +
+                "           if (name !== 'null') {\n" +
+                "               try {\n" +
+                "                   json[name] = JSON.parse(value);\n" +
+                "               }\n" +
+                "               catch (e) {\n" +
+                "                   json[name] = value;\n" +
+                "               }\n" +
+                "           }\n" +
+                "           LABKEY.Ajax.request({\n" +
+                "               method: 'POST',\n" +
+                "               url: LABKEY.ActionURL.buildURL('snd', 'saveProject.api'),\n" +
+                "               success: function(){ callback('Success!'); },\n" +
+                "               failure: function(e){ callback('Failed'); },\n" +
+                "               jsonData: json\t\t\n" +
+                "           });\n" +
+                "       }\n" +
+                "   },\n" +
+                "});\n";
+    }
+
+    private String deleteProjectApi(int id, int rev)
+    {
+        return "var id = " + id + ";\n" +
+                "var rev = " + rev + ";\n" +
+                "LABKEY.Query.selectRows({\n" +
+                "   requiredVersion: 9.1,\n" +
+                "   schemaName: \"snd\",\n" +
+                "   queryName: \"Projects\",\n" +
+                "   filterArray: [LABKEY.Filter.create(\"ProjectId\", id, LABKEY.Filter.Types.EQUAL), LABKEY.Filter.create(\"RevisionNum\", rev, LABKEY.Filter.Types.EQUAL)],\n" +
+                "   success: function(data) {\n" +
+                "       if (data.rowCount > 0) {\n" +
+                "           LABKEY.Query.deleteRows({\n" +
+                "               schemaName: 'snd',\n" +
+                "               queryName: 'Projects',\n" +
+                "               rows: [{'ObjectId': data.rows[0][\"ObjectId\"].value}],\n" +
+                "               success: function(data){\n" +
+                "                   callback('Success!');\n" +
+                "               },\n" +
+                "               failure: function(e){\n" +
+                "                   callback('Failed');\n" +
+                "               }\n" +
+                "           });\n" +
+                "       }\n" +
+                "   },\n" +
+                "   failure: function(e){\n" +
+                "       callback('Failed');\n" +
+                "   }\t\n" +
+                "});\n";
+    }
+
+    private String createProjectEvent(int id, int rev)
+    {
+        return "function insert(schema, query, rows, success, failure) {\n" +
+                "   LABKEY.Query.insertRows({\n" +
+                "       schemaName: schema,\n" +
+                "       queryName: query,\n" +
+                "       rows: rows,\n" +
+                "       successCallback: success,\n" +
+                "       failureCallback: failure\n" +
+                "   });\n" +
+                "}\n\n" +
+                "function insertIfNotExists(schema, query, key, keyVal, rows, success, failure) {\n" +
+                "   LABKEY.Query.selectRows({\n" +
+                "       requiredVersion: 9.1,\n" +
+                "       schemaName: schema,\n" +
+                "       queryName: query,\n" +
+                "       filterArray: [LABKEY.Filter.create(key, parseInt(keyVal), LABKEY.Filter.Types.EQUAL)],\n" +
+                "       success: function(data) {\n" +
+                "           if(data.rows.length > 0) {\n" +
+                "               success(data);\n" +
+                "           }\n" +
+                "           else {\n" +
+                "               insert(schema, query, rows, success, failure);\n" +
+                "           }\n" +
+                "       },\n" +
+                "       failure: failure\n" +
+                "   });\n" +
+                "}\n\n" +
+                "var projectId = " + id + ";\n" +
+                "var revNum = " + rev + ";\n" +
+                "LABKEY.Query.selectRows({\n" +
+                "   requiredVersion: 9.1,\n" +
+                "   schemaName: \"snd\",\n" +
+                "   queryName: \"Projects\",\n" +
+                "   filterArray: [LABKEY.Filter.create(\"ProjectId\", projectId , LABKEY.Filter.Types.EQUAL), LABKEY.Filter.create(\"RevisionNum\", revNum, LABKEY.Filter.Types.EQUAL)],\n" +
+                "   success: function(data) {\n" +
+                "       if (data.rowCount > 0) {\n" +
+                "           insertIfNotExists('snd', 'Events', 'EventId', projectId + revNum,\n" +
+                "               [{\n" +
+                "                   \"EventId\": projectId + revNum,\n" +
+                "                   \"Id\": 1,\n" +
+                "                   \"Date\": new Date(),\n" +
+                "                   \"ParentObjectId\": data.rows[0][\"ObjectId\"].value\n" +
+                "               }],\n" +
+                "               function(data){ //success\n" +
+                "                   callback('Success!');\n" +
+                "               },\n" +
+                "               function(e){ //failure\n" +
+                "                   callback('Failed');\n" +
+                "               }\n" +
+                "           );\n" +
+                "       }\n" +
+                "       else {\n" +
+                "           callback(\"Project not found\");\n" +
+                "       }\n" +
+                "   },\n" +
+                "   failure: function(e){\n" +
+                "       callback('Failed');\n" +
+                "   }\t\n" +
+                "});\n";
+    }
+
     // If entering a category with a user defined ID, the id will only be preserved if it is below 100.  If the id
     // is 100 or above it will be ignored and the identity column will auto increment.
     private String addCategoryScript(String container, String description, String comment, boolean active, int id)
@@ -683,6 +913,12 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     {
         String result = (String) executeAsyncScript(script);
         assertEquals("JavaScript API failure.", "Success!", result);
+    }
+
+    private void runScriptExpectedFail(String script)
+    {
+        String result = (String) executeAsyncScript(script);
+        assertEquals("JavaScript API error condition failure.", "Failed", result);
     }
 
     private void populateLookups()
@@ -1378,6 +1614,76 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         rowIndex = dataRegionTable.getRowIndex("Description", "My package description");
         assertEquals("Has event not true","true",dataRegionTable.getDataAsText(rowIndex,"Has Event"));
         assertEquals("Has project not true","true",dataRegionTable.getDataAsText(rowIndex,"Has Project"));
+    }
+
+    @Test
+    public void testProjectApis()
+    {
+        DataRegionTable dataRegionTable;
+
+        goToProjectHome();
+        runScript(createProjectApi(TEST_PROJECT_ID, TEST_PROJECT_DESC, TEST_PROJECT_REF_ID, TEST_PROJECT_START_DATE, "2018/01/02", TEST_PROJECT_DEFAULT_PKGS));
+        runScript(reviseProjectApi(TEST_PROJECT_ID, 0, "2018/01/03", "2018/01/04", null, null));
+        runScript(reviseProjectApi(TEST_PROJECT_ID, 1, "2018/01/05", null, null, null));
+        runScript(editProjectApi(TEST_PROJECT_ID, 1, "description", TEST_EDIT_PROJECT_DESC));
+        runScript(createProjectEvent(TEST_PROJECT_ID, 1));
+        runScript(deleteProjectApi(TEST_PROJECT_ID, 2));
+
+        goToSchemaBrowser();
+        dataRegionTable = viewQueryData("snd", "Projects");
+        List<String> expected = Lists.newArrayList("50", "0", "100", "2018-01-01", "2018-01-02", TEST_PROJECT_DESC, "false");
+        assertEquals("Expected values not found.", expected, dataRegionTable.getRowDataAsText(0));
+        expected = Lists.newArrayList("50", "1", "100", "2018-01-03", "2018-01-04", TEST_EDIT_PROJECT_DESC, "true");
+        assertEquals("Expected values not found.", expected, dataRegionTable.getRowDataAsText(1));
+
+        runScript(reviseProjectApi(TEST_PROJECT_ID, 1, "2018/02/01", "2018/02/10", null, null));
+        runScript(reviseProjectApi(TEST_PROJECT_ID, 2, "2018/02/15", null, "description", TEST_REV_PROJECT_DESC));
+        runScript(editProjectApi(TEST_PROJECT_ID, 3, "endDate", "2018/02/20"));
+        checkErrors();
+
+        // Ensure only last revision can have null end date
+        runScriptExpectedFail(reviseProjectApi(TEST_PROJECT_ID, 1, "2018/02/17", "2018/02/20", null, null));
+
+        // Check overlap of revision dates
+        runScriptExpectedFail(editProjectApi(TEST_PROJECT_ID, 2, "endDate", "2018/02/20"));
+
+        // Ref id overlap validation
+        runScriptExpectedFail(createProjectApi(TEST_PROJECT_ID + 1, TEST_PROJECT_DESC, TEST_PROJECT_REF_ID, TEST_PROJECT_START_DATE, "2018/01/02", TEST_PROJECT_DEFAULT_PKGS));
+        runScript(createProjectApi(TEST_PROJECT_ID + 1, TEST_PROJECT_DESC2, TEST_PROJECT_REF_ID + 1, TEST_PROJECT_START_DATE, "2018/01/02", null));
+
+        // Ref id cannot change once in use
+        runScriptExpectedFail(editProjectApi(TEST_PROJECT_ID, 1, "referenceId", Integer.toString(TEST_PROJECT_REF_ID + 1)));
+
+        // Cannot delete project if not most recent
+        runScriptExpectedFail(deleteProjectApi(TEST_PROJECT_ID, 0));
+
+        // Cannot delete in use project
+        runScript(createProjectEvent(TEST_PROJECT_ID, 3));
+        runScriptExpectedFail(deleteProjectApi(TEST_PROJECT_ID, 3));
+
+        // Can only make revision from most recent project
+        runScriptExpectedFail(reviseProjectApi(TEST_PROJECT_ID, 2, "2018/02/15", null, "description", TEST_REV_PROJECT_DESC));
+        runScript(editProjectApi(TEST_PROJECT_ID + 1, 0, "packages", null));
+
+        // TODO: Expected refactor to error handling. Logging errors twice right now.
+        checkExpectedErrors(14);
+
+        goToSchemaBrowser();
+        dataRegionTable = viewQueryData("snd", "Projects");
+        assertEquals("Expected row count does not match.", 6, dataRegionTable.getDataRowCount());
+        expected = Lists.newArrayList("50", "2", "100", "2018-02-01", "2018-02-10", TEST_EDIT_PROJECT_DESC, "false");
+        assertEquals("Expected values not found.", expected, dataRegionTable.getRowDataAsText(2));
+        expected = Lists.newArrayList("50", "3", "100", "2018-02-15", "2018-02-20", TEST_REV_PROJECT_DESC, "true");
+        assertEquals("Expected values not found.", expected, dataRegionTable.getRowDataAsText(3));
+        expected = Lists.newArrayList("51", "0", "101", "2018-01-01", "2018-01-02", TEST_PROJECT_DESC2, "false");
+        assertEquals("Expected values not found.", expected, dataRegionTable.getRowDataAsText(4));
+
+        goToSchemaBrowser();
+        viewQueryData("snd", "ProjectItems");
+        assertTextPresent(TEST_REV_PROJECT_DESC, 2);
+        assertTextPresent(TEST_PROJECT_DESC, 2);
+        assertTextPresent(TEST_EDIT_PROJECT_DESC, 4);
+        assertTextNotPresent(TEST_PROJECT_DESC2);
     }
 
     @Test
