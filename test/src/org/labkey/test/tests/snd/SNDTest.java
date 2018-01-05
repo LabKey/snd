@@ -1531,8 +1531,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 
         customizeViewHelper.openCustomizeViewPanel();
         customizeViewHelper.addColumn("testPkgs");
-        customizeViewHelper.clickViewGrid();
-        waitForText("This grid view has been modified.");
+        customizeViewHelper.applyCustomView();
 
         assertTextPresent(EXTCOLTESTDATA1, EXTCOLTESTDATA2, EXTCOLTESTDATA3);
 
