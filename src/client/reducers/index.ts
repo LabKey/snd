@@ -19,6 +19,7 @@ import { reducer as formReducer } from 'redux-form'
 
 import { app } from '../containers/App/reducer'
 import { packages } from '../containers/Packages/reducer'
+import { projects } from '../containers/Projects/reducer'
 import { user } from '../containers/SignIn/reducer'
 import { WizardsReducer } from '../containers/Wizards/reducer'
 import { queries } from '../query/reducer'
@@ -26,6 +27,7 @@ import { queries } from '../query/reducer'
 export const reducers = combineReducers({
     app,
     packages,
+    projects,
     queries,
     user,
     wizards: WizardsReducer,

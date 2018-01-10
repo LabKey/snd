@@ -15,6 +15,7 @@
  */
 import { AppModel } from '../containers/App/model'
 import { PackagesModel } from '../containers/Packages/model'
+import { ProjectsModel } from '../containers/Projects/model'
 import { UserModel } from '../containers/SignIn/model'
 import { WizardReducerProps } from '../containers/Wizards/reducer'
 import { QueryModelsContainer } from '../query/model'
@@ -24,6 +25,7 @@ declare global {
     interface APP_STATE_PROPS {
         app: AppModel
         packages: PackagesModel
+        projects: ProjectsModel
         queries: QueryModelsContainer
         user: UserModel
         wizards: WizardReducerProps

@@ -21,6 +21,7 @@ import { EditCategories } from '../containers/Wizards/Categories/EditCategories'
 import { LandingPage } from '../containers/LandingPage/LandingPage'
 import { PackageFormContainer } from '../containers/Packages/Forms/PackageFormContainer'
 import { PackageSearch } from '../containers/Packages/Forms/PackageSearch'
+import { ProjectSearch } from '../containers/Projects/Forms/ProjectSearch'
 
 import { NotFound } from '../components/NotFound/NotFound'
 import { Crumb } from '../components/Crumb/Crumb'
@@ -83,6 +84,36 @@ export const Routes: Array<RouteProps> = [
     },
 
     {
+        component: ProjectSearch,
+        exact: true,
+        path: '/projects',
+    },
+
+    {
+        component: PackageFormContainer,
+        exact: true,
+        path: '/projects/new',
+    },
+
+    {
+        component: PackageFormContainer,
+        exact: true,
+        path: '/projects/edit/:id',
+    },
+
+    {
+        component: PackageFormContainer,
+        exact: true,
+        path: '/projects/view/:id',
+    },
+
+    {
+        component: PackageFormContainer,
+        exact: true,
+        path: '/projects/revise/:id',
+    },
+
+    {
         component: NotFound
     }
 ];
@@ -98,6 +129,12 @@ export const CrumbRoutes: Array<RouteProps> = [
         component: null,
         exact: true,
         path: '/packages',
+    },
+
+    {
+        component: null,
+        exact: true,
+        path: '/projects',
     },
 
     {
