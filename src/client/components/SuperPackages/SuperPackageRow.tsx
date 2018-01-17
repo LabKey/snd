@@ -22,10 +22,9 @@ import {AssignedPackageModel} from "../../containers/SuperPackages/model";
 interface SuperPackageRowProps {
     model: AssignedPackageModel
     selected?: boolean
-    formScope?: any
     handleMenuReorderAction?: (model: AssignedPackageModel, moveUp: boolean) => any
     handleIconClick?: (model: AssignedPackageModel) => any
-    handleRowClick?: (model: AssignedPackageModel, state: any) => any
+    handleRowClick?: (model: AssignedPackageModel) => any
     menuActionName?: string
     handleMenuAction?: (model: AssignedPackageModel) => any
     handleFullNarrative?: (model: AssignedPackageModel) => void
@@ -70,11 +69,11 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
     }
 
     handleOnClick(evnt) {
-        const { model, handleIconClick, handleRowClick, formScope } = this.props;
+        const { model, handleIconClick, handleRowClick } = this.props;
         let iconClick = evnt.target.getAttribute('class') && evnt.target.getAttribute('class').indexOf('icon-tree-toggle') > -1;
 
         if (!iconClick && handleRowClick) {
-            handleRowClick.call(formScope, model);
+            handleRowClick(model);
         }
 
         if (iconClick && handleIconClick) {

@@ -51,6 +51,8 @@ export class SuperPackageFormImpl extends React.Component<SuperPackageFormProps,
         this.state = {
             selectedSubPackage: undefined
         };
+
+        this.handleAssignedPackageClick = this.handleAssignedPackageClick.bind(this);
     }
 
     handleAssignedPackageClick(assignedPackage: AssignedPackageModel) {
@@ -106,7 +108,6 @@ export class SuperPackageFormImpl extends React.Component<SuperPackageFormProps,
                             handleAssignedPackageRemove={handleAssignedPackageRemove}
                             handleAssignedPackageReorder={handleAssignedPackageReorder}
                             handleRowClick={this.handleAssignedPackageClick}
-                            formScope={this}
                             handleFullNarrative={handleFullNarrative}
                             view={view}/>
                     </div>

@@ -28,9 +28,8 @@ interface SubpackageViewerOwnProps {
     selectedSubPackage: AssignedPackageModel
     handleAssignedPackageRemove: (assignedPackage: AssignedPackageModel) => any
     handleAssignedPackageReorder: (assignedPackage: AssignedPackageModel, moveUp: boolean) => any
-    handleRowClick: (assignedPackage: AssignedPackageModel, state: any) => any
+    handleRowClick: (assignedPackage: AssignedPackageModel) => any
     handleFullNarrative: (model: AssignedPackageModel, shouldQuery: boolean) => void
-    formScope: any
     view?: PACKAGE_VIEW | PROJECT_VIEW
 }
 
@@ -88,7 +87,7 @@ export class SubpackageViewerImpl extends React.Component<SubpackageViewerProps,
     }
 
     renderAssignedPackageRow(assignedPackage: AssignedPackageModel, key: string, treeLevel: number, arrIndex: number, arrLength: number) {
-        const { selectedSubPackage, handleAssignedPackageRemove, handleAssignedPackageReorder, handleRowClick, view, formScope } = this.props;
+        const { selectedSubPackage, handleAssignedPackageRemove, handleAssignedPackageReorder, handleRowClick, view } = this.props;
         const { collapsed } = this.state;
         const idProp = selectedSubPackage != undefined && selectedSubPackage.SuperPkgId ? 'SuperPkgId' : 'altId';
         const treeCollapsed = collapsed[this.getModelId(assignedPackage)] || false;
@@ -109,7 +108,6 @@ export class SubpackageViewerImpl extends React.Component<SubpackageViewerProps,
                     treeArrIndex={arrIndex}
                     treeArrLength={arrLength}
                     treeCollapsed={treeCollapsed}
-                    formScope={formScope}
                     view={view}
                 />
 
