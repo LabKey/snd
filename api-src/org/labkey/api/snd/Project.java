@@ -58,7 +58,9 @@ public class Project
         }
     }
 
-    public Project () {}
+    public Project () {
+        _projectId = -1;
+    }
 
     public int getProjectId()
     {

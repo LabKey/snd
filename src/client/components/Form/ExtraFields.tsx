@@ -41,52 +41,71 @@ export class ExtraFields extends React.Component<ExtraFieldsProps, any>
     {
         const {extraFields, disabled, handleFieldChange} = this.props;
         let count = -1;
+        let colClass = "col-sm-6";
+
+        // Auto generated fields limited to 3 right now
+        if (extraFields.length > 3)
+            extraFields.splice(3);
+
+        if (extraFields.length === 3)
+            colClass = "col-sm-4";
 
         if (extraFields && extraFields.length)
         {
 
             return (
-                <div className="row clearfix">
-                    {extraFields.map((extra) =>
-                        {
-                            let {lookupValues, value, name} = extra;
-                            count++;
-                            return (
-
-                                <div key={"extraCol-" + name} className="row col-sm-6">
-                                    <div className="col-xs-12">
-                                        <ControlLabel>{name}</ControlLabel>
+                <div>
+                    <div className="row clearfix">
+                        {extraFields.map((extra) =>
+                            {
+                                let {name} = extra;
+                                count++;
+                                return (
+                                    <div key={"extraCol-" + name} className={colClass}>
+                                            <ControlLabel>{name}</ControlLabel>
                                     </div>
-                                    {lookupValues ? (
-                                            <div className="col-xs-12">
-                                                {React.createElement(ExtraFieldSelectInput,
-                                                    {
-                                                        disabled: disabled,
-                                                        options: lookupValues,
-                                                        handleFieldChange: handleFieldChange,
-                                                        val: value,
-                                                        name: name,
-                                                        index: count
-                                                    }
-                                                )}
-                                            </div>
+                                );
+                            }
+                        )}
+                    </div>
+                    <div className="row clearfix">
+                        {extraFields.map((extra) =>
+                            {
+                                let {lookupValues, value, name} = extra;
+                                count++;
+                                return (
 
-                                        ) : (
-                                            <div className="col-xs-12">
-                                                {React.createElement(TextInput,
-                                                    {
-                                                        disabled: disabled,
-                                                        value: value,
-                                                        name: name
-                                                    }
-                                                )}
+                                    <div key={"extraCol-" + name} className={colClass}>
+                                        {lookupValues ? (
+                                            <div>
+                                                    {React.createElement(ExtraFieldSelectInput,
+                                                        {
+                                                            disabled: disabled,
+                                                            options: lookupValues,
+                                                            handleFieldChange: handleFieldChange,
+                                                            val: value,
+                                                            name: name,
+                                                            index: count
+                                                        }
+                                                    )}
                                             </div>
-                                        )}
-                                </div>
-                            );
-                        }
-                    )}
-                </div >
+                                            ) : (
+                                                <div>
+                                                    {React.createElement(TextInput,
+                                                        {
+                                                            disabled: disabled,
+                                                            value: value,
+                                                            name: name
+                                                        }
+                                                    )}
+                                                </div>
+                                            )}
+                                    </div>
+                                );
+                            }
+                        )}
+                    </div>
+                </div>
             );
         }
 

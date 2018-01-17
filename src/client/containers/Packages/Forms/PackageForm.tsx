@@ -21,18 +21,20 @@ import { Dispatch } from 'redux'
 import { PackageModel } from '../../Wizards/Packages/model'
 import { PACKAGE_VIEW } from './PackageFormContainer'
 import { CheckboxInput } from '../../../components/Form/Checkbox'
-import { PackageIdInput } from '../../../components/Form/PackageIdInput'
+import { IdInput } from '../../../components/Form/IdInput'
 import { TextArea } from '../../../components/Form/TextArea'
 import { TextInput } from '../../../components/Form/TextInput'
 import { Attributes } from '../../../components/Form/Attributes'
 import { ExtraFields} from '../../../components/Form/ExtraFields'
 import { QuerySearch } from '../../../query/QuerySearch'
-import { SubpackageViewer } from './SubpackageViewer';
-import { SuperPackageViewer } from './SuperPackageViewer';
-import { AssignedPackageModel } from '../model'
-import { CAT_SQ, REQUIRED_COLUMNS, TOPLEVEL_SUPER_PKG_SQ } from '../constants'
+import { SubpackageViewer } from '../../SuperPackages/Forms/SubpackageViewer';
+import { SuperPackageViewer } from '../../SuperPackages/Forms/SuperPackageViewer';
+import { AssignedPackageModel } from '../../SuperPackages/model';
+import { CAT_SQ, REQUIRED_COLUMNS, } from '../constants'
+import { TOPLEVEL_SUPER_PKG_SQ, SUPERPKG_REQUIRED_COLUMNS } from '../../SuperPackages/constants'
 import { CategoriesSelect } from '../../Wizards/Packages/CategoriesSelect'
-import { querySubPackageDetails } from '../../Wizards/Packages/actions'
+import {SuperPackageForm, SuperPackageFormImpl} from "../../SuperPackages/Forms/SuperPackageForm";
+import {querySubPackageDetails} from "../../Wizards/Packages/actions";
 
 interface ButtonListProps {
     action: string
@@ -91,9 +93,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
     constructor(props?: PackageFormProps) {
         super(props);
 
-        this.state = {
-            selectedSubPackage: undefined
-        };
+
 
         this.handleCancel = this.handleCancel.bind(this);
         this.handleFieldChange = this.handleFieldChange.bind(this);
@@ -101,7 +101,6 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         this.handleAssignedPackageAdd = this.handleAssignedPackageAdd.bind(this);
         this.handleAssignedPackageRemove = this.handleAssignedPackageRemove.bind(this);
         this.handleAssignedPackageReorder = this.handleAssignedPackageReorder.bind(this);
-        this.handleAssignedPackageClick = this.handleAssignedPackageClick.bind(this);
         this.submit = this.submit.bind(this);
     }
 
@@ -169,7 +168,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         newAssignedPackage.loadingSubpackages = true;
 
         handleFieldChange('subPackages', model.subPackages.concat([newAssignedPackage]));
-        this.setState({selectedSubPackage: newAssignedPackage});
+        // this.setState({selectedSubPackage: newAssignedPackage});
 
         dispatch(querySubPackageDetails(PkgId, model.pkgId));
     }
@@ -216,17 +215,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         });
     }
 
-    handleAssignedPackageClick(assignedPackage: AssignedPackageModel) {
-        const { selectedSubPackage } = this.state;
-        let idProp = assignedPackage.SuperPkgId ? 'SuperPkgId' : 'altId';
 
-        if (selectedSubPackage == undefined || selectedSubPackage[idProp] != assignedPackage[idProp]) {
-            this.setState({selectedSubPackage: assignedPackage});
-        }
-        else {
-            this.setState({selectedSubPackage: undefined});
-        }
-    }
 
     renderAttributes() {
         const { model, view } = this.props;
@@ -304,63 +293,63 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         return null;
     }
 
-    renderSubpackages() {
-        const { model, view, handleFullNarrative } = this.props;
-        const { selectedSubPackage } = this.state;
-        const { hasEvent, hasProject } = model;
-        const isReadyOnly = view === PACKAGE_VIEW.VIEW ||
-            (view === PACKAGE_VIEW.EDIT && (hasEvent || hasProject));
-
-        return (
-            <div className="row clearfix">
-                {!isReadyOnly ?
-                    <div className="col-sm-6">
-                        <div className="row clearfix col-xs-12 margin-top">
-                            <ControlLabel>Available Packages</ControlLabel >
-                        </div>
-                        <div className="row col-xs-12">
-                            <QuerySearch
-                                id='superPackageViewer'
-                                modelProps={{requiredColumns: REQUIRED_COLUMNS.TOP_LEVEL_SUPER_PKG}}
-                                schemaQuery={TOPLEVEL_SUPER_PKG_SQ}>
-                                <SuperPackageViewer
-                                    schemaQuery={TOPLEVEL_SUPER_PKG_SQ}
-                                    handleAssignedPackageAdd={this.handleAssignedPackageAdd}
-                                    handleFullNarrative={handleFullNarrative}
-                                    view={view}/>
-                            </QuerySearch>
-                        </div>
-                    </div>
-                    : null
-                }
-                <div className={isReadyOnly ? "col-sm-12" : "col-sm-6"}>
-                    <div className="row clearfix col-xs-12 margin-top">
-                        <ControlLabel>Assigned Packages</ControlLabel >
-                        <SubpackageViewer
-                            subPackages={model.subPackages}
-                            selectedSubPackage={selectedSubPackage}
-                            handleAssignedPackageRemove={this.handleAssignedPackageRemove}
-                            handleAssignedPackageReorder={this.handleAssignedPackageReorder}
-                            handleRowClick={this.handleAssignedPackageClick}
-                            handleFullNarrative={handleFullNarrative}
-                            view={view}/>
-                    </div>
-                    <div className="row clearfix col-xs-12 margin-top">
-                        <ListGroupItem className="data-search__container" style={{height: '90px', overflowY: 'auto'}}>
-                            <div className="data-search__row">
-                                {selectedSubPackage != undefined
-                                    ? selectedSubPackage.Narrative
-                                    : <div className="narrative-none">
-                                        Select a package to view its narrative.
-                                      </div>
-                                }
-                            </div>
-                        </ListGroupItem>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+    // renderSubpackages() {
+    //     const { model, view, handleFullNarrative } = this.props;
+    //     const { selectedSubPackage } = this.state;
+    //     const { hasEvent, hasProject } = model;
+    //     const isReadyOnly = view === PACKAGE_VIEW.VIEW ||
+    //         (view === PACKAGE_VIEW.EDIT && (hasEvent || hasProject));
+    //
+    //     return (
+    //         <div className="row clearfix">
+    //             {!isReadyOnly ?
+    //                 <div className="col-sm-6">
+    //                     <div className="row clearfix col-xs-12 margin-top">
+    //                         <ControlLabel>Available Packages</ControlLabel >
+    //                     </div>
+    //                     <div className="row col-xs-12">
+    //                         <QuerySearch
+    //                             id='superPackageViewer'
+    //                             modelProps={{requiredColumns: SUPERPKG_REQUIRED_COLUMNS.TOP_LEVEL_SUPER_PKG}}
+    //                             schemaQuery={TOPLEVEL_SUPER_PKG_SQ}>
+    //                             <SuperPackageViewer
+    //                                 schemaQuery={TOPLEVEL_SUPER_PKG_SQ}
+    //                                 handleAssignedPackageAdd={this.handleAssignedPackageAdd}
+    //                                 handleFullNarrative={handleFullNarrative}
+    //                                 view={view}/>
+    //                         </QuerySearch>
+    //                     </div>
+    //                 </div>
+    //                 : null
+    //             }
+    //             <div className={isReadyOnly ? "col-sm-12" : "col-sm-6"}>
+    //                 <div className="row clearfix col-xs-12 margin-top">
+    //                     <ControlLabel>Assigned Packages</ControlLabel >
+    //                     <SubpackageViewer
+    //                         subPackages={model.subPackages}
+    //                         selectedSubPackage={selectedSubPackage}
+    //                         handleAssignedPackageRemove={this.handleAssignedPackageRemove}
+    //                         handleAssignedPackageReorder={this.handleAssignedPackageReorder}
+    //                         handleRowClick={this.handleAssignedPackageClick}
+    //                         handleFullNarrative={handleFullNarrative}
+    //                         view={view}/>
+    //                 </div>
+    //                 <div className="row clearfix col-xs-12 margin-top">
+    //                     <ListGroupItem className="data-search__container" style={{height: '90px', overflowY: 'auto'}}>
+    //                         <div className="data-search__row">
+    //                             {selectedSubPackage != undefined
+    //                                 ? selectedSubPackage.Narrative
+    //                                 : <div className="narrative-none">
+    //                                     Select a package to view its narrative.
+    //                                   </div>
+    //                             }
+    //                         </div>
+    //                     </ListGroupItem>
+    //                 </div>
+    //             </div>
+    //         </div>
+    //     );
+    // }
 
     submit(active: boolean = false) {
         const { handleFormSubmit } = this.props;
@@ -368,7 +357,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
     }
 
     render() {
-        const { handleFieldChange, model, view } = this.props;
+        const { handleFieldChange, handleWarning, handleFullNarrative, model, view } = this.props;
         const disabled = view === PACKAGE_VIEW.VIEW ||
             (view === PACKAGE_VIEW.EDIT && (model.hasEvent || model.hasProject));
 
@@ -387,7 +376,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                             </div>
                             <div className="row clearfix">
                                 <div className="col-xs-2">
-                                    <PackageIdInput
+                                    <IdInput
                                         name='pkgId'
                                         onChange={handleFieldChange}
                                         value={model.pkgId}
@@ -449,7 +438,16 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                     </div>
                     <div style={{borderBottom: '1px solid black'}}/>
 
-                    {this.renderSubpackages()}
+                    <SuperPackageForm
+                        model={model}
+                        view={view}
+                        handleFieldChange={handleFieldChange}
+                        handleWarning={handleWarning}
+                        handleAssignedPackageAdd={this.handleAssignedPackageAdd}
+                        handleAssignedPackageRemove={this.handleAssignedPackageRemove}
+                        handleAssignedPackageReorder={this.handleAssignedPackageReorder}
+                        handleFullNarrative={handleFullNarrative}
+                    />
 
                     <div className="row clearfix">
                         <div className="col-sm-12 margin-top">

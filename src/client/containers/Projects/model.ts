@@ -1,13 +1,16 @@
 
 import { LabKeyQueryRowPropertyProps, QueryModel } from '../../query/model'
 import * as actions from './actions'
+import {AssignedPackageModel} from "../SuperPackages/model";
 
 interface ProjectsModelProps {
     active: Array<any>
+    notActive: Array<any>
     data: {[key: string]: any}
     dataIds: Array<any>
     drafts: Array<any>
     filteredActive?: Array<any>
+    filteredNotActive?: Array<any>
     filteredDrafts?: Array<any>
     input?: string
     isError: boolean
@@ -16,14 +19,17 @@ interface ProjectsModelProps {
     message: string
     projectCount: number
     showDrafts?: boolean
+    showNotActive?: boolean
 }
 
 export class ProjectsModel implements ProjectsModelProps {
     active: Array<any> = [];
+    notActive: Array<any> = [];
     data: {[key: string]: any} = {};
     dataIds: Array<any> = [];
     drafts: Array<any> = [];
     filteredActive: Array<any> = [];
+    filteredNotActive: Array<any> = [];
     filteredDrafts: Array<any> = [];
     input: string = undefined;
     isError: boolean = false;
@@ -32,6 +38,7 @@ export class ProjectsModel implements ProjectsModelProps {
     message: string = undefined;
     projectCount: number = 0;
     showDrafts: boolean = false;
+    showNotActive: boolean = false;
 
     constructor(props?: Partial<ProjectsModel>) {
         if (props) {
@@ -50,6 +57,10 @@ export class ProjectsModel implements ProjectsModelProps {
     toggleDrafts() {
         return actions.toggleDrafts();
     }
+
+    toggleNotActive() {
+        return actions.toggleNotActive();
+    }
 }
 
 interface QueryProjectModelProps {
@@ -63,6 +74,7 @@ interface QueryProjectModelProps {
     Repeatable: LabKeyQueryRowPropertyProps
     RevisionNum: LabKeyQueryRowPropertyProps
     StartDate: LabKeyQueryRowPropertyProps
+    Latest: boolean
     links: any
 }
 
@@ -77,6 +89,7 @@ export class QueryProjectModel implements QueryProjectModelProps {
     Repeatable: LabKeyQueryRowPropertyProps = undefined;
     RevisionNum: LabKeyQueryRowPropertyProps = undefined;
     StartDate: LabKeyQueryRowPropertyProps = undefined;
+    Latest: boolean = undefined;
     links: any = undefined;
 
     constructor(props?: Partial<QueryProjectModel>) {

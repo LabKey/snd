@@ -224,12 +224,15 @@ public class PackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
         {
             Map<String, Object> row = super.getRow(user, container, keys);
 
-            Set<String> cols = new HashSet<>();
-            cols.add("HasEvent");
-            cols.add("HasProject");
-            TableSelector ts = new TableSelector(this.getQueryTable(), cols, new SimpleFilter(FieldKey.fromString("PkgId"), row.get("PkgId")), null);
-            row.put(Package.PKG_HASEVENT, Boolean.parseBoolean((String) ts.getMap().get(Package.PKG_HASEVENT)));
-            row.put(Package.PKG_HASPROJECT, Boolean.parseBoolean((String) ts.getMap().get(Package.PKG_HASPROJECT)));
+            if (row != null)
+            {
+                Set<String> cols = new HashSet<>();
+                cols.add("HasEvent");
+                cols.add("HasProject");
+                TableSelector ts = new TableSelector(this.getQueryTable(), cols, new SimpleFilter(FieldKey.fromString("PkgId"), row.get("PkgId")), null);
+                row.put(Package.PKG_HASEVENT, Boolean.parseBoolean((String) ts.getMap().get(Package.PKG_HASEVENT)));
+                row.put(Package.PKG_HASPROJECT, Boolean.parseBoolean((String) ts.getMap().get(Package.PKG_HASPROJECT)));
+            }
 
             return row;
         }

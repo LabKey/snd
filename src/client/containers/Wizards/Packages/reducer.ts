@@ -16,8 +16,8 @@
 import { handleActions } from 'redux-actions';
 
 import {PKG_WIZARD_TYPES, VALIDATOR_LTE, VALIDATOR_GTE} from './constants'
+import {PropertyDescriptor} from '../model'
 import {
-    PackageModelAttribute,
     PackageModel,
     PackageWizardModel,
     PackageWizardContainer
@@ -149,7 +149,7 @@ export const packages = handleActions({
 
             sourceKeywords[attributeValues.name] = attributeValues.sortOrder;
 
-            return new PackageModelAttribute(attributeValues);
+            return new PropertyDescriptor(attributeValues);
         }).sort((attA, attB) => {
             const a = attA.sortOrder,
                 b = attB.sortOrder;
@@ -243,7 +243,7 @@ export const packages = handleActions({
 
             data.attributes = Object.keys(narrativeKeywords).map(keyword => {
                 const existingIndex = model.data.narrativeKeywords[keyword];
-                return new PackageModelAttribute(Object.assign({},
+                return new PropertyDescriptor(Object.assign({},
                     model.data.attributes[existingIndex],
                     {
                         name: keyword,
@@ -284,7 +284,7 @@ export const packages = handleActions({
                 const prevName = model.data.attributes[attributeValue].name;
 
                 // move the existing attribute to replace the changed attribute
-                attributes[attributeValue] = new PackageModelAttribute(
+                attributes[attributeValue] = new PropertyDescriptor(
                     Object.assign({}, model.data.attributes[attributeValue], {['sortOrder']: prevValue})
                 );
 
@@ -298,7 +298,7 @@ export const packages = handleActions({
                 );
             }
 
-            attributes[index] = new PackageModelAttribute(
+            attributes[index] = new PropertyDescriptor(
                 Object.assign({}, model.data.attributes[index], {[attributeField]: attributeValue})
             );
 
@@ -316,7 +316,7 @@ export const packages = handleActions({
             const fieldIndex = fieldParts[1];
 
             let extraFields = [].concat(model.data.extraFields);
-            extraFields[fieldIndex] = new PackageModelAttribute(
+            extraFields[fieldIndex] = new PropertyDescriptor(
                 Object.assign({}, model.data.extraFields[fieldIndex], {["value"]: value})
             );
 

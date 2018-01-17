@@ -18,18 +18,20 @@ import { ListGroupItem } from 'react-bootstrap'
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux'
 
-import { PACKAGE_VIEW } from './PackageFormContainer'
 import { SuperPackageRow } from '../../../components/SuperPackages/SuperPackageRow'
 import { AssignedPackageModel } from "../model";
+import {PACKAGE_VIEW} from "../../Packages/Forms/PackageFormContainer";
+import {PROJECT_VIEW} from "../../Projects/Forms/ProjectFormContainer";
 
 interface SubpackageViewerOwnProps {
     subPackages: Array<AssignedPackageModel>
     selectedSubPackage: AssignedPackageModel
     handleAssignedPackageRemove: (assignedPackage: AssignedPackageModel) => any
     handleAssignedPackageReorder: (assignedPackage: AssignedPackageModel, moveUp: boolean) => any
-    handleRowClick: (assignedPackage: AssignedPackageModel) => any
+    handleRowClick: (assignedPackage: AssignedPackageModel, state: any) => any
     handleFullNarrative: (model: AssignedPackageModel, shouldQuery: boolean) => void
-    view?: PACKAGE_VIEW
+    formScope: any
+    view?: PACKAGE_VIEW | PROJECT_VIEW
 }
 
 interface SubpackageViewerState {
@@ -86,7 +88,7 @@ export class SubpackageViewerImpl extends React.Component<SubpackageViewerProps,
     }
 
     renderAssignedPackageRow(assignedPackage: AssignedPackageModel, key: string, treeLevel: number, arrIndex: number, arrLength: number) {
-        const { selectedSubPackage, handleAssignedPackageRemove, handleAssignedPackageReorder, handleRowClick, view } = this.props;
+        const { selectedSubPackage, handleAssignedPackageRemove, handleAssignedPackageReorder, handleRowClick, view, formScope } = this.props;
         const { collapsed } = this.state;
         const idProp = selectedSubPackage != undefined && selectedSubPackage.SuperPkgId ? 'SuperPkgId' : 'altId';
         const treeCollapsed = collapsed[this.getModelId(assignedPackage)] || false;
@@ -107,6 +109,7 @@ export class SubpackageViewerImpl extends React.Component<SubpackageViewerProps,
                     treeArrIndex={arrIndex}
                     treeArrLength={arrLength}
                     treeCollapsed={treeCollapsed}
+                    formScope={formScope}
                     view={view}
                 />
 

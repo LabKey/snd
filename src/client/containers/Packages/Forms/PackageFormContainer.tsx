@@ -25,10 +25,10 @@ import * as actions from '../../Wizards/Packages/actions'
 import { PackageWizardModel } from '../../Wizards/Packages/model'
 
 import { PackageForm } from './PackageForm'
-import { AssignedPackageModel } from "../model";
 import { PKG_WIZARD_TYPES } from '../../Wizards/Packages/constants'
-import { queryPackageFullNarrative } from '../../Wizards/Packages/actions'
 import NarrativeRow from './NarrativeRow'
+import {AssignedPackageModel} from "../../SuperPackages/model";
+import {queryPackageFullNarrative} from "../../Wizards/SuperPackages/actions";
 
 export enum PACKAGE_VIEW {
     CLONE,

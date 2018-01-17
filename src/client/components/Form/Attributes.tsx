@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import * as React from 'react';
-import { PackageModelAttribute } from '../../containers/Wizards/Packages/model'
+import { PropertyDescriptor } from '../../containers/Wizards/model'
 
 import { CheckboxInput } from './Checkbox'
 import { DataTypeSelect } from './DataTypeSelect'
@@ -179,7 +179,7 @@ class AttributesGridBody extends React.Component<AttributesGridProps, {}> {
 }
 
 interface AttributesGridProps {
-    attributes: Array<PackageModelAttribute>
+    attributes: Array<PropertyDescriptor>
     attributeLookups?: Array<{label: string, value: string}>
     handleFieldChange?: (evt) => void
     narrative: string

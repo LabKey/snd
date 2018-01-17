@@ -40,11 +40,13 @@ export class ProjectRow extends React.Component<ProjectRowProps, ProjectRowState
 
     render() {
         const { handleDelete } = this.props;
-        const { Description, HasEvent, ProjectId, RevisionNum, ObjectId } = this.props.data;
+        const { Description, HasEvent, ProjectId, RevisionNum, ObjectId, Latest } = this.props.data;
         const { isHover } = this.state;
+        const idRev = ProjectId.value + '|' + RevisionNum.value;
 
         // HasEvent is a string boolean
-        const canDelete = (HasEvent.value !== 'true');
+        const canDelete = (HasEvent.value !== 'true' && Latest === true);
+        const canRevise = (Latest === true);
 
         // todo: URLs should be more resilient
         return (
@@ -55,19 +57,24 @@ export class ProjectRow extends React.Component<ProjectRowProps, ProjectRowState
                 onMouseLeave={this.handleMouseLeave}>
                 <div className="result-icons pull-left">
                     <OverlayTrigger overlay={ProjectRow.generateToolTip('View', ProjectId.value)} placement="top">
-                        <Link to={'/projects/view/' + ProjectId.value} className="project-row_icon">
+                        <Link to={'/projects/view/' + idRev} className="project-row_icon">
                             <i className={"fa fa-eye"}/>
                         </Link>
                     </OverlayTrigger>
                     <OverlayTrigger overlay={ProjectRow.generateToolTip('Edit', ProjectId.value)} placement="top">
-                        <Link to={'/projects/edit/' + ProjectId.value} className="project-row_icon">
+                        <Link to={'/projects/edit/' + idRev} className="project-row_icon">
                             <i className="fa fa-pencil"/>
                         </Link>
                     </OverlayTrigger>
                     <OverlayTrigger overlay={ProjectRow.generateToolTip('Revise', ProjectId.value)} placement="top">
-                        <Link to={'/projects/revise/' + ProjectId.value} className="project-row_icon">
-                            <i className="fa fa-files-o"/>
-                        </Link>
+                        {canRevise ?
+                            <Link to={'/projects/revise/' + idRev} className="project-row_icon">
+                                <i className="fa fa-files-o"/>
+                            </Link> :
+                            <div className="project-row_icon icon-inline">
+                                <i className="fa fa-files-o fa-disabled"/>
+                            </div>
+                        }
                     </OverlayTrigger>
                 </div>
                 <div className="pull-left " style={{marginLeft: '10px'}}>

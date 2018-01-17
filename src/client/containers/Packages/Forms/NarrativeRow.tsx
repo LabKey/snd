@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import * as React from 'react';
-import {AssignedPackageModel} from "../model";
+import {AssignedPackageModel} from "../../SuperPackages/model";
 
 interface NarrativeRowOwnProps {
     model: AssignedPackageModel

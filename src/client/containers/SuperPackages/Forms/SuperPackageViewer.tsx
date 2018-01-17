@@ -17,17 +17,18 @@ import * as React from 'react';
 import { ListGroupItem } from 'react-bootstrap'
 
 import { QueryModel, SchemaQuery } from '../../../query/model'
-import { PACKAGE_VIEW } from './PackageFormContainer'
 import { SuperPackageSearchResults } from "../../../components/SuperPackages/SuperPackageSearchResults";
 import { SearchInput } from "../../../components/Search/SearchInput";
 import { AssignedPackageModel } from "../model";
+import {PROJECT_VIEW} from "../../Projects/Forms/ProjectFormContainer";
+import {PACKAGE_VIEW} from "../../Packages/Forms/PackageFormContainer";
 
 interface SuperPackageViewerOwnProps {
     schemaQuery: SchemaQuery
     handleAssignedPackageAdd: (assignedPackage: AssignedPackageModel) => void
     handleFullNarrative: (model: AssignedPackageModel, shouldQuery: boolean) => void
     model?: QueryModel
-    view: PACKAGE_VIEW
+    view: PACKAGE_VIEW | PROJECT_VIEW
 }
 
 interface SuperPackageViewerStateProps {

@@ -16,9 +16,11 @@
 import * as React from 'react';
 import { ListGroupItem } from 'react-bootstrap'
 
-import { QuerySuperPackageModel, AssignedPackageModel } from '../../containers/Packages/model'
+import { QuerySuperPackageModel } from '../../containers/Packages/model'
 import { SuperPackageRow } from './SuperPackageRow'
 import { PACKAGE_VIEW } from '../../containers/Packages/Forms/PackageFormContainer'
+import {PROJECT_VIEW} from "../../containers/Projects/Forms/ProjectFormContainer";
+import {AssignedPackageModel} from "../../containers/SuperPackages/model";
 
 interface SuperPackageSearchResultsProps {
     data: {[key: string]: any} // TODO: why doesn't QuerySuperPackageModel work here instead of any?
@@ -27,7 +29,7 @@ interface SuperPackageSearchResultsProps {
     primitivesOnly: boolean,
     handleAssignedPackageAdd: (assignedPackage: AssignedPackageModel) => void
     handleFullNarrative: (model: AssignedPackageModel) => void
-    view: PACKAGE_VIEW
+    view: PACKAGE_VIEW | PROJECT_VIEW
 }
 
 export class SuperPackageSearchResults extends React.Component<SuperPackageSearchResultsProps, any> {

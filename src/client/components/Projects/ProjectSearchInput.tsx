@@ -26,7 +26,9 @@ interface ProjectSearchInputProps {
     input?: string
     inputRef: any
     showDrafts: boolean
+    showNotActive: boolean
     toggleDrafts: () => any
+    toggleNotActive: () => any
 }
 
 export class ProjectSearchInput extends React.Component<ProjectSearchInputProps, {}> {
@@ -39,7 +41,9 @@ export class ProjectSearchInput extends React.Component<ProjectSearchInputProps,
             input,
             inputRef,
             showDrafts,
-            toggleDrafts
+            toggleDrafts,
+            showNotActive,
+            toggleNotActive
         } = this.props;
 
         return(
@@ -57,8 +61,13 @@ export class ProjectSearchInput extends React.Component<ProjectSearchInputProps,
                         handleClear={handleClear}
                         name="projectSearch"
                         wrapperClassName={"col-sm-6 col-md-8"}/>
-                    <div className="col-xs-12 projects-show_drafts" onClick={toggleDrafts}>
-                        <input type="checkbox" checked={showDrafts}/> Show drafts
+                    <div className="row clearfix">
+                    <div className="col-xs-2 projects-show_drafts" onClick={toggleDrafts}>
+                        <input type="checkbox" checked={showDrafts}/> Show Drafts
+                    </div>
+                    <div className="col-xs-10 projects-show_not_active" onClick={toggleNotActive}>
+                        <input type="checkbox" checked={showNotActive}/> Show Not Active
+                    </div>
                     </div>
                 </div>
                 <div style={{borderBottom: '1px solid black', margin: '0 15px'}}/>

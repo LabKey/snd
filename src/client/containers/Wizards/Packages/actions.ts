@@ -16,22 +16,23 @@
 import { push } from 'react-router-redux'
 
 import {PKG_WIZARD_TYPES, VALIDATOR_GTE, VALIDATOR_LTE} from './constants'
+import { PropertyDescriptor, PropertyValidator } from "../model";
 import {
-    PackageModel, PackageModelAttribute, PackageWizardModel, PackageSubmissionModel,
-    PackageModelValidator
+    PackageModel, PackageWizardModel, PackageSubmissionModel
 } from './model'
 
 import { setAppError } from "../../App/actions";
 
 import { PACKAGE_VIEW } from '../../Packages/Forms/PackageFormContainer'
 import { packagesInvalidate } from '../../Packages/actions'
-import { PKG_SQ, TOPLEVEL_SUPER_PKG_SQ } from '../../Packages/constants'
-import { AssignedPackageModel } from "../../Packages/model";
+import { PKG_SQ } from '../../Packages/constants'
 
 import { labkeyAjax, queryInvalidate } from '../../../query/actions'
 import {parseNarrativeKeywords} from "./reducer";
+import {TOPLEVEL_SUPER_PKG_SQ} from "../../SuperPackages/constants";
+import {formatSubPackages} from "../SuperPackages/actions";
 
-function fetchPackage(id: string | number, includeExtraFields: boolean, includeLookups: boolean) {
+export function fetchPackage(id: string | number, includeExtraFields: boolean, includeLookups: boolean) {
     return labkeyAjax(
         'snd',
         'getPackages',
@@ -68,33 +69,33 @@ export function querySubPackageDetails(id: number, parentPkgId: number) {
     }
 }
 
-export function queryPackageFullNarrative(id: number, model: PackageWizardModel) {
-    return (dispatch, getState) => {
-        return fetchPackage(id, false, false).then((response: PackageQueryResponse) => {
-            const packageModel = getPackageModelFromResponse(response);
-            const narrativePkg = new AssignedPackageModel(
-                packageModel.pkgId,
-                packageModel.description,
-                packageModel.narrative,
-                packageModel.repeatable,
-                undefined,
-                undefined,
-                packageModel.subPackages
-            );
+// export function queryPackageFullNarrative(id: number, model: PackageWizardModel) {
+//     return (dispatch, getState) => {
+//         return fetchPackage(id, false, false).then((response: PackageQueryResponse) => {
+//             const packageModel = getPackageModelFromResponse(response);
+//             const narrativePkg = new AssignedPackageModel(
+//                 packageModel.pkgId,
+//                 packageModel.description,
+//                 packageModel.narrative,
+//                 packageModel.repeatable,
+//                 undefined,
+//                 undefined,
+//                 packageModel.subPackages
+//             );
+//
+//             dispatch({
+//                 type: PKG_WIZARD_TYPES.PACKAGE_FULL_NARRATIVE,
+//                 model,
+//                 narrativePkg
+//             });
+//         }).catch((error) => {
+//             // set error
+//             console.log('error', error)
+//         });
+//     }
+// }
 
-            dispatch({
-                type: PKG_WIZARD_TYPES.PACKAGE_FULL_NARRATIVE,
-                model,
-                narrativePkg
-            });
-        }).catch((error) => {
-            // set error
-            console.log('error', error)
-        });
-    }
-}
-
-function getPackageModelFromResponse(response: PackageQueryResponse): PackageModel {
+export function getPackageModelFromResponse(response: PackageQueryResponse): PackageModel {
     // the response should have exactly one row
     return Array.isArray(response.json) && response.json.length == 1 ?
         response.json[0] :
@@ -323,25 +324,25 @@ export function formatPackageValues(model: PackageWizardModel, active: boolean):
     });
 }
 
-function formatSubPackages(subPackages: Array<AssignedPackageModel>): Array<{sortOrder: number, superPkgId: number}> {
+// function formatSubPackages(subPackages: Array<AssignedPackageModel>): Array<{sortOrder: number, superPkgId: number}> {
+//
+//     if (subPackages.length) {
+//         return subPackages.map((s: AssignedPackageModel, i: number) => {
+//             return {
+//                 sortOrder: i,
+//                 superPkgId: s.SuperPkgId
+//             }
+//         });
+//     }
+//
+//     return [];
+// }
 
-    if (subPackages.length) {
-        return subPackages.map((s: AssignedPackageModel, i: number) => {
-            return {
-                sortOrder: i,
-                superPkgId: s.SuperPkgId
-            }
-        });
-    }
-
-    return [];
-}
-
-function formatAttributes(attributes: Array<PackageModelAttribute>): Array<PackageModelAttribute> {
+function formatAttributes(attributes: Array<PropertyDescriptor>): Array<PropertyDescriptor> {
     if (attributes.length) {
         return attributes.map((attribute, i) => {
             // loop through the attribute keys and strip off the _# like name_0 = name
-            let pkgAttribute = new PackageModelAttribute(Object.keys(attribute).reduce((prev, next) => {
+            let pkgAttribute = new PropertyDescriptor(Object.keys(attribute).reduce((prev, next) => {
                 const nextKey = next.split('_')[0];
                 if (next === 'lookupKey') {
                     // Set lookup values in attribute and prev so they don't get overwritten when iterating through
@@ -376,7 +377,7 @@ function formatAttributes(attributes: Array<PackageModelAttribute>): Array<Packa
     return [];
 }
 
-function addValidator(attribute: PackageModelAttribute) : PackageModelAttribute {
+function addValidator(attribute: PropertyDescriptor) : PropertyDescriptor {
 
     let type = attribute.rangeURI;
     let min = attribute.min;
@@ -385,7 +386,7 @@ function addValidator(attribute: PackageModelAttribute) : PackageModelAttribute 
     if (!min && !max)
         return attribute;
 
-    let newValidator = new PackageModelValidator();
+    let newValidator = new PropertyValidator();
     newValidator.type = (type === 'string' ? 'length' : 'range');
     newValidator.name = (type === 'string' ? 'SND Length' : 'SND Range');  // Name must start with SND
     newValidator.description = (type === 'string' ? 'SND String Length' : 'SND Numeric Range');

@@ -74,3 +74,9 @@ export function toggleDrafts() {
         type: PROJECT_TYPES.PROJECTS_TOGGLE_DRAFTS
     };
 }
+
+export function toggleNotActive() {
+    return {
+        type: PROJECT_TYPES.PROJECTS_TOGGLE_NOT_ACTIVE
+    };
+}

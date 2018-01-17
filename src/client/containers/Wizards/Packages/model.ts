@@ -15,35 +15,15 @@
  */
 import * as actions from './actions'
 import { PACKAGE_VIEW } from '../../Packages/Forms/PackageFormContainer'
-import { AssignedPackageModel } from '../../Packages/model'
-interface PackageQueryResponse {
+import { PropertyDescriptor } from "../model";
+import {AssignedPackageModel} from "../../SuperPackages/model";
+
+interface PackageQueryResponseProps {
     json: Array<PackageModel>
 }
 
-interface PackageModelValidatorProps {
-    description: string
-    errorMessage: string
-    expression: string
-    name: string
-    type: string
-}
-
-export class PackageModelValidator implements PackageModelValidatorProps {
-    description: string = undefined;
-    errorMessage: string = undefined;
-    expression: string = undefined;
-    name: string = undefined;
-    type: string = undefined;
-
-    constructor(props?: Partial<PackageModelValidator>) {
-        if (props) {
-            for (let k in props) {
-                if (this.hasOwnProperty(k) && props.hasOwnProperty(k)) {
-                    this[k] = props[k];
-                }
-            }
-        }
-    }
+export class PackageQueryResponse implements PackageQueryResponseProps {
+    json: Array<PackageModel> = [];
 }
 
 interface PackageModelAttributeLookupProps {
@@ -51,66 +31,14 @@ interface PackageModelAttributeLookupProps {
     label: string
 }
 
-interface PackageModelAttributeProps {
-    defaultValue?: string
-    format?: string
-    label?: string
-    lookupKey?: string
-    lookupQuery?: string
-    lookupSchema?: string
-    lookupValues?: Array<string>
-    max?: number
-    min?: number
-    name?: string
-    rangeURI?: string
-    redactedText?: string
-    required?: boolean
-    scale?: number
-    sortOrder?: number
-    validators?: Array<PackageModelValidatorProps>
-    value?: any
-    [key: string]: any
-}
-
-export class PackageModelAttribute implements PackageModelAttributeProps {
-    defaultValue: string = undefined;
-    format: string = undefined;
-    label: string = undefined;
-    lookupKey: string = undefined;
-    lookupQuery: string = undefined;
-    lookupSchema: string = undefined;
-    lookupValues: Array<string> = undefined;
-    max: number = 0;
-    min: number = 0;
-    name: string = undefined;
-    rangeURI: string = 'string';
-    redactedText: string = undefined;
-    required: boolean = false;
-    scale: number = 0;
-    sortOrder: number = 0;
-    validators: Array<PackageModelValidatorProps> = [];
-    value: any = undefined;
-    [key: string]: any;
-
-    constructor(props?: Partial<PackageModelAttribute>) {
-        if (props) {
-            for (let k in props) {
-                if (this.hasOwnProperty(k) && props.hasOwnProperty(k)) {
-                    this[k] = props[k];
-                }
-            }
-        }
-    }
-}
-
 interface PackageModelProps {
     active?: boolean
-    attributes?: Array<PackageModelAttribute>
+    attributes?: Array<PropertyDescriptor>
     attributeLookups?: Array<PackageModelAttributeLookupProps>
     categories?: Array<number>
     container?: string
     description?: string
-    extraFields?: Array<PackageModelAttributeProps>
+    extraFields?: Array<PropertyDescriptor>
     hasEvent?: boolean
     hasProject?: boolean
     narrative?: string
@@ -123,12 +51,12 @@ interface PackageModelProps {
 
 export class PackageModel implements PackageModelProps {
     active: boolean = false;
-    attributes: Array<PackageModelAttribute> = [];
+    attributes: Array<PropertyDescriptor> = [];
     attributeLookups: Array<PackageModelAttributeLookupProps> = [];
     categories: Array<number> = [];
     container: string = undefined;
     description: string = undefined;
-    extraFields: Array<PackageModelAttributeProps> = [];
+    extraFields: Array<PropertyDescriptor> = [];
     hasEvent: boolean = false;
     hasProject: boolean = false;
     narrative: string = undefined;
@@ -151,12 +79,12 @@ export class PackageModel implements PackageModelProps {
 
 interface PackageSubmissionModelProps {
     active?: boolean;
-    attributes?: Array<PackageModelAttribute>;
+    attributes?: Array<PropertyDescriptor>;
     categories?: Array<number>;
     clone?: boolean;
     container?: string;
     description?: string;
-    extraFields?: Array<PackageModelAttributeProps>;
+    extraFields?: Array<PropertyDescriptor>;
     id?: number;
     narrative?: string;
     pkgId?: number;
@@ -167,12 +95,12 @@ interface PackageSubmissionModelProps {
 
 export class PackageSubmissionModel implements PackageSubmissionModelProps {
     active: boolean = false;
-    attributes: Array<PackageModelAttribute> = [];
+    attributes: Array<PropertyDescriptor> = [];
     categories: Array<number> = [];
     clone: boolean = false;
     container: string = undefined;
     description: string = undefined;
-    extraFields: Array<PackageModelAttributeProps> = [];
+    extraFields: Array<PropertyDescriptor> = [];
     id: number = undefined;
     narrative: string = undefined;
     pkgId: number = undefined;

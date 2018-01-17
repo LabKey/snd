@@ -13,3 +13,12 @@
     background-color: lightgrey;
     border-radius: 5px;
 }
+
+.fa-disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.icon-inline {
+    display: inline-block;
+}

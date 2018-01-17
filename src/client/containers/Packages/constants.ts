@@ -32,14 +32,11 @@ export const PKG_TYPES = {
 
 export const SND_PKG_SCHEMA: string = 'snd',
     SND_PKG_QUERY: string = 'pkgs',
-    SND_SUPER_PKG_QUERY: string = 'superPkgs',
-    SND_TOP_LEVEL_SUPER_PKG_QUERY: string = 'topLevelSuperPkgs',
     SND_CATEGORY_QUERY: string = 'pkgCategories';
 
 export const CAT_SQ = SchemaQuery.create(SND_PKG_SCHEMA, SND_CATEGORY_QUERY);
 export const EDITABLE_CAT_SQ = SchemaQuery.create(SND_PKG_SCHEMA, SND_CATEGORY_QUERY, undefined, {editable: true});
 export const PKG_SQ = SchemaQuery.create(SND_PKG_SCHEMA, SND_PKG_QUERY);
-export const TOPLEVEL_SUPER_PKG_SQ = SchemaQuery.create(SND_PKG_SCHEMA, SND_TOP_LEVEL_SUPER_PKG_QUERY);
 
 const categoriesRequiredColumns = [
     'CategoryId',
@@ -63,35 +60,7 @@ const packagesRequiredColumns = [
     'ModifiedBy'
 ];
 
-const superPkgRequiredColumns = [
-    'SuperPkgId',
-    'ParentSuperPkgId',
-    'PkgId',
-    'SuperPkgPath',
-    'SortOrder',
-    'HasEvent',
-    'HasProject',
-    'IsPrimitive',
-    'Container',
-    'Created',
-    'CreatedBy',
-    'Modified',
-    'ModifiedBy'
-];
-
-const topLevelSuperPkgRequiredColumns = [
-    'SuperPkgId',
-    'PkgId',
-    'Description',
-    'Narrative',
-    'IsPrimitive',
-    'Container',
-    'Repeatable'
-];
-
 export const REQUIRED_COLUMNS = {
     CATS: categoriesRequiredColumns,
     PKGS: packagesRequiredColumns,
-    SUPER_PKG: superPkgRequiredColumns,
-    TOP_LEVEL_SUPER_PKG: topLevelSuperPkgRequiredColumns
 };

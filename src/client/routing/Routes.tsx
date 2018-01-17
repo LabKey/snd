@@ -23,6 +23,8 @@ import { PackageFormContainer } from '../containers/Packages/Forms/PackageFormCo
 import { PackageSearch } from '../containers/Packages/Forms/PackageSearch'
 import { ProjectSearch } from '../containers/Projects/Forms/ProjectSearch'
 
+import { ProjectFormContainer } from '../containers/Projects/Forms/ProjectFormContainer'
+
 import { NotFound } from '../components/NotFound/NotFound'
 import { Crumb } from '../components/Crumb/Crumb'
 
@@ -90,27 +92,27 @@ export const Routes: Array<RouteProps> = [
     },
 
     {
-        component: PackageFormContainer,
+        component: ProjectFormContainer,
         exact: true,
         path: '/projects/new',
     },
 
     {
-        component: PackageFormContainer,
+        component: ProjectFormContainer,
         exact: true,
-        path: '/projects/edit/:id',
+        path: '/projects/edit/:idRev',
     },
 
     {
-        component: PackageFormContainer,
+        component: ProjectFormContainer,
         exact: true,
-        path: '/projects/view/:id',
+        path: '/projects/view/:idRev',
     },
 
     {
-        component: PackageFormContainer,
+        component: ProjectFormContainer,
         exact: true,
-        path: '/projects/revise/:id',
+        path: '/projects/revise/:idRev',
     },
 
     {

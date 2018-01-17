@@ -74,6 +74,7 @@ export class ProjectViewerImpl extends React.Component<ProjectViewerProps, Proje
         this.handleInputChange = this.handleInputChange.bind(this);
         this.hideModal = this.hideModal.bind(this);
         this.toggleDrafts = this.toggleDrafts.bind(this);
+        this.toggleNotActive = this.toggleNotActive.bind(this);
     }
 
     componentDidMount() {
@@ -146,6 +147,11 @@ export class ProjectViewerImpl extends React.Component<ProjectViewerProps, Proje
         dispatch(projectsModel.toggleDrafts())
     }
 
+    toggleNotActive() {
+        const { dispatch, projectsModel } = this.props;
+        dispatch(projectsModel.toggleNotActive())
+    }
+
     renderWarning() {
         const { isWarning } = this.props.projectsModel;
         const { toRemoveId, toRemoveRev } = this.state;
@@ -170,7 +176,7 @@ export class ProjectViewerImpl extends React.Component<ProjectViewerProps, Proje
     render() {
 
         if (this.props.projectsModel) {
-            const { data, filteredActive, filteredDrafts, input, isInit, showDrafts } = this.props.projectsModel;
+            const { data, filteredActive, filteredNotActive, filteredDrafts, input, isInit, showDrafts, showNotActive } = this.props.projectsModel;
 
             return (
                 <div className="row" style={{padding: '20px 0'}}>
@@ -182,7 +188,10 @@ export class ProjectViewerImpl extends React.Component<ProjectViewerProps, Proje
                         input={input}
                         inputRef={(el) => this.inputRef = el}
                         showDrafts={showDrafts}
-                        toggleDrafts={this.toggleDrafts}/>
+                        showNotActive={showNotActive}
+                        toggleDrafts={this.toggleDrafts}
+                        toggleNotActive={this.toggleNotActive}
+                    />
 
                     <div className="col-sm-12 project-viewer__results" style={{margin: '0 0 0 2%'}}>
                         {showDrafts ?
@@ -208,6 +217,19 @@ export class ProjectViewerImpl extends React.Component<ProjectViewerProps, Proje
                                     handleDelete={this.handleDeleteRequest}/>
                             </div>
                         </div>
+
+                        {showNotActive ?
+                            <div className="project_viewer__results--drafts">
+                                <h4>Not Active</h4>
+                                <div className="project_viewer__results-container">
+                                    <ProjectSearchResults
+                                        data={data}
+                                        dataIds={filteredNotActive}
+                                        isLoaded={isInit}
+                                        handleDelete={this.handleDeleteRequest}/>
+                                </div>
+                            </div>
+                            : null}
                     </div>
                 </div>
             )

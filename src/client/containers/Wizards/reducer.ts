@@ -16,12 +16,16 @@
 import { combineReducers } from 'redux'
 
 import { packages } from './Packages/reducer'
+import { projects } from './Projects/reducer'
 import { PackageWizardContainer } from './Packages/model'
+import {ProjectWizardContainer} from "./Projects/model";
 
 export interface WizardReducerProps {
-    packages: PackageWizardContainer
+    packages: PackageWizardContainer,
+    projects: ProjectWizardContainer
 }
 
 export const WizardsReducer = combineReducers<WizardReducerProps>({
-    packages
+    packages,
+    projects
 });

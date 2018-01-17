@@ -16,14 +16,16 @@
 import * as React from 'react';
 import { DropdownButton, MenuItem } from 'react-bootstrap'
 import { PACKAGE_VIEW } from '../../containers/Packages/Forms/PackageFormContainer'
-import { AssignedPackageModel } from '../../containers/Packages/model'
+import {PROJECT_VIEW} from "../../containers/Projects/Forms/ProjectFormContainer";
+import {AssignedPackageModel} from "../../containers/SuperPackages/model";
 
 interface SuperPackageRowProps {
     model: AssignedPackageModel
     selected?: boolean
+    formScope?: any
     handleMenuReorderAction?: (model: AssignedPackageModel, moveUp: boolean) => any
     handleIconClick?: (model: AssignedPackageModel) => any
-    handleRowClick?: (model: AssignedPackageModel) => any
+    handleRowClick?: (model: AssignedPackageModel, state: any) => any
     menuActionName?: string
     handleMenuAction?: (model: AssignedPackageModel) => any
     handleFullNarrative?: (model: AssignedPackageModel) => void
@@ -31,7 +33,7 @@ interface SuperPackageRowProps {
     treeArrIndex?: number
     treeArrLength?: number
     treeCollapsed?: boolean
-    view?: PACKAGE_VIEW
+    view?: PACKAGE_VIEW | PROJECT_VIEW
 }
 
 interface SuperPackageRowStateProps {
@@ -68,11 +70,11 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
     }
 
     handleOnClick(evnt) {
-        const { model, handleIconClick, handleRowClick } = this.props;
+        const { model, handleIconClick, handleRowClick, formScope } = this.props;
         let iconClick = evnt.target.getAttribute('class') && evnt.target.getAttribute('class').indexOf('icon-tree-toggle') > -1;
 
         if (!iconClick && handleRowClick) {
-            handleRowClick(model);
+            handleRowClick.call(formScope, model);
         }
 
         if (iconClick && handleIconClick) {

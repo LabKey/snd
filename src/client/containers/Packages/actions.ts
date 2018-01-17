@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {PKG_SQ, PKG_TYPES, SND_PKG_QUERY, SND_PKG_SCHEMA, TOPLEVEL_SUPER_PKG_SQ} from './constants'
+import {PKG_SQ, PKG_TYPES, SND_PKG_QUERY, SND_PKG_SCHEMA } from './constants'
 import { PackagesModel } from './model'
 
 import { deleteRows, queryInvalidate } from '../../query/actions'
 import { QueryModel } from '../../query/model'
 import { setAppError, setAppMessage } from "../App/actions";
+import {TOPLEVEL_SUPER_PKG_SQ} from "../SuperPackages/constants";
 
 export function deletePackage(id: number) {
     return (dispatch) => {
