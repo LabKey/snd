@@ -19,7 +19,7 @@ import { ListGroupItem } from 'react-bootstrap'
 import { QueryModel, SchemaQuery } from '../../../query/model'
 import { SuperPackageSearchResults } from "../../../components/SuperPackages/SuperPackageSearchResults";
 import { SearchInput } from "../../../components/Search/SearchInput";
-import { AssignedPackageModel } from "../model";
+import {AssignedPackageModel} from "../model";
 import {PROJECT_VIEW} from "../../Projects/Forms/ProjectFormContainer";
 import {PACKAGE_VIEW} from "../../Packages/Forms/PackageFormContainer";
 

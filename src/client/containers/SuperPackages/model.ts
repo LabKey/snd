@@ -8,7 +8,8 @@ interface AssignedPackageModelProps {
     SortOrder: number
     SubPackages: Array<AssignedPackageModel>
     SuperPkgId: number
-
+    Active: boolean
+    ShowActive: boolean
     altId: number
     loadingSubpackages: boolean
 }
@@ -21,6 +22,8 @@ export class AssignedPackageModel implements AssignedPackageModelProps {
     SortOrder: number = undefined;
     SubPackages: Array<AssignedPackageModel> = [];
     SuperPkgId: number = undefined;
+    Active: boolean
+    ShowActive: boolean
 
     // set the altId as a way to uniquely remove this assigned package or to handle assigned package click
     altId: number = LABKEY.Utils.id();
@@ -28,8 +31,8 @@ export class AssignedPackageModel implements AssignedPackageModelProps {
     // set to true to indicate that a package is in the process of loading the full hierarchy
     loadingSubpackages: boolean = undefined;
 
-    constructor(pkgId: number, description: string, narrative: string, repeatable:
-        boolean, superPkgId: number, sortOrder?: number, subPackages?: Array<AssignedPackageModel>)
+    constructor(pkgId: number, description: string, narrative: string, repeatable: boolean, superPkgId: number,
+                active: boolean, showActive: boolean, sortOrder?: number, subPackages?: Array<AssignedPackageModel>)
     {
         this.PkgId = pkgId;
         this.Description = description;
@@ -37,6 +40,8 @@ export class AssignedPackageModel implements AssignedPackageModelProps {
         this.Repeatable = repeatable;
         this.SortOrder = sortOrder;
         this.SuperPkgId = superPkgId;
+        this.Active = active;
+        this.ShowActive = showActive;
         if (Array.isArray(subPackages))
             this.SubPackages = subPackages;
     }

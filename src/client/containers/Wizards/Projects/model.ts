@@ -73,7 +73,7 @@ interface ProjectModelProps {
     startDate?: string
     endDate?: string
     objectId?: string
-    referenceId?: string
+    referenceId?: number
     qcState?: any
     subPackages?: Array<AssignedPackageModel>
 }
@@ -89,7 +89,7 @@ export class ProjectModel implements ProjectModelProps {
     startDate: string = undefined;
     endDate: string = undefined;
     objectId: string = undefined;
-    referenceId: string = undefined
+    referenceId: number = undefined
     qcState: any = null; // todo: find out qcState type
     subPackages: Array<AssignedPackageModel> = [];
 
@@ -115,7 +115,7 @@ interface ProjectWizardModelProps {
     isValid?: boolean;
     isWarning?: boolean;
     message?: string;
-    // narrativePkg?: AssignedPackageModel;
+    narrativePkg?: AssignedPackageModel;
     // packageCount?: number;
     projectId?: number
     revisionNum?: number
@@ -135,7 +135,7 @@ export class ProjectWizardModel implements ProjectWizardModelProps {
     isValid: boolean = false;
     isWarning: boolean = false;
     message: string = undefined;
-    // narrativePkg?: AssignedPackageModel = undefined;
+    narrativePkg?: AssignedPackageModel = undefined;
     // packageCount: number = 0;
     objectId: number = undefined;
     projectId: number = undefined;
@@ -153,26 +153,17 @@ export class ProjectWizardModel implements ProjectWizardModelProps {
         }
     }
 
-    getIdRev() {
-        if (typeof this.projectId === 'undefined') {
-            return -1;
-        }
-        else {
-            return this.projectId + '|' + this.revisionNum;
-        }
-    }
-
     // checkValid() {
     //     return actions.packageCheckValid(this);
     // }
 
-    // formatPackageValues(active: boolean): PackageSubmissionModel {
-    //     return actions.formatPackageValues(this, active);
-    // }
+    formatProjectValues(active: boolean): ProjectSubmissionModel {
+        return actions.formatProjectValues(this, active);
+    }
 
-    // invalidate() {
-    //     return actions.invalidateModel(this);
-    // }
+    invalidate() {
+        return actions.invalidateModel(this);
+    }
 
     loaded() {
         return actions.projectLoaded(this);
@@ -194,10 +185,10 @@ export class ProjectWizardModel implements ProjectWizardModelProps {
         return actions.projectWarning(this, warning);
     }
 
-    // submitForm(active: boolean) {
-    //     return actions.save(this, this.formatPackageValues(active));
-    // }
-    //
+    submitForm(active: boolean) {
+        return actions.save(this, this.formatProjectValues(active));
+    }
+
     success(response: ProjectQueryResponse, view: PROJECT_VIEW) {
         return actions.projectSuccess(this, response, view);
     }

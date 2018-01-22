@@ -26,9 +26,9 @@ import { PackageWizardModel } from '../../Wizards/Packages/model'
 
 import { PackageForm } from './PackageForm'
 import { PKG_WIZARD_TYPES } from '../../Wizards/Packages/constants'
-import NarrativeRow from './NarrativeRow'
 import {AssignedPackageModel} from "../../SuperPackages/model";
 import {queryPackageFullNarrative} from "../../Wizards/SuperPackages/actions";
+import NarrativeRow from "../../SuperPackages/Forms/NarrativeRow";
 
 export enum PACKAGE_VIEW {
     CLONE,
@@ -172,7 +172,7 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
         const { dispatch, model } = this.props;
 
         if (shouldQuery) {
-            dispatch(queryPackageFullNarrative(pkg.PkgId, model));
+            dispatch(queryPackageFullNarrative(pkg.PkgId, model, PKG_WIZARD_TYPES.PACKAGE_FULL_NARRATIVE));
         }
         else {
             dispatch({

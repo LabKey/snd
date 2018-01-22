@@ -401,7 +401,7 @@ export const packages = handleActions({
         return new PackageWizardContainer(Object.assign({}, state, {packageData: {
             [submittingModel.packageId]: submittingModel
         }}));
-    },
+    }
 
 }, new PackageWizardContainer());
 

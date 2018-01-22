@@ -95,6 +95,7 @@ export class ExtraFields extends React.Component<ExtraFieldsProps, any>
                                                         {
                                                             disabled: disabled,
                                                             value: value,
+                                                            onChange: handleFieldChange,
                                                             name: name
                                                         }
                                                     )}

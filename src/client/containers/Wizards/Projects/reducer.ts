@@ -4,6 +4,9 @@ import {ProjectModel, ProjectWizardContainer, ProjectWizardModel} from "./model"
 import {PROJECT_WIZARD_TYPES} from "./constants";
 import {handleActions} from "redux-actions";
 import {PROJECT_VIEW} from "../../Projects/Forms/ProjectFormContainer";
+import {PropertyDescriptor} from "../model";
+import {AssignedPackageModel} from "../../SuperPackages/model";
+import {getRevisionId} from "./actions";
 
 export const projects = handleActions({
 
@@ -19,7 +22,7 @@ export const projects = handleActions({
 
         return new ProjectWizardContainer(Object.assign({}, state, {
             projectData: {
-                [errorModel.getIdRev()]: errorModel
+                [getRevisionId(errorModel)]: errorModel
             }
         }));
     },
@@ -34,7 +37,7 @@ export const projects = handleActions({
 
         return new ProjectWizardContainer(Object.assign({}, state, {
             projectData: {
-                [warningModel.getIdRev()]: warningModel
+                [getRevisionId(warningModel)]: warningModel
             }
         }));
     },
@@ -60,7 +63,7 @@ export const projects = handleActions({
         const { model } = action;
 
         return new ProjectWizardContainer(Object.assign({}, state, {projectData: {
-            [model.getIdRev()]: new ProjectModel()
+            [getRevisionId(model)]: new ProjectModel()
         }}));
     },
 
@@ -73,7 +76,7 @@ export const projects = handleActions({
         }));
 
         return new ProjectWizardContainer(Object.assign({}, state, {projectData: {
-            [successModel.getIdRev()]: successModel
+            [getRevisionId(successModel)]: successModel
         }}));
     },
 
@@ -86,7 +89,7 @@ export const projects = handleActions({
         }));
 
         return new ProjectWizardContainer(Object.assign({}, state, {projectData: {
-            [loadingModel.getIdRev()]: loadingModel
+            [getRevisionId(loadingModel)]: loadingModel
         }}));
     },
 
@@ -99,18 +102,26 @@ export const projects = handleActions({
         }));
 
         return new ProjectWizardContainer(Object.assign({}, state, {projectData: {
-            [loadingModel.getIdRev()]: loadingModel
+            [getRevisionId(loadingModel)]: loadingModel
         }}));
     },
 
     [PROJECT_WIZARD_TYPES.PROJECT_SUCCESS]: (state: ProjectWizardContainer, action: any) => {
         const { model, response, view } = action;
         const { json } = response;
-        const idRev = model.getIdRev();
+        const idRev = getRevisionId(model);
 
-        let data = json;
+        let subPackages = [];
 
-        let sourceKeywords = {};
+        if (json.projectItems && Array.isArray(json.projectItems)) {
+            subPackages = json.projectItems.map(function (item) {
+                return new AssignedPackageModel(item.superPkg.PkgId, item.superPkg.Description, item.superPkg.Narrative,
+                    item.superPkg.Repeatable, item.superPkg.SuperPkgId, item.active, true, item.superPkg.SortOrder,
+                    item.superPkg.SubPackages);
+            });
+        }
+
+        let data = Object.assign({}, json, {subPackages: subPackages});
 
         const modelData = new ProjectModel(Object.assign({}, state.projectData[idRev].data, data));
         const successModel = new ProjectWizardModel(Object.assign({}, model, {
@@ -121,7 +132,39 @@ export const projects = handleActions({
         }));
 
         return new ProjectWizardContainer(Object.assign({}, state, {projectData: {
-            [successModel.getIdRev()]: successModel
+            [getRevisionId(successModel)]: successModel
+        }}));
+    },
+
+    [PROJECT_WIZARD_TYPES.SAVE_FIELD]: (state: ProjectWizardContainer, action: any) => {
+        const { model, name, value } = action;
+
+        let data: ProjectModel;
+
+        if (name.indexOf('extraFields') !== -1) {
+            const fieldParts = name.split('_');
+            const fieldIndex = fieldParts[1];
+
+            let extraFields = [].concat(model.data.extraFields);
+            extraFields[fieldIndex] = new PropertyDescriptor(
+                Object.assign({}, model.data.extraFields[fieldIndex], {["value"]: value})
+            );
+
+            data = new ProjectModel(Object.assign({}, model.data, {
+                extraFields
+            }));
+        }
+        else {
+            data = new ProjectModel(Object.assign({}, model.data, {[name]: value}));
+        }
+
+        const updatedModel = new ProjectWizardModel(Object.assign({}, model, {
+            data,
+            isValid: isFormValid(data, model.initialData, model.formView)
+        }));
+
+        return new ProjectWizardContainer(Object.assign({}, state, {projectData: {
+            [getRevisionId(updatedModel)]: updatedModel
         }}));
     },
 
@@ -134,7 +177,7 @@ export const projects = handleActions({
         }));
 
         return new ProjectWizardContainer(Object.assign({}, state, {projectData: {
-            [submittedModel.getIdRev()]: submittedModel
+            [getRevisionId(submittedModel)]: submittedModel
         }}));
     },
 
@@ -147,7 +190,31 @@ export const projects = handleActions({
         }));
 
         return new ProjectWizardContainer(Object.assign({}, state, {projectData: {
-            [resetModel.getIdRev()]: resetModel
+            [getRevisionId(resetModel)]: resetModel
+        }}));
+    },
+
+    [PROJECT_WIZARD_TYPES.PROJECT_FULL_NARRATIVE]: (state: ProjectWizardContainer, action: any) => {
+        const { model, narrativePkg } = action;
+
+        const submittingModel = new ProjectWizardModel(Object.assign({}, model, {
+            narrativePkg: narrativePkg
+        }));
+
+        return new ProjectWizardContainer(Object.assign({}, state, {projectData: {
+            [getRevisionId(submittingModel)]: submittingModel
+        }}));
+    },
+
+    [PROJECT_WIZARD_TYPES.PROJECT_CLOSE_FULL_NARRATIVE]: (state: ProjectWizardContainer, action: any) => {
+        const { model } = action;
+
+        const submittingModel = new ProjectWizardModel(Object.assign({}, model, {
+            narrativePkg: null
+        }));
+
+        return new ProjectWizardContainer(Object.assign({}, state, {projectData: {
+            [getRevisionId(submittingModel)]: submittingModel
         }}));
     }
 }, new ProjectWizardContainer());

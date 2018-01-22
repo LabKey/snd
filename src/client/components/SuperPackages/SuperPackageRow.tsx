@@ -32,6 +32,8 @@ interface SuperPackageRowProps {
     treeArrIndex?: number
     treeArrLength?: number
     treeCollapsed?: boolean
+    showActive?: boolean
+    active?: boolean
     view?: PACKAGE_VIEW | PROJECT_VIEW
 }
 

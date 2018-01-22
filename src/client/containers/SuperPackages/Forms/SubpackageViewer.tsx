@@ -19,7 +19,7 @@ import { connect } from 'react-redux';
 import { Dispatch } from 'redux'
 
 import { SuperPackageRow } from '../../../components/SuperPackages/SuperPackageRow'
-import { AssignedPackageModel } from "../model";
+import {AssignedPackageModel} from "../model";
 import {PACKAGE_VIEW} from "../../Packages/Forms/PackageFormContainer";
 import {PROJECT_VIEW} from "../../Projects/Forms/ProjectFormContainer";
 

@@ -5,7 +5,7 @@ import { Dispatch } from 'redux'
 
 import { PROJECT_VIEW } from '../../Projects/Forms/ProjectFormContainer';
 import { PACKAGE_VIEW } from '../../Packages/Forms/PackageFormContainer';
-import { AssignedPackageModel } from '../model';
+import {AssignedPackageModel} from '../model';
 import {PackageModel} from "../../Wizards/Packages/model";
 import {ProjectModel} from "../../Wizards/Projects/model";
 import {QuerySearch} from "../../../query/QuerySearch";

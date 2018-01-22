@@ -164,7 +164,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         }
 
         // create a new AssignedPackageModel object as the SuperPkgId needs to be undefined as it will be set on save/submit
-        let newAssignedPackage = new AssignedPackageModel(PkgId, Description, Narrative, Repeatable, SuperPkgId, model.subPackages.length);
+        let newAssignedPackage = new AssignedPackageModel(PkgId, Description, Narrative, Repeatable, SuperPkgId, false, false, model.subPackages.length);
         newAssignedPackage.loadingSubpackages = true;
 
         handleFieldChange('subPackages', model.subPackages.concat([newAssignedPackage]));

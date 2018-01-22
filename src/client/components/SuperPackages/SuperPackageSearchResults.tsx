@@ -23,7 +23,7 @@ import {PROJECT_VIEW} from "../../containers/Projects/Forms/ProjectFormContainer
 import {AssignedPackageModel} from "../../containers/SuperPackages/model";
 
 interface SuperPackageSearchResultsProps {
-    data: {[key: string]: any} // TODO: why doesn't QuerySuperPackageModel work here instead of any?
+    data: {[key: string]: any}
     dataIds: Array<number>
     isLoaded: boolean
     primitivesOnly: boolean,
@@ -73,7 +73,9 @@ export class SuperPackageSearchResults extends React.Component<SuperPackageSearc
                                 rowData.PkgId.displayValue,
                                 rowData.Narrative.value,
                                 rowData.Repeatable.value,
-                                rowData.SuperPkgId.value
+                                rowData.SuperPkgId.value,
+                                true,
+                                true
                             );
 
                             return (

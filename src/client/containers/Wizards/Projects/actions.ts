@@ -9,6 +9,9 @@ import { projectsInvalidate } from '../../Projects/actions';
 import { PROJECT_SQL } from '../../Projects/constants'
 import {push} from "react-router-redux";
 import {setAppError} from "../../App/actions";
+import {formatSubPackages} from "../SuperPackages/actions";
+import {fetchPackage, getPackageModelFromResponse} from "../Packages/actions";
+import {PackageModel, PackageQueryResponse} from "../Packages/model";
 
 
 function fetchProject(idRev: string | number)
@@ -182,6 +185,12 @@ export function saveField(model: ProjectWizardModel, name: string, value: any) {
     };
 }
 
+export function invalidateModel(model: ProjectWizardModel) {
+    return {
+        type: PROJECT_WIZARD_TYPES.PROJECT_INVALIDATE,
+        model
+    };
+}
 
 export function resetSubmitting(model: ProjectWizardModel) {
     return {
@@ -223,25 +232,59 @@ export function save(model: ProjectWizardModel, project: ProjectSubmissionModel)
     }
 }
 
-// export function formatProjectValues(model: ProjectWizardModel, active: boolean): ProjectSubmissionModel {
-//     const { formView } = model;
-//     const { description, extraFields, projectId, revisionNum, objectId } = model.data;
-//     let id, rev, obj;
-//     if (formView !== PROJECT_VIEW.NEW) {
-//         id = projectId;
-//         rev = revisionNum;
-//         obj = objectId;
-//     }
-//
-//     // const subPackages = formatSubPackages(model.data.subPackages);
-//
-//     return new ProjectSubmissionModel({
-//         active,
-//         description,
-//         extraFields,
-//         projectId,
-//         revisionNum
-//         // startDate,
-//         // subPackages
-//     });
-// }
+export function formatProjectValues(model: ProjectWizardModel, active: boolean): ProjectSubmissionModel {
+    const { formView } = model;
+    const { description, extraFields, projectId, revisionNum } = model.data;
+    let id, rev;
+    if (formView !== PROJECT_VIEW.NEW) {
+        id = projectId;
+        rev = revisionNum;
+    }
+
+    const subPackages = formatSubPackages(model.data.subPackages);
+
+    return new ProjectSubmissionModel({
+        projectId: id,
+        revisionNum: rev,
+        active,
+        description,
+        extraFields,
+        startDate: model.data.startDate,
+        endDate: model.data.endDate,
+        referenceId: model.data.referenceId,
+        subPackages
+    });
+}
+
+export function queryProjectSubPackageDetails(id: number, parentProjectId: string) {
+    return (dispatch, getState) => {
+        return fetchPackage(id, false, false).then((response: PackageQueryResponse) => {
+            const parentProjectModel = getState().wizards.projects.projectData[parentProjectId];
+
+            // the response should have exactly one row
+            const responseData: PackageModel = getPackageModelFromResponse(response);
+
+            let newSubpackages = parentProjectModel.data.subPackages.map((subPackage) => {
+                if (subPackage.PkgId == responseData.pkgId) {
+                    subPackage.SubPackages = responseData.subPackages;
+                    subPackage.loadingSubpackages = undefined;
+                }
+                return subPackage;
+            });
+
+            dispatch(parentProjectModel.saveField('subPackages', newSubpackages));
+        }).catch((error) => {
+            // set error
+            console.log('error', error)
+        });
+    }
+}
+
+export function getRevisionId(model: ProjectModel | ProjectWizardModel) {
+    if (typeof model === 'undefined') {
+        return '-1';
+    }
+    else {
+        return model.projectId + '|' + model.revisionNum;
+    }
+}

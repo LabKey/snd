@@ -7,3 +7,8 @@
     margin-bottom: 10px;
 }
 
+.details-input {
+    width: 100% !important;
+    height: 25px !important;
+}
+

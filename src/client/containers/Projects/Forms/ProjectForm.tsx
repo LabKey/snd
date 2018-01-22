@@ -1,25 +1,20 @@
 
 
 import * as React from 'react';
-import { Button, ControlLabel, ListGroupItem } from 'react-bootstrap'
+import { Button, ControlLabel } from 'react-bootstrap'
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux'
 
 import { ProjectModel } from '../../Wizards/Projects/model'
 import { PROJECT_VIEW } from './ProjectFormContainer'
-import { CheckboxInput } from '../../../components/Form/Checkbox'
 import { IdInput } from '../../../components/Form/IdInput'
 import { TextArea } from '../../../components/Form/TextArea'
-import { TextInput } from '../../../components/Form/TextInput'
-import { Attributes } from '../../../components/Form/Attributes'
 import { ExtraFields} from '../../../components/Form/ExtraFields'
-import { QuerySearch } from '../../../query/QuerySearch'
-import { TOPLEVEL_SUPER_PKG_SQ, SUPERPKG_REQUIRED_COLUMNS } from '../../SuperPackages/constants'
-import { SubpackageViewer } from '../../SuperPackages/Forms/SubpackageViewer';
-import { SuperPackageViewer } from '../../SuperPackages/Forms/SuperPackageViewer';
-// import { AssignedPackageModel } from '../model'
-// import { CAT_SQ, REQUIRED_COLUMNS, TOPLEVEL_SUPER_PKG_SQ } from '../constants'
-// import { CategoriesSelect } from '../../Wizards/Packages/CategoriesSelect'
+import {SuperPackageForm} from "../../SuperPackages/Forms/SuperPackageForm";
+import {AssignedPackageModel} from "../../SuperPackages/model";
+import {NumericInput} from "../../../components/Form/NumericInput";
+import {DatePicker} from "../../../components/Form/DatePicker";
+import {getRevisionId, queryProjectSubPackageDetails} from "../../Wizards/Projects/actions";
 
 interface ButtonListProps {
     action: string
@@ -55,7 +50,7 @@ interface ProjectFormOwnProps {
     handleFieldChange?: (name: string, value: any) => void
     // handleNarrativeChange?: (val) => void
     handleFormSubmit?: any
-    // handleFullNarrative?: (model: AssignedPackageModel, shouldQuery: boolean) => void
+    handleFullNarrative?: (model: AssignedPackageModel, shouldQuery: boolean) => void
     handleWarning?: (warning?: string) => void
     isValid?: boolean
     model?: ProjectModel
@@ -67,14 +62,9 @@ interface ProjectFormState {
     dispatch?: Dispatch<any>
 }
 
-// interface PackageFormStateProps {
-//     selectedSubPackage?: AssignedPackageModel
-// }
-
 type ProjectFormProps = ProjectFormOwnProps & ProjectFormState;
 
 export class ProjectFormImpl extends React.Component<ProjectFormProps> {
-// export class ProjectFormImpl extends React.Component<PackageFormProps, PackageFormStateProps> {
 
     constructor(props?: ProjectFormProps) {
         super(props);
@@ -85,11 +75,9 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
 
         this.handleCancel = this.handleCancel.bind(this);
         this.handleFieldChange = this.handleFieldChange.bind(this);
-        // this.handleNarrativeChange = this.handleNarrativeChange.bind(this);
-        // this.handleAssignedPackageAdd = this.handleAssignedPackageAdd.bind(this);
-        // this.handleAssignedPackageRemove = this.handleAssignedPackageRemove.bind(this);
+        this.handleAssignedPackageAdd = this.handleAssignedPackageAdd.bind(this);
+        this.handleAssignedPackageRemove = this.handleAssignedPackageRemove.bind(this);
         // this.handleAssignedPackageReorder = this.handleAssignedPackageReorder.bind(this);
-        // this.handleAssignedPackageClick = this.handleAssignedPackageClick.bind(this);
         this.submit = this.submit.bind(this);
     }
 
@@ -128,110 +116,83 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
         handleFieldChange(name, value);
     }
 
-    // handleNarrativeChange(event: React.ChangeEvent<HTMLTextAreaElement>) {
-    //     const { handleNarrativeChange } = this.props;
-    //     const value = event.currentTarget.value;
-    //
-    //     if (handleNarrativeChange && typeof handleNarrativeChange === 'function') {
-    //         handleNarrativeChange(value);
-    //     }
-    // }
+    handleDateChange(event: React.ChangeEvent<any>) {
+        const { handleFieldChange } = this.props;
+        // const name = event.currentTarget.name,
+        //     value = event.currentTarget.type === 'checkbox' ?
+        //         event.currentTarget.checked : event.currentTarget.value;
+        //
+        // handleFieldChange(name, value);
+    }
 
-    // handleAssignedPackageAdd(assignedPackage: AssignedPackageModel) {
-    //     const { dispatch, model, handleFieldChange, handleWarning } = this.props;
-    //     const { PkgId, Description, Narrative, Repeatable, SuperPkgId } = assignedPackage;
-    //
-    //     if (!Repeatable) {
-    //         // if the added package cannot be repeated and is already in the assigned packages array, emit warning
-    //         const canAdd = model.subPackages.every((pkg) => {
-    //             return pkg.PkgId !== PkgId;
-    //         });
-    //
-    //         if (!canAdd) {
-    //             return handleWarning(['Package', PkgId, 'is not repeatable.'].join(' '));
-    //         }
-    //     }
-    //
-    //     // create a new AssignedPackageModel object as the SuperPkgId needs to be undefined as it will be set on save/submit
-    //     let newAssignedPackage = new AssignedPackageModel(PkgId, Description, Narrative, Repeatable, SuperPkgId, model.subPackages.length);
-    //     newAssignedPackage.loadingSubpackages = true;
-    //
-    //     handleFieldChange('subPackages', model.subPackages.concat([newAssignedPackage]));
-    //     this.setState({selectedSubPackage: newAssignedPackage});
-    //
-    //     dispatch(querySubPackageDetails(PkgId, model.pkgId));
-    // }
-    //
-    // handleAssignedPackageRemove(assignedPackage: AssignedPackageModel) {
+    handleAssignedPackageAdd(assignedSuperPackage: AssignedPackageModel) {
+        const { dispatch, model, handleFieldChange, handleWarning } = this.props;
+        const { PkgId, Description, Narrative, Repeatable, SuperPkgId } = assignedSuperPackage;
+        const { ShowActive, Active } = assignedSuperPackage;
+
+        if (!Repeatable) {
+            // if the added package cannot be repeated and is already in the assigned packages array, emit warning
+            const canAdd = model.subPackages.every((superPkg) => {
+                return superPkg.PkgId !== PkgId;
+            });
+
+            if (!canAdd) {
+                return handleWarning(['Package', PkgId, 'is not repeatable.'].join(' '));
+            }
+        }
+
+        // create a new AssignedPackageModel object as the SuperPkgId needs to be undefined as it will be set on save/submit
+        let newAssignedSuperPackage = new AssignedPackageModel(PkgId, Description, Narrative, Repeatable, SuperPkgId, true, true,
+            model.subPackages.length);
+        newAssignedSuperPackage.loadingSubpackages = true;
+
+        handleFieldChange('subPackages', model.subPackages.concat([newAssignedSuperPackage]));
+        this.setState({selectedSubPackage: newAssignedSuperPackage});
+
+        dispatch(queryProjectSubPackageDetails(PkgId, getRevisionId(model)));
+    }
+
+    handleAssignedPackageRemove(assignedSuperPackage: AssignedPackageModel) {
+        const { handleFieldChange } = this.props;
+        handleFieldChange('subPackages', this.getNonmatchingSubpackages(assignedSuperPackage));
+    }
+
+    // handleAssignedPackageReorder(assignedSuperPackage: AssignedPackageModel, moveUp: boolean) {
     //     const { handleFieldChange } = this.props;
-    //     handleFieldChange('subPackages', this.getNonmatchingSubpackages(assignedPackage));
-    // }
     //
-    // handleAssignedPackageReorder(assignedPackage: AssignedPackageModel, moveUp: boolean) {
-    //     const { handleFieldChange } = this.props;
-    //
-    //     let index = this.getSubpackageIndexOf(assignedPackage);
+    //     let index = this.getSubpackageIndexOf(assignedSuperPackage);
     //     if (!moveUp)
     //         index++;
     //     else if (index > 0)
     //         index--;
     //
-    //     let newSubPackageArr = this.getNonmatchingSubpackages(assignedPackage);
-    //     newSubPackageArr.splice(index, 0, assignedPackage);
+    //     let newSubPackageArr = this.getNonmatchingSubpackages(assignedSuperPackage);
+    //     newSubPackageArr.splice(index, 0, assignedSuperPackage);
     //
     //     handleFieldChange('subPackages', newSubPackageArr);
     // }
-    //
-    // getSubpackageIndexOf(assignedPackage: AssignedPackageModel) {
+
+    // getSubpackageIndexOf(assignedSuperPackage: AssignedPackageModel) {
     //     const { model } = this.props;
     //     for (let i = 0; i < model.subPackages.length; i++) {
     //         const subPackage = model.subPackages[i];
-    //         const idProp = assignedPackage.SuperPkgId != undefined ? 'SuperPkgId' : 'altId';
-    //         if (subPackage[idProp] == assignedPackage[idProp]) {
+    //         const idProp = assignedSuperPackage.SuperPkgId != undefined ? 'SuperPkgId' : 'altId';
+    //         if (subPackage[idProp] == assignedSuperPackage[idProp]) {
     //             return i;
     //         }
     //     }
     //     return -1;
     // }
-    //
-    // getNonmatchingSubpackages(assignedPackage: AssignedPackageModel) {
-    //     const { model } = this.props;
-    //
-    //     // use the generated altId to match as that will be unique for
-    //     // both previously existing and newly added assigned packages
-    //     return model.subPackages.filter((subPackage) => {
-    //         return subPackage.altId != assignedPackage.altId;
-    //     });
-    // }
-    //
-    // handleAssignedPackageClick(assignedPackage: AssignedPackageModel) {
-    //     const { selectedSubPackage } = this.state;
-    //     let idProp = assignedPackage.SuperPkgId ? 'SuperPkgId' : 'altId';
-    //
-    //     if (selectedSubPackage == undefined || selectedSubPackage[idProp] != assignedPackage[idProp]) {
-    //         this.setState({selectedSubPackage: assignedPackage});
-    //     }
-    //     else {
-    //         this.setState({selectedSubPackage: undefined});
-    //     }
-    // }
 
-    // renderAttributes() {
-    //     const { model, view } = this.props;
-    //     if (model) {
-    //         const { attributes, attributeLookups, hasEvent, hasProject, narrative } = model;
-    //         const isReadOnly = view === PROJECT_VIEW.VIEW ||
-    //             (view === PROJECT_VIEW.EDIT && (hasEvent || hasProject));
-    //         return <Attributes
-    //             attributes={attributes}
-    //             attributeLookups={attributeLookups}
-    //             handleFieldChange={this.handleFieldChange}
-    //             narrative={narrative}
-    //             readOnly={isReadOnly}/>
-    //     }
-    //
-    //     return null;
-    // }
+    getNonmatchingSubpackages(assignedSuperPackage: AssignedPackageModel) {
+        const { model } = this.props;
+
+        // use the generated altId to match as that will be unique for
+        // both previously existing and newly added assigned packages
+        return model.subPackages.filter((subPackage) => {
+            return subPackage.altId != assignedSuperPackage.altId;
+        });
+    }
 
     renderButtons() {
         const { isValid, view } = this.props;
@@ -262,7 +223,9 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
 
     renderExtraFields() {
         const { model, view } = this.props;
-        const disabled = view === PROJECT_VIEW.VIEW;
+        const disabled = (view === PROJECT_VIEW.VIEW ||
+            (view === PROJECT_VIEW.EDIT && model.hasEvent));
+
         if (model) {
             const { extraFields } = model;
             return <ExtraFields
@@ -281,7 +244,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
     }
 
     render() {
-        const { handleFieldChange, model, view } = this.props;
+        const { handleFieldChange, handleWarning, handleFullNarrative, model, view } = this.props;
         const disabled = view === PROJECT_VIEW.VIEW ||
             (view === PROJECT_VIEW.EDIT && model.hasEvent);
 
@@ -289,7 +252,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
             <div>
                 <form>
                     <div className="row clearfix">
-                        <div className="col-sm-6" style={{height: '200px'}}>
+                        <div className="col-sm-6" style={{height: '180px'}}>
                             <div className="row clearfix">
                                 <div className="col-xs-4">
                                     <ControlLabel htmlFor='projectId'>Project Id</ControlLabel>
@@ -317,7 +280,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
                                         view={view}/>
                                 </div>
                                 <div className="col-xs-4">
-                                    <TextInput
+                                    <NumericInput
                                         disabled={disabled}
                                         name='referenceId'
                                         onChange={this.handleFieldChange}
@@ -335,7 +298,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
                             </div>
                             <div className="row clearfix">
                                 <div className="col-xs-6">
-                                    <TextInput
+                                    <DatePicker
                                         name='startDate'
                                         onChange={this.handleFieldChange}
                                         value={model.startDate}
@@ -343,7 +306,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
                                         disabled={disabled}/>
                                 </div>
                                 <div className="col-xs-6">
-                                    <TextInput
+                                    <DatePicker
                                         name='endDate'
                                         onChange={this.handleFieldChange}
                                         value={model.endDate}
@@ -368,7 +331,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
                                         name='description'
                                         onChange={this.handleFieldChange}
                                         required
-                                        rows={8}
+                                        rows={7}
                                         value={model.description}/>
                                 </div>
                             </div>
@@ -376,7 +339,16 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
                     </div>
                     <div style={{borderBottom: '1px solid black'}}/>
 
-                    {/*{this.renderSubpackages()}*/}
+                    <SuperPackageForm
+                        model={model}
+                        view={view}
+                        handleFieldChange={handleFieldChange}
+                        handleWarning={handleWarning}
+                        handleAssignedPackageAdd={this.handleAssignedPackageAdd}
+                        handleAssignedPackageRemove={this.handleAssignedPackageRemove}
+                        handleAssignedPackageReorder={null}
+                        handleFullNarrative={handleFullNarrative}
+                    />
 
                     <div className="row clearfix">
                         <div className="col-sm-12 margin-top">

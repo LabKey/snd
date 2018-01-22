@@ -3,7 +3,7 @@
 import {fetchPackage} from "../Packages/actions";
 import {PackageModel, PackageQueryResponse, PackageWizardModel} from "../Packages/model";
 import {AssignedPackageModel} from "../../SuperPackages/model";
-import {PKG_WIZARD_TYPES} from "../Packages/constants";
+import {ProjectWizardModel} from "../Projects/model";
 
 
 
@@ -14,8 +14,8 @@ function getPackageModelFromResponse(response: PackageQueryResponse): PackageMod
         new PackageModel();
 }
 
-export function queryPackageFullNarrative(id: number, model: PackageWizardModel) {
-    return (dispatch, getState) => {
+export function queryPackageFullNarrative(id: number, model: PackageWizardModel | ProjectWizardModel, dispatchType: string ) {
+    return (dispatch) => {
         return fetchPackage(id, false, false).then((response: PackageQueryResponse) => {
             const packageModel = getPackageModelFromResponse(response);
             const narrativePkg = new AssignedPackageModel(
@@ -24,12 +24,14 @@ export function queryPackageFullNarrative(id: number, model: PackageWizardModel)
                 packageModel.narrative,
                 packageModel.repeatable,
                 undefined,
+                true,
+                true,
                 undefined,
                 packageModel.subPackages
             );
 
             dispatch({
-                type: PKG_WIZARD_TYPES.PACKAGE_FULL_NARRATIVE,
+                type: dispatchType,
                 model,
                 narrativePkg
             });

@@ -6,15 +6,14 @@ import { RouteComponentProps } from 'react-router-dom'
 import { connect } from 'react-redux';
 import { push } from 'react-router-redux'
 import { Dispatch } from 'redux';
-
 import * as actions from '../../Wizards/Projects/actions'
-import { PackageWizardModel } from '../../Wizards/Packages/model'
 
 import { ProjectForm } from './ProjectForm'
-// import { AssignedPackageModel } from "../../Packages/model";
-// import { PKG_WIZARD_TYPES } from '../../Wizards/Packages/constants'
-// import { queryPackageFullNarrative } from '../../Wizards/Packages/actions'
-// import NarrativeRow from './NarrativeRow'
+import {AssignedPackageModel} from "../../SuperPackages/model";
+import {PROJECT_WIZARD_TYPES} from "../../Wizards/Projects/constants";
+import {ProjectWizardModel} from "../../Wizards/Projects/model";
+import {queryPackageFullNarrative} from "../../Wizards/SuperPackages/actions";
+import NarrativeRow from "../../SuperPackages/Forms/NarrativeRow";
 
 export enum PROJECT_VIEW {
     REVISE,
@@ -29,8 +28,7 @@ interface ProjectFormContainerState {
     dispatch?: Dispatch<any>
 
     idRev: string
-    model?: any
-    // model?: ProjectWizardModel
+    model?: ProjectWizardModel
     view?: string
 }
 
@@ -90,15 +88,13 @@ export class ProjectFormContainerImpl extends React.Component<ProjectFormContain
 
         this.panelHeader = resolveProjectHeader(this.view, idRev);
 
-        // this.closeFullNarrative = this.closeFullNarrative.bind(this);
+        this.closeFullNarrative = this.closeFullNarrative.bind(this);
         this.handleCancel = this.handleCancel.bind(this);
         this.handleFieldChange = this.handleFieldChange.bind(this);
-        // this.handleNarrativeChange = this.handleNarrativeChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
-        // this.parseAttributes = this.parseAttributes.bind(this);
         // this.renderNarrative = this.renderNarrative.bind(this);
         this.setModelWarning = this.setModelWarning.bind(this);
-        // this.showFullNarrative = this.showFullNarrative.bind(this);
+        this.showFullNarrative = this.showFullNarrative.bind(this);
     }
 
     componentDidMount() {
@@ -137,77 +133,54 @@ export class ProjectFormContainerImpl extends React.Component<ProjectFormContain
         dispatch(model.submitForm(active));
     }
 
-    // handleNarrativeChange(value) {
-    //     const { dispatch, model } = this.props;
-    //     if (model) {
-    //         dispatch(model.saveNarrative(value));
-    //     }
-    // }
+    showFullNarrative(pkg: AssignedPackageModel, shouldQuery: boolean) {
+        const { dispatch, model } = this.props;
 
-    // parseAttributes() {
-    //     const { dispatch, model } = this.props;
-    //     dispatch(model.parseAttribtues());
-    // }
+        if (shouldQuery) {
+            dispatch(queryPackageFullNarrative(pkg.PkgId, model, PROJECT_WIZARD_TYPES.PROJECT_FULL_NARRATIVE));
+        }
+        else {
+            dispatch({
+                type: PROJECT_WIZARD_TYPES.PROJECT_FULL_NARRATIVE,
+                model,
+                narrativePkg: pkg
+            });
+        }
+    }
 
-    // showFullNarrative(pkg: AssignedPackageModel, shouldQuery: boolean) {
-    //     const { dispatch, model } = this.props;
-    //
-    //     if (shouldQuery) {
-    //         dispatch(queryPackageFullNarrative(pkg.PkgId, model));
-    //     }
-    //     else {
-    //         dispatch({
-    //             type: PKG_WIZARD_TYPES.PACKAGE_FULL_NARRATIVE,
-    //             model,
-    //             narrativePkg: pkg
-    //         });
-    //     }
-    // }
-    //
-    // closeFullNarrative() {
-    //     const { dispatch, model } = this.props;
-    //
-    //     dispatch({
-    //         type: PKG_WIZARD_TYPES.PACKAGE_CLOSE_FULL_NARRATIVE,
-    //         model
-    //     });
-    // }
-    //
-    // renderNarrative(narrativePkg: AssignedPackageModel, level: number) {
-    //     const { SubPackages } = narrativePkg;
-    //     const key = "narrative-row-" + (narrativePkg.SuperPkgId || narrativePkg.altId);
-    //
-    //     return (
-    //         <div key={key}>
-    //             <NarrativeRow model={narrativePkg} level={level} />
-    //             {SubPackages.map((subPackage) =>
-    //                 this.renderNarrative(subPackage, level + 1)
-    //             )}
-    //         </div>
-    //     );
-    // }
+    closeFullNarrative() {
+        const { dispatch, model } = this.props;
+
+        dispatch({
+            type: PROJECT_WIZARD_TYPES.PROJECT_CLOSE_FULL_NARRATIVE,
+            model
+        });
+    }
+
+    renderNarrative(narrativePkg: AssignedPackageModel, level: number) {
+        const { SubPackages } = narrativePkg;
+        const key = "narrative-row-" + (narrativePkg.SuperPkgId || narrativePkg.altId);
+
+        return (
+            <div key={key}>
+                <NarrativeRow model={narrativePkg} level={level} />
+                {SubPackages.map((subPackage) =>
+                    this.renderNarrative(subPackage, level + 1)
+                )}
+            </div>
+        );
+    }
 
     renderBody() {
         const { model } = this.props;
 
         if (model && model.projectLoaded && !model.isError) {
-        //     return <ProjectForm
-        //         handleCancel={this.handleCancel}
-        //         handleFieldChange={this.handleFieldChange}
-        //         handleFormSubmit={this.handleSubmit}
-        //         handleNarrativeChange={this.handleNarrativeChange}
-        //         handleFullNarrative={this.showFullNarrative}
-        //         handleWarning={this.setModelWarning}
-        //         isValid={model.isValid && !model.isSubmitting}
-        //         model={model.data}
-        //         parseAttributes={this.parseAttributes}
-        //         view={model.formView}/>;
-        // }
             return <ProjectForm
                 handleCancel={this.handleCancel}
                 handleFieldChange={this.handleFieldChange}
                 handleFormSubmit={this.handleSubmit}
                 handleWarning={this.setModelWarning}
+                handleFullNarrative={this.showFullNarrative}
                 isValid={model.isValid && !model.isSubmitting}
                 model={model.data}
                 view={model.formView}/>;
@@ -250,23 +223,23 @@ export class ProjectFormContainerImpl extends React.Component<ProjectFormContain
                     </div>
                 )
             }
-            // if (model.narrativePkg != null) {
-            //     return (
-            //         <div className="static-modal">
-            //             <Modal onHide={this.closeFullNarrative} show={model.narrativePkg != null}>
-            //                 <Modal.Header closeButton>
-            //                     <Modal.Title>Full Narrative for Package {model.narrativePkg.PkgId}</Modal.Title>
-            //                 </Modal.Header>
-            //                 <Modal.Body>
-            //                     {this.renderNarrative(model.narrativePkg, 0)}
-            //                 </Modal.Body>
-            //                 <Modal.Footer>
-            //                     <Button onClick={this.closeFullNarrative}>Close</Button>
-            //                 </Modal.Footer>
-            //             </Modal>
-            //         </div>
-            //     )
-            // }
+            if (model.narrativePkg != null) {
+                return (
+                    <div className="static-modal">
+                        <Modal onHide={this.closeFullNarrative} show={model.narrativePkg != null}>
+                            <Modal.Header closeButton>
+                                <Modal.Title>Full Narrative for Package {model.narrativePkg.PkgId}</Modal.Title>
+                            </Modal.Header>
+                            <Modal.Body>
+                                {this.renderNarrative(model.narrativePkg, 0)}
+                            </Modal.Body>
+                            <Modal.Footer>
+                                <Button onClick={this.closeFullNarrative}>Close</Button>
+                            </Modal.Footer>
+                        </Modal>
+                    </div>
+                )
+            }
         }
     }
 
