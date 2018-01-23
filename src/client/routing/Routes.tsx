@@ -33,6 +33,7 @@ export interface RouteProps {
     component: React.ComponentClass<RouteComponentProps<any>>;
     exact?: boolean;
     path?: string;
+    props?: {crumbNav?: string, crumbName?: string}
 }
 
 
@@ -121,11 +122,7 @@ export const Routes: Array<RouteProps> = [
 ];
 
 export const CrumbRoutes: Array<RouteProps> = [
-    {
-        component: null,
-        exact: true,
-        path: '/',
-    },
+
 
     {
         component: null,
@@ -141,6 +138,22 @@ export const CrumbRoutes: Array<RouteProps> = [
 
     {
         component: Crumb,
-        path: '/*',
+        exact: true,
+        path: '/packages/*',
+        props: {
+            crumbNav: '/packages',
+            crumbName: 'Packages'
+        }
     },
+
+    {
+        component: Crumb,
+        exact: true,
+        path: '/projects/*',
+        props: {
+            crumbNav: '/projects',
+            crumbName: 'Projects'
+        }
+    }
+
 ];

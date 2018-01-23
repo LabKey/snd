@@ -16,13 +16,14 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux'
-import { Route, RouteComponentProps, RouteProps, Switch } from 'react-router-dom';
+import { Route, RouteComponentProps, Switch } from 'react-router-dom';
 
 import { AppMessage, AppModel } from './model'
 import * as actions from './actions'
 import { UserModel } from '../SignIn/model'
 
-import { CrumbRoutes, Routes } from '../../routing/Routes'
+import {CrumbRoutes, RouteProps, Routes} from '../../routing/Routes'
+import {Crumb} from "../../components/Crumb/Crumb";
 
 interface AppOwnProps extends RouteComponentProps<{}> {}
 interface AppStateDispatch {
@@ -122,7 +123,10 @@ export class AppImpl extends React.Component<AppProps, {}> {
                                 key={index}
                                 path={route.path}
                                 exact={route.exact}
-                                component={route.component}/>;
+                                render={route.component !== null ? (routeProps) => (
+                                    <Crumb {...routeProps} {...route.props} />
+                                ) : null}
+                                />;
                         })}
                     </Switch>
                     {this.renderMessage()}
