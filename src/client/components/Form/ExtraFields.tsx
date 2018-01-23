@@ -59,7 +59,6 @@ export class ExtraFields extends React.Component<ExtraFieldsProps, any>
                         {extraFields.map((extra) =>
                             {
                                 let {name} = extra;
-                                count++;
                                 return (
                                     <div key={"extraCol-" + name} className={colClass}>
                                             <ControlLabel>{name}</ControlLabel>
@@ -96,7 +95,7 @@ export class ExtraFields extends React.Component<ExtraFieldsProps, any>
                                                             disabled: disabled,
                                                             value: value,
                                                             onChange: handleFieldChange,
-                                                            name: name
+                                                            name: ('extraFields_' + count + '_' + name)
                                                         }
                                                     )}
                                                 </div>

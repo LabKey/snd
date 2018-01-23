@@ -3,6 +3,7 @@ import * as actions from './actions';
 import {PropertyDescriptor} from "../model";
 import { PROJECT_VIEW } from '../../Projects/Forms/ProjectFormContainer';
 import {AssignedPackageModel} from "../../SuperPackages/model";
+import {SubPackageSubmissionModel} from "../SuperPackages/model";
 
 interface ProjectSubmissionModelProps {
     active: boolean;
@@ -16,7 +17,7 @@ interface ProjectSubmissionModelProps {
     endDate: string;
     referenceId: number;
     qcState?: any;
-    subPackages?: Array<{sortOrder: number, superPkgId: number}>;
+    projectItems?: Array<SubPackageSubmissionModel>;
 }
 
 export class ProjectSubmissionModel implements ProjectSubmissionModelProps {
@@ -31,7 +32,7 @@ export class ProjectSubmissionModel implements ProjectSubmissionModelProps {
     endDate: string = undefined;
     referenceId: number = undefined;
     qcState: any = null;
-    subPackages: Array<{sortOrder: number, superPkgId: number}> = [];
+    projectItems: Array<SubPackageSubmissionModel> = [];
 
     constructor(props: Partial<ProjectSubmissionModel>) {
         if (props) {

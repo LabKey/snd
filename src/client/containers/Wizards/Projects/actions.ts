@@ -252,7 +252,9 @@ export function formatProjectValues(model: ProjectWizardModel, active: boolean):
         startDate: model.data.startDate,
         endDate: model.data.endDate,
         referenceId: model.data.referenceId,
-        subPackages
+        projectItems: subPackages,
+        isEdit: formView === PROJECT_VIEW.EDIT,
+        isRevision: formView === PROJECT_VIEW.REVISE
     });
 }
 
@@ -282,6 +284,9 @@ export function queryProjectSubPackageDetails(id: number, parentProjectId: strin
 
 export function getRevisionId(model: ProjectModel | ProjectWizardModel) {
     if (typeof model === 'undefined') {
+        return '-1';
+    }
+    else if (model.projectId === -1) {
         return '-1';
     }
     else {

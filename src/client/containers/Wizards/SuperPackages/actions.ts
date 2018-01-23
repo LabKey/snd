@@ -4,6 +4,7 @@ import {fetchPackage} from "../Packages/actions";
 import {PackageModel, PackageQueryResponse, PackageWizardModel} from "../Packages/model";
 import {AssignedPackageModel} from "../../SuperPackages/model";
 import {ProjectWizardModel} from "../Projects/model";
+import {SubPackageSubmissionModel} from "./model";
 
 
 
@@ -42,14 +43,15 @@ export function queryPackageFullNarrative(id: number, model: PackageWizardModel 
     }
 }
 
-export function formatSubPackages(subPackages: Array<AssignedPackageModel>): Array<{sortOrder: number, superPkgId: number}> {
+export function formatSubPackages(subPackages: Array<AssignedPackageModel>): Array<SubPackageSubmissionModel> {
 
     if (subPackages.length) {
         return subPackages.map((s: AssignedPackageModel, i: number) => {
-            return {
+            return new SubPackageSubmissionModel({
                 sortOrder: i,
+                active: s.Active,
                 superPkgId: s.SuperPkgId
-            }
+            });
         });
     }
 

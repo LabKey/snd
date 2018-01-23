@@ -17,6 +17,7 @@ import * as actions from './actions'
 import { PACKAGE_VIEW } from '../../Packages/Forms/PackageFormContainer'
 import { PropertyDescriptor } from "../model";
 import {AssignedPackageModel} from "../../SuperPackages/model";
+import {SubPackageSubmissionModel} from "../SuperPackages/model";
 
 interface PackageQueryResponseProps {
     json: Array<PackageModel>
@@ -90,7 +91,7 @@ interface PackageSubmissionModelProps {
     pkgId?: number;
     qcState?: any;
     repeatable?: boolean;
-    subPackages?: Array<{sortOrder: number, superPkgId: number}>;
+    subPackages?: Array<SubPackageSubmissionModel>;
 }
 
 export class PackageSubmissionModel implements PackageSubmissionModelProps {
@@ -106,7 +107,7 @@ export class PackageSubmissionModel implements PackageSubmissionModelProps {
     pkgId: number = undefined;
     qcState: any = null;
     repeatable: boolean = false;
-    subPackages: Array<{sortOrder: number, superPkgId: number}> = [];
+    subPackages: Array<SubPackageSubmissionModel> = [];
 
     constructor(props: Partial<PackageSubmissionModel>) {
         if (props) {

@@ -22,8 +22,8 @@ export class AssignedPackageModel implements AssignedPackageModelProps {
     SortOrder: number = undefined;
     SubPackages: Array<AssignedPackageModel> = [];
     SuperPkgId: number = undefined;
-    Active: boolean
-    ShowActive: boolean
+    Active: boolean;
+    ShowActive: boolean;
 
     // set the altId as a way to uniquely remove this assigned package or to handle assigned package click
     altId: number = LABKEY.Utils.id();
@@ -44,5 +44,21 @@ export class AssignedPackageModel implements AssignedPackageModelProps {
         this.ShowActive = showActive;
         if (Array.isArray(subPackages))
             this.SubPackages = subPackages;
+    }
+}
+
+interface AssignedSuperPackageModelProps {
+    Active: boolean
+    AssignedPackage: AssignedPackageModel
+}
+
+export class AssignedSuperPackageModel implements AssignedSuperPackageModelProps {
+    Active: boolean = undefined;
+    AssignedPackage: AssignedPackageModel = undefined;
+
+    constructor(active: boolean, pkg: AssignedPackageModel)
+    {
+        this.Active = active;
+        this.AssignedPackage = pkg;
     }
 }

@@ -44,9 +44,12 @@ export const projects = handleActions({
 
     [PROJECT_WIZARD_TYPES.PROJECT_INIT]: (state: ProjectWizardContainer, action: any) => {
         const {idRev} = action.props;
-        let parts = idRev.split('|');
-        let id = parts[0];
-        let rev = parts[1];
+        let id = -1, rev = 0;
+        if (idRev !== -1) {
+            let parts = idRev.split('|');
+            id = parts[0];
+            rev = parts[1];
+        }
 
         const model = new ProjectWizardModel(
             Object.assign({}, state.projectData[idRev], {projectId: id}, {revisionNum: rev})
@@ -230,9 +233,9 @@ function isFormValid(data: ProjectModel, initialData: ProjectModel, view: PROJEC
     if (isValid && view === PROJECT_VIEW.EDIT) {
         // need to loop through initialData to compare with currentValues if view === edit
         return (
-            data.description !== initialData.description
-            // data.subPackages.map(p => p.PkgId).sort().join('') !==
-            // initialData.subPackages.map(p => p.PkgId).sort().join('')
+            data.description !== initialData.description ||
+            data.subPackages.map(p => p.PkgId).sort().join('') !==
+            initialData.subPackages.map(p => p.PkgId).sort().join('')
         )
     }
 

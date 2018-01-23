@@ -453,7 +453,7 @@ public class SNDController extends SpringActionController
     public class SaveProjectAction extends ApiAction<SimpleApiJsonForm>
     {
 
-        public static final String dateFormat = "yyyy/MM/dd";
+        public static final String dateFormat = "yyyy-MM-dd";
 
         @Override
         public void validateForm(SimpleApiJsonForm form, Errors errors)
@@ -594,17 +594,16 @@ public class SNDController extends SpringActionController
             if (null != jsonPkgs)
             {
                 List<ProjectItem> projectItems = new ArrayList<>();
-                JSONObject jsonItem, jsonSuperPkg;
+                JSONObject jsonItem;
                 ProjectItem projectItem;
                 Object superPkgId;
                 for (int i = 0; i < jsonPkgs.length(); i++)
                 {
                     jsonItem = jsonPkgs.getJSONObject(i);
-                    jsonSuperPkg = jsonItem.getJSONObject("superPkg");
                     projectItem = new ProjectItem();
                     projectItem.setActive(jsonItem.getBoolean("active"));
-                    superPkgId = jsonSuperPkg.get("superPkgId");
-                    superPkgId = (superPkgId == null ? jsonSuperPkg.get("SuperPkgId") : superPkgId);
+                    superPkgId = jsonItem.get("superPkgId");
+                    superPkgId = (superPkgId == null ? jsonItem.get("SuperPkgId") : superPkgId);
                     projectItem.setSuperPkgId((Integer)superPkgId);
                     projectItem.setParentObjectId(project.getObjectId());
 

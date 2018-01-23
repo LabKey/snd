@@ -29,6 +29,7 @@ export const TextArea = (props: TextAreaProps) => {
     return (
         <div className="input-row">
             <textarea
+                name={props.name}
                 className="form-control"
                 cols={props.cols}
                 disabled={props.disabled === true}

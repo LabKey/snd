@@ -85,7 +85,7 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
 
     render() {
         const {
-            model, selected, treeLevel, treeArrIndex, treeArrLength, treeCollapsed,
+            model, selected, treeLevel, treeArrIndex, treeArrLength, treeCollapsed, showActive, active,
             menuActionName, handleMenuAction, handleMenuReorderAction, handleFullNarrative, view
         } = this.props;
         const { isHover, isDropup } = this.state;
@@ -98,13 +98,29 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
         const showMoveUp = !isReadyOnly && handleMenuReorderAction && treeArrIndex != undefined && treeArrIndex > 0;
         const showMoveDown = !isReadyOnly && handleMenuReorderAction && treeArrIndex != undefined && treeArrLength != undefined && treeArrIndex < (treeArrLength - 1);
 
+        // TODO: Remove this after design testing
+        // let divStyle = {
+        //     margin: '3px 10px 0 0',
+        //     opacity: .5
+        // };
+        //
+        // let icon = 'pull-left fa fa-eye';
+        // var random_boolean = Math.random() >= 0.5;
+        // if (random_boolean)
+        // {
+        //     icon = 'pull-left fa fa-eye-slash';
+        //     divStyle.opacity = 1;
+        // }
+
         return (
+
             <div
                 className={"superpackage_viewer__result clearfix superpackage-row" + (selected ? ' superpackage-selected-row' : '')}
                 onMouseEnter={this.handleMouseEnter}
                 onMouseLeave={this.handleMouseLeave}
                 onClick={this.handleOnClick}
             >
+                {/*<div className={icon} style={divStyle}></div>*/}
                 <div className="pull-left" style={{marginLeft: indentPx + 'px'}}>
                     {treeLevelVal > -1
                         ? model.loadingSubpackages != undefined && model.loadingSubpackages === true
@@ -133,6 +149,11 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
                             ? <MenuItem onClick={() => handleMenuReorderAction(model, false)}>Move Down</MenuItem>
                             : null
                         }
+                        {/*{showActive*/}
+                            {/*? <MenuItem>Display<i className="fa fa-check">&nbsp;</i></MenuItem>*/}
+                            {/*: <MenuItem>Display</MenuItem>*/}
+                        {/*}*/}
+
                         <MenuItem onClick={() => handleFullNarrative(model)}>Full Narrative</MenuItem>
                         {/*<MenuItem disabled>Packages Using</MenuItem>*/}
                         {/*<MenuItem disabled>Projects Using</MenuItem>*/}

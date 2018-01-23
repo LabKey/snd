@@ -263,20 +263,23 @@ export const ProjectFormContainer = connect<any, any, ProjectFormContainerProps>
 
 function resolveProjectHeader(view: PROJECT_VIEW, idRev) {
 
-    let text = '';
-    let parts = idRev.split('|');
-    let id = parts[0], rev = parts[1];
+    let text = '', id = -1, rev;
+    if (idRev !== -1) {
+        let parts = idRev.split('|');
+        id = parts[0];
+        rev = parts[1];
+    }
     switch (view) {
         case PROJECT_VIEW.VIEW:
-            text = 'View: Project ' + id + ', Revision ' + rev;
+            text = 'View - Project ' + id + ', Revision ' + rev;
             break;
 
         case PROJECT_VIEW.EDIT:
-            text = 'Edit: Project ' + id + ', Revision ' + rev;
+            text = 'Edit - Project ' + id + ', Revision ' + rev;
             break;
 
         case PROJECT_VIEW.REVISE:
-            text = 'Revise Project - Revision of ' + id + ', Revision ' + rev;
+            text = 'Revision - Project ' + id + ', Revision ' + rev;
             break;
 
         case PROJECT_VIEW.NEW:

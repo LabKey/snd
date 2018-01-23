@@ -6,6 +6,7 @@ import org.labkey.api.collections.ArrayListMap;
 import org.labkey.api.data.Container;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.security.User;
+import org.labkey.api.util.DateUtil;
 import org.labkey.api.util.GUID;
 
 import java.util.ArrayList;
@@ -146,6 +147,11 @@ public class Project
         return _startDate;
     }
 
+    public String startDateToString()
+    {
+        return DateUtil.formatDateISO8601(getStartDate());
+    }
+
     public void setStartDate(Date startDate)
     {
         _startDate = startDate;
@@ -154,6 +160,11 @@ public class Project
     public Date getEndDate()
     {
         return _endDate;
+    }
+
+    public String endDateToString()
+    {
+        return DateUtil.formatDateISO8601(getEndDate());
     }
 
     public void setEndDate(Date endDate)
@@ -251,12 +262,12 @@ public class Project
         json.put(PROJECT_ID, getProjectId());
         json.put(PROJECT_DESCRIPTION, getDescription());
         json.put(PROJECT_ACTIVE, isActive());
-        json.put(PROJECT_STARTDATE, getStartDate());
+        json.put(PROJECT_STARTDATE, startDateToString());
         json.put(PROJECT_REVNUM, getRevisionNum());
         json.put(PROJECT_REFID, getReferenceId());
         json.put(PROJECT_HASEVENT, hasEvent());
         if (getEndDate() != null)
-            json.put(PROJECT_ENDDATE, getEndDate());
+            json.put(PROJECT_ENDDATE, endDateToString());
 
         if (getProjectItems().size() > 0)
         {
