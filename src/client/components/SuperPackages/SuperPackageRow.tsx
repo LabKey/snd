@@ -15,9 +15,8 @@
  */
 import * as React from 'react';
 import { DropdownButton, MenuItem } from 'react-bootstrap'
-import { PACKAGE_VIEW } from '../../containers/Packages/Forms/PackageFormContainer'
-import {PROJECT_VIEW} from "../../containers/Projects/Forms/ProjectFormContainer";
 import {AssignedPackageModel} from "../../containers/SuperPackages/model";
+import {VIEW_TYPES} from "../../containers/App/constants";
 
 interface SuperPackageRowProps {
     model: AssignedPackageModel
@@ -34,7 +33,7 @@ interface SuperPackageRowProps {
     treeCollapsed?: boolean
     showActive?: boolean
     active?: boolean
-    view?: PACKAGE_VIEW | PROJECT_VIEW
+    view?: VIEW_TYPES
 }
 
 interface SuperPackageRowStateProps {
@@ -89,7 +88,7 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
             menuActionName, handleMenuAction, handleMenuReorderAction, handleFullNarrative, view
         } = this.props;
         const { isHover, isDropup } = this.state;
-        const isReadyOnly = view == PACKAGE_VIEW.VIEW;
+        const isReadyOnly = view == VIEW_TYPES.PACKAGE_VIEW;
         const treeLevelVal = treeLevel == undefined ? -1 : treeLevel;
         const treeCollapsedVal = treeCollapsed != undefined && treeCollapsed;
         const indentPx = treeLevel == undefined ? 0 : treeLevelVal * 15;

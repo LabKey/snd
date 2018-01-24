@@ -3,8 +3,6 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux'
 
-import { PROJECT_VIEW } from '../../Projects/Forms/ProjectFormContainer';
-import { PACKAGE_VIEW } from '../../Packages/Forms/PackageFormContainer';
 import {AssignedPackageModel} from '../model';
 import {PackageModel} from "../../Wizards/Packages/model";
 import {ProjectModel} from "../../Wizards/Projects/model";
@@ -13,6 +11,7 @@ import {SUPERPKG_REQUIRED_COLUMNS, TOPLEVEL_SUPER_PKG_SQ} from "../constants";
 import {SuperPackageViewer} from "./SuperPackageViewer";
 import {SubpackageViewer} from "./SubpackageViewer";
 import {ControlLabel, ListGroupItem} from "react-bootstrap";
+import {VIEW_TYPES} from "../../App/constants";
 
 interface SuperPackageFormOwnProps {
     // handleCancel?: () => void
@@ -27,7 +26,7 @@ interface SuperPackageFormOwnProps {
     // isValid?: boolean
     model?: ProjectModel | PackageModel
     // parseAttributes?: () => void
-    view?: PROJECT_VIEW | PACKAGE_VIEW
+    view?: VIEW_TYPES
 }
 
 interface SuperPackageFormState {
@@ -74,8 +73,8 @@ export class SuperPackageFormImpl extends React.Component<SuperPackageFormProps,
             handleFullNarrative} = this.props;
         const {selectedSubPackage} = this.state;
         const {hasEvent} = model;
-        const isReadyOnly = view === PROJECT_VIEW.VIEW ||
-            (view === PROJECT_VIEW.EDIT && (hasEvent));
+        const isReadyOnly = view === VIEW_TYPES.PROJECT_VIEW ||
+            (view === VIEW_TYPES.PROJECT_EDIT && (hasEvent));
 
         return (
             <div className="row clearfix">

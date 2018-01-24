@@ -28,16 +28,21 @@ export const DatePicker = (props: DatePickerProps) => {
             + (day.toString().length === 1 ? '0' + day : day);
     }
 
+    const disabledStyle = {
+        backgroundColor: '#EEEEEE'
+    };
+
     return (
         <div className="input-row">
             <input
                 className="details-input"
                 type="date"
-                disabled={props.disabled === true}
-                required={props.required === true}
+                disabled={props.disabled}
+                required={props.required}
                 value={dateString}
                 onChange={props.onChange}
                 name={props.name}
+                style={props.disabled ? disabledStyle : null}
                 />
         </div>
     );

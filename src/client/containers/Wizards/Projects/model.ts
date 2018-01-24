@@ -1,9 +1,9 @@
 
 import * as actions from './actions';
 import {PropertyDescriptor} from "../model";
-import { PROJECT_VIEW } from '../../Projects/Forms/ProjectFormContainer';
 import {AssignedPackageModel} from "../../SuperPackages/model";
 import {SubPackageSubmissionModel} from "../SuperPackages/model";
+import {VIEW_TYPES} from "../../App/constants";
 
 interface ProjectSubmissionModelProps {
     active: boolean;
@@ -15,6 +15,7 @@ interface ProjectSubmissionModelProps {
     revisionNum: number;
     startDate: string;
     endDate: string;
+    endDateRevised?: string;
     referenceId: number;
     qcState?: any;
     projectItems?: Array<SubPackageSubmissionModel>;
@@ -30,6 +31,7 @@ export class ProjectSubmissionModel implements ProjectSubmissionModelProps {
     revisionNum: number = undefined;
     startDate: string = undefined;
     endDate: string = undefined;
+    endDateRevised: string = undefined;
     referenceId: number = undefined;
     qcState: any = null;
     projectItems: Array<SubPackageSubmissionModel> = [];
@@ -73,8 +75,10 @@ interface ProjectModelProps {
     revisionNum?: number
     startDate?: string
     endDate?: string
+    endDateRevised?: string
     objectId?: string
     referenceId?: number
+    copyRevisedPkgs?: boolean
     qcState?: any
     subPackages?: Array<AssignedPackageModel>
 }
@@ -89,8 +93,10 @@ export class ProjectModel implements ProjectModelProps {
     revisionNum: number = undefined;
     startDate: string = undefined;
     endDate: string = undefined;
+    endDateRevised: string = undefined;
     objectId: string = undefined;
-    referenceId: number = undefined
+    referenceId: number = undefined;
+    copyRevisedPkgs: boolean = false;
     qcState: any = null; // todo: find out qcState type
     subPackages: Array<AssignedPackageModel> = [];
 
@@ -107,7 +113,7 @@ export class ProjectModel implements ProjectModelProps {
 
 interface ProjectWizardModelProps {
     data?: ProjectModel;
-    formView?: PROJECT_VIEW;
+    formView?: VIEW_TYPES;
     initialData?: ProjectModel;
     isActive?: boolean;
     isError?: boolean;
@@ -127,7 +133,7 @@ interface ProjectWizardModelProps {
 
 export class ProjectWizardModel implements ProjectWizardModelProps {
     data: ProjectModel = new ProjectModel();
-    formView: PROJECT_VIEW = undefined;
+    formView: VIEW_TYPES = undefined;
     initialData: ProjectModel = new ProjectModel();
     isActive: boolean = false;
     isError: boolean = false;
@@ -190,7 +196,7 @@ export class ProjectWizardModel implements ProjectWizardModelProps {
         return actions.save(this, this.formatProjectValues(active));
     }
 
-    success(response: ProjectQueryResponse, view: PROJECT_VIEW) {
+    success(response: ProjectQueryResponse, view: VIEW_TYPES) {
         return actions.projectSuccess(this, response, view);
     }
 }

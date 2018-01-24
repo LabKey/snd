@@ -18,9 +18,8 @@ import { ListGroupItem } from 'react-bootstrap'
 
 import { QuerySuperPackageModel } from '../../containers/Packages/model'
 import { SuperPackageRow } from './SuperPackageRow'
-import { PACKAGE_VIEW } from '../../containers/Packages/Forms/PackageFormContainer'
-import {PROJECT_VIEW} from "../../containers/Projects/Forms/ProjectFormContainer";
 import {AssignedPackageModel} from "../../containers/SuperPackages/model";
+import {VIEW_TYPES} from "../../containers/App/constants";
 
 interface SuperPackageSearchResultsProps {
     data: {[key: string]: any}
@@ -29,7 +28,7 @@ interface SuperPackageSearchResultsProps {
     primitivesOnly: boolean,
     handleAssignedPackageAdd: (assignedPackage: AssignedPackageModel) => void
     handleFullNarrative: (model: AssignedPackageModel) => void
-    view: PACKAGE_VIEW | PROJECT_VIEW
+    view: VIEW_TYPES
 }
 
 export class SuperPackageSearchResults extends React.Component<SuperPackageSearchResultsProps, any> {

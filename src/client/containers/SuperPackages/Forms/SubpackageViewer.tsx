@@ -20,8 +20,7 @@ import { Dispatch } from 'redux'
 
 import { SuperPackageRow } from '../../../components/SuperPackages/SuperPackageRow'
 import {AssignedPackageModel} from "../model";
-import {PACKAGE_VIEW} from "../../Packages/Forms/PackageFormContainer";
-import {PROJECT_VIEW} from "../../Projects/Forms/ProjectFormContainer";
+import {VIEW_TYPES} from "../../App/constants";
 
 interface SubpackageViewerOwnProps {
     subPackages: Array<AssignedPackageModel>
@@ -30,7 +29,7 @@ interface SubpackageViewerOwnProps {
     handleAssignedPackageReorder: (assignedPackage: AssignedPackageModel, moveUp: boolean) => any
     handleRowClick: (assignedPackage: AssignedPackageModel) => any
     handleFullNarrative: (model: AssignedPackageModel, shouldQuery: boolean) => void
-    view?: PACKAGE_VIEW | PROJECT_VIEW
+    view?: VIEW_TYPES
 }
 
 interface SubpackageViewerState {

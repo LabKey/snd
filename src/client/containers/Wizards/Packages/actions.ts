@@ -23,7 +23,6 @@ import {
 
 import { setAppError } from "../../App/actions";
 
-import { PACKAGE_VIEW } from '../../Packages/Forms/PackageFormContainer'
 import { packagesInvalidate } from '../../Packages/actions'
 import { PKG_SQ } from '../../Packages/constants'
 
@@ -31,6 +30,7 @@ import { labkeyAjax, queryInvalidate } from '../../../query/actions'
 import {parseNarrativeKeywords} from "./reducer";
 import {TOPLEVEL_SUPER_PKG_SQ} from "../../SuperPackages/constants";
 import {formatSubPackages} from "../SuperPackages/actions";
+import {VIEW_TYPES} from "../../App/constants";
 
 export function fetchPackage(id: string | number, includeExtraFields: boolean, includeLookups: boolean) {
     return labkeyAjax(
@@ -102,7 +102,7 @@ export function getPackageModelFromResponse(response: PackageQueryResponse): Pac
         new PackageModel();
 }
 
-export function init(id: string | number, view: PACKAGE_VIEW) {
+export function init(id: string | number, view: VIEW_TYPES) {
     return (dispatch, getState) => {
         let packageModel: PackageWizardModel = getState().wizards.packages.packageData[id];
 
@@ -116,7 +116,7 @@ export function init(id: string | number, view: PACKAGE_VIEW) {
 
 
             const model = getState().wizards.packages.packageData[id];
-            if (packageModel && packageModel.formView !== view && view !== PACKAGE_VIEW.VIEW) {
+            if (packageModel && packageModel.formView !== view && view !== VIEW_TYPES.PACKAGE_VIEW) {
                 dispatch(model.checkValid());
             }
         }
@@ -193,7 +193,7 @@ export function packageLoading(model: PackageWizardModel) {
     };
 }
 
-export function packageSuccess(model: PackageWizardModel, response: PackageQueryResponse, view: PACKAGE_VIEW) {
+export function packageSuccess(model: PackageWizardModel, response: PackageQueryResponse, view: VIEW_TYPES) {
     return {
         type: PKG_WIZARD_TYPES.PACKAGE_SUCCESS,
         model,
@@ -303,7 +303,7 @@ export function formatPackageValues(model: PackageWizardModel, active: boolean):
     const { formView } = model;
     const { categories, description, extraFields, narrative, pkgId, repeatable } = model.data;
     let id;
-    if (formView !== PACKAGE_VIEW.NEW) {
+    if (formView !== VIEW_TYPES.PACKAGE_NEW) {
         id = pkgId;
     }
 
@@ -314,7 +314,7 @@ export function formatPackageValues(model: PackageWizardModel, active: boolean):
         active,
         attributes,
         categories,
-        clone: formView === PACKAGE_VIEW.CLONE,
+        clone: formView === VIEW_TYPES.PACKAGE_CLONE,
         description,
         extraFields,
         id,

@@ -20,15 +20,14 @@ import { QueryModel, SchemaQuery } from '../../../query/model'
 import { SuperPackageSearchResults } from "../../../components/SuperPackages/SuperPackageSearchResults";
 import { SearchInput } from "../../../components/Search/SearchInput";
 import {AssignedPackageModel} from "../model";
-import {PROJECT_VIEW} from "../../Projects/Forms/ProjectFormContainer";
-import {PACKAGE_VIEW} from "../../Packages/Forms/PackageFormContainer";
+import {VIEW_TYPES} from "../../App/constants";
 
 interface SuperPackageViewerOwnProps {
     schemaQuery: SchemaQuery
     handleAssignedPackageAdd: (assignedPackage: AssignedPackageModel) => void
     handleFullNarrative: (model: AssignedPackageModel, shouldQuery: boolean) => void
     model?: QueryModel
-    view: PACKAGE_VIEW | PROJECT_VIEW
+    view: VIEW_TYPES
 }
 
 interface SuperPackageViewerStateProps {

@@ -22,8 +22,8 @@ import {
     PackageWizardModel,
     PackageWizardContainer
 } from './model'
-import { PACKAGE_VIEW } from "../../Packages/Forms/PackageFormContainer";
 import { arraysMatch } from '../../../utils/actions'
+import {VIEW_TYPES} from "../../App/constants";
 
 export const packages = handleActions({
 
@@ -405,7 +405,7 @@ export const packages = handleActions({
 
 }, new PackageWizardContainer());
 
-function isFormValid(data: PackageModel, initialData: PackageModel, view: PACKAGE_VIEW): boolean {
+function isFormValid(data: PackageModel, initialData: PackageModel, view: VIEW_TYPES): boolean {
 
     let isValid: boolean = true;
 
@@ -419,7 +419,7 @@ function isFormValid(data: PackageModel, initialData: PackageModel, view: PACKAG
         });
     }
 
-    if (isValid && view === PACKAGE_VIEW.EDIT) {
+    if (isValid && view === VIEW_TYPES.PACKAGE_EDIT) {
         // need to loop through initialData to compare with currentValues if view === edit
         return (
             data.description !== initialData.description ||

@@ -14,19 +14,13 @@ import {PROJECT_WIZARD_TYPES} from "../../Wizards/Projects/constants";
 import {ProjectWizardModel} from "../../Wizards/Projects/model";
 import {queryPackageFullNarrative} from "../../Wizards/SuperPackages/actions";
 import NarrativeRow from "../../SuperPackages/Forms/NarrativeRow";
-
-export enum PROJECT_VIEW {
-    REVISE,
-    EDIT,
-    NEW,
-    VIEW
-}
+import {ProjectRevisionForm} from "./ProjectRevisionForm";
+import {VIEW_TYPES} from "../../App/constants";
 
 interface ProjectFormContainerOwnProps extends RouteComponentProps<{idRev: string}> {}
 
 interface ProjectFormContainerState {
     dispatch?: Dispatch<any>
-
     idRev: string
     model?: ProjectWizardModel
     view?: string
@@ -60,7 +54,7 @@ function mapStateToProps(state: APP_STATE_PROPS, ownProps: ProjectFormContainerO
 export class ProjectFormContainerImpl extends React.Component<ProjectFormContainerProps, ProjectFormContainerStateProps> {
 
     private panelHeader: React.ReactNode = null;
-    private view: PROJECT_VIEW;
+    private view: VIEW_TYPES;
 
     constructor(props?: ProjectFormContainerProps) {
         super(props);
@@ -69,19 +63,19 @@ export class ProjectFormContainerImpl extends React.Component<ProjectFormContain
 
         switch (view) {
             case 'view':
-                this.view = PROJECT_VIEW.VIEW;
+                this.view = VIEW_TYPES.PROJECT_VIEW;
                 break;
 
             case 'edit':
-                this.view = PROJECT_VIEW.EDIT;
+                this.view = VIEW_TYPES.PROJECT_EDIT;
                 break;
 
             case 'revise':
-                this.view = PROJECT_VIEW.REVISE;
+                this.view = VIEW_TYPES.PROJECT_REVISE;
                 break;
 
             case 'new':
-                this.view = PROJECT_VIEW.NEW;
+                this.view = VIEW_TYPES.PROJECT_NEW;
                 break;
         }
 
@@ -114,7 +108,7 @@ export class ProjectFormContainerImpl extends React.Component<ProjectFormContain
 
     initModel(props: ProjectFormContainerProps) {
         const { dispatch, idRev, view } = props;
-        dispatch(actions.init(idRev, PROJECT_VIEW[view.toUpperCase()]));
+        dispatch(actions.init(idRev, VIEW_TYPES["PROJECT_" + view.toUpperCase()]));
     }
 
     handleCancel() {
@@ -175,15 +169,27 @@ export class ProjectFormContainerImpl extends React.Component<ProjectFormContain
         const { model } = this.props;
 
         if (model && model.projectLoaded && !model.isError) {
-            return <ProjectForm
-                handleCancel={this.handleCancel}
-                handleFieldChange={this.handleFieldChange}
-                handleFormSubmit={this.handleSubmit}
-                handleWarning={this.setModelWarning}
-                handleFullNarrative={this.showFullNarrative}
-                isValid={model.isValid && !model.isSubmitting}
-                model={model.data}
-                view={model.formView}/>;
+            if (this.view !== VIEW_TYPES.PROJECT_REVISE) {
+                return <ProjectForm
+                    handleCancel={this.handleCancel}
+                    handleFieldChange={this.handleFieldChange}
+                    handleFormSubmit={this.handleSubmit}
+                    handleWarning={this.setModelWarning}
+                    handleFullNarrative={this.showFullNarrative}
+                    isValid={model.isValid && !model.isSubmitting}
+                    model={model.data}
+                    view={model.formView}/>;
+            }
+            else {
+                return <ProjectRevisionForm
+                    handleCancel={this.handleCancel}
+                    handleFieldChange={this.handleFieldChange}
+                    handleFormSubmit={this.handleSubmit}
+                    handleWarning={this.setModelWarning}
+                    isValid={model.isValid && !model.isSubmitting}
+                    model={model.data}
+                    view={model.formView}/>;
+            }
         }
         else if (model && model.isError) {
             return <div className='alert alert-danger package-wizard-model__error'>{model.message ? model.message : ''}</div>;
@@ -237,7 +243,7 @@ export class ProjectFormContainerImpl extends React.Component<ProjectFormContain
                                 <Button onClick={this.closeFullNarrative}>Close</Button>
                             </Modal.Footer>
                         </Modal>
-                    </div>
+                    </div  >
                 )
             }
         }
@@ -261,7 +267,7 @@ export class ProjectFormContainerImpl extends React.Component<ProjectFormContain
 
 export const ProjectFormContainer = connect<any, any, ProjectFormContainerProps>(mapStateToProps)(ProjectFormContainerImpl);
 
-function resolveProjectHeader(view: PROJECT_VIEW, idRev) {
+function resolveProjectHeader(view: VIEW_TYPES, idRev) {
 
     let text = '', id = -1, rev;
     if (idRev !== -1) {
@@ -270,19 +276,19 @@ function resolveProjectHeader(view: PROJECT_VIEW, idRev) {
         rev = parts[1];
     }
     switch (view) {
-        case PROJECT_VIEW.VIEW:
+        case VIEW_TYPES.PROJECT_VIEW:
             text = 'View - Project ' + id + ', Revision ' + rev;
             break;
 
-        case PROJECT_VIEW.EDIT:
+        case VIEW_TYPES.PROJECT_EDIT:
             text = 'Edit - Project ' + id + ', Revision ' + rev;
             break;
 
-        case PROJECT_VIEW.REVISE:
+        case VIEW_TYPES.PROJECT_REVISE:
             text = 'Revision - Project ' + id + ', Revision ' + rev;
             break;
 
-        case PROJECT_VIEW.NEW:
+        case VIEW_TYPES.PROJECT_NEW:
             text = 'New Project';
             break;
 

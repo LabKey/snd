@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import * as actions from './actions'
-import { PACKAGE_VIEW } from '../../Packages/Forms/PackageFormContainer'
 import { PropertyDescriptor } from "../model";
 import {AssignedPackageModel} from "../../SuperPackages/model";
 import {SubPackageSubmissionModel} from "../SuperPackages/model";
+import {VIEW_TYPES} from "../../App/constants";
 
 interface PackageQueryResponseProps {
     json: Array<PackageModel>
@@ -122,7 +122,7 @@ export class PackageSubmissionModel implements PackageSubmissionModelProps {
 
 interface PackageWizardModelProps {
     data?: PackageModel;
-    formView?: PACKAGE_VIEW;
+    formView?: VIEW_TYPES;
     initialData?: PackageModel;
     isActive?: boolean;
     isError?: boolean;
@@ -140,7 +140,7 @@ interface PackageWizardModelProps {
 
 export class PackageWizardModel implements PackageWizardModelProps {
     data: PackageModel = new PackageModel();
-    formView: PACKAGE_VIEW = undefined;
+    formView: VIEW_TYPES = undefined;
     initialData: PackageModel = new PackageModel();
     isActive: boolean = false;
     isError: boolean = false;
@@ -209,7 +209,7 @@ export class PackageWizardModel implements PackageWizardModelProps {
         return actions.save(this, this.formatPackageValues(active));
     }
 
-    success(response: PackageQueryResponse, view: PACKAGE_VIEW) {
+    success(response: PackageQueryResponse, view: VIEW_TYPES) {
         return actions.packageSuccess(this, response, view);
     }
 }

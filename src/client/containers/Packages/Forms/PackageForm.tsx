@@ -19,7 +19,6 @@ import { connect } from 'react-redux';
 import { Dispatch } from 'redux'
 
 import { PackageModel } from '../../Wizards/Packages/model'
-import { PACKAGE_VIEW } from './PackageFormContainer'
 import { CheckboxInput } from '../../../components/Form/Checkbox'
 import { IdInput } from '../../../components/Form/IdInput'
 import { TextArea } from '../../../components/Form/TextArea'
@@ -27,14 +26,12 @@ import { TextInput } from '../../../components/Form/TextInput'
 import { Attributes } from '../../../components/Form/Attributes'
 import { ExtraFields} from '../../../components/Form/ExtraFields'
 import { QuerySearch } from '../../../query/QuerySearch'
-import { SubpackageViewer } from '../../SuperPackages/Forms/SubpackageViewer';
-import { SuperPackageViewer } from '../../SuperPackages/Forms/SuperPackageViewer';
 import { AssignedPackageModel } from '../../SuperPackages/model';
 import { CAT_SQ, REQUIRED_COLUMNS, } from '../constants'
-import { TOPLEVEL_SUPER_PKG_SQ, SUPERPKG_REQUIRED_COLUMNS } from '../../SuperPackages/constants'
 import { CategoriesSelect } from '../../Wizards/Packages/CategoriesSelect'
-import {SuperPackageForm, SuperPackageFormImpl} from "../../SuperPackages/Forms/SuperPackageForm";
+import {SuperPackageForm} from "../../SuperPackages/Forms/SuperPackageForm";
 import {querySubPackageDetails} from "../../Wizards/Packages/actions";
+import {VIEW_TYPES} from "../../App/constants";
 
 interface ButtonListProps {
     action: string
@@ -75,7 +72,7 @@ interface PackageFormOwnProps {
     isValid?: boolean
     model?: PackageModel
     parseAttributes?: () => void
-    view?: PACKAGE_VIEW
+    view?: VIEW_TYPES
 }
 
 interface PackageFormState {
@@ -221,8 +218,8 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         const { model, view } = this.props;
         if (model) {
             const { attributes, attributeLookups, hasEvent, hasProject, narrative } = model;
-            const isReadOnly = view === PACKAGE_VIEW.VIEW ||
-                (view === PACKAGE_VIEW.EDIT && (hasEvent || hasProject));
+            const isReadOnly = view === VIEW_TYPES.PACKAGE_VIEW ||
+                (view === VIEW_TYPES.PACKAGE_EDIT && (hasEvent || hasProject));
             return <Attributes
                 attributes={attributes}
                 attributeLookups={attributeLookups}
@@ -237,7 +234,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
     renderButtons() {
         const { isValid, view } = this.props;
 
-        if (view !== PACKAGE_VIEW.VIEW) {
+        if (view !== VIEW_TYPES.PACKAGE_VIEW) {
             return (
                 <div className="btn-group pull-right">
                     <Button
@@ -263,7 +260,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
 
     renderCategories() {
         const { handleFieldChange, model, view } = this.props;
-        const disabled = view === PACKAGE_VIEW.VIEW;
+        const disabled = view === VIEW_TYPES.PACKAGE_VIEW;
 
         return (
             <QuerySearch
@@ -280,7 +277,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
 
     renderExtraFields() {
         const { model, view } = this.props;
-        const disabled = view === PACKAGE_VIEW.VIEW;
+        const disabled = view === VIEW_TYPES.PACKAGE_VIEW;
         if (model) {
             const { extraFields } = model;
             return <ExtraFields
@@ -293,64 +290,6 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         return null;
     }
 
-    // renderSubpackages() {
-    //     const { model, view, handleFullNarrative } = this.props;
-    //     const { selectedSubPackage } = this.state;
-    //     const { hasEvent, hasProject } = model;
-    //     const isReadyOnly = view === PACKAGE_VIEW.VIEW ||
-    //         (view === PACKAGE_VIEW.EDIT && (hasEvent || hasProject));
-    //
-    //     return (
-    //         <div className="row clearfix">
-    //             {!isReadyOnly ?
-    //                 <div className="col-sm-6">
-    //                     <div className="row clearfix col-xs-12 margin-top">
-    //                         <ControlLabel>Available Packages</ControlLabel >
-    //                     </div>
-    //                     <div className="row col-xs-12">
-    //                         <QuerySearch
-    //                             id='superPackageViewer'
-    //                             modelProps={{requiredColumns: SUPERPKG_REQUIRED_COLUMNS.TOP_LEVEL_SUPER_PKG}}
-    //                             schemaQuery={TOPLEVEL_SUPER_PKG_SQ}>
-    //                             <SuperPackageViewer
-    //                                 schemaQuery={TOPLEVEL_SUPER_PKG_SQ}
-    //                                 handleAssignedPackageAdd={this.handleAssignedPackageAdd}
-    //                                 handleFullNarrative={handleFullNarrative}
-    //                                 view={view}/>
-    //                         </QuerySearch>
-    //                     </div>
-    //                 </div>
-    //                 : null
-    //             }
-    //             <div className={isReadyOnly ? "col-sm-12" : "col-sm-6"}>
-    //                 <div className="row clearfix col-xs-12 margin-top">
-    //                     <ControlLabel>Assigned Packages</ControlLabel >
-    //                     <SubpackageViewer
-    //                         subPackages={model.subPackages}
-    //                         selectedSubPackage={selectedSubPackage}
-    //                         handleAssignedPackageRemove={this.handleAssignedPackageRemove}
-    //                         handleAssignedPackageReorder={this.handleAssignedPackageReorder}
-    //                         handleRowClick={this.handleAssignedPackageClick}
-    //                         handleFullNarrative={handleFullNarrative}
-    //                         view={view}/>
-    //                 </div>
-    //                 <div className="row clearfix col-xs-12 margin-top">
-    //                     <ListGroupItem className="data-search__container" style={{height: '90px', overflowY: 'auto'}}>
-    //                         <div className="data-search__row">
-    //                             {selectedSubPackage != undefined
-    //                                 ? selectedSubPackage.Narrative
-    //                                 : <div className="narrative-none">
-    //                                     Select a package to view its narrative.
-    //                                   </div>
-    //                             }
-    //                         </div>
-    //                     </ListGroupItem>
-    //                 </div>
-    //             </div>
-    //         </div>
-    //     );
-    // }
-
     submit(active: boolean = false) {
         const { handleFormSubmit } = this.props;
         handleFormSubmit(active);
@@ -358,8 +297,8 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
 
     render() {
         const { handleFieldChange, handleWarning, handleFullNarrative, model, view } = this.props;
-        const disabled = view === PACKAGE_VIEW.VIEW ||
-            (view === PACKAGE_VIEW.EDIT && (model.hasEvent || model.hasProject));
+        const disabled = view === VIEW_TYPES.PACKAGE_VIEW ||
+            (view === VIEW_TYPES.PACKAGE_EDIT && (model.hasEvent || model.hasProject));
 
         return (
             <div>

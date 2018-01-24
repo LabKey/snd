@@ -16,9 +16,9 @@
 import * as React from 'react';
 import {ControlLabel} from 'react-bootstrap'
 
-import {PACKAGE_VIEW} from '../../containers/Packages/Forms/PackageFormContainer'
 import {TextInput} from '../../components/Form/TextInput'
 import {ExtraFieldSelectInput} from "./ExtraFieldSelect";
+import {VIEW_TYPES} from "../../containers/App/constants";
 
 interface ExtraFieldsProps
 {
@@ -26,20 +26,26 @@ interface ExtraFieldsProps
     extraFields?: any
     handleFieldChange?: any
     name?: string
-    view?: PACKAGE_VIEW
+    revisedFields?: boolean
+    view?: VIEW_TYPES
 }
 
 export class ExtraFields extends React.Component<ExtraFieldsProps, any>
 {
-    constructor(props)
-    {
+    private staticVals: Array<string>
+    constructor(props) {
         super(props);
 
+        if (this.props.revisedFields) {
+            this.staticVals = this.props.extraFields.map((extra) => {
+                return extra.value;
+            });
+        }
     }
 
     render()
     {
-        const {extraFields, disabled, handleFieldChange} = this.props;
+        const {extraFields, disabled, handleFieldChange, revisedFields} = this.props;
         let count = -1;
         let colClass = "col-sm-6";
 
@@ -60,7 +66,7 @@ export class ExtraFields extends React.Component<ExtraFieldsProps, any>
                             {
                                 let {name} = extra;
                                 return (
-                                    <div key={"extraCol-" + name} className={colClass}>
+                                    <div key={"extraCol-" + name + (revisedFields ? 'Old' : '')} className={colClass}>
                                             <ControlLabel>{name}</ControlLabel>
                                     </div>
                                 );
@@ -68,22 +74,22 @@ export class ExtraFields extends React.Component<ExtraFieldsProps, any>
                         )}
                     </div>
                     <div className="row clearfix">
-                        {extraFields.map((extra) =>
+                        {extraFields.map((extra, i) =>
                             {
                                 let {lookupValues, value, name} = extra;
                                 count++;
                                 return (
 
-                                    <div key={"extraCol-" + name} className={colClass}>
+                                    <div key={"extraCol-" + name + (revisedFields ? 'Old' : '')} className={colClass}>
                                         {lookupValues ? (
                                             <div>
                                                     {React.createElement(ExtraFieldSelectInput,
                                                         {
-                                                            disabled: disabled,
+                                                            disabled: disabled || revisedFields,
                                                             options: lookupValues,
-                                                            handleFieldChange: handleFieldChange,
-                                                            val: value,
-                                                            name: name,
+                                                            handleFieldChange: revisedFields ? null : handleFieldChange,
+                                                            val: revisedFields ? this.staticVals[i] : value,
+                                                            name: name + (revisedFields ? 'Old' : ''),
                                                             index: count
                                                         }
                                                     )}
@@ -92,10 +98,10 @@ export class ExtraFields extends React.Component<ExtraFieldsProps, any>
                                                 <div>
                                                     {React.createElement(TextInput,
                                                         {
-                                                            disabled: disabled,
-                                                            value: value,
-                                                            onChange: handleFieldChange,
-                                                            name: ('extraFields_' + count + '_' + name)
+                                                            disabled: disabled || revisedFields,
+                                                            value: revisedFields ? this.staticVals[i] : value,
+                                                            onChange: revisedFields ? null : handleFieldChange,
+                                                            name: ('extraFields_' + count + '_' + name + (revisedFields ? 'Old' : ''))
                                                         }
                                                     )}
                                                 </div>

@@ -1,69 +1,25 @@
 
-
 import * as React from 'react';
 import { Button, ControlLabel } from 'react-bootstrap'
 import { connect } from 'react-redux';
-import { Dispatch } from 'redux'
 
-import { ProjectModel } from '../../Wizards/Projects/model'
-import { IdInput } from '../../../components/Form/IdInput'
-import { TextArea } from '../../../components/Form/TextArea'
-import { ExtraFields} from '../../../components/Form/ExtraFields'
-import {SuperPackageForm} from "../../SuperPackages/Forms/SuperPackageForm";
-import {AssignedPackageModel} from "../../SuperPackages/model";
+import {ProjectButtonListProps, ProjectFormButtons, ProjectFormProps} from "./ProjectForm";
+import {IdInput} from "../../../components/Form/IdInput";
 import {NumericInput} from "../../../components/Form/NumericInput";
 import {DatePicker} from "../../../components/Form/DatePicker";
-import {getRevisionId, queryProjectSubPackageDetails} from "../../Wizards/Projects/actions";
+import {ExtraFields} from "../../../components/Form/ExtraFields";
+import {TextArea} from "../../../components/Form/TextArea";
 import {VIEW_TYPES} from "../../App/constants";
+import {CheckboxInput} from "../../../components/Form/Checkbox";
 
-export interface ProjectButtonListProps {
-    action: string
-    disabled?: boolean
-    id: string
-    label: string
-    type: string
-}
-export const ProjectFormButtons: Array<ProjectButtonListProps> = [
-    {
-        action:  'saveDraft',
-        id: 'saveAsDraft',
-        label: 'Save as Draft',
-        type: 'submit'
-    },
-    {
-        action: 'submitReview',
-        id: 'submitReview',
-        disabled: true,
-        label: 'Submit for Review',
-        type: 'submit'
-    },
-    {
-        action: 'save',
-        id: 'save',
-        label: 'Save',
-        type: 'submit'
-    },
-];
+export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
 
-interface ProjectFormOwnProps {
-    handleCancel?: () => void
-    handleFieldChange?: (name: string, value: any) => void
-    handleFormSubmit?: any
-    handleFullNarrative?: (model: AssignedPackageModel, shouldQuery: boolean) => void
-    handleWarning?: (warning?: string) => void
-    isValid?: boolean
-    model?: ProjectModel
-    parseAttributes?: () => void
-    view?: VIEW_TYPES
-}
-
-interface ProjectFormState {
-    dispatch?: Dispatch<any>
-}
-
-export type ProjectFormProps = ProjectFormOwnProps & ProjectFormState;
-
-export class ProjectFormImpl extends React.Component<ProjectFormProps> {
+    private oldId: number = null;
+    private oldRev: number = null;
+    private oldRefId: number = null;
+    private oldStartDate: string = null;
+    private oldEndDate: string = null;
+    private oldDescription: string = null;
 
     constructor(props?: ProjectFormProps) {
         super(props);
@@ -72,10 +28,15 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
             selectedSubPackage: undefined
         };
 
+        this.oldId = props.model.projectId;
+        this.oldRev = props.model.revisionNum;
+        this.oldRefId = props.model.referenceId;
+        this.oldStartDate = props.model.startDate;
+        this.oldEndDate = props.model.endDate;
+        this.oldDescription = props.model.description;
+
         this.handleCancel = this.handleCancel.bind(this);
         this.handleFieldChange = this.handleFieldChange.bind(this);
-        this.handleAssignedPackageAdd = this.handleAssignedPackageAdd.bind(this);
-        this.handleAssignedPackageRemove = this.handleAssignedPackageRemove.bind(this);
         this.submit = this.submit.bind(this);
     }
 
@@ -114,48 +75,6 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
         handleFieldChange(name, value);
     }
 
-    handleAssignedPackageAdd(assignedSuperPackage: AssignedPackageModel) {
-        const { dispatch, model, handleFieldChange, handleWarning } = this.props;
-        const { PkgId, Description, Narrative, Repeatable, SuperPkgId } = assignedSuperPackage;
-        const { ShowActive, Active } = assignedSuperPackage;
-
-        if (!Repeatable) {
-            // if the added package cannot be repeated and is already in the assigned packages array, emit warning
-            const canAdd = model.subPackages.every((superPkg) => {
-                return superPkg.PkgId !== PkgId;
-            });
-
-            if (!canAdd) {
-                return handleWarning(['Package', PkgId, 'is not repeatable.'].join(' '));
-            }
-        }
-
-        // create a new AssignedPackageModel object as the SuperPkgId needs to be undefined as it will be set on save/submit
-        let newAssignedSuperPackage = new AssignedPackageModel(PkgId, Description, Narrative, Repeatable, SuperPkgId, true, true,
-            model.subPackages.length);
-        newAssignedSuperPackage.loadingSubpackages = true;
-
-        handleFieldChange('subPackages', model.subPackages.concat([newAssignedSuperPackage]));
-        this.setState({selectedSubPackage: newAssignedSuperPackage});
-
-        dispatch(queryProjectSubPackageDetails(PkgId, getRevisionId(model)));
-    }
-
-    handleAssignedPackageRemove(assignedSuperPackage: AssignedPackageModel) {
-        const { handleFieldChange } = this.props;
-        handleFieldChange('subPackages', this.getNonmatchingSubpackages(assignedSuperPackage));
-    }
-
-    getNonmatchingSubpackages(assignedSuperPackage: AssignedPackageModel) {
-        const { model } = this.props;
-
-        // use the generated altId to match as that will be unique for
-        // both previously existing and newly added assigned packages
-        return model.subPackages.filter((subPackage) => {
-            return subPackage.altId != assignedSuperPackage.altId;
-        });
-    }
-
     renderButtons() {
         const { isValid, view } = this.props;
 
@@ -183,16 +102,14 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
         }
     }
 
-    renderExtraFields() {
-        const { model, view } = this.props;
-        const disabled = (view === VIEW_TYPES.PROJECT_VIEW ||
-            (view === VIEW_TYPES.PROJECT_EDIT && model.hasEvent));
+    renderExtraFields(revisedFields: boolean) {
+        const { model } = this.props;
 
         if (model) {
             const { extraFields } = model;
             return <ExtraFields
                 extraFields={extraFields}
-                disabled={disabled}
+                revisedFields={revisedFields}
                 handleFieldChange={this.handleFieldChange}
             />
         }
@@ -206,13 +123,98 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
     }
 
     render() {
-        const { handleFieldChange, handleWarning, handleFullNarrative, model, view } = this.props;
-        const disabled = view === VIEW_TYPES.PROJECT_VIEW ||
-            (view === VIEW_TYPES.PROJECT_EDIT && model.hasEvent);
+        const { handleWarning, model, view } = this.props;
 
         return (
             <div>
                 <form>
+                    <div className="row clearfix">
+                        <div className="col-sm-6" style={{height: '180px'}}>
+                            <div className="row clearfix">
+                                <div className="col-xs-4">
+                                    <ControlLabel htmlFor='projectIdOld'>Project Id</ControlLabel>
+                                </div>
+                                <div className="col-xs-4">
+                                    <ControlLabel htmlFor='revisionNumOld'>Revision Number</ControlLabel>
+                                </div>
+                                <div className="col-xs-4">
+                                    <ControlLabel htmlFor='referenceIdOld'>Charge Id*</ControlLabel>
+                                </div>
+                            </div>
+                            <div className="row clearfix">
+                                <div className="col-xs-4">
+                                    <IdInput
+                                        name='projectIdOld'
+                                        onChange={this.handleFieldChange}
+                                        value={this.oldId}
+                                        view={view}/>
+                                </div>
+                                <div className="col-xs-4">
+                                    <IdInput
+                                        name='revisionNumOld'
+                                        onChange={this.handleFieldChange}
+                                        value={this.oldRev}
+                                        view={view}/>
+                                </div>
+                                <div className="col-xs-4">
+                                    <NumericInput
+                                        disabled={true}
+                                        name='referenceIdOld'
+                                        onChange={this.handleFieldChange}
+                                        required
+                                        value={this.oldRefId}/>
+                                </div>
+                            </div>
+                            <div className="row clearfix margin-top">
+                                <div className="col-xs-6">
+                                    <ControlLabel htmlFor='startDateOld'>Start Date*</ControlLabel>
+                                </div>
+                                <div className="col-xs-6">
+                                    <ControlLabel htmlFor='endDateOld'>End Date</ControlLabel>
+                                </div>
+                            </div>
+                            <div className="row clearfix">
+                                <div className="col-xs-6">
+                                    <DatePicker
+                                        name='startDateOld'
+                                        onChange={this.handleFieldChange}
+                                        value={this.oldStartDate}
+                                        required
+                                        disabled={true}/>
+                                </div>
+                                <div className="col-xs-6">
+                                    <DatePicker
+                                        name='endDateRevised'
+                                        onChange={this.handleFieldChange}
+                                        value={this.oldEndDate}
+                                        required
+                                        disabled={false}/>
+                                </div>
+                            </div>
+                            <div className="margin-top">
+                                {this.renderExtraFields(true)}
+                            </div>
+                        </div>
+                        <div className="col-sm-6">
+                            <div className="row clearfix">
+                                <div className="col-xs-12">
+                                    <ControlLabel htmlFor='descriptionOld'>Description*</ControlLabel>
+                                </div>
+                            </div>
+                            <div className="row clearfix">
+                                <div className="col-xs-12">
+                                    <TextArea
+                                        disabled={true}
+                                        name='descriptionOld'
+                                        onChange={this.handleFieldChange}
+                                        required
+                                        rows={7}
+                                        value={this.oldDescription}/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style={{borderBottom: '1px solid black', marginBottom: '20px'}}/>
                     <div className="row clearfix">
                         <div className="col-sm-6" style={{height: '180px'}}>
                             <div className="row clearfix">
@@ -230,20 +232,20 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
                                 <div className="col-xs-4">
                                     <IdInput
                                         name='projectId'
-                                        onChange={handleFieldChange}
+                                        onChange={this.handleFieldChange}
                                         value={model.projectId}
                                         view={view}/>
                                 </div>
                                 <div className="col-xs-4">
                                     <IdInput
                                         name='revisionNum'
-                                        onChange={handleFieldChange}
-                                        value={model.revisionNum}
+                                        onChange={this.handleFieldChange}
+                                        value={model.revisionNum + 1}
                                         view={view}/>
                                 </div>
                                 <div className="col-xs-4">
                                     <NumericInput
-                                        disabled={disabled}
+                                        disabled={false}
                                         name='referenceId'
                                         onChange={this.handleFieldChange}
                                         required
@@ -265,7 +267,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
                                         onChange={this.handleFieldChange}
                                         value={model.startDate}
                                         required
-                                        disabled={disabled}/>
+                                        disabled={false}/>
                                 </div>
                                 <div className="col-xs-6">
                                     <DatePicker
@@ -273,11 +275,11 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
                                         onChange={this.handleFieldChange}
                                         value={model.endDate}
                                         required
-                                        disabled={disabled}/>
+                                        disabled={false}/>
                                 </div>
                             </div>
                             <div className="margin-top">
-                                    {this.renderExtraFields()}
+                                {this.renderExtraFields(false)}
                             </div>
                         </div>
                         <div className="col-sm-6">
@@ -289,7 +291,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
                             <div className="row clearfix">
                                 <div className="col-xs-12">
                                     <TextArea
-                                        disabled={disabled}
+                                        disabled={false}
                                         name='description'
                                         onChange={this.handleFieldChange}
                                         required
@@ -297,21 +299,20 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
                                         value={model.description}/>
                                 </div>
                             </div>
+                            <div className="row clearfix margin-top">
+                                <div className="col-xs-12">
+                                    <CheckboxInput
+                                        disabled={false}
+                                        required
+                                        value={false}
+                                        onChange={this.handleFieldChange}
+                                        name='copyRevisedPkgs'
+                                        />
+                                    Copy assigned packages from revision {this.oldRev}
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div style={{borderBottom: '1px solid black'}}/>
-
-                    <SuperPackageForm
-                        model={model}
-                        view={view}
-                        handleFieldChange={handleFieldChange}
-                        handleWarning={handleWarning}
-                        handleAssignedPackageAdd={this.handleAssignedPackageAdd}
-                        handleAssignedPackageRemove={this.handleAssignedPackageRemove}
-                        handleAssignedPackageReorder={null}
-                        handleFullNarrative={handleFullNarrative}
-                    />
-
                     <div className="row clearfix">
                         <div className="col-sm-12 margin-top">
                             {this.renderButtons()}
@@ -321,6 +322,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
             </div>
         )
     }
+
 }
 
-export const ProjectForm: any = connect()(ProjectFormImpl as any); // fix typing
+export const ProjectRevisionForm: any = connect()(ProjectRevisionFormImpl as any);

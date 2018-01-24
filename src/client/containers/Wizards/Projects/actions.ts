@@ -1,6 +1,5 @@
 
 import { labkeyAjax, queryInvalidate } from '../../../query/actions';
-import { PROJECT_VIEW } from '../../Projects/Forms/ProjectFormContainer';
 import {PROJECT_WIZARD_TYPES} from './constants';
 import {
     ProjectModel, ProjectQueryResponse, ProjectWizardModel, ProjectSubmissionModel
@@ -12,6 +11,7 @@ import {setAppError} from "../../App/actions";
 import {formatSubPackages} from "../SuperPackages/actions";
 import {fetchPackage, getPackageModelFromResponse} from "../Packages/actions";
 import {PackageModel, PackageQueryResponse} from "../Packages/model";
+import {VIEW_TYPES} from "../../App/constants";
 
 
 function fetchProject(idRev: string | number)
@@ -62,7 +62,7 @@ function getProjectModelFromResponse(response: ProjectQueryResponse): ProjectMod
         new ProjectModel();
 }
 
-export function init(idRev: string | number, view: PROJECT_VIEW) {
+export function init(idRev: string | number, view: VIEW_TYPES) {
     if (!idRev)
         idRev = -1;
 
@@ -79,7 +79,7 @@ export function init(idRev: string | number, view: PROJECT_VIEW) {
 
 
             const model = getState().wizards.projects.projectData[idRev];
-            if (projectModel && projectModel.formView !== view && view !== PROJECT_VIEW.VIEW) {
+            if (projectModel && projectModel.formView !== view && view !== VIEW_TYPES.PROJECT_VIEW) {
                 dispatch(model.checkValid());
             }
         }
@@ -149,7 +149,7 @@ export function projectLoading(model: ProjectWizardModel) {
     };
 }
 
-export function projectSuccess(model: ProjectWizardModel, response: ProjectQueryResponse, view: PROJECT_VIEW) {
+export function projectSuccess(model: ProjectWizardModel, response: ProjectQueryResponse, view: VIEW_TYPES) {
     return {
         type: PROJECT_WIZARD_TYPES.PROJECT_SUCCESS,
         model,
@@ -236,12 +236,17 @@ export function formatProjectValues(model: ProjectWizardModel, active: boolean):
     const { formView } = model;
     const { description, extraFields, projectId, revisionNum } = model.data;
     let id, rev;
-    if (formView !== PROJECT_VIEW.NEW) {
+    if (formView !== VIEW_TYPES.PROJECT_NEW) {
         id = projectId;
         rev = revisionNum;
     }
 
-    const subPackages = formatSubPackages(model.data.subPackages);
+    let subPackages = [];
+
+    // Only add project items to revision if user selects to add them
+    if (formView !== VIEW_TYPES.PROJECT_REVISE || (formView === VIEW_TYPES.PROJECT_REVISE && model.data.copyRevisedPkgs)) {
+        subPackages = formatSubPackages(model.data.subPackages);
+    }
 
     return new ProjectSubmissionModel({
         projectId: id,
@@ -253,8 +258,8 @@ export function formatProjectValues(model: ProjectWizardModel, active: boolean):
         endDate: model.data.endDate,
         referenceId: model.data.referenceId,
         projectItems: subPackages,
-        isEdit: formView === PROJECT_VIEW.EDIT,
-        isRevision: formView === PROJECT_VIEW.REVISE
+        isEdit: formView === VIEW_TYPES.PROJECT_EDIT,
+        isRevision: formView === VIEW_TYPES.PROJECT_REVISE
     });
 }
 

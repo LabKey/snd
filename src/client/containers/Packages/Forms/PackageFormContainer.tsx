@@ -29,13 +29,8 @@ import { PKG_WIZARD_TYPES } from '../../Wizards/Packages/constants'
 import {AssignedPackageModel} from "../../SuperPackages/model";
 import {queryPackageFullNarrative} from "../../Wizards/SuperPackages/actions";
 import NarrativeRow from "../../SuperPackages/Forms/NarrativeRow";
+import {VIEW_TYPES} from "../../App/constants";
 
-export enum PACKAGE_VIEW {
-    CLONE,
-    EDIT,
-    NEW,
-    VIEW
-}
 
 interface PackageFormContainerOwnProps extends RouteComponentProps<{id: string}> {}
 
@@ -81,7 +76,7 @@ function mapStateToProps(state: APP_STATE_PROPS, ownProps: PackageFormContainerO
 export class PackageFormContainerImpl extends React.Component<PackageFormContainerProps, PackageFormContainerStateProps> {
 
     private panelHeader: React.ReactNode = null;
-    private view: PACKAGE_VIEW;
+    private view: VIEW_TYPES;
 
     constructor(props?: PackageFormContainerProps) {
         super(props);
@@ -90,19 +85,19 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
 
         switch (view) {
             case 'view':
-                this.view = PACKAGE_VIEW.VIEW;
+                this.view = VIEW_TYPES.PACKAGE_VIEW;
                 break;
 
             case 'edit':
-                this.view = PACKAGE_VIEW.EDIT;
+                this.view = VIEW_TYPES.PACKAGE_EDIT;
                 break;
 
             case 'clone':
-                this.view = PACKAGE_VIEW.CLONE;
+                this.view = VIEW_TYPES.PACKAGE_CLONE;
                 break;
 
             case 'new':
-                this.view = PACKAGE_VIEW.NEW;
+                this.view = VIEW_TYPES.PACKAGE_NEW;
                 break;
         }
 
@@ -137,7 +132,7 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
 
     initModel(props: PackageFormContainerProps) {
         const { dispatch, id, view } = props;
-        dispatch(actions.init(id, PACKAGE_VIEW[view.toUpperCase()]));
+        dispatch(actions.init(id, VIEW_TYPES["PACKAGE_" + view.toUpperCase()]));
     }
 
     handleCancel() {
@@ -298,23 +293,23 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
 
 export const PackageFormContainer = connect<any, any, PackageFormContainerProps>(mapStateToProps)(PackageFormContainerImpl);
 
-function resolvePackageHeader(view: PACKAGE_VIEW, id) {
+function resolvePackageHeader(view: VIEW_TYPES, id) {
 
     let text = '';
     switch (view) {
-        case PACKAGE_VIEW.VIEW:
+        case VIEW_TYPES.PACKAGE_VIEW:
             text = 'View Package - ' + id;
             break;
 
-        case PACKAGE_VIEW.EDIT:
+        case VIEW_TYPES.PACKAGE_EDIT:
             text = 'Edit Package - ' + id;
             break;
 
-        case PACKAGE_VIEW.CLONE:
+        case VIEW_TYPES.PACKAGE_CLONE:
             text = 'New Package - Clone of ' + id;
             break;
 
-        case PACKAGE_VIEW.NEW:
+        case VIEW_TYPES.PACKAGE_NEW:
             text = 'New Package';
             break;
 

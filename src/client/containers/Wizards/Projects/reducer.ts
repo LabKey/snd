@@ -3,10 +3,10 @@
 import {ProjectModel, ProjectWizardContainer, ProjectWizardModel} from "./model";
 import {PROJECT_WIZARD_TYPES} from "./constants";
 import {handleActions} from "redux-actions";
-import {PROJECT_VIEW} from "../../Projects/Forms/ProjectFormContainer";
 import {PropertyDescriptor} from "../model";
 import {AssignedPackageModel} from "../../SuperPackages/model";
 import {getRevisionId} from "./actions";
+import {VIEW_TYPES} from "../../App/constants";
 
 export const projects = handleActions({
 
@@ -222,7 +222,7 @@ export const projects = handleActions({
     }
 }, new ProjectWizardContainer());
 
-function isFormValid(data: ProjectModel, initialData: ProjectModel, view: PROJECT_VIEW): boolean {
+function isFormValid(data: ProjectModel, initialData: ProjectModel, view: VIEW_TYPES): boolean {
 
     let isValid: boolean = true;
 
@@ -230,7 +230,7 @@ function isFormValid(data: ProjectModel, initialData: ProjectModel, view: PROJEC
         return false;
     }
 
-    if (isValid && view === PROJECT_VIEW.EDIT) {
+    if (isValid && view === VIEW_TYPES.PROJECT_EDIT) {
         // need to loop through initialData to compare with currentValues if view === edit
         return (
             data.description !== initialData.description ||
