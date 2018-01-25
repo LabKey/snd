@@ -16,7 +16,7 @@
 import * as React from 'react';
 import { Panel } from 'react-bootstrap';
 
-import { RouteComponentProps } from 'react-router-dom';
+import {Link, RouteComponentProps} from 'react-router-dom';
 
 
 
@@ -25,7 +25,25 @@ export class LandingPageImpl extends React.Component<RouteComponentProps<any>, a
     render() {
         return (
             <Panel>
-                Hi, I'm your landing page
+                <div className="header--border__bottom">
+                    <h4>Welcome to SND</h4>
+                </div>
+                <div style={{marginTop: 15}}>
+                    <Link to='/packages'>
+                        <i
+                            className="fa fa-arrow-circle-left"
+                            style={{marginRight: '10px', fontSize: '16px', cursor: 'pointer'}}/>
+                        <h4 style={{marginTop: '0', display: 'inline-block'}}>Packages</h4>
+                    </Link>
+                </div>
+                <div className='margin-top'>
+                    <Link to='/projects'>
+                        <i
+                            className="fa fa-arrow-circle-left"
+                            style={{marginRight: '10px', fontSize: '16px', cursor: 'pointer'}}/>
+                        <h4 style={{marginTop: '0', display: 'inline-block'}}>Projects</h4>
+                    </Link>
+                </div>
             </Panel>
         )
     }
