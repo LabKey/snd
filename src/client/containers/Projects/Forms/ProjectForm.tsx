@@ -247,7 +247,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
                                         disabled={disabled}
                                         name='referenceId'
                                         onChange={this.handleFieldChange}
-                                        required
+                                        required={true}
                                         value={model.referenceId}/>
                                 </div>
                             </div>
@@ -265,7 +265,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
                                         name='startDate'
                                         onChange={this.handleFieldChange}
                                         value={model.startDate}
-                                        required
+                                        required={true}
                                         disabled={disabled}/>
                                 </div>
                                 <div className="col-xs-6">
@@ -273,7 +273,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
                                         name='endDate'
                                         onChange={this.handleFieldChange}
                                         value={model.endDate}
-                                        required
+                                        required={false}
                                         disabled={disabled}/>
                                 </div>
                             </div>
@@ -293,7 +293,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
                                         disabled={disabled}
                                         name='description'
                                         onChange={this.handleFieldChange}
-                                        required
+                                        required={true}
                                         rows={7}
                                         value={model.description}/>
                                 </div>

@@ -573,7 +573,14 @@ public class SNDController extends SpringActionController
             if (json.getBoolean("isRevision"))
             {
                 project.setCopyRevisedPkgs(json.getBoolean("copyRevisedPkgs"));
-                project.setEndDateRevised(formatter.parse(json.getString("endDateRevised")));
+                if (json.has("endDateRevised") && json.getString("endDateRevised") != null)
+                {
+                    project.setEndDateRevised(formatter.parse(json.getString("endDateRevised")));
+                }
+                else
+                {
+                    project.setEndDateRevised(null);
+                }
             }
 
             project.setStartDate(formatter.parse(json.getString("startDate")));

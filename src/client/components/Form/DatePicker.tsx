@@ -13,7 +13,7 @@ export const DatePicker = (props: DatePickerProps) => {
     const { value } = props;
     let dateString = "", year, month, day;
 
-    if (value != null) {
+    if (value != null && value != '') {
         let dateParts, date = value.split(' ')[0];
         if (date.indexOf('-') !== -1) {
             dateParts = date.split('-');

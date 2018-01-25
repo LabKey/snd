@@ -191,7 +191,7 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
                                         name='endDateRevised'
                                         onChange={this.handleFieldChange}
                                         value={model.endDateRevised}
-                                        required
+                                        required={false}
                                         disabled={false}/>
                                 </div>
                             </div>
@@ -252,7 +252,7 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
                                         disabled={false}
                                         name='referenceId'
                                         onChange={this.handleFieldChange}
-                                        required
+                                        required={true}
                                         value={model.referenceId}/>
                                 </div>
                             </div>
@@ -270,7 +270,7 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
                                         name='startDate'
                                         onChange={this.handleFieldChange}
                                         value={model.startDate}
-                                        required
+                                        required={true}
                                         disabled={false}/>
                                 </div>
                                 <div className="col-xs-6">
@@ -278,7 +278,7 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
                                         name='endDate'
                                         onChange={this.handleFieldChange}
                                         value={model.endDate}
-                                        required
+                                        required={false}
                                         disabled={false}/>
                                 </div>
                             </div>
@@ -307,7 +307,7 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
                                 <div className="col-xs-12">
                                     <CheckboxInput
                                         disabled={false}
-                                        required
+                                        required={false}
                                         value={false}
                                         onChange={this.handleFieldChange}
                                         name='copyRevisedPkgs'
