@@ -16,6 +16,7 @@ import {queryPackageFullNarrative} from "../../Wizards/SuperPackages/actions";
 import NarrativeRow from "../../SuperPackages/Forms/NarrativeRow";
 import {ProjectRevisionForm} from "./ProjectRevisionForm";
 import {VIEW_TYPES} from "../../App/constants";
+import {setRevisedValues} from "../../Wizards/Projects/actions";
 
 interface ProjectFormContainerOwnProps extends RouteComponentProps<{idRev: string}> {}
 
@@ -86,7 +87,7 @@ export class ProjectFormContainerImpl extends React.Component<ProjectFormContain
         this.handleCancel = this.handleCancel.bind(this);
         this.handleFieldChange = this.handleFieldChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
-        // this.renderNarrative = this.renderNarrative.bind(this);
+        this.handleRevisedValues = this.handleRevisedValues.bind(this);
         this.setModelWarning = this.setModelWarning.bind(this);
         this.showFullNarrative = this.showFullNarrative.bind(this);
     }
@@ -109,6 +110,12 @@ export class ProjectFormContainerImpl extends React.Component<ProjectFormContain
     initModel(props: ProjectFormContainerProps) {
         const { dispatch, idRev, view } = props;
         dispatch(actions.init(idRev, VIEW_TYPES["PROJECT_" + view.toUpperCase()]));
+    }
+
+    handleRevisedValues(endDateRevised: string) {
+        const { dispatch, model } = this.props;
+
+        dispatch(setRevisedValues(model, endDateRevised));
     }
 
     handleCancel() {
@@ -186,6 +193,7 @@ export class ProjectFormContainerImpl extends React.Component<ProjectFormContain
                     handleFieldChange={this.handleFieldChange}
                     handleFormSubmit={this.handleSubmit}
                     handleWarning={this.setModelWarning}
+                    handleRevisedValues={this.handleRevisedValues}
                     isValid={model.isValid && !model.isSubmitting}
                     model={model.data}
                     view={model.formView}/>;

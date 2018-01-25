@@ -26,6 +26,8 @@ public class Project
     private boolean _active;
     private int _referenceId;
     private boolean _hasEvent;
+    private boolean _copyRevisedPkgs;
+    private Date _endDateRevised;
     private List<ProjectItem> _projectItems = new ArrayList<>();
     private Map<GWTPropertyDescriptor, Object> _extraFields = new HashMap<>();
 
@@ -200,6 +202,26 @@ public class Project
     public void setHasEvent(boolean hasEvent)
     {
         _hasEvent = hasEvent;
+    }
+
+    public boolean isCopyRevisedPkgs()
+    {
+        return _copyRevisedPkgs;
+    }
+
+    public void setCopyRevisedPkgs(boolean copyRevisedPkgs)
+    {
+        _copyRevisedPkgs = copyRevisedPkgs;
+    }
+
+    public Date getEndDateRevised()
+    {
+        return _endDateRevised;
+    }
+
+    public void setEndDateRevised(Date endDateRevised)
+    {
+        _endDateRevised = endDateRevised;
     }
 
     public List<ProjectItem> getProjectItems()

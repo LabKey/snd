@@ -9,6 +9,7 @@ interface ProjectSubmissionModelProps {
     active: boolean;
     isRevision?: boolean;
     isEdit?: boolean;
+    copyRevisedPkgs?: boolean;
     description: string;
     extraFields?: Array<PropertyDescriptor>;
     projectId: number;
@@ -25,6 +26,7 @@ export class ProjectSubmissionModel implements ProjectSubmissionModelProps {
     active: boolean = false;
     isRevision: boolean = false;
     isEdit: boolean = false;
+    copyRevisedPkgs: boolean = false;
     description: string = undefined;
     extraFields: Array<PropertyDescriptor> = [];
     projectId: number = undefined;
@@ -160,9 +162,9 @@ export class ProjectWizardModel implements ProjectWizardModelProps {
         }
     }
 
-    // checkValid() {
-    //     return actions.packageCheckValid(this);
-    // }
+    checkValid() {
+        return actions.projectCheckValid(this);
+    }
 
     formatProjectValues(active: boolean): ProjectSubmissionModel {
         return actions.formatProjectValues(this, active);

@@ -213,6 +213,14 @@ export function setSubmitting(model: ProjectWizardModel) {
     };
 }
 
+export function setRevisedValues(model: ProjectWizardModel, endDateRevised: string) {
+    return {
+        type: PROJECT_WIZARD_TYPES.SET_REVISED_VALUES,
+        model,
+        endDateRevised
+    };
+}
+
 export function save(model: ProjectWizardModel, project: ProjectSubmissionModel) {
     return (dispatch, getState) => {
         dispatch(setSubmitting(model));
@@ -241,12 +249,7 @@ export function formatProjectValues(model: ProjectWizardModel, active: boolean):
         rev = revisionNum;
     }
 
-    let subPackages = [];
-
-    // Only add project items to revision if user selects to add them
-    if (formView !== VIEW_TYPES.PROJECT_REVISE || (formView === VIEW_TYPES.PROJECT_REVISE && model.data.copyRevisedPkgs)) {
-        subPackages = formatSubPackages(model.data.subPackages);
-    }
+    let subPackages = formatSubPackages(model.data.subPackages);
 
     return new ProjectSubmissionModel({
         projectId: id,
@@ -259,6 +262,8 @@ export function formatProjectValues(model: ProjectWizardModel, active: boolean):
         referenceId: model.data.referenceId,
         projectItems: subPackages,
         isEdit: formView === VIEW_TYPES.PROJECT_EDIT,
+        copyRevisedPkgs: model.data.copyRevisedPkgs,
+        endDateRevised: model.data.endDateRevised,
         isRevision: formView === VIEW_TYPES.PROJECT_REVISE
     });
 }

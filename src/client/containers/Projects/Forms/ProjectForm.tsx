@@ -51,6 +51,7 @@ interface ProjectFormOwnProps {
     handleFormSubmit?: any
     handleFullNarrative?: (model: AssignedPackageModel, shouldQuery: boolean) => void
     handleWarning?: (warning?: string) => void
+    handleRevisedValues?: (endDateRevised: string) => void
     isValid?: boolean
     model?: ProjectModel
     parseAttributes?: () => void

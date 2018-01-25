@@ -40,6 +40,10 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
         this.submit = this.submit.bind(this);
     }
 
+    componentWillMount() {
+        this.props.handleRevisedValues(this.oldEndDate);
+    }
+
     handleButtonAction(action: string) {
         switch (action) {
             case 'cancel':
@@ -186,7 +190,7 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
                                     <DatePicker
                                         name='endDateRevised'
                                         onChange={this.handleFieldChange}
-                                        value={this.oldEndDate}
+                                        value={model.endDateRevised}
                                         required
                                         disabled={false}/>
                                 </div>

@@ -570,6 +570,12 @@ public class SNDController extends SpringActionController
             project.setReferenceId(json.getInt("referenceId"));
 
             SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
+            if (json.getBoolean("isRevision"))
+            {
+                project.setCopyRevisedPkgs(json.getBoolean("copyRevisedPkgs"));
+                project.setEndDateRevised(formatter.parse(json.getString("endDateRevised")));
+            }
+
             project.setStartDate(formatter.parse(json.getString("startDate")));
             if (json.has("endDate") && json.getString("endDate") != null)
                 project.setEndDate(formatter.parse(json.getString("endDate")));

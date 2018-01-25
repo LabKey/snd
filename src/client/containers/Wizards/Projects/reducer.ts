@@ -219,6 +219,19 @@ export const projects = handleActions({
         return new ProjectWizardContainer(Object.assign({}, state, {projectData: {
             [getRevisionId(submittingModel)]: submittingModel
         }}));
+    },
+
+    [PROJECT_WIZARD_TYPES.SET_REVISED_VALUES]: (state: ProjectWizardContainer, action: any) => {
+        const { model, endDateRevised } = action;
+
+        const data = new ProjectModel(Object.assign({}, model.data, {endDateRevised: endDateRevised}));
+        const revisedModel = new ProjectWizardModel(Object.assign({}, model, {
+            data
+        }));
+
+        return new ProjectWizardContainer(Object.assign({}, state, {projectData: {
+            [getRevisionId(revisedModel)]: revisedModel
+        }}));
     }
 }, new ProjectWizardContainer());
 

@@ -49,6 +49,7 @@ import org.labkey.api.snd.Project;
 import org.labkey.api.snd.ProjectItem;
 import org.labkey.api.snd.SNDDomainKind;
 import org.labkey.api.snd.SuperPackage;
+import org.labkey.api.util.DateUtil;
 
 import java.sql.SQLException;
 import java.text.ParseException;
@@ -1079,32 +1080,50 @@ public class SNDManager
         }
     }
 
+    private void updateProjectField(Container c, User u, int id, int rev, String field, String value)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("UPDATE ");
+        sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_TABLE_NAME);
+        sql.append(" SET " + field + " = ?");
+        sql.append(" WHERE ProjectId = ? AND RevisionNum = ?");
+        sql.add(value).add(id).add(rev);
+
+        new SqlExecutor(schema.getDbSchema().getScope()).execute(sql);
+    }
+
     public void reviseProject(Container c, User u, Project project, BatchValidationException errors)
     {
         if (validProject(c, u, project, true, errors))
         {
             UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
-
-            // First get copy of the project items from the original project
-            SQLFragment sql = new SQLFragment("SELECT SuperPkgId, Active FROM ");
-            sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTITEMS_TABLE_NAME);
-            sql.append(" WHERE ParentObjectId = ?");
-            sql.add(project.getObjectId());
-            SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
-
-            // Update project items with new parentobjectid
             List<Map<String, Object>> updatedProjectItems = new ArrayList<>();
-            try(TableResultSet projectItems = selector.getResultSet())
+
+            updateProjectField(c, u, project.getProjectId(), project.getRevisionNum(), "EndDate", DateUtil.toISO(project.getEndDateRevised()));
+
+            if (project.isCopyRevisedPkgs())
             {
-                for (Map<String, Object> row : projectItems)
+                // First get copy of the project items from the original project
+                SQLFragment sql = new SQLFragment("SELECT SuperPkgId, Active FROM ");
+                sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTITEMS_TABLE_NAME);
+                sql.append(" WHERE ParentObjectId = ?");
+                sql.add(project.getObjectId());
+                SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+
+                // Update project items with new parentobjectid
+                try (TableResultSet projectItems = selector.getResultSet())
                 {
-                    row.put("ParentObjectId", project.getRevisedObjectId());
-                    updatedProjectItems.add(row);
+                    for (Map<String, Object> row : projectItems)
+                    {
+                        row.put("ParentObjectId", project.getRevisedObjectId());
+                        updatedProjectItems.add(row);
+                    }
                 }
-            }
-            catch (SQLException e)
-            {
-                errors.addRowError(new ValidationException(e.getMessage()));
+                catch (SQLException e)
+                {
+                    errors.addRowError(new ValidationException(e.getMessage()));
+                }
             }
 
             // Set project objectid and revision
@@ -1124,7 +1143,8 @@ public class SNDManager
             try (DbScope.Transaction tx = projectTable.getSchema().getScope().ensureTransaction())
             {
                 projectQus.insertRows(u, c, projectRows, errors, null, null);
-                projectItemsQus.insertRows(u, c, updatedProjectItems, errors, null, null);
+                if (project.isCopyRevisedPkgs())
+                    projectItemsQus.insertRows(u, c, updatedProjectItems, errors, null, null);
                 tx.commit();
             }
             catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException e)
