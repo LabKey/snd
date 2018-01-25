@@ -106,14 +106,14 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 
     private static final int TEST_PROJECT_ID = 50;
     private static final int TEST_PROJECT_REF_ID = 100;
-    private static final String TEST_PROJECT_START_DATE = "2018/01/01";
+    private static final String TEST_PROJECT_START_DATE = "2018-01-01";
     private static final String TEST_PROJECT_DB_START_DATE = "2018-01-01";
-    private static final String TEST_PROJECT_END_DATE = "2018/01/02";
+    private static final String TEST_PROJECT_END_DATE = "2018-01-02";
     private static final String TEST_PROJECT_DB_END_DATE = "2018-01-02";
-    private static final String TEST_PROJECT_COMMON_DATE = "2018/02/10";
+    private static final String TEST_PROJECT_COMMON_DATE = "2018-02-10";
     private static final String TEST_PROJECT_DESC = "Project Test";
     private static final String TEST_PROJECT_DESC2 = "Project Test2";
-    private static final String TEST_EDIT_PROJECT_DESC = "Editted Project";
+    private static final String TEST_EDIT_PROJECT_DESC = "Edited Project";
     private static final String TEST_REV_PROJECT_DESC = "Revised Project";
     private static final String TEST_PROJECT_DEFAULT_PKGS = "default";
     private static final int TEST_IMPORT_SUPERPKG1 = 5100;
@@ -624,7 +624,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
                 "}\n" +
                 "if (packages != 'null' && packages != \"\") {\n" +
                 "   if (packages === \"default\") {\n" +
-                "       json[\"projectItems\"] = [{superPkg:{\"superPkgId\":" + TEST_IMPORT_SUPERPKG1 + "}, \"active\":true}, {superPkg:{\"superPkgId\":" + TEST_IMPORT_SUPERPKG2 + "}, \"active\":false}];\n" +
+                "       json[\"projectItems\"] = [{\"superPkgId\":" + TEST_IMPORT_SUPERPKG1 + ", \"active\":true}, {\"superPkgId\":" + TEST_IMPORT_SUPERPKG2 + ", \"active\":false}];\n" +
                 "   }\n" +
                 "   else {\n" +
                 "       json[\"projectItems\"] = packages;\n" +
@@ -662,6 +662,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
                 "       }\n" +
                 "       else {\n" +
                 "           json[\"isEdit\"] = true;\n" +
+                "           json[\"projectItems\"] = [{\"superPkgId\":" + TEST_IMPORT_SUPERPKG1 + ", \"active\":true}, {\"superPkgId\":" + TEST_IMPORT_SUPERPKG2 + ", \"active\":false}];\n" +
                 "           try {\n" +
                 "               json[name] = JSON.parse(value);\n" +
                 "           }\n" +
@@ -710,6 +711,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
                 "           }\n" +
                 "           json[\"startDate\"] = start;\n" +
                 "           json[\"isRevision\"] = true;\n" +
+                "           json[\"projectItems\"] = [{\"superPkgId\":" + TEST_IMPORT_SUPERPKG1 + ", \"active\":true}, {\"superPkgId\":" + TEST_IMPORT_SUPERPKG2 + ", \"active\":false}];\n" +
                 "           if (name !== 'null') {\n" +
                 "               try {\n" +
                 "                   json[name] = JSON.parse(value);\n" +
@@ -1627,8 +1629,8 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 
         goToProjectHome();
         runScript(createProjectApi(TEST_PROJECT_ID, TEST_PROJECT_DESC, TEST_PROJECT_REF_ID, TEST_PROJECT_START_DATE, TEST_PROJECT_END_DATE, TEST_PROJECT_DEFAULT_PKGS));
-        runScript(reviseProjectApi(TEST_PROJECT_ID, 0, "2018/01/03", "2018/01/04", null, null));
-        runScript(reviseProjectApi(TEST_PROJECT_ID, 1, "2018/01/05", null, null, null));
+        runScript(reviseProjectApi(TEST_PROJECT_ID, 0, "2018-01-03", "2018-01-04", null, null));
+        runScript(reviseProjectApi(TEST_PROJECT_ID, 1, "2018-01-05", null, null, null));
         runScript(editProjectApi(TEST_PROJECT_ID, 1, "description", TEST_EDIT_PROJECT_DESC));
         runScript(createProjectEvent(TEST_PROJECT_ID, 1));
         runScript(deleteProjectApi(TEST_PROJECT_ID, 2));
@@ -1640,7 +1642,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         expected = Lists.newArrayList("50", "1", "100", "2018-01-03", "2018-01-04", TEST_EDIT_PROJECT_DESC, "true");
         assertEquals("Expected values not found.", expected, dataRegionTable.getRowDataAsText(1));
 
-        runScript(reviseProjectApi(TEST_PROJECT_ID, 1, "2018/02/01", TEST_PROJECT_COMMON_DATE, null, null));
+        runScript(reviseProjectApi(TEST_PROJECT_ID, 1, "2018-02-01", TEST_PROJECT_COMMON_DATE, null, null));
         runScript(reviseProjectApi(TEST_PROJECT_ID, 2, TEST_PROJECT_COMMON_DATE, null, "description", TEST_REV_PROJECT_DESC));
         checkErrors();
 
@@ -1648,8 +1650,8 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         runScriptExpectedFail(editProjectApi(TEST_PROJECT_ID, 2, "endDate", null));
 
         // Check overlap of revision dates
-        runScript(editProjectApi(TEST_PROJECT_ID, 3, "endDate", "2018/02/20"));
-        runScriptExpectedFail(editProjectApi(TEST_PROJECT_ID, 2, "endDate", "2018/02/20"));
+        runScript(editProjectApi(TEST_PROJECT_ID, 3, "endDate", "2018-02-20"));
+        runScriptExpectedFail(editProjectApi(TEST_PROJECT_ID, 2, "endDate", "2018-02-20"));
 
         // Ref id overlap validation
         runScriptExpectedFail(createProjectApi(TEST_PROJECT_ID + 1, TEST_PROJECT_DESC, TEST_PROJECT_REF_ID, TEST_PROJECT_START_DATE, TEST_PROJECT_END_DATE, TEST_PROJECT_DEFAULT_PKGS));
@@ -1666,8 +1668,8 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         runScriptExpectedFail(deleteProjectApi(TEST_PROJECT_ID, 3));
 
         // Can only make revision from most recent project
-        runScriptExpectedFail(reviseProjectApi(TEST_PROJECT_ID, 2, "2018/02/15", null, "description", TEST_REV_PROJECT_DESC));
-        runScript(editProjectApi(TEST_PROJECT_ID + 1, 0, "packages", null));
+        runScriptExpectedFail(reviseProjectApi(TEST_PROJECT_ID, 2, "2018-02-15", null, "description", TEST_REV_PROJECT_DESC));
+        runScript(editProjectApi(TEST_PROJECT_ID + 1, 0, "projectItems", null));
 
         // TODO: Expected refactor to error handling. Logging errors twice right now.
         checkExpectedErrors(14);
