@@ -1100,14 +1100,8 @@ public class SNDManager
             UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
             List<Map<String, Object>> updatedProjectItems = new ArrayList<>();
 
-            if (project.getEndDateRevised() == null)
-            {
-                updateProjectField(c, u, project.getProjectId(), project.getRevisionNum(), "EndDate", "NULL");
-            }
-            else
-            {
-                updateProjectField(c, u, project.getProjectId(), project.getRevisionNum(), "EndDate", DateUtil.toISO(project.getEndDateRevised()));
-            }
+            updateProjectField(c, u, project.getProjectId(), project.getRevisionNum(), "EndDate",
+                    project.getEndDateRevised() == null ? null : DateUtil.toISO(project.getEndDateRevised()));
 
             if (project.isCopyRevisedPkgs())
             {

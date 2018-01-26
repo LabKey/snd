@@ -603,8 +603,9 @@ public class SNDController extends SpringActionController
                 project.setExtraFields(extras);
             }
 
+            // Parse project items. Not done for revision
             JSONArray jsonPkgs = json.optJSONArray("projectItems");
-            if (null != jsonPkgs)
+            if (null != jsonPkgs && !json.getBoolean("isRevision"))
             {
                 List<ProjectItem> projectItems = new ArrayList<>();
                 JSONObject jsonItem;

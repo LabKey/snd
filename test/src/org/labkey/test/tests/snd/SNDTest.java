@@ -57,8 +57,12 @@ import org.labkey.test.util.SqlserverOnlyTest;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -681,14 +685,22 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
                 "});\n";
     }
 
-    private String reviseProjectApi(int id, int rev, String start, String end, String name, String value)
+    private String reviseProjectApi(int id, int rev, String start, String end, String name, String value) throws ParseException
     {
+        String dateFormat = "yyyy-MM-dd";
+        SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
+        Calendar c = Calendar.getInstance();
+        c.setTime(formatter.parse(start));
+        c.add(Calendar.DATE, -1);  // number of days to add
+        String revisedEndDate = formatter.format(c.getTime());
+
         return "var id = " + id + ";\n" +
                 "var rev = " + rev + ";\n" +
                 "var start = '" + start + "';\n" +
                 "var end = '" + end + "';\n" +
                 "var name = '" + name + "';\n" +
                 "var value = '" + value + "';\n" +
+                "var revisedEndDate = '" + revisedEndDate + "';\n" +
                 "LABKEY.Ajax.request({\n" +
                 "   method: 'POST',\n" +
                 "   url: LABKEY.ActionURL.buildURL('snd', 'getProject.api'),\n" +
@@ -711,7 +723,9 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
                 "           }\n" +
                 "           json[\"startDate\"] = start;\n" +
                 "           json[\"isRevision\"] = true;\n" +
-                "           json[\"projectItems\"] = [{\"superPkgId\":" + TEST_IMPORT_SUPERPKG1 + ", \"active\":true}, {\"superPkgId\":" + TEST_IMPORT_SUPERPKG2 + ", \"active\":false}];\n" +
+                "           json[\"copyRevisedPkgs\"] = true;\n" +
+                "           json[\"endDateRevised\"] = revisedEndDate;\n" +
+                "           json[\"projectItems\"] = [];\n" +
                 "           if (name !== 'null') {\n" +
                 "               try {\n" +
                 "                   json[name] = JSON.parse(value);\n" +
@@ -1623,7 +1637,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     }
 
     @Test
-    public void testProjectApis()
+    public void testProjectApis() throws ParseException
     {
         DataRegionTable dataRegionTable;
 
@@ -1677,7 +1691,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         goToSchemaBrowser();
         dataRegionTable = viewQueryData("snd", "Projects");
         assertEquals("Expected row count does not match.", 6, dataRegionTable.getDataRowCount());
-        expected = Lists.newArrayList("50", "2", "100", "2018-02-01", "2018-02-10", TEST_EDIT_PROJECT_DESC, "false");
+        expected = Lists.newArrayList("50", "2", "100", "2018-02-01", "2018-02-09", TEST_EDIT_PROJECT_DESC, "false");
         assertEquals("Expected values not found.", expected, dataRegionTable.getRowDataAsText(2));
         expected = Lists.newArrayList("50", "3", "100", "2018-02-10", "2018-02-20", TEST_REV_PROJECT_DESC, "true");
         assertEquals("Expected values not found.", expected, dataRegionTable.getRowDataAsText(3));
