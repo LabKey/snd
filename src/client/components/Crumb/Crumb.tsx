@@ -19,11 +19,11 @@ import { Link } from 'react-router-dom';
 export class Crumb extends React.Component<any, any> {
 
     render() {
-        const {crumbNav, crumbName} = this.props;
+        const {crumbNav, crumbName, clearAllErrors} = this.props;
 
         return (
             <div>
-                <Link to={crumbNav}>
+                <Link to={crumbNav} onClick={() => clearAllErrors()}>
                     <i
                         className="fa fa-arrow-circle-left"
                         style={{marginRight: '10px', fontSize: '16px', cursor: 'pointer'}}/>

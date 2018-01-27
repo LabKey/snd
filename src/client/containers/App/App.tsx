@@ -28,8 +28,8 @@ import {Crumb} from "../../components/Crumb/Crumb";
 interface AppOwnProps extends RouteComponentProps<{}> {}
 interface AppStateDispatch {
     dispatch?: Dispatch<any>
-
     dismissWarning?: (id?: number) => any
+    clearAllErrors?: (id?: number) => any
 }
 interface AppStateProps {
     dispatch?: Dispatch<any>
@@ -48,7 +48,8 @@ function mapStateToProps(state: APP_STATE_PROPS) {
 
 function mapDispatchToProps(dispatch: Dispatch<any>): AppStateDispatch {
     return {
-        dismissWarning: (id?: number) => dispatch(actions.resetAppError(id))
+        dismissWarning: (id?: number) => dispatch(actions.resetAppError(id)),
+        clearAllErrors: () => dispatch(actions.clearAllErrors())
     }
 }
 
@@ -106,7 +107,7 @@ export class AppImpl extends React.Component<AppProps, {}> {
     }
 
     render() {
-        const { user } = this.props;
+        const { user, clearAllErrors } = this.props;
 
         if (!user.isSignedIn) {
             return (
@@ -124,7 +125,7 @@ export class AppImpl extends React.Component<AppProps, {}> {
                                 path={route.path}
                                 exact={route.exact}
                                 render={route.component !== null ? (routeProps) => (
-                                    <Crumb {...routeProps} {...route.props} />
+                                    <Crumb {...routeProps} {...route.props} {...{clearAllErrors}} />
                                 ) : null}
                                 />;
                         })}

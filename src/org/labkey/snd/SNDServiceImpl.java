@@ -18,6 +18,7 @@ package org.labkey.snd;
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.labkey.api.action.ApiUsageException;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
@@ -84,7 +85,7 @@ public class SNDServiceImpl implements SNDService
             SNDManager.get().createPackage(u, c, pkg, superPkg, errors);
         }
         if (errors.hasErrors())
-            throw new UnexpectedException(errors);
+            throw new ApiUsageException(errors);
     }
 
     @Override
@@ -95,7 +96,7 @@ public class SNDServiceImpl implements SNDService
         SNDManager.get().saveSuperPackages(u, c, superPkgs, errors);
 
         if (errors.hasErrors())
-            throw new UnexpectedException(errors);
+            throw new ApiUsageException(errors);
     }
 
     @Override
@@ -105,7 +106,7 @@ public class SNDServiceImpl implements SNDService
 
         List<Package> pkgs = SNDManager.get().getPackages(c, u, pkgIds, includeExtraFields, includeLookups, errors);
         if (errors.hasErrors())
-            throw new UnexpectedException(errors);
+            throw new ApiUsageException(errors);
 
         return pkgs;
     }
@@ -158,7 +159,7 @@ public class SNDServiceImpl implements SNDService
         }
 
         if (errors.hasErrors())
-            throw new UnexpectedException(errors);
+            throw new ApiUsageException(errors);
     }
 
     public JSONObject convertPropertyDescriptorToJson(Container c, User u, GWTPropertyDescriptor pd, boolean resolveLookupValues)

@@ -28,6 +28,12 @@ export function clearAppMessage(values: ClearMessage) {
     }
 }
 
+export function clearAllErrors() {
+    return {
+        type: APP_TYPES.APP_ERROR_CLEAR_ALL
+    }
+}
+
 export function resetAppError(id?: number) {
     return {
         type: APP_TYPES.APP_ERROR_RESET,

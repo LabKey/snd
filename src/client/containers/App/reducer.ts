@@ -26,6 +26,15 @@ export const app = handleActions({
 
     [APP_TYPES.APP_ERROR]: setErrorMessages,
 
+    [APP_TYPES.APP_ERROR_CLEAR_ALL]: (state: AppModel) => {
+
+        return new AppModel(Object.assign({}, state, {
+            isError: false,
+            isWarning: false,
+            messages: []
+        }));
+    },
+
     [APP_TYPES.APP_ERROR_RESET]: (state: AppModel, action: any) => {
         const { id } = action;
 
