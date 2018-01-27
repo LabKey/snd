@@ -311,6 +311,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
                         handleAssignedPackageRemove={this.handleAssignedPackageRemove}
                         handleAssignedPackageReorder={null}
                         handleFullNarrative={handleFullNarrative}
+                        showActive={true}
                     />
 
                     <div className="row clearfix">

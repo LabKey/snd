@@ -12,6 +12,7 @@ import {formatSubPackages} from "../SuperPackages/actions";
 import {fetchPackage, getPackageModelFromResponse} from "../Packages/actions";
 import {PackageModel, PackageQueryResponse} from "../Packages/model";
 import {VIEW_TYPES} from "../../App/constants";
+import {AssignedPackageModel} from "../../SuperPackages/model";
 
 
 function fetchProject(idRev: string | number)
@@ -166,15 +167,13 @@ export function projectWarning(model: ProjectWizardModel, warning?: string) {
     }
 }
 
-// export function saveNarrative(model: ProjectWizardModel, narrative: string) {
-//     return (dispatch) => {
-//         dispatch({
-//             type: PROJECT_WIZARD_TYPES.SAVE_NARRATIVE,
-//             model,
-//             narrative
-//         });
-//     }
-// }
+export function toggleSubpackageActive(subpackage: AssignedPackageModel, model: any) {
+    return {
+        type: PROJECT_WIZARD_TYPES.PROJECTS_TOGGLE_SUPERPKG_ACTIVE,
+        subpackage,
+        model
+    };
+}
 
 export function saveField(model: ProjectWizardModel, name: string, value: any) {
     return {

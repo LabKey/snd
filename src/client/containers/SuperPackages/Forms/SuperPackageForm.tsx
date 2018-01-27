@@ -12,20 +12,17 @@ import {SuperPackageViewer} from "./SuperPackageViewer";
 import {SubpackageViewer} from "./SubpackageViewer";
 import {ControlLabel, ListGroupItem} from "react-bootstrap";
 import {VIEW_TYPES} from "../../App/constants";
+import {toggleSubpackageActive} from "../../Wizards/Projects/actions";
 
 interface SuperPackageFormOwnProps {
-    // handleCancel?: () => void
     handleFieldChange?: (name: string, value: any) => void
     handleAssignedPackageAdd: (assignedPackage: AssignedPackageModel) => void
     handleAssignedPackageRemove: (assignedPackage: AssignedPackageModel) => any
     handleAssignedPackageReorder: (assignedPackage: AssignedPackageModel, moveUp: boolean) => any
-    // // handleNarrativeChange?: (val) => void
-    // handleFormSubmit?: any
     handleFullNarrative?: (model: AssignedPackageModel, shouldQuery: boolean) => void
     handleWarning?: (warning?: string) => void
-    // isValid?: boolean
     model?: ProjectModel | PackageModel
-    // parseAttributes?: () => void
+    showActive: boolean
     view?: VIEW_TYPES
 }
 
@@ -52,6 +49,7 @@ export class SuperPackageFormImpl extends React.Component<SuperPackageFormProps,
         };
 
         this.handleAssignedPackageClick = this.handleAssignedPackageClick.bind(this);
+        this.handleToggleActiveAction = this.handleToggleActiveAction.bind(this);
     }
 
     handleAssignedPackageClick(assignedPackage: AssignedPackageModel) {
@@ -67,10 +65,16 @@ export class SuperPackageFormImpl extends React.Component<SuperPackageFormProps,
         }
     }
 
+    handleToggleActiveAction(subpackage: AssignedPackageModel) {
+        const { dispatch, model } = this.props;
+
+        dispatch(toggleSubpackageActive(subpackage, model));
+    }
+
     render()
     {
         const {model, view, handleAssignedPackageAdd, handleAssignedPackageRemove, handleAssignedPackageReorder,
-            handleFullNarrative} = this.props;
+            handleFullNarrative, showActive} = this.props;
         const {selectedSubPackage} = this.state;
         const {hasEvent} = model;
         const isReadyOnly = view === VIEW_TYPES.PROJECT_VIEW ||
@@ -107,7 +111,9 @@ export class SuperPackageFormImpl extends React.Component<SuperPackageFormProps,
                             handleAssignedPackageRemove={handleAssignedPackageRemove}
                             handleAssignedPackageReorder={handleAssignedPackageReorder}
                             handleRowClick={this.handleAssignedPackageClick}
+                            handleToggleActiveAction={this.handleToggleActiveAction}
                             handleFullNarrative={handleFullNarrative}
+                            showActive={showActive}
                             view={view}/>
                     </div>
                     <div className="row clearfix col-xs-12 margin-top">

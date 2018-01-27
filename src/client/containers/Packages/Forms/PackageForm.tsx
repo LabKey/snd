@@ -386,6 +386,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                         handleAssignedPackageRemove={this.handleAssignedPackageRemove}
                         handleAssignedPackageReorder={this.handleAssignedPackageReorder}
                         handleFullNarrative={handleFullNarrative}
+                        showActive={false}
                     />
 
                     <div className="row clearfix">

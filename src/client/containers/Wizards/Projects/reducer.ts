@@ -232,6 +232,34 @@ export const projects = handleActions({
         return new ProjectWizardContainer(Object.assign({}, state, {projectData: {
             [getRevisionId(revisedModel)]: revisedModel
         }}));
+    },
+
+    [PROJECT_WIZARD_TYPES.PROJECTS_TOGGLE_SUPERPKG_ACTIVE]: (state: ProjectWizardContainer, action: any) => {
+        const { model, subpackage } = action;
+        const projectWizardModel = state.projectData[getRevisionId(model)];
+
+        const subPackages = projectWizardModel.data.subPackages.map(function(subPkg) {
+            if (subpackage.SuperPkgId === subPkg.SuperPkgId) {
+                return new AssignedPackageModel(subPkg.PkgId, subPkg.Description, subPkg.Narrative, subPkg.Repeatable,
+                    subPkg.SuperPkgId, !subpackage.Active, subPkg.ShowActive, subPkg.SortOrder, subPkg.SubPackages);
+            }
+            else {
+                return subPkg;
+            }
+        });
+
+        const data = new ProjectModel(Object.assign({}, model, {
+            subPackages
+        }));
+
+        const toggledModel = new ProjectWizardModel(Object.assign({}, projectWizardModel, {
+            data
+        }));
+
+        return new ProjectWizardContainer(Object.assign({}, state, {projectData: {
+            [getRevisionId(toggledModel)]: toggledModel
+        }}));
+
     }
 }, new ProjectWizardContainer());
 

@@ -1,8 +1,9 @@
 
 import { SchemaQuery } from '../../query/model'
 
+const SUPER_PACKAGES_PREFIX = 'superpackages/';
+
 export const SND_PKG_SCHEMA: string = 'snd',
-    SND_SUPER_PKG_QUERY: string = 'superPkgs',
     SND_TOP_LEVEL_SUPER_PKG_QUERY: string = 'topLevelSuperPkgs';
 
 export const TOPLEVEL_SUPER_PKG_SQ = SchemaQuery.create(SND_PKG_SCHEMA, SND_TOP_LEVEL_SUPER_PKG_QUERY);

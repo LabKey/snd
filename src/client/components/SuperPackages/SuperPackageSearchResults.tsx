@@ -85,6 +85,7 @@ export class SuperPackageSearchResults extends React.Component<SuperPackageSearc
                                         handleMenuAction={handleAssignedPackageAdd}
                                         handleFullNarrative={handleFullNarrative}
                                         view={view}
+                                        showActive={false}
                                     />
                                 </div>
                             )
