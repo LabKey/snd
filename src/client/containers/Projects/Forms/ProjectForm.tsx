@@ -227,7 +227,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
                                     <ControlLabel htmlFor='revisionNum'>Revision Number</ControlLabel>
                                 </div>
                                 <div className="col-xs-4">
-                                    <ControlLabel htmlFor='referenceId'>Charge Id*</ControlLabel>
+                                    <ControlLabel htmlFor='referenceId'>Reference Id*</ControlLabel>
                                 </div>
                             </div>
                             <div className="row clearfix">
