@@ -223,14 +223,23 @@ export const projects = handleActions({
 
     [PROJECT_WIZARD_TYPES.SET_REVISED_VALUES]: (state: ProjectWizardContainer, action: any) => {
         const { model } = action;
+        let revisedEndDate;
 
-        let today = new Date();
-        let todayString = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+        if (model.data.endDate) {
+            revisedEndDate = new Date(model.data.endDate.split('-'));
+        }
+        else {
+            revisedEndDate = new Date();  // If previous end date is null, initialize to today's date
+        }
 
-        today.setDate(today.getDate() + 1);
-        let tomorrowString = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+        let revisedDateString = revisedEndDate.getFullYear() + '-' + (revisedEndDate.getMonth() + 1) + '-' + revisedEndDate.getDate();
 
-        const data = new ProjectModel(Object.assign({}, model.data, {endDateRevised: todayString, startDate: tomorrowString}));
+        // Start date of next revision is day after end date of previous revision
+        revisedEndDate.setDate(revisedEndDate.getDate() + 1);
+        let newStartDateString = revisedEndDate.getFullYear() + '-' + (revisedEndDate.getMonth() + 1) + '-' + revisedEndDate.getDate();
+
+        const data = new ProjectModel(Object.assign({}, model.data, {
+            endDateRevised: revisedDateString, startDate: newStartDateString, endDate: ""}));
         const revisedModel = new ProjectWizardModel(Object.assign({}, model, {
             data
         }));

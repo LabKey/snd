@@ -293,7 +293,7 @@ function resolveProjectHeader(view: VIEW_TYPES, idRev) {
             break;
 
         case VIEW_TYPES.PROJECT_REVISE:
-            text = 'Revision - Project ' + id + ', Revision ' + rev;
+            text = 'Revision - Project ' + id;
             break;
 
         case VIEW_TYPES.PROJECT_NEW:

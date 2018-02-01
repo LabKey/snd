@@ -531,7 +531,7 @@ public class SNDController extends SpringActionController
                 }
             }
 
-            if (json.has("endDate") && json.getString("endDate").equals(""))
+            if (json.has("endDate") && (json.getString("endDate") == null || json.getString("endDate").equals("")))
             {
                 json.remove("endDate");
             }

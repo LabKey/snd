@@ -137,93 +137,7 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
         return (
             <div>
                 <form>
-                    <div className="row clearfix">
-                        <div className="col-sm-6" style={{height: '180px'}}>
-                            <div className="row clearfix">
-                                <div className="col-xs-4">
-                                    <ControlLabel htmlFor='projectIdOld'>Project Id</ControlLabel>
-                                </div>
-                                <div className="col-xs-4">
-                                    <ControlLabel htmlFor='revisionNumOld'>Revision Number</ControlLabel>
-                                </div>
-                                <div className="col-xs-4">
-                                    <ControlLabel htmlFor='referenceIdOld'>Charge Id*</ControlLabel>
-                                </div>
-                            </div>
-                            <div className="row clearfix">
-                                <div className="col-xs-4">
-                                    <IdInput
-                                        name='projectIdOld'
-                                        onChange={this.handleFieldChange}
-                                        value={this.oldId}
-                                        view={view}/>
-                                </div>
-                                <div className="col-xs-4">
-                                    <IdInput
-                                        name='revisionNumOld'
-                                        onChange={this.handleFieldChange}
-                                        value={this.oldRev}
-                                        view={view}/>
-                                </div>
-                                <div className="col-xs-4">
-                                    <NumericInput
-                                        disabled={true}
-                                        name='referenceIdOld'
-                                        onChange={this.handleFieldChange}
-                                        required
-                                        value={this.oldRefId}/>
-                                </div>
-                            </div>
-                            <div className="row clearfix margin-top">
-                                <div className="col-xs-6">
-                                    <ControlLabel htmlFor='startDateOld'>Start Date*</ControlLabel>
-                                </div>
-                                <div className="col-xs-6">
-                                    <ControlLabel htmlFor='endDateOld'>End Date</ControlLabel>
-                                </div>
-                            </div>
-                            <div className="row clearfix">
-                                <div className="col-xs-6">
-                                    <DatePicker
-                                        name='startDateOld'
-                                        onChange={this.handleFieldChange}
-                                        value={this.oldStartDate}
-                                        required
-                                        disabled={true}/>
-                                </div>
-                                <div className="col-xs-6">
-                                    <DatePicker
-                                        name='endDateRevised'
-                                        onChange={this.handleFieldChange}
-                                        value={model.endDateRevised}
-                                        required={false}
-                                        disabled={false}/>
-                                </div>
-                            </div>
-                            <div className="margin-top">
-                                {this.renderExtraFields(true)}
-                            </div>
-                        </div>
-                        <div className="col-sm-6">
-                            <div className="row clearfix">
-                                <div className="col-xs-12">
-                                    <ControlLabel htmlFor='descriptionOld'>Description*</ControlLabel>
-                                </div>
-                            </div>
-                            <div className="row clearfix">
-                                <div className="col-xs-12">
-                                    <TextArea
-                                        disabled={true}
-                                        name='descriptionOld'
-                                        onChange={this.handleFieldChange}
-                                        required
-                                        rows={7}
-                                        value={this.oldDescription}/>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div style={{borderBottom: '1px solid black', marginBottom: '20px'}}/>
+                    <div style={{marginBottom: '20px', marginTop: '-15px'}}><h4>New Revision</h4></div>
                     <div className="row clearfix">
                         <div className="col-sm-6" style={{height: '180px'}}>
                             <div className="row clearfix">
@@ -318,6 +232,99 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
                                         name='copyRevisedPkgs'
                                         />
                                     Copy assigned packages from revision {this.oldRev}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/*<div style={{borderBottom: '1px solid black', marginTop: '20px'}}/>*/}
+                    <div style={{marginTop: '20px'}}/>
+                    <div style={{backgroundColor: '#EEEEEE'}}>
+                        <div style={{borderTop: '1px solid #DDDDDD', paddingBottom: '15px', paddingTop: '5px', paddingLeft: '15px', marginLeft: '-15px', marginRight: '-15px', backgroundColor: '#EEEEEE'}}>
+                            <h4>Previous Revision</h4></div>
+                        <div style={{borderBottom: '1px solid #DDDDDD', backgroundColor: '#EEEEEE'}} className="row clearfix">
+                            <div className="col-sm-6" style={{height: '180px'}}>
+                                <div className="row clearfix">
+                                    <div className="col-xs-4">
+                                        <ControlLabel htmlFor='projectIdOld'>Project Id</ControlLabel>
+                                    </div>
+                                    <div className="col-xs-4">
+                                        <ControlLabel htmlFor='revisionNumOld'>Revision Number</ControlLabel>
+                                    </div>
+                                    <div className="col-xs-4">
+                                        <ControlLabel htmlFor='referenceIdOld'>Charge Id*</ControlLabel>
+                                    </div>
+                                </div>
+                                <div className="row clearfix">
+                                    <div className="col-xs-4">
+                                        <IdInput
+                                            name='projectIdOld'
+                                            onChange={this.handleFieldChange}
+                                            value={this.oldId}
+                                            view={view}/>
+                                    </div>
+                                    <div className="col-xs-4">
+                                        <IdInput
+                                            name='revisionNumOld'
+                                            onChange={this.handleFieldChange}
+                                            value={this.oldRev}
+                                            view={view}/>
+                                    </div>
+                                    <div className="col-xs-4">
+                                        <NumericInput
+                                            disabled={true}
+                                            name='referenceIdOld'
+                                            onChange={this.handleFieldChange}
+                                            required
+                                            value={this.oldRefId}/>
+                                    </div>
+                                </div>
+                                <div className="row clearfix margin-top">
+                                    <div className="col-xs-6">
+                                        <ControlLabel htmlFor='startDateOld'>Start Date*</ControlLabel>
+                                    </div>
+                                    <div className="col-xs-6">
+                                        <ControlLabel htmlFor='endDateOld'>End Date</ControlLabel>
+                                    </div>
+                                </div>
+                                <div className="row clearfix">
+                                    <div className="col-xs-6">
+                                        <DatePicker
+                                            name='startDateOld'
+                                            onChange={this.handleFieldChange}
+                                            value={this.oldStartDate}
+                                            required
+                                            disabled={true}/>
+                                    </div>
+                                    <div className="col-xs-6">
+                                        <DatePicker
+                                            name='endDateRevised'
+                                            onChange={this.handleFieldChange}
+                                            value={model.endDateRevised}
+                                            required={false}
+                                            disabled={false}/>
+                                    </div>
+                                </div>
+                                <div className="margin-top">
+                                    {this.renderExtraFields(true)}
+                                </div>
+                            </div>
+                            <div className="col-sm-6">
+                                <div className="row clearfix">
+                                    <div className="col-xs-12">
+                                        <ControlLabel htmlFor='descriptionOld'>Description*</ControlLabel>
+                                    </div>
+                                </div>
+                                <div className="row clearfix">
+                                    <div className="col-xs-12">
+                                    <TextArea
+                                        disabled={true}
+                                        name='descriptionOld'
+                                        onChange={this.handleFieldChange}
+                                        required
+                                        rows={7}
+                                        value={this.oldDescription}/>
+                                    </div>
                                 </div>
                             </div>
                         </div>
