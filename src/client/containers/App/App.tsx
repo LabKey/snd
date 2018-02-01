@@ -104,7 +104,7 @@ export class AppImpl extends React.Component<AppProps, {}> {
                                 <div className={['alert', alertClassName].join(' ')} role={alertType}>
                                     {msgs.map(alertMsg => {
                                         return (
-                                            <span>
+                                            <span key={alertMsg + msg.id}>
                                             {alertMsg}
                                             <br />
                                             </span>

@@ -26,6 +26,7 @@ import * as actions from '../actions'
 import { PackagesModel } from '../model'
 
 import { QueryModel } from '../../../query/model'
+import {clearAllErrors} from "../../App/actions";
 
 
 interface PackageViewerOwnProps {
@@ -94,6 +95,7 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, Packa
     componentWillUnmount() {
         const { dispatch } = this.props;
         dispatch(actions.resetPackageFilter());
+        dispatch(clearAllErrors());
     }
 
     changeLocation(loc: string) {

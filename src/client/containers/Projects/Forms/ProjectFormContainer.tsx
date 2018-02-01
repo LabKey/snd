@@ -17,6 +17,7 @@ import NarrativeRow from "../../SuperPackages/Forms/NarrativeRow";
 import {ProjectRevisionForm} from "./ProjectRevisionForm";
 import {VIEW_TYPES} from "../../App/constants";
 import {setRevisedValues} from "../../Wizards/Projects/actions";
+import {clearAllErrors} from "../../App/actions";
 
 interface ProjectFormContainerOwnProps extends RouteComponentProps<{idRev: string}> {}
 
@@ -102,6 +103,8 @@ export class ProjectFormContainerImpl extends React.Component<ProjectFormContain
 
     componentWillUnmount() {
         const { dispatch, model } = this.props;
+
+        dispatch(clearAllErrors());
         if (model) {
             dispatch(model.invalidate());
         }

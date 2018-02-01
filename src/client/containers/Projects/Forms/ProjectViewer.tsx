@@ -26,6 +26,7 @@ import * as actions from '../actions'
 import { ProjectsModel } from '../model'
 
 import { QueryModel } from '../../../query/model'
+import {clearAllErrors} from "../../App/actions";
 
 
 interface ProjectViewerOwnProps {
@@ -98,6 +99,7 @@ export class ProjectViewerImpl extends React.Component<ProjectViewerProps, Proje
     componentWillUnmount() {
         const { dispatch } = this.props;
         dispatch(actions.resetProjectFilter());
+        dispatch(clearAllErrors());
     }
 
     changeLocation(loc: string) {

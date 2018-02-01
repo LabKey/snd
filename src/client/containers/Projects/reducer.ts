@@ -10,6 +10,7 @@ export const projects = handleActions({
         const { dataResponse } = action;
         const { data, dataCount, dataIds } = dataResponse;
 
+
         let active = [],
             ids = [],
             drafts = [],
