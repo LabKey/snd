@@ -212,11 +212,10 @@ export function setSubmitting(model: ProjectWizardModel) {
     };
 }
 
-export function setRevisedValues(model: ProjectWizardModel, endDateRevised: string) {
+export function setRevisedValues(model: ProjectWizardModel) {
     return {
         type: PROJECT_WIZARD_TYPES.SET_REVISED_VALUES,
-        model,
-        endDateRevised
+        model
     };
 }
 

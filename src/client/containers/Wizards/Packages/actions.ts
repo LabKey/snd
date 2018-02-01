@@ -69,32 +69,6 @@ export function querySubPackageDetails(id: number, parentPkgId: number) {
     }
 }
 
-// export function queryPackageFullNarrative(id: number, model: PackageWizardModel) {
-//     return (dispatch, getState) => {
-//         return fetchPackage(id, false, false).then((response: PackageQueryResponse) => {
-//             const packageModel = getPackageModelFromResponse(response);
-//             const narrativePkg = new AssignedPackageModel(
-//                 packageModel.pkgId,
-//                 packageModel.description,
-//                 packageModel.narrative,
-//                 packageModel.repeatable,
-//                 undefined,
-//                 undefined,
-//                 packageModel.subPackages
-//             );
-//
-//             dispatch({
-//                 type: PKG_WIZARD_TYPES.PACKAGE_FULL_NARRATIVE,
-//                 model,
-//                 narrativePkg
-//             });
-//         }).catch((error) => {
-//             // set error
-//             console.log('error', error)
-//         });
-//     }
-// }
-
 export function getPackageModelFromResponse(response: PackageQueryResponse): PackageModel {
     // the response should have exactly one row
     return Array.isArray(response.json) && response.json.length == 1 ?

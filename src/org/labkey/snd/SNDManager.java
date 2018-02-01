@@ -837,7 +837,13 @@ public class SNDManager
         {
             rowStart = formatter.parse((String) row.get("StartDate"));
             rowEnd = null;
-            if (row.get("EndDate") != null)
+
+            // For revisions we get enddate of incoming revised end date if comparing with revised project revision
+            if (revision && ((Integer)row.get("RevisionNum") == project.getRevisionNum()))
+            {
+                rowEnd = project.getEndDateRevised();
+            }
+            else if (row.get("EndDate") != null)
             {
                 rowEnd = formatter.parse((String) row.get("EndDate"));
             }
@@ -998,8 +1004,16 @@ public class SNDManager
                         || project.getRevisionNum() == (rev + 1))
                     validRevision = true;
 
-                // Verify only the latest revision of a project has a null end date
-                end = (String)row.get("EndDate");
+                if (revision && rev == project.getRevisionNum())
+                {
+                    end = DateUtil.formatDateISO8601(project.getEndDateRevised());
+                }
+                else
+                {
+                    end = (String) row.get("EndDate");
+                }
+
+                // Check previous revisions to verify only the latest revision of a project has a null end date
                 if (end == null)
                 {
                     if (rev < project.getRevisionNum() || (revision && rev == project.getRevisionNum()))
@@ -1008,6 +1022,7 @@ public class SNDManager
                     }
                 }
 
+                // Verify only last revision can have null date on edit project
                 if (project.getEndDate() == null)
                 {
                     if (rev > project.getRevisionNum())

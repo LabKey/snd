@@ -112,10 +112,10 @@ export class ProjectFormContainerImpl extends React.Component<ProjectFormContain
         dispatch(actions.init(idRev, VIEW_TYPES["PROJECT_" + view.toUpperCase()]));
     }
 
-    handleRevisedValues(endDateRevised: string) {
+    handleRevisedValues() {
         const { dispatch, model } = this.props;
 
-        dispatch(setRevisedValues(model, endDateRevised));
+        dispatch(setRevisedValues(model));
     }
 
     handleCancel() {

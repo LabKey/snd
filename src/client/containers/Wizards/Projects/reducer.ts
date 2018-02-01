@@ -222,9 +222,15 @@ export const projects = handleActions({
     },
 
     [PROJECT_WIZARD_TYPES.SET_REVISED_VALUES]: (state: ProjectWizardContainer, action: any) => {
-        const { model, endDateRevised } = action;
+        const { model } = action;
 
-        const data = new ProjectModel(Object.assign({}, model.data, {endDateRevised: endDateRevised}));
+        let today = new Date();
+        let todayString = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+
+        today.setDate(today.getDate() + 1);
+        let tomorrowString = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+
+        const data = new ProjectModel(Object.assign({}, model.data, {endDateRevised: todayString, startDate: tomorrowString}));
         const revisedModel = new ProjectWizardModel(Object.assign({}, model, {
             data
         }));
@@ -265,20 +271,36 @@ export const projects = handleActions({
 
 function isFormValid(data: ProjectModel, initialData: ProjectModel, view: VIEW_TYPES): boolean {
 
-    let isValid: boolean = true;
-
-    if (!data.description) {
+    // Required Fields
+    if (!data.description ||
+        !data.startDate ||
+        !data.referenceId) {
         return false;
     }
 
-    if (isValid && view === VIEW_TYPES.PROJECT_EDIT) {
-        // need to loop through initialData to compare with currentValues if view === edit
-        return (
-            data.description !== initialData.description ||
-            data.subPackages.map(p => p.PkgId).sort().join('') !==
-            initialData.subPackages.map(p => p.PkgId).sort().join('')
-        )
+    // If required fields filled in, a new project can be saved
+    let isValidChange: boolean = (view === VIEW_TYPES.PROJECT_NEW);
+
+    // Check common fields for changes
+    if (!isValidChange && (view === VIEW_TYPES.PROJECT_EDIT || view === VIEW_TYPES.PROJECT_REVISE)) {
+        isValidChange = data.description !== initialData.description ||
+        data.startDate !== initialData.startDate ||
+        data.referenceId.toString() !== initialData.referenceId.toString() ||
+        data.endDate !== initialData.endDate ||
+        data.extraFields.map(ef => ef.value!=null?ef.value.toString():ef.value).sort().join('') !==
+        initialData.extraFields.map(ef => ef.value!=null ? ef.value.toString() : ef.value).sort().join('')
     }
 
-    return isValid;
+    // Check updated assigned packages for Edit
+    if (!isValidChange && view === VIEW_TYPES.PROJECT_EDIT) {
+        isValidChange = data.subPackages.map(p => p.PkgId).sort().join('') !==
+            initialData.subPackages.map(p => p.PkgId).sort().join('')
+    }
+
+    // Check previous revision end date for revision
+    if (!isValidChange && view === VIEW_TYPES.PROJECT_REVISE) {
+        isValidChange = data.endDateRevised !== initialData.endDateRevised
+    }
+
+    return isValidChange;
 }

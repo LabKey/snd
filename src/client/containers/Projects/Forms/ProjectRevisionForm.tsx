@@ -41,7 +41,7 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
     }
 
     componentWillMount() {
-        this.props.handleRevisedValues(this.oldEndDate);
+        this.props.handleRevisedValues();
     }
 
     handleButtonAction(action: string) {
@@ -72,9 +72,14 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
 
     handleFieldChange(event: React.ChangeEvent<any>) {
         const { handleFieldChange } = this.props;
-        const name = event.currentTarget.name,
-            value = event.currentTarget.type === 'checkbox' ?
-                event.currentTarget.checked : event.currentTarget.value;
+        const name = event.currentTarget.name;
+        let value = event.currentTarget.value;
+
+        if (event.currentTarget.type === 'checkbox')
+            value = event.currentTarget.checked;
+
+        if (event.currentTarget.type === 'date' && event.currentTarget.value === '')
+            value = undefined;
 
         handleFieldChange(name, value);
     }
