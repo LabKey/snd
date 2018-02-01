@@ -76,9 +76,7 @@ export class SuperPackageFormImpl extends React.Component<SuperPackageFormProps,
         const {model, view, handleAssignedPackageAdd, handleAssignedPackageRemove, handleAssignedPackageReorder,
             handleFullNarrative, showActive} = this.props;
         const {selectedSubPackage} = this.state;
-        const {hasEvent} = model;
-        const isReadyOnly = view === VIEW_TYPES.PROJECT_VIEW ||
-            (view === VIEW_TYPES.PROJECT_EDIT && (hasEvent));
+        const isReadyOnly = view === VIEW_TYPES.PROJECT_VIEW;
 
         return (
             <div className="row clearfix">

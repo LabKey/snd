@@ -191,14 +191,12 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
 
     renderExtraFields() {
         const { model, view } = this.props;
-        const disabled = (view === VIEW_TYPES.PROJECT_VIEW ||
-            (view === VIEW_TYPES.PROJECT_EDIT && model.hasEvent));
 
         if (model) {
             const { extraFields } = model;
             return <ExtraFields
                 extraFields={extraFields}
-                disabled={disabled}
+                disabled={false}
                 handleFieldChange={this.handleFieldChange}
             />
         }
@@ -271,7 +269,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
                                         onChange={this.handleFieldChange}
                                         value={model.startDate}
                                         required={true}
-                                        disabled={disabled}/>
+                                        disabled={false}/>
                                 </div>
                                 <div className="col-xs-6">
                                     <DatePicker
@@ -279,7 +277,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
                                         onChange={this.handleFieldChange}
                                         value={model.endDate}
                                         required={false}
-                                        disabled={disabled}/>
+                                        disabled={false}/>
                                 </div>
                             </div>
                             <div className="margin-top">
@@ -295,7 +293,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps> {
                             <div className="row clearfix">
                                 <div className="col-xs-12">
                                     <TextArea
-                                        disabled={disabled}
+                                        disabled={false}
                                         name='description'
                                         onChange={this.handleFieldChange}
                                         required={true}
