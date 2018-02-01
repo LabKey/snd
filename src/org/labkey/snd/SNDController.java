@@ -480,7 +480,7 @@ public class SNDController extends SpringActionController
                 errors.reject(ERROR_MSG, "Missing referenceId.");
             }
 
-            if (!json.has("startDate"))
+            if (!json.has("startDate") || json.getString("startDate") == null || json.getString("startDate").equals(""))
             {
                 errors.reject(ERROR_MSG, "Missing startDate.");
             }
