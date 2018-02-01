@@ -222,7 +222,7 @@ export function setRevisedValues(model: ProjectWizardModel) {
 export function save(model: ProjectWizardModel, project: ProjectSubmissionModel) {
     return (dispatch, getState) => {
         dispatch(setSubmitting(model));
-        const updatedModel = getState().wizards.projects.projectData[model.projectId];
+        const updatedModel = getState().wizards.projects.projectData[getRevisionId(model)];
 
         return saveProject(project).then((response) => {
             dispatch(setSubmitted(updatedModel));

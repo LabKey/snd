@@ -90,13 +90,27 @@ export class AppImpl extends React.Component<AppProps, {}> {
                     {app.messages.map(msg => {
                         const alerts = AppImpl.getMessageTypes(msg);
                         const { alertClassName, alertType } = alerts;
+
+                        if (msg.message.indexOf('\n') === 0) {
+                            msg.message = msg.message.substring(1)
+                        }
+                        let msgs = msg.message.split('\n');
+
                         return (
                             <div className="app-error" key={msg.message + msg.id}>
                                 <div className={['alert-dismiss', alertClassName].join(' ')}>
                                     <i className='fa fa-times' onClick={() => dismissWarning(msg.id)}/>
                                 </div>
                                 <div className={['alert', alertClassName].join(' ')} role={alertType}>
-                                    {msg.message}
+                                    {msgs.map(alertMsg => {
+                                        return (
+                                            <span>
+                                            {alertMsg}
+                                            <br />
+                                            </span>
+                                        )
+                                    })
+                                    }
                                 </div>
                             </div>
                         )

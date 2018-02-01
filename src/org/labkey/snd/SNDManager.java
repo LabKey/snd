@@ -995,7 +995,7 @@ public class SNDManager
                 // Check for overlapping dates
                 if (!overlap && hasOverlap(project, row, revision, errors))
                 {
-                    errors.addRowError(new ValidationException("Overlapping date with revision: " + row.get("RevisionNum")));
+                    errors.addRowError(new ValidationException("Overlapping date with revision " + row.get("RevisionNum") + " of this project."));
                     overlap = true;
                 }
 
