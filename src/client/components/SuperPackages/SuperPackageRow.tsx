@@ -130,7 +130,7 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
                     <DropdownButton id="superpackage-actions" title="" pullRight dropup={isDropup}
                                     className="superpackage-row-option-btn">
                         {showActiveToggle
-                            ? <MenuItem onClick={() => handleToggleActiveAction(model)}>{model.Active?'Active':'Not Active'}</MenuItem>
+                            ? <MenuItem onClick={() => handleToggleActiveAction(model)}>{model.Active?'Deactivate':'Activate'}</MenuItem>
                             : null
                         }
                         {!isReadyOnly && menuActionName
@@ -146,7 +146,7 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
                             : null
                         }
 
-                        <MenuItem onClick={() => handleFullNarrative(model)}>Full Narrative</MenuItem>
+                        <MenuItem onClick={() => handleFullNarrative(model)}>View Full Narrative</MenuItem>
                         {/*<MenuItem disabled>Packages Using</MenuItem>*/}
                         {/*<MenuItem disabled>Projects Using</MenuItem>*/}
                     </DropdownButton>
