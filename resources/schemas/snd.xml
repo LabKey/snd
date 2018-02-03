@@ -136,6 +136,11 @@
         </columns>
     </table>
     <table tableName="Projects" tableDbType="TABLE">
+        <insertUrl>/snd/app.view?#/projects/new</insertUrl>
+        <updateUrl></updateUrl> <!--TODO: /snd/app.view?#/projects-->
+        <importUrl></importUrl>
+        <deleteUrl></deleteUrl>
+
         <columns>
             <column columnName="ProjectId"/>
             <column columnName="RevisionNum"/>
@@ -165,6 +170,10 @@
         </columns>
     </table>
     <table tableName="ProjectItems" tableDbType="TABLE">
+        <insertUrl>/snd/app.view?#/projects/new</insertUrl>
+        <updateUrl></updateUrl> <!--TODO: /snd/app.view?#/projects-->
+        <importUrl></importUrl>
+        <deleteUrl></deleteUrl>
         <columns>
             <column columnName="ProjectItemId"/>
             <column columnName="ParentObjectId"/>
