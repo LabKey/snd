@@ -287,8 +287,8 @@ function isFormValid(data: ProjectModel, initialData: ProjectModel, view: VIEW_T
         return false;
     }
 
-    // If required fields filled in, a new project can be saved
-    let isValidChange: boolean = (view === VIEW_TYPES.PROJECT_NEW);
+    // If required fields filled in, a new or draft project can be saved
+    let isValidChange: boolean = (view === VIEW_TYPES.PROJECT_NEW || !data.active);
 
     // Check common fields for changes
     if (!isValidChange && (view === VIEW_TYPES.PROJECT_EDIT || view === VIEW_TYPES.PROJECT_REVISE)) {

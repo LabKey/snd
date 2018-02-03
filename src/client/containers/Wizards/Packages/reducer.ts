@@ -413,6 +413,10 @@ function isFormValid(data: PackageModel, initialData: PackageModel, view: VIEW_T
         return false;
     }
 
+    // Allow drafts to be saved without any changes. Allows moving them to active.
+    if (!data.active)
+        return true;
+
     if (data.attributes.length > 0) {
         isValid = data.attributes.every((attribute) => {
             return !!attribute.name && !!attribute.rangeURI;
