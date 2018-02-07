@@ -23,7 +23,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 
-public class ProjectViewerResult extends WebDriverComponent<PackageViewerResult.ElementCache>
+public class ProjectViewerResult extends WebDriverComponent<ProjectViewerResult.ElementCache>
 {
     final WebElement _el;
     final WebDriver _driver;
@@ -63,21 +63,26 @@ public class ProjectViewerResult extends WebDriverComponent<PackageViewerResult.
         return new EditProjectPage(getDriver());
     }
 
-    public EditProjectPage clickClone()
+    public EditProjectPage clickRevise()
     {
-        elementCache().cloneLink.click();
+        elementCache().reviseLink.click();
         return new EditProjectPage(getDriver());
+    }
+
+    protected ElementCache newElementCache()
+    {
+        return new ElementCache();
     }
 
     protected class ElementCache extends WebDriverComponent.ElementCache
     {
-        WebElement viewLink = Locator.tagWithClassContaining("a", "Project-row_icon")
+        WebElement viewLink = Locator.tagWithClassContaining("a", "project-row_icon")
                 .withChild(Locator.tagWithClass("i", "fa fa-eye"))
                 .findWhenNeeded(getComponentElement());
-        WebElement editLink = Locator.tagWithClassContaining("a", "Project-row_icon")
+        WebElement editLink = Locator.tagWithClassContaining("a", "project-row_icon")
                 .withChild(Locator.tagWithClass("i", "fa fa-pencil"))
                 .findWhenNeeded(getComponentElement());
-        WebElement cloneLink = Locator.tagWithClassContaining("a", "Project-row_icon")
+        WebElement reviseLink = Locator.tagWithClassContaining("a", "project-row_icon")
                 .withChild(Locator.tagWithClass("i", "fa fa-files-o"))
                 .findWhenNeeded(getComponentElement());
     }
@@ -89,18 +94,18 @@ public class ProjectViewerResult extends WebDriverComponent<PackageViewerResult.
         private ProjectViewerResultFinder(WebDriver driver)
         {
             super(driver);
-            _locator = Locator.tagWithClassContaining("div", "Project_viewer__result");
+            _locator = Locator.tagWithClassContaining("div", "project_viewer__result");
         }
 
         public ProjectViewerResultFinder containingText(String partialText)
         {
-            _locator = Locator.tagWithClassContaining("div", "Project-row").withDescendant(
+            _locator = Locator.tagWithClassContaining("div", "project-row").withDescendant(
                     Locator.tagContainingText("div", partialText));
             return this;
         }
         public ProjectViewerResultFinder withText(String fullText)
         {
-            _locator = Locator.tagWithClassContaining("div", "Project-row").withDescendant(
+            _locator = Locator.tagWithClassContaining("div", "project-row").withDescendant(
                     Locator.tagWithText("div", fullText));
             return this;
         }

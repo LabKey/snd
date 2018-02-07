@@ -60,6 +60,15 @@ public class ProjectListPage extends LabKeyPage<ProjectListPage.ElementCache>
         return this;
     }
 
+    public ProjectListPage showNotActive(boolean set)
+    {
+        Checkbox.Checkbox(elementCache().showNotActiveLoc)
+                .timeout(WAIT_FOR_JAVASCRIPT)
+                .findWhenNeeded(elementCache().container)
+                .set(set);
+        return this;
+    }
+
     public ProjectListPage setSearchFilter(String searchExpression)
     {
         elementCache().searchFilter.set(searchExpression);
@@ -70,6 +79,12 @@ public class ProjectListPage extends LabKeyPage<ProjectListPage.ElementCache>
     {
         return ProjectViewerResult.finder(getDriver()).containingText(partialText)
                 .timeout(4000).findWhenNeeded(elementCache().container);
+    }
+
+    public boolean isProjectPresent(String partialDescription)
+    {
+        return null != ProjectViewerResult.finder(getDriver()).containingText(partialDescription)
+                .timeout(4000).findOrNull(elementCache().container);
     }
 
     protected ElementCache newElementCache()
@@ -87,7 +102,10 @@ public class ProjectListPage extends LabKeyPage<ProjectListPage.ElementCache>
         WebElement newProjectButton = Locator.button("New Project").findWhenNeeded(searchHeader)
                 .withTimeout(WAIT_FOR_JAVASCRIPT);
         Locator showDraftsLoc = Locator.tagWithClassContaining("div", "projects-show_drafts")
-                .withText("Show drafts")
+                .withText("Show Drafts")
+                .child("input");
+        Locator showNotActiveLoc = Locator.tagWithClassContaining("div", "projects-show_not_active")
+                .withText("Show Not Active")
                 .child("input");
         Input searchFilter = Input.Input(Locator.input("projectSearch"), getDriver())
                 .timeout(WAIT_FOR_JAVASCRIPT)

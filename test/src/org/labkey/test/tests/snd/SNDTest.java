@@ -47,10 +47,13 @@ import org.labkey.test.components.snd.AttributesGrid;
 import org.labkey.test.components.snd.CategoryEditRow;
 import org.labkey.test.components.snd.FilterSelect;
 import org.labkey.test.components.snd.PackageViewerResult;
+import org.labkey.test.components.snd.ProjectViewerResult;
 import org.labkey.test.components.snd.SuperPackageRow;
 import org.labkey.test.pages.snd.EditCategoriesPage;
 import org.labkey.test.pages.snd.EditPackagePage;
+import org.labkey.test.pages.snd.EditProjectPage;
 import org.labkey.test.pages.snd.PackageListPage;
+import org.labkey.test.pages.snd.ProjectListPage;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Maps;
 import org.labkey.test.util.SqlserverOnlyTest;
@@ -122,6 +125,10 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     private static final String TEST_PROJECT_DEFAULT_PKGS = "default";
     private static final int TEST_IMPORT_SUPERPKG1 = 5100;
     private static final int TEST_IMPORT_SUPERPKG2 = 5150;
+
+    private static final String UITEST_PROJECT_SUBPKG1 = "TB and Weight";
+    private static final String UITEST_PROJECT_SUBPKG2 = "Vet Comment";
+    private static final String UITEST_PROJECT_SUBPKG3 = "Ketamine Sedation";
 
     private static final String CREATEDOMAINSAPI ="LABKEY.Domain.create({\n" +
             "   domainGroup: 'test',        \n" +
@@ -1249,64 +1256,6 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     }
 
     @Test
-    public void saveNewPackage()
-    {
-        String description = "Our first package. Adorable!";
-        String narrative = "Four {score} and seven {years} ago, our {forefathers} brought forth," +
-                " upon this {continent}, a new {nation}, conceived in liberty, " +
-                "and dedicated to the proposition that all {men} are created equal.";
-        PackageListPage listPage = PackageListPage.beginAt(this , getProjectName());
-
-        EditPackagePage editPage = listPage.clickNewPackage();
-        FilterSelect categoriesSelect = editPage.getCategoriesSelect();
-        categoriesSelect
-                .selectItem("Surgery")
-                .selectItem("Blood Draw")
-                .close();
-
-        editPage.setDescription(description);
-        editPage.setNarrative(narrative);
-
-        AttributesGrid grid = editPage.getAttributesGrid();
-        grid.waitForRows(6);
-
-        // now edit a row
-        AttributeGridRow menRow = grid.getRow("men")
-                .setDataType("String")
-                .setLabel("gender-generic term")
-                .setMin(2)
-                .setMax(7)
-                .setDefault("men")
-                .setRequired(true)
-                .setRedactedText("and women");
-        // move a row Up
-        AttributeGridRow nationRow = grid.getRow("nation")
-                .selectOrder("Move Down");
-
-        listPage = editPage.clickSave();
-        listPage.setSearchFilter(description);
-        PackageViewerResult packageViewerResult = listPage.getPackage(description);
-
-        EditPackagePage viewPage = packageViewerResult.clickView();
-        assertEquals("narrative should equal what we set" ,narrative, viewPage.getNarrative());
-        assertEquals("description should equal what we set" ,description, viewPage.getDescription());
-
-        List<String> selectedCategories = viewPage.getCategoriesSelect().getSelections();
-        assertTrue("Expect Blood Draw category", selectedCategories.stream().anyMatch((a)-> a.contains("Blood Draw")));
-        assertTrue("Expect Surgery category", selectedCategories.stream().anyMatch((a)-> a.contains("Surgery")));
-
-        // confirm the package has the same values we set
-        AttributeGridRow reviewRow = viewPage.getAttributesGrid().getRow("men");
-        assertEquals("String", reviewRow.getDataType());
-        assertEquals("gender-generic term", reviewRow.getLabel());
-        assertEquals("2", reviewRow.getMin());
-        assertEquals("7", reviewRow.getMax());
-        assertEquals("men", reviewRow.getDefault());
-        assertEquals(true, reviewRow.getRequired());
-        assertEquals("and women", reviewRow.getRedactedText());
-    }
-
-    @Test
     public void assignPackageToNewPackage()
     {
         String description = "Our latest package. Has Vitals! And Therapy!";    // todo: don't rely on vitals and therapy being already there;
@@ -1371,6 +1320,64 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         assertEquals("7", verifyEarthRow.getMax());
         assertEquals("mL", verifyEarthRow.getDefault());
         assertEquals("and rocks", verifyEarthRow.getRedactedText());
+    }
+
+    @Test
+    public void saveNewPackage()
+    {
+        String description = "Our first package. Adorable!";
+        String narrative = "Four {score} and seven {years} ago, our {forefathers} brought forth," +
+                " upon this {continent}, a new {nation}, conceived in liberty, " +
+                "and dedicated to the proposition that all {men} are created equal.";
+        PackageListPage listPage = PackageListPage.beginAt(this , getProjectName());
+
+        EditPackagePage editPage = listPage.clickNewPackage();
+        FilterSelect categoriesSelect = editPage.getCategoriesSelect();
+        categoriesSelect
+                .selectItem("Surgery")
+                .selectItem("Blood Draw")
+                .close();
+
+        editPage.setDescription(description);
+        editPage.setNarrative(narrative);
+
+        AttributesGrid grid = editPage.getAttributesGrid();
+        grid.waitForRows(6);
+
+        // now edit a row
+        AttributeGridRow menRow = grid.getRow("men")
+                .setDataType("String")
+                .setLabel("gender-generic term")
+                .setMin(2)
+                .setMax(7)
+                .setDefault("men")
+                .setRequired(true)
+                .setRedactedText("and women");
+        // move a row Up
+        AttributeGridRow nationRow = grid.getRow("nation")
+                .selectOrder("Move Down");
+
+        listPage = editPage.clickSave();
+        listPage.setSearchFilter(description);
+        PackageViewerResult packageViewerResult = listPage.getPackage(description);
+
+        EditPackagePage viewPage = packageViewerResult.clickView();
+        assertEquals("narrative should equal what we set" ,narrative, viewPage.getNarrative());
+        assertEquals("description should equal what we set" ,description, viewPage.getDescription());
+
+        List<String> selectedCategories = viewPage.getCategoriesSelect().getSelections();
+        assertTrue("Expect Blood Draw category", selectedCategories.stream().anyMatch((a)-> a.contains("Blood Draw")));
+        assertTrue("Expect Surgery category", selectedCategories.stream().anyMatch((a)-> a.contains("Surgery")));
+
+        // confirm the package has the same values we set
+        AttributeGridRow reviewRow = viewPage.getAttributesGrid().getRow("men");
+        assertEquals("String", reviewRow.getDataType());
+        assertEquals("gender-generic term", reviewRow.getLabel());
+        assertEquals("2", reviewRow.getMin());
+        assertEquals("7", reviewRow.getMax());
+        assertEquals("men", reviewRow.getDefault());
+        assertEquals(true, reviewRow.getRequired());
+        assertEquals("and women", reviewRow.getRedactedText());
     }
 
     @Test
@@ -1685,8 +1692,8 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         runScriptExpectedFail(reviseProjectApi(TEST_PROJECT_ID, 2, "2018-02-15", null, "description", TEST_REV_PROJECT_DESC));
         runScript(editProjectApi(TEST_PROJECT_ID + 1, 0, "projectItems", null));
 
-        // TODO: Expected refactor to error handling. Logging errors twice right now.
-        checkExpectedErrors(14);
+        // Expected QUS delete row errors
+        checkExpectedErrors(4);
 
         goToSchemaBrowser();
         dataRegionTable = viewQueryData("snd", "Projects");
@@ -1782,6 +1789,219 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
             Integer superPkgId = jsonSubPackage.getInt("SuperPkgId");
             assertTrue("Expected superPkgId of '" + superPkgId + "' was not found in list: '" + subPackageIds.toString() + "'", subPackageIds.contains(superPkgId));
         }
+    }
+
+    @Test
+    public void createNewProjectViaUI()
+    {
+        String referenceId = "1010";
+        String startDate = "2018-01-02";
+        String endDate = "2018-02-02";
+        String description = "Description for the new project";
+
+        log("Start with the project screen");
+        ProjectListPage listPage = ProjectListPage.beginAt(this , getProjectName());
+        EditProjectPage editPage = listPage.clickNewProject();
+
+        log("Setting all values in new project");
+        editPage.setDescription(description);
+        editPage.setReferenceId(referenceId);
+        editPage.setStartDate(startDate);
+        editPage.setEndDate(endDate);
+        editPage.getAvailablePackage(UITEST_PROJECT_SUBPKG1)
+                .clickMenuItem("Add");
+        editPage.getAvailablePackage(UITEST_PROJECT_SUBPKG2)
+                .clickMenuItem("Add");
+        listPage = editPage.clickSave();
+
+        log("Verifying the new project values");
+        listPage.showNotActive(true);
+        ProjectViewerResult projectViewerResult = listPage.getProject(description);
+        EditProjectPage viewPage = projectViewerResult.clickView();
+        assertEquals("Description not equal to set value: " + description ,description, viewPage.getDescription());
+        assertEquals("ReferenceId not equal to set value: " + referenceId,referenceId, viewPage.getReferenceId());
+        assertEquals("Start date not equal to set value: " + startDate,startDate,viewPage.getStartDate());
+        assertEquals("End date not equal to set value: " + endDate,endDate,viewPage.getEndDate());
+        assertTrue("Assigned package " + UITEST_PROJECT_SUBPKG1 + " not found.", viewPage.isAssignedPackagePresent(UITEST_PROJECT_SUBPKG1));
+        assertTrue("Assigned package " + UITEST_PROJECT_SUBPKG2 + " not found.", viewPage.isAssignedPackagePresent(UITEST_PROJECT_SUBPKG2));
+        assertFalse("Unassigned package found assigned.", viewPage.isAssignedPackagePresent("Vitals"));
+    }
+
+    @Test
+    public void editProjectViaUI()
+    {
+        String draftReferenceId = "1011";
+        String referenceId = "1012";
+        String draftStartDate = "2018-01-02";
+        String startDate = "2018-01-03";
+        String endDate = "2018-02-03";
+        String draftDescription = "Draft description for the edit test project";
+        String description = "Description for the edit test project";
+
+        log("Start with the project screen");
+        ProjectListPage listPage = ProjectListPage.beginAt(this , getProjectName());
+        EditProjectPage editPage = listPage.clickNewProject();
+
+        log("Setting values in new project");
+        editPage.setDescription(draftDescription);
+        editPage.setReferenceId(draftReferenceId);
+        editPage.setStartDate(draftStartDate);
+        editPage.getAvailablePackage(UITEST_PROJECT_SUBPKG1)
+                .clickMenuItem("Add");
+        editPage.getAvailablePackage(UITEST_PROJECT_SUBPKG2)
+                .clickMenuItem("Add");
+        listPage = editPage.clickSaveAsDraft();
+
+        log("Verify project saved as draft");
+        listPage.showDrafts(false);
+        listPage.showNotActive(true);
+        assertFalse("Project not saved as draft.", listPage.isProjectPresent(draftDescription));
+
+        listPage.showDrafts(true);
+        assertTrue("Project not saved.", listPage.isProjectPresent(draftDescription));
+
+        ProjectViewerResult projectViewerResult = listPage.getProject(draftDescription);
+        editPage = projectViewerResult.clickEdit();
+        listPage = editPage.clickSave();
+
+        log("Verify project moved from drafts to active");
+        listPage.showDrafts(false);
+        listPage.showNotActive(false);
+        assertTrue("Project should be active.", listPage.isProjectPresent(draftDescription));
+
+        projectViewerResult = listPage.getProject(draftDescription);
+        editPage = projectViewerResult.clickEdit();
+        editPage.setDescription(description);
+        editPage.setReferenceId(referenceId);
+        editPage.setStartDate(startDate);
+        editPage.setEndDate(endDate);
+
+        editPage.getAvailablePackage(UITEST_PROJECT_SUBPKG3)
+                .clickMenuItem("Add");
+        editPage.getAssignedPackage(UITEST_PROJECT_SUBPKG1)
+                .clickMenuItem("Remove");
+        listPage = editPage.clickSave();
+
+        log("Verify edited project saved correctly as Not Active project");
+        listPage.showNotActive(false);
+        assertFalse("Project not updated to Not Active project.", listPage.isProjectPresent(description));
+
+        listPage.showNotActive(true);
+        assertTrue("Edited project not found.", listPage.isProjectPresent(description));
+        projectViewerResult = listPage.getProject(description);
+        EditProjectPage viewPage = projectViewerResult.clickView();
+
+        assertEquals("Description not equal to set value: " + description, description, viewPage.getDescription());
+        assertEquals("ReferenceId not equal to set value: " + referenceId, referenceId, viewPage.getReferenceId());
+        assertEquals("Start date not equal to set value: " + startDate, startDate, viewPage.getStartDate());
+        assertEquals("End date not equal to set value: " + endDate, endDate, viewPage.getEndDate());
+        assertTrue("Assigned package " + UITEST_PROJECT_SUBPKG2 + " not found.", viewPage.isAssignedPackagePresent(UITEST_PROJECT_SUBPKG2));
+        assertTrue("Assigned package " + UITEST_PROJECT_SUBPKG3 + " not found.", viewPage.isAssignedPackagePresent(UITEST_PROJECT_SUBPKG3));
+        assertFalse("Unassigned package found assigned.", viewPage.isAssignedPackagePresent(UITEST_PROJECT_SUBPKG1));
+    }
+
+    @Test
+    public void reviseProjectViaUI() throws ParseException
+    {
+        String referenceId = "1013";
+        String revisionReferenceId = "1014";
+        String startDate = "2018-01-02";
+        String revisionOldEndDate = "2018-01-05";
+        String revisionEndDate = "2018-01-15";
+        String revisionStartDate = "2018-01-10";
+        String description = "Description for the revision test project";
+        String revisionDescription = "Revised description for the revision test project";
+
+        log("Start with the project screen");
+        ProjectListPage listPage = ProjectListPage.beginAt(this , getProjectName());
+        EditProjectPage editPage = listPage.clickNewProject();
+
+        log("Setting values in new project");
+        editPage.setDescription(description);
+        editPage.setReferenceId(referenceId);
+        editPage.setStartDate(startDate);
+        editPage.getAvailablePackage(UITEST_PROJECT_SUBPKG1)
+                .clickMenuItem("Add");
+        editPage.getAvailablePackage(UITEST_PROJECT_SUBPKG2)
+                .clickMenuItem("Add");
+        listPage = editPage.clickSave();
+
+        ProjectViewerResult projectViewerResult = listPage.getProject(description);
+        EditProjectPage revisePage = projectViewerResult.clickRevise();
+
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        Date today = new Date();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(today);
+        calendar.add(Calendar.DATE, 1);
+        String todayString = formatter.format(today);
+        String tomorrowString = formatter.format(calendar.getTime());
+
+        log("Verify revision initial values");
+        assertEquals("Revised project old end date not today's date.", todayString, revisePage.getEndDateRevised());
+        assertEquals("Revised project new start date not tomorrow's date", tomorrowString, revisePage.getStartDate());
+        assertTextPresent(description, 2);
+
+        revisePage.setDescription(revisionDescription);
+        revisePage.setReferenceId(revisionReferenceId);
+        revisePage.setEndDateRevised(revisionOldEndDate);
+        revisePage.setStartDate(revisionStartDate);
+        revisePage.setEndDate(revisionEndDate);
+        revisePage.setRevisionCopyPkgsCheckBox(true);
+
+        listPage = revisePage.clickSaveAsDraft();
+        listPage.showNotActive(true);
+        assertTrue("Old revised project not found.", listPage.isProjectPresent(description + ", Revision 0"));
+
+        log("Verify old revision end date");
+        projectViewerResult = listPage.getProject(description + ", Revision 0");
+        EditProjectPage viewPage = projectViewerResult.clickView();
+
+        assertEquals("Old revision end date not equal to set value: " + revisionOldEndDate, revisionOldEndDate, viewPage.getEndDate());
+
+        listPage = viewPage.clickProjectsCrumb();
+        listPage.showDrafts(true);
+        assertTrue("Revised draft project not found.", listPage.isProjectPresent(revisionDescription + ", Revision 1"));
+
+        projectViewerResult = listPage.getProject(revisionDescription + ", Revision 1");
+        viewPage = projectViewerResult.clickView();
+
+        log("Verify new revision values.");
+        assertEquals("Description not equal to set value: " + revisionDescription, revisionDescription, viewPage.getDescription());
+        assertEquals("ReferenceId not equal to set value: " + revisionReferenceId, revisionReferenceId, viewPage.getReferenceId());
+        assertEquals("Start date not equal to set value: " + revisionStartDate, revisionStartDate, viewPage.getStartDate());
+        assertEquals("End date not equal to set value: " + revisionEndDate, revisionEndDate, viewPage.getEndDate());
+        assertTrue("Assigned package " + UITEST_PROJECT_SUBPKG1 + " not found.", viewPage.isAssignedPackagePresent(UITEST_PROJECT_SUBPKG1));
+        assertTrue("Assigned package " + UITEST_PROJECT_SUBPKG2 + " not found.", viewPage.isAssignedPackagePresent(UITEST_PROJECT_SUBPKG2));
+
+        listPage = viewPage.clickProjectsCrumb();
+        listPage.showDrafts(true);
+        projectViewerResult = listPage.getProject(revisionDescription + ", Revision 1");
+        revisePage = projectViewerResult.clickRevise();
+
+        Date revEndDate = formatter.parse(revisePage.getEndDateRevised());
+        calendar.setTime(revEndDate);
+        calendar.add(Calendar.DATE, 1);
+        String revStartDate = formatter.format(calendar.getTime());
+
+        assertEquals("New revision start date not old date plus a day.", revStartDate, revisePage.getStartDate());
+
+        revisePage.setStartDate(tomorrowString);
+        listPage = revisePage.clickSave();
+
+        log("Verify future project saved as Not Active");
+        listPage.showNotActive(false);
+        assertFalse("Revised future project saved as Not Active.", listPage.isProjectPresent(revisionDescription + ", Revision 2"));
+
+        listPage.showNotActive(true);
+        assertTrue("Revised future project not found.", listPage.isProjectPresent(revisionDescription + ", Revision 2"));
+
+        projectViewerResult = listPage.getProject(revisionDescription + ", Revision 2");
+        viewPage = projectViewerResult.clickView();
+
+        assertEquals("Start date not equal to set value.", tomorrowString, viewPage.getStartDate());
+        assertFalse("Unassigned package found assigned.", viewPage.isAssignedPackagePresent(UITEST_PROJECT_SUBPKG1));
+        assertFalse("Unassigned package found assigned.", viewPage.isAssignedPackagePresent(UITEST_PROJECT_SUBPKG2));
     }
 
     private void truncateSndPkg() throws Exception

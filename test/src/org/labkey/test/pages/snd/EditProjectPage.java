@@ -5,11 +5,14 @@ import org.labkey.test.WebDriverWrapper;
 import org.labkey.test.WebTestHelper;
 import org.labkey.test.components.html.Checkbox;
 import org.labkey.test.components.snd.AttributesGrid;
+import org.labkey.test.components.snd.SuperPackageRow;
 import org.labkey.test.pages.LabKeyPage;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+
+import java.util.List;
 
 public class EditProjectPage extends LabKeyPage<EditProjectPage.ElementCache>
 {
@@ -78,11 +81,84 @@ public class EditProjectPage extends LabKeyPage<EditProjectPage.ElementCache>
         return elementCache().startDateTextBox.getAttribute("value");
     }
 
+    public EditProjectPage setEndDate(String date)
+    {
+        setFormElement(elementCache().endDateTextBox,date);
+        return this;
+    }
+
+    public String getEndDate()
+    {
+        return elementCache().endDateTextBox.getAttribute("value");
+    }
+
+    public EditProjectPage setEndDateRevised(String date)
+    {
+        setFormElement(elementCache().endDateRevisedTextBox,date);
+        return this;
+    }
+
+    public String getEndDateRevised()
+    {
+        return elementCache().endDateRevisedTextBox.getAttribute("value");
+    }
 
     public EditProjectPage setPrimitivesOnlyCheckBox(boolean set)
     {
         new Checkbox(elementCache().primitivesOnlyCheckBox).set(set);
         return this;
+    }
+
+    public EditProjectPage setRevisionCopyPkgsCheckBox(boolean set)
+    {
+        new Checkbox(elementCache().copyRevisedPkgsChkBox).set(set);
+        return this;
+    }
+
+    public List<SuperPackageRow> getAvailablePackages()
+    {
+        return SuperPackageRow.finder(getDriver()).timeout(4000)
+                .findAll(elementCache().querySearchContainer);
+    }
+
+    public SuperPackageRow getAvailablePackage(String partialDescription)
+    {
+        return SuperPackageRow.finder(getDriver()).timeout(4000)
+                .withPartialDescription(partialDescription).findWhenNeeded(elementCache().querySearchContainer);
+    }
+
+    public List<SuperPackageRow> getAssignedPackages()
+    {
+        return SuperPackageRow.finder(getDriver())
+                .findAll(elementCache().assignedPackageContainer);
+    }
+
+    public boolean isAssignedPackagePresent(String partialDescription)
+    {
+        return null != SuperPackageRow.finder(getDriver()).timeout(4000)
+                .withPartialDescription(partialDescription).findOrNull(elementCache().assignedPackageContainer);
+    }
+
+    public SuperPackageRow getAssignedPackage(String partialDescription)
+    {
+        return SuperPackageRow.finder(getDriver()).timeout(4000)
+                .withPartialDescription(partialDescription).find(elementCache().assignedPackageContainer);
+    }
+
+    public String getAssignedPackageText(String packageDescription)
+    {
+        getAssignedPackage(packageDescription).select();
+        waitFor(()-> Locator.tagWithClass("div", "data-search__row")
+                .findElementOrNull(elementCache().selectedPackageNarrativeViewPane) != null, 2000);
+
+        return Locator.tagWithClass("div", "data-search__row")
+                .findElement(elementCache().selectedPackageNarrativeViewPane).getText();
+    }
+
+    public ProjectListPage clickProjectsCrumb()
+    {
+        elementCache().projectListCrumb.click();
+        return new ProjectListPage(getDriver());
     }
 
     public ProjectListPage clickSave()
@@ -119,11 +195,14 @@ public class EditProjectPage extends LabKeyPage<EditProjectPage.ElementCache>
                 .withDescendant(Locator.tagWithClassContaining("span", "data-search__container"))
                 .findWhenNeeded(getDriver()).withTimeout(4000);
 
+        WebElement projectListCrumb = Locator.tag("a")
+                .withAttribute("href","#/projects")
+                .findWhenNeeded(getDriver())
+                .withTimeout(4000);
+
         WebElement appContainer = Locator.tagWithId("div", "app").findWhenNeeded(this);
         WebElement panelBody = Locator.tagWithClass("div", "panel-body").findWhenNeeded(appContainer);
 
-        WebElement backToProjectsBtn = Locator.tagWithClass("i", "fa fa-arrow-circle-left").parent() // parent is <a href="#/packages"
-                .withChild(Locator.tagWithText("h4", "Projects")).findWhenNeeded(getDriver());
         WebElement projectAttributesPanel = Locator.tagWithClass("div", "row")
                 .withDescendant(Locator.tagContainingText("strong", "Attributes"))
                 .findWhenNeeded(panelBody);
@@ -145,6 +224,21 @@ public class EditProjectPage extends LabKeyPage<EditProjectPage.ElementCache>
                 .findWhenNeeded(getDriver())
                 .withTimeout(4000);
 
+        WebElement endDateTextBox = Locator.tagWithClass("input","details-input")
+                .withAttribute("name","endDate")
+                .findWhenNeeded(getDriver())
+                .withTimeout(4000);
+
+        WebElement endDateRevisedTextBox = Locator.tagWithClass("input","details-input")
+                .withAttribute("name","endDateRevised")
+                .findWhenNeeded(getDriver())
+                .withTimeout(4000);
+
+        WebElement copyRevisedPkgsChkBox = Locator.tag("input")
+                .withAttribute("name", "copyRevisedPkgs")
+                .findWhenNeeded(getDriver())
+                .withTimeout(4000);
+
         WebElement descriptionEdit = Locator.tagWithClass("textarea", "form-control")
                 .withAttribute("name", "description")
                 .findWhenNeeded(getDriver())
@@ -153,7 +247,12 @@ public class EditProjectPage extends LabKeyPage<EditProjectPage.ElementCache>
         WebElement primitivesOnlyCheckBox = Locator.tagWithAttribute("input", "type", "checkbox")
                 .findWhenNeeded(querySearchContainer).withTimeout(4000);
 
-
+        WebElement assignedPackageContainer = Locator.tagWithClassContaining("div", "row")
+                .withChild(Locator.tagWithClass("label", "control-label").withText("Assigned Packages"))
+                .findWhenNeeded(getDriver()).withTimeout(4000);
+        WebElement selectedPackageNarrativeViewPane = Locator.tagWithClassContaining("div", "row")
+                .withChild(Locator.tagWithClass("label", "control-label").withText("Assigned Packages")).followingSibling("div")
+                .findWhenNeeded(getDriver()).withTimeout(4000);
 
         WebElement cancelButton = Locator.tagWithId("button", "cancelButton").findWhenNeeded(getDriver());
         WebElement saveButton = Locator.tagWithId("button", "save").findWhenNeeded(getDriver());
