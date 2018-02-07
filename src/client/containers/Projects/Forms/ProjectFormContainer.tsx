@@ -16,7 +16,7 @@ import {queryPackageFullNarrative} from "../../Wizards/SuperPackages/actions";
 import NarrativeRow from "../../SuperPackages/Forms/NarrativeRow";
 import {ProjectRevisionForm} from "./ProjectRevisionForm";
 import {VIEW_TYPES} from "../../App/constants";
-import {setRevisedValues} from "../../Wizards/Projects/actions";
+import {getProjectIdRev, setRevisedValues} from "../../Wizards/Projects/actions";
 import {clearAllErrors} from "../../App/actions";
 
 interface ProjectFormContainerOwnProps extends RouteComponentProps<{idRev: string}> {}
@@ -96,10 +96,6 @@ export class ProjectFormContainerImpl extends React.Component<ProjectFormContain
     componentDidMount() {
         this.initModel(this.props);
     }
-
-    // componentWillReceiveProps(nextProps?: ProjectFormContainerProps) {
-    //     this.initModel(nextProps);
-    // }
 
     componentWillUnmount() {
         const { dispatch, model } = this.props;
@@ -282,9 +278,9 @@ function resolveProjectHeader(view: VIEW_TYPES, idRev) {
 
     let text = '', id = -1, rev;
     if (idRev !== -1) {
-        let parts = idRev.split('|');
-        id = parts[0];
-        rev = parts[1];
+        let parts = getProjectIdRev(idRev)
+        id = parts.id;
+        rev = parts.rev;
     }
     switch (view) {
         case VIEW_TYPES.PROJECT_VIEW:

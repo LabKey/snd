@@ -137,7 +137,7 @@ export const projects = handleActions({
     [PROJECT_TYPES.PROJECTS_TOGGLE_DRAFTS]: (state: ProjectsModel, action: any) => {
         const { toggled } = action;
 
-        const showDrafts = toggled && typeof toggled === 'boolean' ? toggled : !state.showDrafts;
+        const showDrafts = typeof toggled === 'boolean' ? toggled : !state.showDrafts;
 
         return new ProjectsModel(Object.assign({}, state, {
             showDrafts
@@ -147,7 +147,7 @@ export const projects = handleActions({
     [PROJECT_TYPES.PROJECTS_TOGGLE_NOT_ACTIVE]: (state: ProjectsModel, action: any) => {
         const { toggled } = action;
 
-        const showNotActive = toggled && typeof toggled === 'boolean' ? toggled : !state.showNotActive;
+        const showNotActive = typeof toggled === 'boolean' ? toggled : !state.showNotActive;
 
         return new ProjectsModel(Object.assign({}, state, {
             showNotActive

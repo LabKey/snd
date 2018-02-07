@@ -298,20 +298,6 @@ export function formatPackageValues(model: PackageWizardModel, active: boolean):
     });
 }
 
-// function formatSubPackages(subPackages: Array<AssignedPackageModel>): Array<{sortOrder: number, superPkgId: number}> {
-//
-//     if (subPackages.length) {
-//         return subPackages.map((s: AssignedPackageModel, i: number) => {
-//             return {
-//                 sortOrder: i,
-//                 superPkgId: s.SuperPkgId
-//             }
-//         });
-//     }
-//
-//     return [];
-// }
-
 function formatAttributes(attributes: Array<PropertyDescriptor>): Array<PropertyDescriptor> {
     if (attributes.length) {
         return attributes.map((attribute, i) => {

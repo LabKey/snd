@@ -17,7 +17,7 @@ import java.util.Map;
 
 public class Project
 {
-    private int _projectId;
+    private int _projectId = -1;
     private int _revisionNum;
     private String _objectId;
     private Date _startDate;
@@ -61,9 +61,7 @@ public class Project
         }
     }
 
-    public Project () {
-        _projectId = -1;
-    }
+    public Project () {}
 
     public int getProjectId()
     {

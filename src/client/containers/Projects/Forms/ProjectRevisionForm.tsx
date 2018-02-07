@@ -11,29 +11,16 @@ import {ExtraFields} from "../../../components/Form/ExtraFields";
 import {TextArea} from "../../../components/Form/TextArea";
 import {VIEW_TYPES} from "../../App/constants";
 import {CheckboxInput} from "../../../components/Form/Checkbox";
+import {ProjectModel} from "../../Wizards/Projects/model";
 
 export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
 
-    private oldId: number = null;
-    private oldRev: number = null;
-    private oldRefId: number = null;
-    private oldStartDate: string = null;
-    private oldEndDate: string = null;
-    private oldDescription: string = null;
+    private oldModel: ProjectModel = null;
 
     constructor(props?: ProjectFormProps) {
         super(props);
 
-        this.state = {
-            selectedSubPackage: undefined
-        };
-
-        this.oldId = props.model.projectId;
-        this.oldRev = props.model.revisionNum;
-        this.oldRefId = props.model.referenceId;
-        this.oldStartDate = props.model.startDate;
-        this.oldEndDate = props.model.endDate;
-        this.oldDescription = props.model.description;
+        this.oldModel = props.model;
 
         this.handleCancel = this.handleCancel.bind(this);
         this.handleFieldChange = this.handleFieldChange.bind(this);
@@ -132,7 +119,7 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
     }
 
     render() {
-        const { handleWarning, model, view } = this.props;
+        const { model, view } = this.props;
 
         return (
             <div>
@@ -231,13 +218,12 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
                                         onChange={this.handleFieldChange}
                                         name='copyRevisedPkgs'
                                         />
-                                    Copy assigned packages from revision {this.oldRev}
+                                    Copy assigned packages from revision {this.oldModel.revisionNum}
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/*<div style={{borderBottom: '1px solid black', marginTop: '20px'}}/>*/}
                     <div style={{marginTop: '20px'}}/>
                     <div style={{backgroundColor: '#EEEEEE'}}>
                         <div style={{borderTop: '1px solid #DDDDDD', paddingBottom: '15px', paddingTop: '5px', paddingLeft: '15px', marginLeft: '-15px', marginRight: '-15px', backgroundColor: '#EEEEEE'}}>
@@ -260,14 +246,14 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
                                         <IdInput
                                             name='projectIdOld'
                                             onChange={this.handleFieldChange}
-                                            value={this.oldId}
+                                            value={this.oldModel.projectId}
                                             view={view}/>
                                     </div>
                                     <div className="col-xs-4">
                                         <IdInput
                                             name='revisionNumOld'
                                             onChange={this.handleFieldChange}
-                                            value={this.oldRev}
+                                            value={this.oldModel.revisionNum}
                                             view={view}/>
                                     </div>
                                     <div className="col-xs-4">
@@ -276,7 +262,7 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
                                             name='referenceIdOld'
                                             onChange={this.handleFieldChange}
                                             required
-                                            value={this.oldRefId}/>
+                                            value={this.oldModel.referenceId}/>
                                     </div>
                                 </div>
                                 <div className="row clearfix margin-top">
@@ -292,7 +278,7 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
                                         <DatePicker
                                             name='startDateOld'
                                             onChange={this.handleFieldChange}
-                                            value={this.oldStartDate}
+                                            value={this.oldModel.startDate}
                                             required
                                             disabled={true}/>
                                     </div>
@@ -323,7 +309,7 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
                                         onChange={this.handleFieldChange}
                                         required
                                         rows={7}
-                                        value={this.oldDescription}/>
+                                        value={this.oldModel.description}/>
                                     </div>
                                 </div>
                             </div>

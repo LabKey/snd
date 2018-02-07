@@ -2,7 +2,7 @@
 import { labkeyAjax, queryInvalidate } from '../../../query/actions';
 import {PROJECT_WIZARD_TYPES} from './constants';
 import {
-    ProjectModel, ProjectQueryResponse, ProjectWizardModel, ProjectSubmissionModel
+    ProjectModel, ProjectQueryResponse, ProjectWizardModel, ProjectSubmissionModel, ProjectIdRev
 } from './model';
 import { projectsInvalidate } from '../../Projects/actions';
 import { PROJECT_SQL } from '../../Projects/constants'
@@ -25,8 +25,9 @@ function fetchProject(idRev: string | number)
         rev = 0;
     }
     else if (typeof idRev === 'string') {
-        id = idRev.split('|')[0];
-        rev = idRev.split('|')[1];
+        let parts = getProjectIdRev(idRev)
+        id = parts.id;
+        rev = parts.rev;
     }
 
     return labkeyAjax(
@@ -54,6 +55,15 @@ function saveProject(jsonData) {
             })
         });
     })
+}
+
+export function getProjectIdRev(idRev: string): ProjectIdRev {
+    let parts = idRev.split('|');
+    return new ProjectIdRev({
+        id: parseInt(parts[0]),
+        rev: parseInt(parts[1])
+    })
+
 }
 
 function getProjectModelFromResponse(response: ProjectQueryResponse): ProjectModel {

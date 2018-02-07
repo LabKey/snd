@@ -11,9 +11,6 @@ export function deleteProject(id: number, rev: number, objId: number) {
     return (dispatch) => {
         const rows = [{ObjectId: objId }];
 
-        // todo: this should be wrapped in permissions check
-        // should also display feedback to the user that the pkg was successfully deleted
-        // need app wide 'message/error' field
         return deleteRows(SND_PROJECT_SCHEMA, SND_PROJECT_QUERY, rows).then((response) => {
             dispatch(queryInvalidate(PROJECT_SQL));
             dispatch(projectsInvalidate());

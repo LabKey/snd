@@ -165,7 +165,6 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         newAssignedPackage.loadingSubpackages = true;
 
         handleFieldChange('subPackages', model.subPackages.concat([newAssignedPackage]));
-        // this.setState({selectedSubPackage: newAssignedPackage});
 
         dispatch(querySubPackageDetails(PkgId, model.pkgId));
     }

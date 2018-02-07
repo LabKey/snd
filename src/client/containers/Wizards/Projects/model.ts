@@ -203,6 +203,26 @@ export class ProjectWizardModel implements ProjectWizardModelProps {
     }
 }
 
+interface ProjectIdRevProps {
+    id: number
+    rev: number
+}
+
+export class ProjectIdRev implements ProjectIdRevProps {
+    id: number = undefined;
+    rev: number = undefined;
+
+    constructor(props: Partial<ProjectIdRev>) {
+        if (props) {
+            for (let k in props) {
+                if (this.hasOwnProperty(k) && props.hasOwnProperty(k)) {
+                    this[k] = props[k];
+                }
+            }
+        }
+    }
+}
+
 interface ProjectWizardContainerProps {
     projectData: {[key: string]: ProjectWizardModel}
 }

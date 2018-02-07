@@ -62,9 +62,13 @@ interface ProjectFormState {
     dispatch?: Dispatch<any>
 }
 
+interface ProjectFormStateProps {
+    selectedSubPackage?: AssignedPackageModel
+}
+
 export type ProjectFormProps = ProjectFormOwnProps & ProjectFormState;
 
-export class ProjectFormImpl extends React.Component<ProjectFormProps> {
+export class ProjectFormImpl extends React.Component<ProjectFormProps, ProjectFormStateProps> {
 
     constructor(props?: ProjectFormProps) {
         super(props);

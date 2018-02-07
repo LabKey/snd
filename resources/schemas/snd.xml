@@ -112,6 +112,10 @@
         </columns>
     </table>
     <table tableName="PkgCategoryJunction" tableDbType="TABLE">
+        <insertUrl>/snd/app.view?#/categories</insertUrl>
+        <updateUrl></updateUrl> <!--TODO: /snd/app.view?#/categories-->
+        <importUrl></importUrl>
+        <deleteUrl></deleteUrl>
         <columns>
             <column columnName="PkgId"/>
             <column columnName="CategoryId"/>

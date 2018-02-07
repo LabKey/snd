@@ -5,7 +5,7 @@ import {PROJECT_WIZARD_TYPES} from "./constants";
 import {handleActions} from "redux-actions";
 import {PropertyDescriptor} from "../model";
 import {AssignedPackageModel} from "../../SuperPackages/model";
-import {getRevisionId} from "./actions";
+import {getProjectIdRev, getRevisionId} from "./actions";
 import {VIEW_TYPES} from "../../App/constants";
 
 export const projects = handleActions({
@@ -46,9 +46,9 @@ export const projects = handleActions({
         const {idRev} = action.props;
         let id = -1, rev = 0;
         if (idRev !== -1) {
-            let parts = idRev.split('|');
-            id = parts[0];
-            rev = parts[1];
+            let parts = getProjectIdRev(idRev)
+            id = parts.id;
+            rev = parts.rev;
         }
 
         const model = new ProjectWizardModel(
