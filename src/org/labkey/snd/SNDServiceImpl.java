@@ -30,6 +30,7 @@ import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
+import org.labkey.api.snd.Event;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.snd.Project;
@@ -162,14 +163,14 @@ public class SNDServiceImpl implements SNDService
             throw new ApiUsageException(errors);
     }
 
-//    @Override
-//    public Event getEvent(Container c, User u, int eventId)
-//    {
-//        return null;
-//    }
+    @Override
+    public Event getEvent(Container c, User u, int eventId)
+    {
+        return null;
+    }
 
     @Override
-    public void saveEvent(Container c, User u/*, Event event*/)
+    public void saveEvent(Container c, User u, Event event)
     {
         BatchValidationException errors = new BatchValidationException();
 

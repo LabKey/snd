@@ -30,6 +30,9 @@ import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.security.RequiresLogin;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.permissions.AdminPermission;
+import org.labkey.api.snd.AttributeData;
+import org.labkey.api.snd.Event;
+import org.labkey.api.snd.EventData;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.Project;
 import org.labkey.api.snd.ProjectItem;
@@ -557,7 +560,7 @@ public class SNDController extends SpringActionController
         }
 
         @Override
-        public Object execute(SimpleApiJsonForm form, BindException errors) throws Exception
+        public ApiResponse execute(SimpleApiJsonForm form, BindException errors) throws Exception
         {
             JSONObject json = form.getJsonObject();
 
@@ -692,6 +695,220 @@ public class SNDController extends SpringActionController
 
             return response;
 
+        }
+    }
+
+    @RequiresPermission(AdminPermission.class)
+    public class GetEventAction extends ApiAction<SimpleApiJsonForm>
+    {
+        @Override
+        public void validateForm(SimpleApiJsonForm form, Errors errors)
+        {
+            JSONObject json = form.getJsonObject();
+            if (json == null)
+            {
+                errors.reject(ERROR_MSG, "Missing json parameter.");
+                return;
+            }
+
+            if (!json.has("eventId") || json.get("eventId") == null)
+            {
+                errors.reject(ERROR_MSG, "Missing required json parameter: eventId.");
+            }
+        }
+
+        @Override
+        public ApiResponse execute(SimpleApiJsonForm form, BindException errors)
+        {
+            ApiSimpleResponse response = new ApiSimpleResponse();
+            JSONObject json = form.getJsonObject();
+            Event event = SNDService.get().getEvent(getContainer(), getUser(), json.getInt("eventId"));
+            if(event != null)
+            {
+                JSONObject eventJson = event.toJSON(getViewContext().getContainer(), getUser());
+                response.put("json", eventJson);
+            }
+            return response;
+        }
+    }
+
+    @RequiresPermission(AdminPermission.class)
+    public class SaveEventAction extends ApiAction<SimpleApiJsonForm>
+    {
+        public static final String dateFormat = "yyyy-MM-ddThh:mm:ss";  // ISO8601
+
+        @Override
+        public void validateForm(SimpleApiJsonForm form, Errors errors)
+        {
+            JSONObject json = form.getJsonObject();
+            if (json == null)
+            {
+                errors.reject(ERROR_MSG, "Missing json parameter.");
+                return;
+            }
+
+            if (!json.has("participantId") || json.get("participantId") == null)
+            {
+                errors.reject(ERROR_MSG, "Missing required json parameter: participantId.");
+            }
+            if (!json.has("projectIdRev") || json.get("projectIdRev") == null)
+            {
+                errors.reject(ERROR_MSG, "Missing required json parameter: projectIdRev.");
+            }
+
+            JSONArray eventDataJson = json.has("eventData") ? json.getJSONArray("eventData") : null;
+            validateEventData(eventDataJson, errors);
+        }
+
+        private void validateEventData(JSONArray eventDataJson, Errors errors)
+        {
+            if (eventDataJson != null)
+            {
+                for (int i = 0; i < eventDataJson.length(); i++)
+                {
+                    JSONObject eventDatumJson = (JSONObject)eventDataJson.get(i);
+
+                    if (eventDatumJson.has("eventDataId"))
+                    {
+                        try
+                        {
+                            eventDatumJson.getInt("eventDataId");  // just trying to parse as int
+                        }
+                        catch (Exception e)
+                        {
+                            errors.reject(ERROR_MSG, "eventDataId is present but not a valid integer.");
+                        }
+                    }
+
+                    if (!eventDatumJson.has("superPkgId") || eventDatumJson.get("superPkgId") == null)
+                    {
+                        errors.reject(ERROR_MSG, "Missing required json parameter: superPkgId.");
+                    }
+
+                    JSONArray eventDataChildrenJson = eventDatumJson.has("eventData") ? eventDatumJson.getJSONArray("eventData") : null;
+                    validateEventData(eventDataChildrenJson, errors);
+                    JSONArray attributesJson = eventDatumJson.has("attributes") ? eventDatumJson.getJSONArray("attributes") : null;
+                    if (attributesJson == null)
+                    {
+                        errors.reject(ERROR_MSG, "Missing json parameter: attributes");
+                    }
+                    validateAttributes(attributesJson, errors);
+                }
+            }
+        }
+
+        private void validateAttributes(JSONArray attributesDataJson, Errors errors)
+        {
+            if (attributesDataJson != null)
+            {
+                for (int i = 0; i < attributesDataJson.length(); i++)
+                {
+                    JSONObject attributeJson = (JSONObject)attributesDataJson.get(i);
+
+                    if (!attributeJson.has("propertyId") || attributeJson.get("propertyId") == null)
+                    {
+                        errors.reject(ERROR_MSG, "Missing required json parameter: propertyId.");
+                    }
+                    if (!attributeJson.has("value") || attributeJson.get("value") == null)
+                    {
+                        errors.reject(ERROR_MSG, "Missing required json parameter: value.");
+                    }
+                }
+            }
+        }
+
+        @Override
+        public ApiResponse execute(SimpleApiJsonForm form, BindException errors)
+        {
+            SimpleDateFormat dateFormatter = new SimpleDateFormat(dateFormat);
+
+            JSONObject json = form.getJsonObject();
+            Integer eventId = json.getInt("eventId");
+            int participantId = json.getInt("participantId");
+            String dateString = json.getString("date");
+
+            Date date = null;
+            try
+            {
+                date = (dateString == null ? new Date() : dateFormatter.parse(dateString));
+            }
+            catch (ParseException e)
+            {
+                errors.reject(ERROR_MSG, e.getMessage());
+            }
+
+            String projectIdrev = json.getString("projectIdRev");
+            String note = json.getString("note");
+
+            List<EventData> eventData = null;
+            JSONArray eventDataJson = json.has("eventData") ? json.getJSONArray("eventData") : null;
+            if (eventDataJson != null)
+                eventData = parseEventData(eventDataJson);
+
+            Event event = new Event(eventId, participantId, date, projectIdrev, note, eventData);
+            SNDService.get().saveEvent(getContainer(), getUser(), event);
+            return new ApiSimpleResponse();
+        }
+
+        private List<EventData> parseEventData(JSONArray eventDataJson)
+        {
+            List<EventData> eventDataList = new ArrayList<>();
+
+            if (eventDataJson != null)
+            {
+                for (int i = 0; i < eventDataJson.length(); i++)
+                {
+                    JSONObject eventDatumJson = (JSONObject)eventDataJson.get(i);
+
+                    Integer eventDataId = null;
+                    if (eventDatumJson.has("eventDataId"))
+                    {
+                        eventDataId = eventDatumJson.getInt("eventDataId");
+                    }
+
+                    int superPackageId = eventDatumJson.getInt("superPackageId");
+
+                    List<EventData> eventDataChildren;
+                    JSONArray eventDataChildrenJson = eventDatumJson.has("eventData") ? eventDatumJson.getJSONArray("eventData") : null;
+                    eventDataChildren = parseEventData(eventDataChildrenJson);
+
+                    List<AttributeData> attributes;
+                    JSONArray attributesJson = eventDatumJson.has("attributes") ? eventDatumJson.getJSONArray("attributes") : null;
+                    attributes = parseAttributeData(attributesJson);
+
+                    // narrative not used for saving, so make it null
+                    eventDataList.add(new EventData(eventDataId, superPackageId, null, eventDataChildren, attributes));
+                }
+            }
+
+            if (!eventDataList.isEmpty())
+                return eventDataList;
+            else
+                return null;
+        }
+
+        private List<AttributeData> parseAttributeData(JSONArray attributesDataJson)
+        {
+            List<AttributeData> attributesDataList = new ArrayList<>();
+
+            if (attributesDataJson != null)
+            {
+                for (int i = 0; i < attributesDataJson.length(); i++)
+                {
+                    JSONObject attributeJson = (JSONObject)attributesDataJson.get(i);
+
+                    int propertyId = attributeJson.getInt("propertyId");
+                    String value = attributeJson.getString("value");
+
+                    // propertyDescriptor not used for saving, so make it null
+                    attributesDataList.add(new AttributeData(propertyId, null, value));
+                }
+            }
+
+            if (!attributesDataList.isEmpty())
+                return attributesDataList;
+            else
+                return null;
         }
     }
 }
