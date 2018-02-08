@@ -197,14 +197,20 @@ public class SNDServiceImpl implements SNDService
 
         if (null != table)
         {
-            List<String> pks = table.getPkColumnNames();
+            // Use the title column for the actual lookup value
+            String title = table.getTitleColumn();
+            if (title == null)
+            {
+                title = table.getPkColumnNames().get(0);
+            }
+
             TableSelector ts = new TableSelector(table);
             Object value;
             try(ResultSet rs = ts.getResultSet())
             {
                 while (rs.next())
                 {
-                    value = rs.getObject(pks.get(0));
+                    value = rs.getObject(title);
                     array.put(value);
                 }
             }

@@ -103,8 +103,6 @@ function fetchData(model: QueryModel) {
         }).catch((error) => {
             dispatch(queryError(updatedModel, error));
         })
-
-
     }
 }
 
