@@ -162,6 +162,22 @@ public class SNDServiceImpl implements SNDService
             throw new ApiUsageException(errors);
     }
 
+//    @Override
+//    public Event getEvent(Container c, User u, int eventId)
+//    {
+//        return null;
+//    }
+
+    @Override
+    public void saveEvent(Container c, User u/*, Event event*/)
+    {
+        BatchValidationException errors = new BatchValidationException();
+
+
+        if (errors.hasErrors())
+            throw new ApiUsageException(errors);
+    }
+
     public JSONObject convertPropertyDescriptorToJson(Container c, User u, GWTPropertyDescriptor pd, boolean resolveLookupValues)
     {
         JSONObject json = ExperimentService.get().convertPropertyDescriptorToJson(pd);
