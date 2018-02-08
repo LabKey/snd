@@ -41,7 +41,14 @@ public class PackageListPage extends LabKeyPage<PackageListPage.ElementCache>
     public static PackageListPage beginAt(WebDriverWrapper driver, String containerPath)
     {
         driver.beginAt(WebTestHelper.buildURL("snd", containerPath, "app") + "#/packages");
-        return new PackageListPage(driver.getDriver());
+        PackageListPage plp = new PackageListPage(driver.getDriver());
+        plp.waitForPageLoad();
+        return plp;
+    }
+
+    public void waitForPageLoad()
+    {
+        waitForElement(elementCache().activeTitle);
     }
 
     public EditPackagePage clickNewPackage()
@@ -100,5 +107,8 @@ public class PackageListPage extends LabKeyPage<PackageListPage.ElementCache>
         Input searchFilter = Input.Input(Locator.input("packageSearch"), getDriver())
                 .timeout(WAIT_FOR_JAVASCRIPT)
                 .findWhenNeeded(container);
+        Locator activeTitle = Locator.tagWithClassContaining("div", "package_viewer__results--active")
+                .child("h4")
+                .withText("Active");
     }
 }

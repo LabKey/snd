@@ -1792,7 +1792,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     }
 
     @Test
-    public void createNewProjectViaUI()
+    public void createNewProjectAndDeleteViaUI()
     {
         String referenceId = "1010";
         String startDate = "2018-01-02";
@@ -1801,6 +1801,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 
         log("Start with the project screen");
         ProjectListPage listPage = ProjectListPage.beginAt(this , getProjectName());
+        listPage.waitForPageLoad();
         EditProjectPage editPage = listPage.clickNewProject();
 
         log("Setting all values in new project");
@@ -1818,13 +1819,24 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         listPage.showNotActive(true);
         ProjectViewerResult projectViewerResult = listPage.getProject(description);
         EditProjectPage viewPage = projectViewerResult.clickView();
-        assertEquals("Description not equal to set value: " + description ,description, viewPage.getDescription());
-        assertEquals("ReferenceId not equal to set value: " + referenceId,referenceId, viewPage.getReferenceId());
-        assertEquals("Start date not equal to set value: " + startDate,startDate,viewPage.getStartDate());
-        assertEquals("End date not equal to set value: " + endDate,endDate,viewPage.getEndDate());
+        assertEquals("Description not equal to set value.", description, viewPage.getDescription());
+        assertEquals("ReferenceId not equal to set value.", referenceId, viewPage.getReferenceId());
+        assertEquals("Start date not equal to set value.", startDate, viewPage.getStartDate());
+        assertEquals("End date not equal to set value.", endDate, viewPage.getEndDate());
         assertTrue("Assigned package " + UITEST_PROJECT_SUBPKG1 + " not found.", viewPage.isAssignedPackagePresent(UITEST_PROJECT_SUBPKG1));
         assertTrue("Assigned package " + UITEST_PROJECT_SUBPKG2 + " not found.", viewPage.isAssignedPackagePresent(UITEST_PROJECT_SUBPKG2));
         assertFalse("Unassigned package found assigned.", viewPage.isAssignedPackagePresent("Vitals"));
+
+        listPage = viewPage.clickProjectsCrumb();
+        listPage.showNotActive(true);
+        projectViewerResult = listPage.getProject(description);
+        mouseOver(projectViewerResult.getComponentElement());
+        projectViewerResult.clickDelete();
+        click(Locator.button("Delete Project"));
+        listPage.waitForPageLoad();
+        listPage.showNotActive(true);
+        listPage.showDrafts(true);
+        assertFalse("Project not deleted.", listPage.isProjectPresent(description));
     }
 
     @Test
@@ -1840,6 +1852,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 
         log("Start with the project screen");
         ProjectListPage listPage = ProjectListPage.beginAt(this , getProjectName());
+        listPage.waitForPageLoad();
         EditProjectPage editPage = listPage.clickNewProject();
 
         log("Setting values in new project");
@@ -1914,6 +1927,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 
         log("Start with the project screen");
         ProjectListPage listPage = ProjectListPage.beginAt(this , getProjectName());
+        listPage.waitForPageLoad();
         EditProjectPage editPage = listPage.clickNewProject();
 
         log("Setting values in new project");

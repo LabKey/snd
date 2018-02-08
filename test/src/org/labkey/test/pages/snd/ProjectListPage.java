@@ -75,6 +75,11 @@ public class ProjectListPage extends LabKeyPage<ProjectListPage.ElementCache>
         return this;
     }
 
+    public void waitForPageLoad()
+    {
+        waitForElement(elementCache().activeTitle);
+    }
+
     public ProjectViewerResult getProject(String partialText)
     {
         return ProjectViewerResult.finder(getDriver()).containingText(partialText)
@@ -107,6 +112,9 @@ public class ProjectListPage extends LabKeyPage<ProjectListPage.ElementCache>
         Locator showNotActiveLoc = Locator.tagWithClassContaining("div", "projects-show_not_active")
                 .withText("Show Not Active")
                 .child("input");
+        Locator activeTitle = Locator.tagWithClassContaining("div", "project_viewer__results--active")
+                .child("h4")
+                .withText("Active");
         Input searchFilter = Input.Input(Locator.input("projectSearch"), getDriver())
                 .timeout(WAIT_FOR_JAVASCRIPT)
                 .findWhenNeeded(container);

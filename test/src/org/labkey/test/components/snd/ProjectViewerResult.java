@@ -19,6 +19,7 @@ package org.labkey.test.components.snd;
 import org.labkey.test.Locator;
 import org.labkey.test.components.WebDriverComponent;
 import org.labkey.test.pages.snd.EditProjectPage;
+import org.labkey.test.pages.snd.ProjectListPage;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
@@ -69,6 +70,12 @@ public class ProjectViewerResult extends WebDriverComponent<ProjectViewerResult.
         return new EditProjectPage(getDriver());
     }
 
+    public ProjectListPage clickDelete()
+    {
+        elementCache().deleteLink.click();
+        return new ProjectListPage(getDriver());
+    }
+
     protected ElementCache newElementCache()
     {
         return new ElementCache();
@@ -84,6 +91,8 @@ public class ProjectViewerResult extends WebDriverComponent<ProjectViewerResult.
                 .findWhenNeeded(getComponentElement());
         WebElement reviseLink = Locator.tagWithClassContaining("a", "project-row_icon")
                 .withChild(Locator.tagWithClass("i", "fa fa-files-o"))
+                .findWhenNeeded(getComponentElement());
+        WebElement deleteLink = Locator.tagWithClass("i", "fa fa-times")
                 .findWhenNeeded(getComponentElement());
     }
 

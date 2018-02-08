@@ -160,8 +160,9 @@ public class EditPackagePage extends LabKeyPage<EditPackagePage.ElementCache>
         waitFor(()-> elementCache().saveButton.getAttribute("disabled")==null,
                 "'Save' button is disabled", 2000);
         elementCache().saveButton.click();
-        shortWait().until(ExpectedConditions.stalenessOf(elementCache().saveButton));
-        return new PackageListPage(getDriver());
+        PackageListPage plp = new PackageListPage(getDriver());
+        plp.waitForPageLoad();
+        return plp;
     }
 
     public PackageListPage clickCancel()
@@ -175,8 +176,9 @@ public class EditPackagePage extends LabKeyPage<EditPackagePage.ElementCache>
         waitFor(()-> elementCache().saveAsDraftButton.getAttribute("disabled")==null,
                 "'Save as Draft' button is disabled", 2000);
         elementCache().saveAsDraftButton.click();
-        shortWait().until(ExpectedConditions.stalenessOf(elementCache().saveAsDraftButton));
-        return new PackageListPage(getDriver());
+        PackageListPage plp = new PackageListPage(getDriver());
+        plp.waitForPageLoad();
+        return plp;
     }
 
     public PackageListPage clickSubmitForReview()

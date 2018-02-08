@@ -158,7 +158,9 @@ public class EditProjectPage extends LabKeyPage<EditProjectPage.ElementCache>
     public ProjectListPage clickProjectsCrumb()
     {
         elementCache().projectListCrumb.click();
-        return new ProjectListPage(getDriver());
+        ProjectListPage plp = new ProjectListPage(getDriver());
+        plp.waitForPageLoad();
+        return plp;
     }
 
     public ProjectListPage clickSave()
@@ -166,8 +168,9 @@ public class EditProjectPage extends LabKeyPage<EditProjectPage.ElementCache>
         waitFor(()-> elementCache().saveButton.getAttribute("disabled")==null,
                 "'Save' button is disabled", 2000);
         elementCache().saveButton.click();
-        shortWait().until(ExpectedConditions.stalenessOf(elementCache().saveButton));
-        return new ProjectListPage(getDriver());
+        ProjectListPage plp = new ProjectListPage(getDriver());
+        plp.waitForPageLoad();
+        return plp;
     }
 
     public ProjectListPage clickCancel()
@@ -181,8 +184,9 @@ public class EditProjectPage extends LabKeyPage<EditProjectPage.ElementCache>
         waitFor(()-> elementCache().saveAsDraftButton.getAttribute("disabled")==null,
                 "'Save as Draft' button is disabled", 2000);
         elementCache().saveAsDraftButton.click();
-        shortWait().until(ExpectedConditions.stalenessOf(elementCache().saveAsDraftButton));
-        return new ProjectListPage(getDriver());
+        ProjectListPage plp = new ProjectListPage(getDriver());
+        plp.waitForPageLoad();
+        return plp;
     }
 
     protected ElementCache newElementCache()
