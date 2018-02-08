@@ -23,9 +23,12 @@ import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.security.User;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Created by marty on 8/4/2017.
@@ -275,7 +278,11 @@ public class Package
         if(extraFields != null)
         {
             JSONObject jsonExtra;
-            for (GWTPropertyDescriptor extraPd : extraFields.keySet())
+            Set<GWTPropertyDescriptor> keys = new TreeSet<>(
+                    Comparator.comparing(GWTPropertyDescriptor::getName)
+            );
+            keys.addAll(extraFields.keySet());
+            for (GWTPropertyDescriptor extraPd : keys)
             {
                 jsonExtra = SNDService.get().convertPropertyDescriptorToJson(c, u, extraPd, true);
                 jsonExtra.put("value", extraFields.get(extraPd));

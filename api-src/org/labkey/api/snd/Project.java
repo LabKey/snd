@@ -10,10 +10,13 @@ import org.labkey.api.util.DateUtil;
 import org.labkey.api.util.GUID;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class Project
 {
@@ -304,7 +307,11 @@ public class Project
         if(extraFields.size() > 0)
         {
             JSONObject jsonExtra;
-            for (GWTPropertyDescriptor extraPd : extraFields.keySet())
+            Set<GWTPropertyDescriptor> keys = new TreeSet<>(
+                    Comparator.comparing(GWTPropertyDescriptor::getName)
+            );
+            keys.addAll(extraFields.keySet());
+            for (GWTPropertyDescriptor extraPd : keys)
             {
                 jsonExtra = SNDService.get().convertPropertyDescriptorToJson(c, u, extraPd, true);
                 jsonExtra.put("value", extraFields.get(extraPd));
