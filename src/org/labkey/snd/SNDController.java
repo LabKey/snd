@@ -747,8 +747,6 @@ public class SNDController extends SpringActionController
     @RequiresPermission(AdminPermission.class)
     public class SaveEventAction extends ApiAction<SimpleApiJsonForm>
     {
-        public static final String dateFormat = "yyyy-MM-dd'T'hh:mm:ss";  // ISO8601
-
         @Override
         public void validateForm(SimpleApiJsonForm form, Errors errors)
         {
@@ -844,8 +842,6 @@ public class SNDController extends SpringActionController
         @Override
         public ApiResponse execute(SimpleApiJsonForm form, BindException errors)
         {
-            SimpleDateFormat dateFormatter = new SimpleDateFormat(dateFormat);
-
             JSONObject json = form.getJsonObject();
             Integer eventId = json.has("eventId") ? json.getInt("eventId") : null;
             int participantId = json.getInt("participantId");
@@ -854,7 +850,7 @@ public class SNDController extends SpringActionController
             Date date = null;
             try
             {
-                date = (dateString == null ? new Date() : dateFormatter.parse(dateString));
+                date = (dateString == null ? new Date() : Event.dateFormatter.parse(dateString));
             }
             catch (ParseException e)
             {

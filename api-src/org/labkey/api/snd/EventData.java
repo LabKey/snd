@@ -109,6 +109,7 @@ public class EventData
                 subPackagesJson.put(eventData.toJSON(c, u));
             }
         }
+        json.put(EVENT_DATA_SUB_PACKAGES, subPackagesJson);
 
         JSONArray attributesJson = new JSONArray();
         if (getAttributes() != null)
@@ -118,6 +119,7 @@ public class EventData
                 attributesJson.put(attributeData.toJSON(c, u));
             }
         }
+        json.put(EVENT_DATA_ATTRIBUTES, attributesJson);
 
         return json;
     }
