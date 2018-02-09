@@ -715,6 +715,18 @@ public class SNDController extends SpringActionController
             {
                 errors.reject(ERROR_MSG, "Missing required json parameter: eventId.");
             }
+            else
+            {
+                try
+                {
+                    json.getInt("eventId");  // just trying to parse as int
+                }
+                catch (Exception e)
+                {
+                    errors.reject(ERROR_MSG, "eventId is present but not a valid integer.");
+                }
+            }
+
         }
 
         @Override
@@ -723,7 +735,7 @@ public class SNDController extends SpringActionController
             ApiSimpleResponse response = new ApiSimpleResponse();
             JSONObject json = form.getJsonObject();
             Event event = SNDService.get().getEvent(getContainer(), getUser(), json.getInt("eventId"));
-            if(event != null)
+            if (event != null)
             {
                 JSONObject eventJson = event.toJSON(getViewContext().getContainer(), getUser());
                 response.put("json", eventJson);
@@ -745,6 +757,18 @@ public class SNDController extends SpringActionController
             {
                 errors.reject(ERROR_MSG, "Missing json parameter.");
                 return;
+            }
+
+            if (json.has("eventId"))
+            {
+                try
+                {
+                    json.getInt("eventId");  // just trying to parse as int
+                }
+                catch (Exception e)
+                {
+                    errors.reject(ERROR_MSG, "eventId is present but not a valid integer.");
+                }
             }
 
             if (!json.has("participantId") || json.get("participantId") == null)
@@ -788,7 +812,7 @@ public class SNDController extends SpringActionController
                     JSONArray eventDataChildrenJson = eventDatumJson.has("eventData") ? eventDatumJson.getJSONArray("eventData") : null;
                     validateEventData(eventDataChildrenJson, errors);
                     JSONArray attributesJson = eventDatumJson.has("attributes") ? eventDatumJson.getJSONArray("attributes") : null;
-                    if (attributesJson == null)
+                    if ((attributesJson == null) || (attributesJson.length() < 1))
                     {
                         errors.reject(ERROR_MSG, "Missing json parameter: attributes");
                     }
@@ -823,7 +847,7 @@ public class SNDController extends SpringActionController
             SimpleDateFormat dateFormatter = new SimpleDateFormat(dateFormat);
 
             JSONObject json = form.getJsonObject();
-            Integer eventId = json.getInt("eventId");
+            Integer eventId = json.has("eventId") ? json.getInt("eventId") : null;
             int participantId = json.getInt("participantId");
             String dateString = json.getString("date");
 
@@ -860,12 +884,7 @@ public class SNDController extends SpringActionController
                 {
                     JSONObject eventDatumJson = (JSONObject)eventDataJson.get(i);
 
-                    Integer eventDataId = null;
-                    if (eventDatumJson.has("eventDataId"))
-                    {
-                        eventDataId = eventDatumJson.getInt("eventDataId");
-                    }
-
+                    Integer eventDataId = eventDatumJson.has("eventDataId") ? eventDatumJson.getInt("eventDataId") : null;
                     int superPackageId = eventDatumJson.getInt("superPkgId");
 
                     List<EventData> eventDataChildren;
