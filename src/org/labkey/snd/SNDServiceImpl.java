@@ -174,7 +174,6 @@ public class SNDServiceImpl implements SNDService
     {
         BatchValidationException errors = new BatchValidationException();
 
-
         if (errors.hasErrors())
             throw new ApiUsageException(errors);
     }

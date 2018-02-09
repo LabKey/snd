@@ -735,7 +735,7 @@ public class SNDController extends SpringActionController
     @RequiresPermission(AdminPermission.class)
     public class SaveEventAction extends ApiAction<SimpleApiJsonForm>
     {
-        public static final String dateFormat = "yyyy-MM-ddThh:mm:ss";  // ISO8601
+        public static final String dateFormat = "yyyy-MM-dd'T'hh:mm:ss";  // ISO8601
 
         @Override
         public void validateForm(SimpleApiJsonForm form, Errors errors)
@@ -854,7 +854,7 @@ public class SNDController extends SpringActionController
         {
             List<EventData> eventDataList = new ArrayList<>();
 
-            if (eventDataJson != null)
+            if ((eventDataJson != null) && (eventDataJson.length() > 0))
             {
                 for (int i = 0; i < eventDataJson.length(); i++)
                 {
@@ -866,10 +866,10 @@ public class SNDController extends SpringActionController
                         eventDataId = eventDatumJson.getInt("eventDataId");
                     }
 
-                    int superPackageId = eventDatumJson.getInt("superPackageId");
+                    int superPackageId = eventDatumJson.getInt("superPkgId");
 
                     List<EventData> eventDataChildren;
-                    JSONArray eventDataChildrenJson = eventDatumJson.has("eventData") ? eventDatumJson.getJSONArray("eventData") : null;
+                    JSONArray eventDataChildrenJson = eventDatumJson.has("subPackages") ? eventDatumJson.getJSONArray("subPackages") : null;
                     eventDataChildren = parseEventData(eventDataChildrenJson);
 
                     List<AttributeData> attributes;
@@ -891,7 +891,7 @@ public class SNDController extends SpringActionController
         {
             List<AttributeData> attributesDataList = new ArrayList<>();
 
-            if (attributesDataJson != null)
+            if ((attributesDataJson != null) && (attributesDataJson.length() > 0))
             {
                 for (int i = 0; i < attributesDataJson.length(); i++)
                 {
