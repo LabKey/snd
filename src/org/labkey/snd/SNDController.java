@@ -865,7 +865,7 @@ public class SNDController extends SpringActionController
             if (eventDataJson != null)
                 eventData = parseEventData(eventDataJson);
 
-            Event event = new Event(eventId, participantId, date, projectIdrev, note, eventData);
+            Event event = new Event(eventId, participantId, date, projectIdrev, note, eventData, getContainer());
             SNDService.get().saveEvent(getContainer(), getUser(), event);
             return new ApiSimpleResponse();
         }

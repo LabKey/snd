@@ -43,6 +43,8 @@ import org.labkey.api.query.QueryUpdateServiceException;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
+import org.labkey.api.snd.Event;
+import org.labkey.api.snd.EventData;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.snd.Project;
@@ -58,9 +60,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class SNDManager
 {
@@ -1339,5 +1343,192 @@ public class SNDManager
         }
 
         return tables;
+    }
+
+    private EventData getEventData(Container c, User u, int eventId)
+    {
+        return null;
+    }
+
+    public Event getEvent(Container c, User u, int eventId)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        TableInfo eventsTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
+
+        // Get from events table
+        SimpleFilter eventFilter = new SimpleFilter(FieldKey.fromParts("EventId"), eventId, CompareType.EQUAL);
+        TableSelector eventTs = new TableSelector(eventsTable, eventFilter, null);
+
+        Event event = eventTs.getObject(Event.class);
+        if (event != null)
+        {
+            TableInfo eventNotesTable = getTableInfo(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
+
+            // Get from eventNotes table
+            SimpleFilter eventNotesFilter = new SimpleFilter(FieldKey.fromParts("EventId"), eventId, CompareType.EQUAL);
+            Set<String> cols = new HashSet<>();
+            cols.add("Note");
+            TableSelector eventNoteTs = new TableSelector(eventNotesTable, cols, eventNotesFilter, null);
+
+            event.setNote(eventNoteTs.getObject(String.class));
+            event.setProjectIdRev(getProjectIdRev(c, u, event.getParentObjectId()));
+        }
+
+        return event;
+    }
+
+    public boolean eventExists(Container c, User u, int eventId)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT EventId FROM ");
+        sql.append(SNDSchema.NAME + "." + SNDSchema.EVENTS_TABLE_NAME);
+        sql.append(" WHERE EventId = ?");
+        sql.add(eventId);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+
+        return selector.getRowCount() > 0;
+    }
+
+    private String getProjectObjectId(Container c, User u, String projectIdRev, BatchValidationException errors)
+    {
+        if (projectIdRev == null)
+            errors.addRowError(new ValidationException("Invalid project id|rev."));
+
+        String[] idRevParts = projectIdRev.split("\\|");
+
+        if (idRevParts.length != 2)
+            errors.addRowError(new ValidationException("Project Id|Rev not formatted correctly"));
+
+        Integer projectId = Integer.parseInt(idRevParts[0]);
+        Integer revisionNum = Integer.parseInt(idRevParts[1]);
+
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT ObjectId FROM ");
+        sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_TABLE_NAME);
+        sql.append(" WHERE ProjectId = ? AND RevisionNum = ?");
+        sql.add(projectId).add(revisionNum);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+
+        List<String> results = selector.getArrayList(String.class);
+        if (results.size() < 1)
+        {
+            errors.addRowError(new ValidationException("Project|revision not found: " + projectIdRev ));
+        }
+
+        return results.size() > 0? results.get(0) : null;
+    }
+
+    @Nullable
+    private String getProjectIdRev(Container c, User u, String objectId)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT ProjectId, RevisionNum FROM ");
+        sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_TABLE_NAME);
+        sql.append(" WHERE ObjectId = ?");
+        sql.add(objectId);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+
+        String idRev = null;
+        try(TableResultSet rs = selector.getResultSet())
+        {
+            for (Map<String, Object> row : rs)
+            {
+                idRev = row.get("ProjectId") + "|" + row.get("RevisionNum");
+            }
+        }
+        catch (SQLException e)
+        {
+            // swallow
+        }
+
+        return idRev;
+    }
+
+    public void deleteEventNotes(Container c, User u, int eventId)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("DELETE FROM ");
+        sql.append(SNDSchema.NAME + "." + SNDSchema.EVENTNOTES_TABLE_NAME);
+        sql.append(" WHERE EventId = ?");
+        sql.add(eventId);
+
+        SqlExecutor sqlex = new SqlExecutor(schema.getDbSchema());
+        sqlex.execute(sql);
+    }
+
+    public void createEvent(Container c, User u, Event event, BatchValidationException errors)
+    {
+        String projectObjectId = getProjectObjectId(c, u, event.getProjectIdRev(), errors);
+
+        if (!errors.hasErrors())
+        {
+            event.setParentObjectId(projectObjectId);
+
+            UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+            TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
+            QueryUpdateService eventQus = getQueryUpdateService(eventTable);
+
+            TableInfo eventNotesTable = getTableInfo(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
+            QueryUpdateService eventNotesQus = getQueryUpdateService(eventNotesTable);
+
+            List<Map<String, Object>> eventRows = new ArrayList<>();
+            eventRows.add(event.getEventRow(c));
+
+            List<Map<String, Object>> eventNotesRows = new ArrayList<>();
+            eventNotesRows.add(event.getEventNotesRow(c));
+
+            try (DbScope.Transaction tx = eventTable.getSchema().getScope().ensureTransaction())
+            {
+                eventQus.insertRows(u, c, eventRows, errors, null, null);
+                eventNotesQus.insertRows(u, c, eventNotesRows, errors, null, null);
+                tx.commit();
+            }
+            catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException e)
+            {
+                errors.addRowError(new ValidationException(e.getMessage()));
+            }
+
+        }
+
+    }
+
+    public void updateEvent(Container c, User u, Event event, BatchValidationException errors)
+    {
+        String projectObjectId = getProjectObjectId(c, u, event.getProjectIdRev(), errors);
+
+        if (!errors.hasErrors())
+        {
+            event.setParentObjectId(projectObjectId);
+
+            UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+            TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
+            QueryUpdateService eventQus = getQueryUpdateService(eventTable);
+
+            TableInfo eventNotesTable = getTableInfo(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
+            QueryUpdateService eventNotesQus = getQueryUpdateService(eventNotesTable);
+
+            List<Map<String, Object>> eventRows = new ArrayList<>();
+            eventRows.add(event.getEventRow(c));
+
+            List<Map<String, Object>> eventNotesRows = new ArrayList<>();
+            eventNotesRows.add(event.getEventNotesRow(c));
+
+            try (DbScope.Transaction tx = eventTable.getSchema().getScope().ensureTransaction())
+            {
+                eventQus.updateRows(u, c, eventRows, null, null, null);
+                deleteEventNotes(c, u, event.getEventId());
+                eventNotesQus.insertRows(u, c, eventNotesRows, errors, null, null);
+                tx.commit();
+            }
+            catch (QueryUpdateServiceException | BatchValidationException | SQLException | InvalidKeyException | DuplicateKeyException e)
+            {
+                errors.addRowError(new ValidationException(e.getMessage()));
+            }
+        }
     }
 }

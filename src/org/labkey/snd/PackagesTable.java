@@ -80,7 +80,7 @@ public class PackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
         hasDataSql.append("(CASE WHEN EXISTS (SELECT sp.PkgId FROM ");
         hasDataSql.append(SNDSchema.getInstance().getTableInfoSuperPkgs(), "sp");
         hasDataSql.append(" JOIN ");
-        hasDataSql.append(SNDSchema.getInstance().getTableInfoCodedEvents(), "ce");
+        hasDataSql.append(SNDSchema.getInstance().getTableInfoEventData(), "ce");
         hasDataSql.append(" ON sp.SuperPkgId = ce.SuperPkgId");
         hasDataSql.append(" WHERE " + ExprColumn.STR_TABLE_ALIAS + ".PkgId = sp.PkgId)");
         hasDataSql.append(" THEN 'true' ELSE 'false' END)");

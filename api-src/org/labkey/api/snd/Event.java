@@ -18,14 +18,18 @@ public class Event
     private Date _date;
     private String _projectIdRev;
     private String _note;
+    private Integer _noteId;
     private List<EventData> _eventData;
+    private String _parentObjectId;
 
     public static final String EVENT_ID = "eventId";
     public static final String EVENT_PARTICIPANT_ID = "participantId";
     public static final String EVENT_DATE = "date";
     public static final String EVENT_PROJECT_ID_REV = "projectIdRev";
     public static final String EVENT_NOTE = "note";
+    public static final String EVENT_NOTE_ID = "EventNoteId";
     public static final String EVENT_DATA = "eventData";
+    public static final String EVENT_PARENT_OBJECTID = "parentObjectId";
 
     public static final String dateFormat = "yyyy-MM-dd'T'hh:mm:ss";  // ISO8601
     public static final SimpleDateFormat dateFormatter;
@@ -34,15 +38,18 @@ public class Event
         dateFormatter = new SimpleDateFormat(dateFormat);
     }
 
-    public Event(Integer eventId, int participantId, Date date, String projectIdRev, String note, List<EventData> eventData)
+    public Event(Integer eventId, int participantId, Date date, String projectIdRev, String note, List<EventData> eventData, Container c)
     {
-        _eventId = eventId;
+        _eventId = eventId != null ? eventId : SNDSequencer.EVENTID.ensureId(c, null);
         _participantId = participantId;
         _date = date;
         _projectIdRev = projectIdRev;
         _note = note;
         _eventData = eventData;
+        _noteId = SNDSequencer.EVENTID.ensureId(c, null);
     }
+
+    public Event () {}
 
     public Integer getEventId()
     {
@@ -84,6 +91,16 @@ public class Event
         _projectIdRev = projectIdRev;
     }
 
+    public String getParentObjectId()
+    {
+        return _parentObjectId;
+    }
+
+    public void setParentObjectId(String parentObjectId)
+    {
+        _parentObjectId = parentObjectId;
+    }
+
     public String getNote()
     {
         return _note;
@@ -92,6 +109,16 @@ public class Event
     public void setNote(String note)
     {
         _note = note;
+    }
+
+    public Integer getNoteId()
+    {
+        return _noteId;
+    }
+
+    public void setNoteId(Integer noteId)
+    {
+        _noteId = noteId;
     }
 
     public List<EventData> getEventData()
@@ -106,15 +133,27 @@ public class Event
 
     public Map<String, Object> getEventRow(Container c)
     {
-        Map<String, Object> attributeDataValues = new ArrayListMap<>();
-        attributeDataValues.put(EVENT_ID, getEventId());
-        attributeDataValues.put(EVENT_PARTICIPANT_ID, getParticipantId());
-        attributeDataValues.put(EVENT_DATE, getDate());
-        attributeDataValues.put(EVENT_PROJECT_ID_REV, getProjectIdRev());
-        attributeDataValues.put(EVENT_NOTE, getNote());
-        attributeDataValues.put(EVENT_DATA, getEventData());
+        Map<String, Object> eventValues = new ArrayListMap<>();
+        if (getEventId() != null)
+            eventValues.put(EVENT_ID, getEventId());
 
-        return attributeDataValues;
+        eventValues.put(EVENT_PARTICIPANT_ID, getParticipantId());
+        eventValues.put(EVENT_DATE, getDate());
+        eventValues.put(EVENT_PARENT_OBJECTID, getParentObjectId());
+
+        return eventValues;
+    }
+
+    public Map<String, Object> getEventNotesRow(Container c)
+    {
+        Map<String, Object> eventValues = new ArrayListMap<>();
+        if (getEventId() != null)
+            eventValues.put(EVENT_ID, getEventId());
+
+        eventValues.put(EVENT_NOTE, getNote());
+        eventValues.put(EVENT_NOTE_ID, getNoteId());
+
+        return eventValues;
     }
 
     public JSONObject toJSON(Container c, User u)

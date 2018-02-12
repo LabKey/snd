@@ -503,25 +503,27 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
             "       queryName: 'Events',                                        \n" +
             "       rows: [{                                                    \n" +
             "           'EventId': id,                                          \n" +
-            "           'Id': " + TEST_PARTICIPANT_ID + ",                      \n" +
+            "           'ParticipantId': " + TEST_PARTICIPANT_ID + ",           \n" +
             "           'Date': new Date()                                      \n" +
             "       }],                                                         \n" +
             "       successCallback: function(data){                            \n" +
-            "           createCodedEvent(id);                                   \n" +
+            "           createEventData(id);                                    \n" +
             "       },                                                          \n" +
             "       failureCallback: function(e){                               \n" +
             "           callback(e.exception);                                  \n" +
             "       }                                                           \n" +
             "	    });                                                         \n" +
             "   }                                                               \n" +
-            "   function createCodedEvent(id){                                  \n" +
+            "   function createEventData(id){                                   \n" +
             "       LABKEY.Query.insertRows({                                   \n" +
             "       containerPath: '" + PROJECTNAME + "',                       \n" +
             "       schemaName: 'snd',                                          \n" +
-            "       queryName: 'CodedEvents',                                   \n" +
+            "       queryName: 'EventData',                                     \n" +
             "       rows: [{                                                    \n" +
             "           'EventId': id,                                          \n" +
-            "           'SuperPkgId': id                                        \n" +
+            "           'EventDataId': id,                                      \n" +
+            "           'SuperPkgId': id,                                       \n" +
+            "           'ObjectURI': 'testSNDEventDataURI'                      \n" +
             "       }],                                                         \n" +
             "       successCallback: function(data){                            \n" +
             "           callback('Success!');                                   \n" +

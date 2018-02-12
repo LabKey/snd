@@ -30,7 +30,7 @@ public class SNDSchema
     public static final String PKGCATEGORIES_NAME = "PkgCategories";
     public static final String SUPERPKGS_TABLE_NAME = "SuperPkgs";
     public static final String EVENTS_TABLE_NAME = "Events";
-    public static final String CODEDEVENTS_TABLE_NAME = "CodedEvents";
+    public static final String EVENTDATA_TABLE_NAME = "EventData";
     public static final String EVENTNOTES_TABLE_NAME = "EventNotes";
     public static final String PROJECTS_TABLE_NAME = "Projects";
     public static final String PROJECTITEMS_TABLE_NAME = "ProjectItems";
@@ -86,9 +86,9 @@ public class SNDSchema
         return getSchema().getTable(EVENTS_TABLE_NAME);
     }
 
-    public TableInfo getTableInfoCodedEvents()
+    public TableInfo getTableInfoEventData()
     {
-        return getSchema().getTable(CODEDEVENTS_TABLE_NAME);
+        return getSchema().getTable(EVENTDATA_TABLE_NAME);
     }
 
     public TableInfo getTableInfoEventNotes()

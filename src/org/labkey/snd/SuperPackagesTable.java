@@ -64,7 +64,7 @@ public class SuperPackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSche
 
         SQLFragment hasDataSql = new SQLFragment();
         hasDataSql.append("(CASE WHEN EXISTS (SELECT " + ExprColumn.STR_TABLE_ALIAS + ".SuperPkgId FROM ");
-        hasDataSql.append(SNDSchema.getInstance().getTableInfoCodedEvents(), "ce");
+        hasDataSql.append(SNDSchema.getInstance().getTableInfoEventData(), "ce");
         hasDataSql.append(" WHERE " + ExprColumn.STR_TABLE_ALIAS + ".SuperPkgId = ce.SuperPkgId)");
         hasDataSql.append(" THEN 'true' ELSE 'false' END)");
         ExprColumn hasDataCol = new ExprColumn(this, "HasEvent", hasDataSql, JdbcType.BOOLEAN);

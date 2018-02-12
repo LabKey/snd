@@ -166,13 +166,22 @@ public class SNDServiceImpl implements SNDService
     @Override
     public Event getEvent(Container c, User u, int eventId)
     {
-        return null;
+        return SNDManager.get().getEvent(c, u, eventId);
     }
 
     @Override
     public void saveEvent(Container c, User u, Event event)
     {
         BatchValidationException errors = new BatchValidationException();
+
+        if (event.getEventId() != null && SNDManager.get().eventExists(c, u, event.getEventId()))
+        {
+            SNDManager.get().updateEvent(c, u, event, errors);
+        }
+        else
+        {
+            SNDManager.get().createEvent(c, u, event, errors);
+        }
 
         if (errors.hasErrors())
             throw new ApiUsageException(errors);
