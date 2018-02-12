@@ -230,12 +230,12 @@
             </column>
         </columns>
     </table>
-    <table tableName="CodedEvents" tableDbType="TABLE">
+    <table tableName="EventData" tableDbType="TABLE">
         <columns>
-            <column columnName="CodedEventId"/>
+            <column columnName="EventDataId"/>
             <column columnName="EventId"/>
             <column columnName="SuperPkgId"/>
-            <column columnName="ObjectId"/>
+            <column columnName="ObjectURI"/>
             <column columnName="Container"/>
             <column columnName="CreatedBy"/>
             <column columnName="Created"/>
