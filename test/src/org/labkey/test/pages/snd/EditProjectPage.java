@@ -10,7 +10,6 @@ import org.labkey.test.pages.LabKeyPage;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.util.List;
 
@@ -47,6 +46,15 @@ public class EditProjectPage extends LabKeyPage<EditProjectPage.ElementCache>
         }, WAIT_FOR_JAVASCRIPT);
     }
 
+    private void setDate(WebElement input, String date)
+    {
+        if (!isHtml5InputTypeSupported("date"))
+        {
+            throw new RuntimeException("SND requires HTML5 date inputs. Please rerun test in Chrome");
+        }
+        setFormElement(input, date);
+    }
+
     public EditProjectPage setDescription(String description)
     {
         setFormElement(elementCache().descriptionEdit, description);
@@ -71,10 +79,9 @@ public class EditProjectPage extends LabKeyPage<EditProjectPage.ElementCache>
 
     public EditProjectPage setStartDate(String date)
     {
-        setFormElement(elementCache().startDateTextBox,date);
+        setDate(elementCache().startDateTextBox, date);
         return this;
     }
-
 
     public String getStartDate()
     {
@@ -83,7 +90,7 @@ public class EditProjectPage extends LabKeyPage<EditProjectPage.ElementCache>
 
     public EditProjectPage setEndDate(String date)
     {
-        setFormElement(elementCache().endDateTextBox,date);
+        setDate(elementCache().endDateTextBox, date);
         return this;
     }
 
@@ -124,7 +131,7 @@ public class EditProjectPage extends LabKeyPage<EditProjectPage.ElementCache>
     public SuperPackageRow getAvailablePackage(String partialDescription)
     {
         return SuperPackageRow.finder(getDriver()).timeout(4000)
-                .withPartialDescription(partialDescription).findWhenNeeded(elementCache().querySearchContainer);
+                .withPartialDescription(partialDescription).find(elementCache().querySearchContainer);
     }
 
     public List<SuperPackageRow> getAssignedPackages()
