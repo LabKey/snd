@@ -1053,7 +1053,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         clickButton("Process and Import Data", defaultWaitForPage);
         _fileBrowserHelper.checkFileBrowserFileCheckbox(INITIAL_IMPORT_FILE.getName());
         _fileBrowserHelper.selectImportDataAction("SND document import");
-        waitForPipelineJobsToComplete(EXPECTED_IMPORT_JOBS, "SND Import ("+INITIAL_IMPORT_FILE+")", false, IMPORT_WAIT_TIME);
+        waitForPipelineJobsToComplete(EXPECTED_IMPORT_JOBS, "SND Import ("+INITIAL_IMPORT_FILE.getName()+")", false, IMPORT_WAIT_TIME);
 
         //go to grid view for snd.pkg
         goToSchemaBrowser();
@@ -1099,7 +1099,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         clickButton("Process and Import Data", defaultWaitForPage);
         _fileBrowserHelper.checkFileBrowserFileCheckbox(CHANGE_NARRATIVE_FILE.getName());
         _fileBrowserHelper.selectImportDataAction("SND document import");
-        waitForPipelineJobsToComplete(++EXPECTED_IMPORT_JOBS, "SND Import ("+CHANGE_NARRATIVE_FILE+")", false, IMPORT_WAIT_TIME);
+        waitForPipelineJobsToComplete(++EXPECTED_IMPORT_JOBS, "SND Import ("+CHANGE_NARRATIVE_FILE.getName()+")", false, IMPORT_WAIT_TIME);
 
         //go to grid view
         goToSchemaBrowser();
@@ -1116,7 +1116,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         clickButton("Process and Import Data", defaultWaitForPage);
         _fileBrowserHelper.checkFileBrowserFileCheckbox(INSERT_PACKAGE_FILE.getName());
         _fileBrowserHelper.selectImportDataAction("SND document import");
-        waitForPipelineJobsToComplete(++EXPECTED_IMPORT_JOBS, "SND Import ("+INSERT_PACKAGE_FILE+")", false, IMPORT_WAIT_TIME);
+        waitForPipelineJobsToComplete(++EXPECTED_IMPORT_JOBS, "SND Import ("+INSERT_PACKAGE_FILE.getName()+")", false, IMPORT_WAIT_TIME);
 
         // go to grid view
         goToSchemaBrowser();
@@ -1135,7 +1135,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         clickButton("Process and Import Data", defaultWaitForPage);
         _fileBrowserHelper.checkFileBrowserFileCheckbox(ADD_ATTRIBUTE_FILE.getName());
         _fileBrowserHelper.selectImportDataAction("SND document import");
-        waitForPipelineJobsToComplete(++EXPECTED_IMPORT_JOBS, "SND Import ("+ADD_ATTRIBUTE_FILE+")", false, IMPORT_WAIT_TIME);
+        waitForPipelineJobsToComplete(++EXPECTED_IMPORT_JOBS, "SND Import ("+ADD_ATTRIBUTE_FILE.getName()+")", false, IMPORT_WAIT_TIME);
 
         //go to grid view
         //TODO: Test attribute addition in exp tables (not exposed yet)
@@ -1145,7 +1145,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         clickButton("Process and Import Data", defaultWaitForPage);
         _fileBrowserHelper.checkFileBrowserFileCheckbox(REMOVE_ATTRIBUTE_FILE.getName());
         _fileBrowserHelper.selectImportDataAction("SND document import");
-        waitForPipelineJobsToComplete(++EXPECTED_IMPORT_JOBS, "SND Import ("+REMOVE_ATTRIBUTE_FILE+")", false, IMPORT_WAIT_TIME);
+        waitForPipelineJobsToComplete(++EXPECTED_IMPORT_JOBS, "SND Import ("+REMOVE_ATTRIBUTE_FILE.getName()+")", false, IMPORT_WAIT_TIME);
 
         //go to grid view
         //TODO: Test attribute removal in exp tables (not exposed yet)
@@ -1155,7 +1155,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         clickButton("Process and Import Data", defaultWaitForPage);
         _fileBrowserHelper.checkFileBrowserFileCheckbox(REMOVE_ALL_ATTRIBUTES_FILE.getName());
         _fileBrowserHelper.selectImportDataAction("SND document import");
-        waitForPipelineJobsToComplete(++EXPECTED_IMPORT_JOBS, "SND Import ("+REMOVE_ALL_ATTRIBUTES_FILE+")", true, IMPORT_WAIT_TIME);
+        waitForPipelineJobsToComplete(++EXPECTED_IMPORT_JOBS, "SND Import ("+REMOVE_ALL_ATTRIBUTES_FILE.getName()+")", true, IMPORT_WAIT_TIME);
 
         checkExpectedErrors(1);
     }
