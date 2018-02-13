@@ -1358,9 +1358,16 @@ public class SNDManager
         return tables;
     }
 
-    private EventData getEventData(Container c, User u, int eventId)
+    public List<EventData> getEventData(Container c, User u, int eventId)
     {
-        return null;
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        TableInfo eventDataTable = getTableInfo(schema, SNDSchema.EVENTDATA_TABLE_NAME);
+
+        // Get from EventData table
+        SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("EventId"), eventId, CompareType.EQUAL);
+        TableSelector ts = new TableSelector(eventDataTable, filter, null);
+
+        return ts.getArrayList(EventData.class);
     }
 
     public Event getEvent(Container c, User u, int eventId)
