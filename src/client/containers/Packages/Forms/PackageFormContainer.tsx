@@ -170,7 +170,7 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
         const { dispatch, model } = this.props;
 
         if (shouldQuery) {
-            dispatch(queryPackageFullNarrative(pkg.PkgId, model, PKG_WIZARD_TYPES.PACKAGE_FULL_NARRATIVE));
+            dispatch(queryPackageFullNarrative(pkg.pkgId, model, PKG_WIZARD_TYPES.PACKAGE_FULL_NARRATIVE));
         }
         else {
             dispatch({
@@ -191,13 +191,13 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
     }
 
     renderNarrative(narrativePkg: AssignedPackageModel, level: number) {
-        const { SubPackages } = narrativePkg;
-        const key = "narrative-row-" + (narrativePkg.SuperPkgId || narrativePkg.altId);
+        const { subPackages } = narrativePkg;
+        const key = "narrative-row-" + (narrativePkg.superPkgId || narrativePkg.altId);
 
         return (
             <div key={key}>
                 <NarrativeRow model={narrativePkg} level={level} />
-                {SubPackages.map((subPackage) =>
+                {subPackages.map((subPackage) =>
                     this.renderNarrative(subPackage, level + 1)
                 )}
             </div>
@@ -263,7 +263,7 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
                     <div className="static-modal">
                         <Modal onHide={this.closeFullNarrative} show={model.narrativePkg != null}>
                             <Modal.Header closeButton>
-                                <Modal.Title>Full Narrative for Package {model.narrativePkg.PkgId}</Modal.Title>
+                                <Modal.Title>Full Narrative for Package {model.narrativePkg.pkgId}</Modal.Title>
                             </Modal.Header>
                             <Modal.Body>
                                 {this.renderNarrative(model.narrativePkg, 0)}

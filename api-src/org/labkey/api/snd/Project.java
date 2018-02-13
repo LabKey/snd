@@ -297,7 +297,7 @@ public class Project
             JSONArray jsonProjectItems = new JSONArray();
             for (ProjectItem projectItem : getProjectItems())
             {
-                jsonProjectItems.put(projectItem.toJSON());
+                jsonProjectItems.put(projectItem.toJSON(c, u));
             }
             json.put(PROJECT_ITEMS, jsonProjectItems);
         }

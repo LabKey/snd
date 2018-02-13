@@ -285,8 +285,8 @@ export function queryProjectSubPackageDetails(id: number, parentProjectId: strin
             const responseData: PackageModel = getPackageModelFromResponse(response);
 
             let newSubpackages = parentProjectModel.data.subPackages.map((subPackage) => {
-                if (subPackage.PkgId == responseData.pkgId) {
-                    subPackage.SubPackages = responseData.subPackages;
+                if (subPackage.pkgId == responseData.pkgId) {
+                    subPackage.subPackages = responseData.subPackages;
                     subPackage.loadingSubpackages = undefined;
                 }
                 return subPackage;

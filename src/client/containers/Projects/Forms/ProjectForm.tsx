@@ -126,29 +126,28 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps, ProjectFo
 
     handleAssignedPackageAdd(assignedSuperPackage: AssignedPackageModel) {
         const { dispatch, model, handleFieldChange, handleWarning } = this.props;
-        const { PkgId, Description, Narrative, Repeatable, SuperPkgId } = assignedSuperPackage;
-        const { ShowActive, Active } = assignedSuperPackage;
+        const { pkgId, description, narrative, repeatable, superPkgId } = assignedSuperPackage;
 
-        if (!Repeatable) {
+        if (!repeatable) {
             // if the added package cannot be repeated and is already in the assigned packages array, emit warning
             const canAdd = model.subPackages.every((superPkg) => {
-                return superPkg.PkgId !== PkgId;
+                return superPkg.pkgId !== pkgId;
             });
 
             if (!canAdd) {
-                return handleWarning(['Package', PkgId, 'is not repeatable.'].join(' '));
+                return handleWarning(['Package', pkgId, 'is not repeatable.'].join(' '));
             }
         }
 
         // create a new AssignedPackageModel object as the SuperPkgId needs to be undefined as it will be set on save/submit
-        let newAssignedSuperPackage = new AssignedPackageModel(PkgId, Description, Narrative, Repeatable, SuperPkgId, true, true,
+        let newAssignedSuperPackage = new AssignedPackageModel(pkgId, description, narrative, repeatable, superPkgId, true, true,
             model.subPackages.length);
         newAssignedSuperPackage.loadingSubpackages = true;
 
         handleFieldChange('subPackages', model.subPackages.concat([newAssignedSuperPackage]));
         this.setState({selectedSubPackage: newAssignedSuperPackage});
 
-        dispatch(queryProjectSubPackageDetails(PkgId, getRevisionId(model)));
+        dispatch(queryProjectSubPackageDetails(pkgId, getRevisionId(model)));
     }
 
     handleAssignedPackageRemove(assignedSuperPackage: AssignedPackageModel) {

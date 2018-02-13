@@ -254,9 +254,9 @@ export const projects = handleActions({
         const projectWizardModel = state.projectData[getRevisionId(model)];
 
         const subPackages = projectWizardModel.data.subPackages.map(function(subPkg) {
-            if (subpackage.SuperPkgId === subPkg.SuperPkgId) {
-                return new AssignedPackageModel(subPkg.PkgId, subPkg.Description, subPkg.Narrative, subPkg.Repeatable,
-                    subPkg.SuperPkgId, !subpackage.Active, subPkg.ShowActive, subPkg.SortOrder, subPkg.SubPackages);
+            if (subpackage.SuperPkgId === subPkg.superPkgId) {
+                return new AssignedPackageModel(subPkg.pkgId, subPkg.description, subPkg.narrative, subPkg.repeatable,
+                    subPkg.superPkgId, !subpackage.Active, subPkg.showActive, subPkg.sortOrder, subPkg.subPackages);
             }
             else {
                 return subPkg;
@@ -302,8 +302,8 @@ function isFormValid(data: ProjectModel, initialData: ProjectModel, view: VIEW_T
 
     // Check updated assigned packages for Edit
     if (!isValidChange && view === VIEW_TYPES.PROJECT_EDIT) {
-        isValidChange = data.subPackages.map(p => p.PkgId).sort().join('') !==
-            initialData.subPackages.map(p => p.PkgId).sort().join('')
+        isValidChange = data.subPackages.map(p => p.pkgId).sort().join('') !==
+            initialData.subPackages.map(p => p.pkgId).sort().join('')
     }
 
     // Check previous revision end date for revision

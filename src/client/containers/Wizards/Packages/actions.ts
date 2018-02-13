@@ -54,8 +54,8 @@ export function querySubPackageDetails(id: number, parentPkgId: number) {
             const responseData: PackageModel = getPackageModelFromResponse(response);
 
             let newSubpackages = parentPackageModel.data.subPackages.map((subPackage) => {
-                if (subPackage.PkgId == responseData.pkgId) {
-                    subPackage.SubPackages = responseData.subPackages;
+                if (subPackage.pkgId == responseData.pkgId) {
+                    subPackage.subPackages = responseData.subPackages;
                     subPackage.loadingSubpackages = undefined;
                 }
                 return subPackage;

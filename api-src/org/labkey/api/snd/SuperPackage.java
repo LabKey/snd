@@ -19,10 +19,13 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.labkey.api.collections.ArrayListMap;
 import org.labkey.api.data.Container;
+import org.labkey.api.security.User;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static org.labkey.api.snd.Package.PKG_ATTRIBUTES;
 
 /**
  * Created by marty on 8/14/2017.
@@ -32,6 +35,7 @@ public class SuperPackage
     private Integer _superPkgId;
     private List<SuperPackage> _childPackages;
     private Integer _pkgId;
+    private Package _pkg;  // Only used to hold attribute data
     private String _superPkgPath;
     private Integer _parentSuperPkgId;
     private String _description; // From referenced package
@@ -40,14 +44,14 @@ public class SuperPackage
     private Boolean _repeatable;
     // NOTE: if you add a variable here, add it to the copy constructor, getSuperPackageRow(), and toJson() too!
 
-    public static final String SUPERPKG_ID = "SuperPkgId";
-    public static final String SUPERPKG_PARENTID = "ParentSuperPkgId";
-    public static final String SUPERPKG_PKGID = "PkgId";
-    public static final String SUPERPKG_DESCRIPTION = "Description";
-    public static final String SUPERPKG_NARRATIVE = "Narrative";
-    public static final String SUPERPKG_ORDER = "SortOrder";
-    public static final String SUPERPKG_REPEATABLE = "Repeatable";
-    public static final String SUPERPKG_PATH = "SuperPkgPath";
+    public static final String SUPERPKG_ID = "superPkgId";
+    public static final String SUPERPKG_PARENTID = "parentSuperPkgId";
+    public static final String SUPERPKG_PKGID = "pkgId";
+    public static final String SUPERPKG_DESCRIPTION = "description";
+    public static final String SUPERPKG_NARRATIVE = "narrative";
+    public static final String SUPERPKG_ORDER = "sortOrder";
+    public static final String SUPERPKG_REPEATABLE = "repeatable";
+    public static final String SUPERPKG_PATH = "superPkgPath";
 
     public SuperPackage()
     {
@@ -159,6 +163,16 @@ public class SuperPackage
         _pkgId = pkgId;
     }
 
+    public Package getPkg()
+    {
+        return _pkg;
+    }
+
+    public void setPkg(Package pkg)
+    {
+        _pkg = pkg;
+    }
+
     public Map<String, Object> getSuperPackageRow(Container c)
     {
         Map<String, Object> superPkgValues = new ArrayListMap<>();
@@ -167,13 +181,13 @@ public class SuperPackage
         superPkgValues.put(SUPERPKG_PKGID, getPkgId());
         superPkgValues.put(SUPERPKG_ORDER, getSortOrder());
         superPkgValues.put(SUPERPKG_REPEATABLE, getRepeatable());
-        superPkgValues.put("Container", c);
+        superPkgValues.put("container", c);
         superPkgValues.put(SUPERPKG_PATH, getSuperPkgPath());
 
         return superPkgValues;
     }
 
-    public JSONObject toJSON()
+    public JSONObject toJSON(Container c, User u)
     {
         JSONObject json = new JSONObject();
         json.put(SUPERPKG_ID, getSuperPkgId());
@@ -182,17 +196,21 @@ public class SuperPackage
         json.put(SUPERPKG_NARRATIVE, getNarrative());
         json.put(SUPERPKG_ORDER, getSortOrder());
         json.put(SUPERPKG_REPEATABLE, getRepeatable());
+        if (getPkg() != null)
+        {
+            json.put(PKG_ATTRIBUTES, getPkg().attributesToJson(c, u));
+        }
 
         JSONArray subPackages = new JSONArray();
         if (getChildPackages() != null)
         {
             for (SuperPackage subPackage : getChildPackages())
             {
-                subPackages.put(subPackage.toJSON());
+                subPackages.put(subPackage.toJSON(c, u));
             }
         }
 
-        json.put("SubPackages", subPackages);
+        json.put("subPackages", subPackages);
         return json;
     }
 }

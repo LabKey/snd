@@ -1,29 +1,29 @@
 
 
 interface AssignedPackageModelProps {
-    Description: string
-    Narrative: string
-    PkgId: number
-    Repeatable: boolean
-    SortOrder: number
-    SubPackages: Array<AssignedPackageModel>
-    SuperPkgId: number
-    Active: boolean
-    ShowActive: boolean
+    description: string
+    narrative: string
+    pkgId: number
+    repeatable: boolean
+    sortOrder: number
+    subPackages: Array<AssignedPackageModel>
+    superPkgId: number
+    active: boolean
+    showActive: boolean
     altId: number
     loadingSubpackages: boolean
 }
 
 export class AssignedPackageModel implements AssignedPackageModelProps {
-    Description: string = undefined;
-    Narrative: string = null;
-    PkgId: number = undefined;
-    Repeatable: boolean = undefined;
-    SortOrder: number = undefined;
-    SubPackages: Array<AssignedPackageModel> = [];
-    SuperPkgId: number = undefined;
-    Active: boolean;
-    ShowActive: boolean;
+    description: string = undefined;
+    narrative: string = null;
+    pkgId: number = undefined;
+    repeatable: boolean = undefined;
+    sortOrder: number = undefined;
+    subPackages: Array<AssignedPackageModel> = [];
+    superPkgId: number = undefined;
+    active: boolean;
+    showActive: boolean;
 
     // set the altId as a way to uniquely remove this assigned package or to handle assigned package click
     altId: number = LABKEY.Utils.id();
@@ -34,16 +34,16 @@ export class AssignedPackageModel implements AssignedPackageModelProps {
     constructor(pkgId: number, description: string, narrative: string, repeatable: boolean, superPkgId: number,
                 active: boolean, showActive: boolean, sortOrder?: number, subPackages?: Array<AssignedPackageModel>)
     {
-        this.PkgId = pkgId;
-        this.Description = description;
-        this.Narrative = narrative;
-        this.Repeatable = repeatable;
-        this.SortOrder = sortOrder;
-        this.SuperPkgId = superPkgId;
-        this.Active = active;
-        this.ShowActive = showActive;
+        this.pkgId = pkgId;
+        this.description = description;
+        this.narrative = narrative;
+        this.repeatable = repeatable;
+        this.sortOrder = sortOrder;
+        this.superPkgId = superPkgId;
+        this.active = active;
+        this.showActive = showActive;
         if (Array.isArray(subPackages))
-            this.SubPackages = subPackages;
+            this.subPackages = subPackages;
     }
 }
 

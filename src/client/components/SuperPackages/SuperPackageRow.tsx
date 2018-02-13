@@ -115,22 +115,22 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
                     {treeLevelVal > -1
                         ? model.loadingSubpackages != undefined && model.loadingSubpackages === true
                             ? <i className="fa fa-spinner fa-spin">&nbsp;</i>
-                            : !treeCollapsedVal && model.SubPackages.length > 0
+                            : !treeCollapsedVal && model.subPackages.length > 0
                                 ? <i className="icon-tree-toggle fa fa-caret-down">&nbsp;</i>
-                                : model.SubPackages.length == 0
+                                : model.subPackages.length == 0
                                     ? <i className={"icon-tree-toggle fa fa-circle superpackage-row-leaf"}>&nbsp;&nbsp;&nbsp;</i>
                                     : <i className="icon-tree-toggle fa fa-caret-right">&nbsp;</i>
                         : null
                     }
                     {/*Display package id and name. If in project view, cross out inactive packages and their descendants*/}
-                    <span style={(showActiveToggle && !model.Active) || (showActive && !parentActive)
-                        ? notActiveDivStyle : null}>{[model.PkgId, model.Description].join(' - ')}&nbsp;</span>
+                    <span style={(showActiveToggle && !model.active) || (showActive && !parentActive)
+                        ? notActiveDivStyle : null}>{[model.pkgId, model.description].join(' - ')}&nbsp;</span>
                 </div>
                 <div className="superpackage-row-dropdown" style={{display: isHover ? 'inline-block' : 'none'}}>
                     <DropdownButton id="superpackage-actions" title="" pullRight dropup={isDropup}
                                     className="superpackage-row-option-btn">
                         {showActiveToggle
-                            ? <MenuItem onClick={() => handleToggleActiveAction(model)}>{model.Active?'Deactivate':'Activate'}</MenuItem>
+                            ? <MenuItem onClick={() => handleToggleActiveAction(model)}>{model.active?'Deactivate':'Activate'}</MenuItem>
                             : null
                         }
                         {!isReadyOnly && menuActionName

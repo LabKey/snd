@@ -441,8 +441,8 @@ function isFormValid(data: PackageModel, initialData: PackageModel, view: VIEW_T
                     return false;
                 }) !== -1;
             }) || // check list of initial and current subpackages, if changed, form is valid to save
-            data.subPackages.map(p => p.PkgId).sort().join('') !==
-            initialData.subPackages.map(p => p.PkgId).sort().join('')
+            data.subPackages.map(p => p.pkgId).sort().join('') !==
+            initialData.subPackages.map(p => p.pkgId).sort().join('')
         )
     }
 

@@ -101,11 +101,11 @@ public class SNDServiceImpl implements SNDService
     }
 
     @Override
-    public List<Package> getPackages(Container c, User u, List<Integer> pkgIds, boolean includeExtraFields, boolean includeLookups)
+    public List<Package> getPackages(Container c, User u, List<Integer> pkgIds, boolean includeExtraFields, boolean includeLookups, boolean includeAllAttributes)
     {
         BatchValidationException errors = new BatchValidationException();
 
-        List<Package> pkgs = SNDManager.get().getPackages(c, u, pkgIds, includeExtraFields, includeLookups, errors);
+        List<Package> pkgs = SNDManager.get().getPackages(c, u, pkgIds, includeExtraFields, includeLookups, includeAllAttributes, errors);
         if (errors.hasErrors())
             throw new ApiUsageException(errors);
 

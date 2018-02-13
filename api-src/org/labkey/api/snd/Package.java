@@ -48,11 +48,13 @@ public class Package
     private Map<GWTPropertyDescriptor, Object> _extraFields = new HashMap<>();
     private Map<String, String> _lookups = new HashMap<>();
     private Integer _qcState;
+    private Integer _topLevelSuperPkgId;
 
     public static final String PKG_ID = "pkgId";
     public static final String PKG_DESCRIPTION = "description";
     public static final String PKG_ACTIVE = "active";
     public static final String PKG_REPEATABLE = "repeatable";
+    public static final String PKG_TOPLEVEL_SUPERPKG = "superPkgId";
     public static final String PKG_QCSTATE = "qcState";
     public static final String PKG_NARRATIVE = "narrative";
     public static final String PKG_CONTAINER = "container";
@@ -193,6 +195,16 @@ public class Package
         _qcState = qcState;
     }
 
+    public Integer getTopLevelSuperPkgId()
+    {
+        return _topLevelSuperPkgId;
+    }
+
+    public void setTopLevelSuperPkgId(Integer topLevelSuperPkgId)
+    {
+        _topLevelSuperPkgId = topLevelSuperPkgId;
+    }
+
     public Map<String, Object> getPackageRow(Container c)
     {
         Map<String, Object> pkgValues = new ArrayListMap<>();
@@ -230,6 +242,20 @@ public class Package
         return rows;
     }
 
+    public JSONArray attributesToJson(Container c, User u)
+    {
+        JSONArray attributes = new JSONArray();
+        if(getAttributes() != null)
+        {
+            for (GWTPropertyDescriptor pd : getAttributes())
+            {
+                attributes.put(SNDService.get().convertPropertyDescriptorToJson(c, u, pd, false));
+            }
+        }
+
+        return attributes;
+    }
+
     public JSONObject toJSON(Container c, User u)
     {
         JSONObject json = new JSONObject();
@@ -241,6 +267,7 @@ public class Package
         json.put(PKG_HASEVENT, hasEvent());
         json.put(PKG_HASPROJECT, hasProject());
         json.put(PKG_QCSTATE, getQcState());
+        json.put(PKG_TOPLEVEL_SUPERPKG, getTopLevelSuperPkgId());
         json.put(PKG_CONTAINER, c.getId());
 
         JSONArray categories = new JSONArray();
@@ -253,14 +280,9 @@ public class Package
             json.put(PKG_CATEGORIES, categories);
         }
 
-        JSONArray attributes = new JSONArray();
         if(getAttributes() != null)
         {
-            for (GWTPropertyDescriptor pd : getAttributes())
-            {
-                attributes.put(SNDService.get().convertPropertyDescriptorToJson(c, u, pd, false));
-            }
-            json.put(PKG_ATTRIBUTES, attributes);
+            json.put(PKG_ATTRIBUTES, attributesToJson(c, u));
         }
 
         JSONArray subPackages = new JSONArray();
@@ -268,7 +290,7 @@ public class Package
         {
             for (SuperPackage subPackage : getSubpackages())
             {
-                subPackages.put(subPackage.toJSON());
+                subPackages.put(subPackage.toJSON(c, u));
             }
             json.put(PKG_SUBPACKAGES, subPackages);
         }

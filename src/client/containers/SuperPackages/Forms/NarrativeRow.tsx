@@ -26,12 +26,12 @@ export default class NarrativeRow extends React.Component<NarrativeRowViewerProp
 
     render() {
         const { model, level } = this.props;
-        const { Narrative } = model;
+        const { narrative } = model;
         const indentPx = (level + 1) * 20;
 
         return (
             <div style={{paddingLeft: indentPx + 'px'}} className="narrative_row">
-                - {Narrative}
+                - {narrative}
             </div>
         )
     }

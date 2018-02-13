@@ -92,7 +92,7 @@ export class SubpackageViewerImpl extends React.Component<SubpackageViewerProps,
         const { selectedSubPackage, handleAssignedPackageRemove, handleAssignedPackageReorder, handleRowClick,
             handleToggleActiveAction, view, showActive } = this.props;
         const { collapsed } = this.state;
-        const idProp = selectedSubPackage != undefined && selectedSubPackage.SuperPkgId ? 'SuperPkgId' : 'altId';
+        const idProp = selectedSubPackage != undefined && selectedSubPackage.superPkgId ? 'SuperPkgId' : 'altId';
         const treeCollapsed = collapsed[this.getModelId(assignedPackage)] || false;
         const isTopLevelSubpackage = treeLevel == 0;
 
@@ -117,11 +117,11 @@ export class SubpackageViewerImpl extends React.Component<SubpackageViewerProps,
                     showActive={showActive}
                 />
 
-                {!treeCollapsed && Array.isArray(assignedPackage.SubPackages) && assignedPackage.SubPackages.length > 0
-                    ? assignedPackage.SubPackages.map((dd, ii) => {
+                {!treeCollapsed && Array.isArray(assignedPackage.subPackages) && assignedPackage.subPackages.length > 0
+                    ? assignedPackage.subPackages.map((dd, ii) => {
                         return this.renderAssignedPackageRow(
-                            assignedPackage.SubPackages[ii], key + "-" + ii,
-                            treeLevel+1, ii, assignedPackage.SubPackages.length, parentActive
+                            assignedPackage.subPackages[ii], key + "-" + ii,
+                            treeLevel+1, ii, assignedPackage.subPackages.length, parentActive
                         );
                     })
                     : null
@@ -138,7 +138,7 @@ export class SubpackageViewerImpl extends React.Component<SubpackageViewerProps,
                 <div className="data-search__row">
                     {Array.isArray(subPackages) && subPackages.length > 0 ?
                         subPackages.map((d, i) => {
-                            return this.renderAssignedPackageRow(subPackages[i], 'data-search__row' + i, 0, i, subPackages.length, subPackages[i].Active);
+                            return this.renderAssignedPackageRow(subPackages[i], 'data-search__row' + i, 0, i, subPackages.length, subPackages[i].active);
                         })
                         : 'None'
                     }

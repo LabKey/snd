@@ -3,6 +3,7 @@ package org.labkey.api.snd;
 import org.json.JSONObject;
 import org.labkey.api.collections.ArrayListMap;
 import org.labkey.api.data.Container;
+import org.labkey.api.security.User;
 
 import java.util.Map;
 
@@ -94,12 +95,12 @@ public class ProjectItem
         return projectItemValues;
     }
 
-    public JSONObject toJSON()
+    public JSONObject toJSON(Container c, User u)
     {
         JSONObject json = new JSONObject();
         json.put(PROJECTITEM_ID, getProjectItemId());
         json.put(PROJECTITEM_ACTIVE, isActive());
-        json.put(PROJECTITEM_SUPERPKG, getSuperPackage().toJSON());
+        json.put(PROJECTITEM_SUPERPKG, getSuperPackage().toJSON(c, u));
 
         return json;
     }

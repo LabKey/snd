@@ -55,7 +55,7 @@ export class SuperPackageFormImpl extends React.Component<SuperPackageFormProps,
     handleAssignedPackageClick(assignedPackage: AssignedPackageModel) {
         let {selectedSubPackage} = this.state;
 
-        let idProp = assignedPackage.SuperPkgId ? 'SuperPkgId' : 'altId';
+        let idProp = assignedPackage.superPkgId ? 'SuperPkgId' : 'altId';
 
         if (selectedSubPackage == undefined || selectedSubPackage[idProp] != assignedPackage[idProp]) {
             this.setState({selectedSubPackage: assignedPackage});
@@ -118,7 +118,7 @@ export class SuperPackageFormImpl extends React.Component<SuperPackageFormProps,
                         <ListGroupItem className="data-search__container" style={{height: '90px', overflowY: 'auto'}}>
                             <div className="data-search__row">
                                 {selectedSubPackage != undefined
-                                    ? selectedSubPackage.Narrative
+                                    ? selectedSubPackage.narrative
                                     : <div className="narrative-none">
                                         Select a package to view its narrative.
                                     </div>

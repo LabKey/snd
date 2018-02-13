@@ -658,13 +658,13 @@ public class SNDManager
         SuperPackage superPackage = selector.getObject(SuperPackage.class);
 
         if (superPackage != null)
-            superPackage.setChildPackages(getAllChildSuperPkgs(c, u, superPackage.getPkgId()));
+            superPackage.setChildPackages(getAllChildSuperPkgs(c, u, superPackage.getPkgId(), false));
 
         return superPackage;
     }
 
     // recursively get all children for the super package which corresponds to pkgId
-    private List<SuperPackage> getAllChildSuperPkgs(Container c, User u, int pkgId)
+    private List<SuperPackage> getAllChildSuperPkgs(Container c, User u, int pkgId, boolean getAllAttributes)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -676,12 +676,19 @@ public class SNDManager
         List<SuperPackage> children = new ArrayList<>();
 
         SuperPackage root = null;
+        Package childPkg;
         for (SuperPackage sPkg : descendants)
         {
+            if (getAllAttributes)
+            {
+                childPkg = new Package();
+                childPkg.setAttributes(getPackageAttributes(c, u, sPkg.getPkgId()));
+                sPkg.setPkg(childPkg);
+            }
+
             if (sPkg.getParentSuperPkgId() == null)
             {
                 root = sPkg;
-                break;
             }
         }
 
@@ -700,9 +707,9 @@ public class SNDManager
         return children;
     }
 
-    private Package addSubPackagesToPackage(Container c, User u, Package pkg)
+    private Package addSubPackagesToPackage(Container c, User u, Package pkg, boolean getAllAttributes)
     {
-        pkg.setSubpackages(getAllChildSuperPkgs(c, u, pkg.getPkgId()));
+        pkg.setSubpackages(getAllChildSuperPkgs(c, u, pkg.getPkgId(), getAllAttributes));
 
         return pkg;
     }
@@ -739,7 +746,7 @@ public class SNDManager
         return pkg;
     }
 
-    private Package createPackage(Container c, User u, Map<String, Object> row, boolean includeExtraFields, boolean includeLookups)
+    private Package createPackage(Container c, User u, Map<String, Object> row, boolean includeExtraFields, boolean includeLookups, boolean includeAllAttributes)
     {
         Package pkg = new Package();
         if (row != null)
@@ -754,7 +761,12 @@ public class SNDManager
             pkg.setHasProject((boolean) row.get(Package.PKG_HASPROJECT));
             pkg.setCategories(getPackageCategories(c, u, pkg.getPkgId()));
             pkg.setAttributes(getPackageAttributes(c, u, pkg.getPkgId()));
-            addSubPackagesToPackage(c, u, pkg);
+
+            SuperPackage sPkg = getTopLevelSuperPkgForPkg(c, u, pkg.getPkgId());
+            if (sPkg != null)
+                pkg.setTopLevelSuperPkgId(sPkg.getSuperPkgId());
+
+            addSubPackagesToPackage(c, u, pkg, includeAllAttributes);
             if (includeExtraFields)
                 addExtraFieldsToPackage(c, u, pkg, row);
             if (includeLookups)
@@ -764,7 +776,8 @@ public class SNDManager
         return pkg;
     }
 
-    public List<Package> getPackages(Container c, User u, List<Integer> pkgIds, boolean includeExtraFields, boolean includeLookups, BatchValidationException errors)
+    public List<Package> getPackages(Container c, User u, List<Integer> pkgIds, boolean includeExtraFields, boolean includeLookups,
+                                     boolean includeAllAttributes, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -795,7 +808,7 @@ public class SNDManager
         {
             for (Map<String, Object> row : rows)
             {
-                packages.add(createPackage(c, u, row, includeExtraFields, includeLookups));
+                packages.add(createPackage(c, u, row, includeExtraFields, includeLookups, includeAllAttributes));
             }
         }
 

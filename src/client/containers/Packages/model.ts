@@ -114,34 +114,34 @@ export class QueryPackageModel implements QueryPackageModelProps {
 }
 
 interface QuerySuperPackageModelProps {
-    Container: LabKeyQueryRowPropertyProps
-    Created: LabKeyQueryRowPropertyProps
-    CreatedBy: LabKeyQueryRowPropertyProps
-    Modified: LabKeyQueryRowPropertyProps
-    ModifiedBy: LabKeyQueryRowPropertyProps
-    ParentSuperPkgId: LabKeyQueryRowPropertyProps
-    Repeatable: LabKeyQueryRowPropertyProps
-    SuperPkgPath: LabKeyQueryRowPropertyProps
-    SuperPkgId: LabKeyQueryRowPropertyProps
-    PkgId: LabKeyQueryRowPropertyProps
-    IsPrimitive: LabKeyQueryRowPropertyProps
-    Narrative: LabKeyQueryRowPropertyProps
+    container: LabKeyQueryRowPropertyProps
+    created: LabKeyQueryRowPropertyProps
+    createdBy: LabKeyQueryRowPropertyProps
+    modified: LabKeyQueryRowPropertyProps
+    modifiedBy: LabKeyQueryRowPropertyProps
+    parentSuperPkgId: LabKeyQueryRowPropertyProps
+    repeatable: LabKeyQueryRowPropertyProps
+    superPkgPath: LabKeyQueryRowPropertyProps
+    superPkgId: LabKeyQueryRowPropertyProps
+    pkgId: LabKeyQueryRowPropertyProps
+    isPrimitive: LabKeyQueryRowPropertyProps
+    narrative: LabKeyQueryRowPropertyProps
     links: any
 }
 
 export class QuerySuperPackageModel implements QuerySuperPackageModelProps {
-    Container: LabKeyQueryRowPropertyProps = undefined;
-    Created: LabKeyQueryRowPropertyProps = undefined;
-    CreatedBy: LabKeyQueryRowPropertyProps = undefined;
-    IsPrimitive: LabKeyQueryRowPropertyProps = undefined;
-    Modified: LabKeyQueryRowPropertyProps = undefined;
-    ModifiedBy: LabKeyQueryRowPropertyProps = undefined;
-    Narrative: LabKeyQueryRowPropertyProps = undefined;
-    ParentSuperPkgId: LabKeyQueryRowPropertyProps = undefined;
-    Repeatable: LabKeyQueryRowPropertyProps = undefined;
-    SuperPkgPath: LabKeyQueryRowPropertyProps = undefined;
-    SuperPkgId: LabKeyQueryRowPropertyProps = undefined;
-    PkgId: LabKeyQueryRowPropertyProps = undefined;
+    container: LabKeyQueryRowPropertyProps = undefined;
+    created: LabKeyQueryRowPropertyProps = undefined;
+    createdBy: LabKeyQueryRowPropertyProps = undefined;
+    isPrimitive: LabKeyQueryRowPropertyProps = undefined;
+    modified: LabKeyQueryRowPropertyProps = undefined;
+    modifiedBy: LabKeyQueryRowPropertyProps = undefined;
+    narrative: LabKeyQueryRowPropertyProps = undefined;
+    parentSuperPkgId: LabKeyQueryRowPropertyProps = undefined;
+    repeatable: LabKeyQueryRowPropertyProps = undefined;
+    superPkgPath: LabKeyQueryRowPropertyProps = undefined;
+    superPkgId: LabKeyQueryRowPropertyProps = undefined;
+    pkgId: LabKeyQueryRowPropertyProps = undefined;
     links: any = undefined;
 
     constructor(props?: Partial<QuerySuperPackageModel>) {

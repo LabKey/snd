@@ -411,6 +411,7 @@ public class SNDController extends SpringActionController
             JSONArray pkgIds = json.getJSONArray("packages");
             boolean includeExtraFields = !json.has("excludeExtraFields") || !json.getBoolean("excludeExtraFields");
             boolean includeLookups = !json.has("excludeLookups") || !json.getBoolean("excludeLookups");
+            boolean includeAllAttributes = json.has("includeAllAttributes") && json.getBoolean("includeAllAttributes");
             ApiSimpleResponse response = new ApiSimpleResponse();
 
             List<Package> pkgs = new ArrayList<>();
@@ -436,7 +437,8 @@ public class SNDController extends SpringActionController
 
                 SNDService sndService = SNDService.get();
                 if (ids.size() > 0 && sndService != null)
-                    pkgs.addAll(sndService.getPackages(getViewContext().getContainer(), getUser(), ids, includeExtraFields, includeLookups));
+                    pkgs.addAll(sndService.getPackages(getViewContext().getContainer(), getUser(), ids,
+                            includeExtraFields, includeLookups, includeAllAttributes));
             }
 
             JSONArray jsonOut = new JSONArray();
@@ -620,7 +622,6 @@ public class SNDController extends SpringActionController
                     projectItem = new ProjectItem();
                     projectItem.setActive(jsonItem.getBoolean("active"));
                     superPkgId = jsonItem.get("superPkgId");
-                    superPkgId = (superPkgId == null ? jsonItem.get("SuperPkgId") : superPkgId);
                     if (superPkgId == null)
                     {
                         errors.reject(ERROR_MSG, "Project item missing super package id.");
@@ -810,7 +811,7 @@ public class SNDController extends SpringActionController
                     JSONArray eventDataChildrenJson = eventDatumJson.has("eventData") ? eventDatumJson.getJSONArray("eventData") : null;
                     validateEventData(eventDataChildrenJson, errors);
                     JSONArray attributesJson = eventDatumJson.has("attributes") ? eventDatumJson.getJSONArray("attributes") : null;
-                    if ((attributesJson == null) || (attributesJson.length() < 1))
+                    if ((attributesJson == null))
                     {
                         errors.reject(ERROR_MSG, "Missing json parameter: attributes");
                     }

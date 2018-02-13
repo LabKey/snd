@@ -825,7 +825,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
                 "           insertIfNotExists('snd', 'Events', 'EventId', projectId + revNum,\n" +
                 "               [{\n" +
                 "                   \"EventId\": projectId + revNum,\n" +
-                "                   \"Id\": 1,\n" +
+                "                   \"ParticipantId\": 1,\n" +
                 "                   \"Date\": new Date(),\n" +
                 "                   \"ParentObjectId\": data.rows[0][\"ObjectId\"].value\n" +
                 "               }],\n" +
@@ -1788,7 +1788,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         for (int i = 0; i < jsonSubPackages.length(); i++)
         {
             JSONObject jsonSubPackage = jsonSubPackages.getJSONObject(i);
-            Integer superPkgId = jsonSubPackage.getInt("SuperPkgId");
+            Integer superPkgId = jsonSubPackage.getInt("superPkgId");
             assertTrue("Expected superPkgId of '" + superPkgId + "' was not found in list: '" + subPackageIds.toString() + "'", subPackageIds.contains(superPkgId));
         }
     }

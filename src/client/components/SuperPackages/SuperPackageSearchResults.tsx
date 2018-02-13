@@ -63,16 +63,14 @@ export class SuperPackageSearchResults extends React.Component<SuperPackageSearc
                 <ListGroupItem className="data-search__container" style={{height: '200px', overflowY: 'scroll'}}>
                     {dataIds.length > 0 ?
                         dataIds.filter((d) => {
-                            const rowData: QuerySuperPackageModel = data[d];
-                            return !primitivesOnly || rowData.IsPrimitive.value === 'true';
+                            return !primitivesOnly || data[d].IsPrimitive.value === 'true';
                         }).map((d, i) => {
-                            const rowData: QuerySuperPackageModel = data[d];
                             let assignedPackage = new AssignedPackageModel(
-                                rowData.PkgId.value,
-                                rowData.PkgId.displayValue,
-                                rowData.Narrative.value,
-                                rowData.Repeatable.value,
-                                rowData.SuperPkgId.value,
+                                data[d].PkgId.value,
+                                data[d].PkgId.displayValue,
+                                data[d].Narrative.value,
+                                data[d].Repeatable.value,
+                                data[d].SuperPkgId.value,
                                 true,
                                 true
                             );

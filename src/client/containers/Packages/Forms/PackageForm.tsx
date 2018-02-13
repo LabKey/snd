@@ -147,26 +147,26 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
 
     handleAssignedPackageAdd(assignedPackage: AssignedPackageModel) {
         const { dispatch, model, handleFieldChange, handleWarning } = this.props;
-        const { PkgId, Description, Narrative, Repeatable, SuperPkgId } = assignedPackage;
+        const { pkgId, description, narrative, repeatable, superPkgId } = assignedPackage;
 
-        if (!Repeatable) {
+        if (!repeatable) {
             // if the added package cannot be repeated and is already in the assigned packages array, emit warning
             const canAdd = model.subPackages.every((pkg) => {
-                return pkg.PkgId !== PkgId;
+                return pkg.pkgId !== pkgId;
             });
 
             if (!canAdd) {
-                return handleWarning(['Package', PkgId, 'is not repeatable.'].join(' '));
+                return handleWarning(['Package', pkgId, 'is not repeatable.'].join(' '));
             }
         }
 
         // create a new AssignedPackageModel object as the SuperPkgId needs to be undefined as it will be set on save/submit
-        let newAssignedPackage = new AssignedPackageModel(PkgId, Description, Narrative, Repeatable, SuperPkgId, false, false, model.subPackages.length);
+        let newAssignedPackage = new AssignedPackageModel(pkgId, description, narrative, repeatable, superPkgId, false, false, model.subPackages.length);
         newAssignedPackage.loadingSubpackages = true;
 
         handleFieldChange('subPackages', model.subPackages.concat([newAssignedPackage]));
 
-        dispatch(querySubPackageDetails(PkgId, model.pkgId));
+        dispatch(querySubPackageDetails(pkgId, model.pkgId));
     }
 
     handleAssignedPackageRemove(assignedPackage: AssignedPackageModel) {
@@ -193,7 +193,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         const { model } = this.props;
         for (let i = 0; i < model.subPackages.length; i++) {
             const subPackage = model.subPackages[i];
-            const idProp = assignedPackage.SuperPkgId != undefined ? 'SuperPkgId' : 'altId';
+            const idProp = assignedPackage.superPkgId != undefined ? 'SuperPkgId' : 'altId';
             if (subPackage[idProp] == assignedPackage[idProp]) {
                 return i;
             }

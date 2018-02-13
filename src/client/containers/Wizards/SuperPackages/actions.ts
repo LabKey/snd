@@ -49,8 +49,8 @@ export function formatSubPackages(subPackages: Array<AssignedPackageModel>): Arr
         return subPackages.map((s: AssignedPackageModel, i: number) => {
             return new SubPackageSubmissionModel({
                 sortOrder: i,
-                active: s.Active,
-                superPkgId: s.SuperPkgId
+                active: s.active,
+                superPkgId: s.superPkgId
             });
         });
     }
