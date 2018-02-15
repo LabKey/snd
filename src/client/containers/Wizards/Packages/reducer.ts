@@ -137,13 +137,19 @@ export const packages = handleActions({
             if (attribute.validators[0] && attribute.validators[0].expression) {
 
                 // Only display SND created validators
-                if (attribute.validators[0].name && attribute.validators[0].name.startsWith("SND")) {
-                    let minRegEx = new RegExp(VALIDATOR_GTE + "([0-9]+)");
-                    let maxRegEx = new RegExp(VALIDATOR_LTE + "([0-9]+)");
+                if (attribute.validators[0].name /*&& attribute.validators[0].name.startsWith("SND")*/) {
+                    let minRegEx = new RegExp(VALIDATOR_GTE + "([0-9]+([.][0-9]+)?)");
+                    let maxRegEx = new RegExp(VALIDATOR_LTE + "([0-9]+([.][0-9]+)?)");
                     let min = attribute.validators[0].expression.match(minRegEx);
                     let max = attribute.validators[0].expression.match(maxRegEx);
-                    attributeValues.min = (min != null ? min[1] : undefined);
-                    attributeValues.max = (max != null ? max[1] : undefined);
+                    attributeValues.min = undefined;
+                    attributeValues.max = undefined;
+                    if (min != null && !isNaN(min[1])) {
+                        attributeValues.min = min[1];
+                    }
+                    if (max != null && !isNaN(max[1])) {
+                        attributeValues.max = max[1];
+                    }
                 }
             }
 
