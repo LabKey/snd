@@ -118,9 +118,9 @@ export const projects = handleActions({
 
         if (json.projectItems && Array.isArray(json.projectItems)) {
             subPackages = json.projectItems.map(function (item) {
-                return new AssignedPackageModel(item.superPkg.PkgId, item.superPkg.Description, item.superPkg.Narrative,
-                    item.superPkg.Repeatable, item.superPkg.SuperPkgId, item.active, true, item.superPkg.SortOrder,
-                    item.superPkg.SubPackages);
+                return new AssignedPackageModel(item.superPkg.pkgId, item.superPkg.description, item.superPkg.narrative,
+                    item.superPkg.repeatable, item.superPkg.superPkgId, item.active, true, item.superPkg.sortOrder,
+                    item.superPkg.subPackages);
             });
         }
 
