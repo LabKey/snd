@@ -37,7 +37,7 @@
                         <dat:validator>
                             <dat:name>Range</dat:name>
                             <dat:typeURI>urn:lsid:labkey.com:PropertyValidator:range</dat:typeURI>
-                            <dat:expression>~lte=109&amp;~gte=80.0000</dat:expression>
+                            <dat:expression>~lte=109&amp;~gte=80</dat:expression>
                         </dat:validator>
                     </dat:validators>
                 </attribute>
