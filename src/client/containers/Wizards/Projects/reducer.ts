@@ -254,7 +254,7 @@ export const projects = handleActions({
         const projectWizardModel = state.projectData[getRevisionId(model)];
 
         const subPackages = projectWizardModel.data.subPackages.map(function(subPkg) {
-            if (subpackage.SuperPkgId === subPkg.superPkgId) {
+            if (subpackage.superPkgId === subPkg.superPkgId) {
                 return new AssignedPackageModel(subPkg.pkgId, subPkg.description, subPkg.narrative, subPkg.repeatable,
                     subPkg.superPkgId, !subpackage.Active, subPkg.showActive, subPkg.sortOrder, subPkg.subPackages);
             }
