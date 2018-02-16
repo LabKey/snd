@@ -30,6 +30,11 @@ import org.labkey.api.data.SqlSelector;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableResultSet;
 import org.labkey.api.data.TableSelector;
+import org.labkey.api.exp.Lsid;
+import org.labkey.api.exp.ObjectProperty;
+import org.labkey.api.exp.OntologyManager;
+import org.labkey.api.exp.PropertyDescriptor;
+import org.labkey.api.exp.PropertyType;
 import org.labkey.api.exp.property.DomainUtil;
 import org.labkey.api.gwt.client.model.GWTDomain;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
@@ -43,6 +48,7 @@ import org.labkey.api.query.QueryUpdateServiceException;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
+import org.labkey.api.snd.AttributeData;
 import org.labkey.api.snd.Event;
 import org.labkey.api.snd.EventData;
 import org.labkey.api.snd.Package;
@@ -50,8 +56,10 @@ import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.snd.Project;
 import org.labkey.api.snd.ProjectItem;
 import org.labkey.api.snd.SNDDomainKind;
+import org.labkey.api.snd.SNDSequencer;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.util.DateUtil;
+import org.labkey.api.util.GUID;
 
 import java.sql.SQLException;
 import java.text.ParseException;
@@ -65,6 +73,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 public class SNDManager
 {
@@ -1370,6 +1379,38 @@ public class SNDManager
         return ts.getArrayList(EventData.class);
     }
 
+//    private EventData getEventData(Container c, User u, SuperPackage superPackage, int eventId)
+//    {
+//        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+//        TableInfo eventDataTable = getTableInfo(schema, SNDSchema.EVENTDATA_TABLE_NAME);
+//
+//        // Get from EventData table
+//        SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("EventId"), eventId, CompareType.EQUAL);
+//        filter.addCondition(FieldKey.fromParts("SuperPkgId"), superPackage.getSuperPkgId(), CompareType.EQUAL);
+//        TableSelector ts = new TableSelector(eventDataTable, filter, null);
+//
+//        ts
+//    }
+//
+//    private List<EventData> getEventDatas(Container c, User u, int eventId)
+//    {
+//        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+//
+//        SQLFragment sql = new SQLFragment("SELECT SuperPkgId FROM ");
+//        sql.append(SNDSchema.NAME + "." + SNDSchema.TOPLEVEL_EVENTDATA_NAME);
+//        sql.append(" WHERE EventId = ?").add(eventId);
+//        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+//
+//        List<Integer> superPkgIds = selector.getArrayList(Integer.class);
+//
+//        SuperPackage superPackage;
+//        for (Integer superPkgId : superPkgIds)
+//        {
+//            superPackage = getFullSuperPackage(c, u, superPkgId);
+//        }
+//
+//    }
+
     public Event getEvent(Container c, User u, int eventId)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -1481,14 +1522,186 @@ public class SNDManager
         sqlex.execute(sql);
     }
 
+    public Event addExtraFieldsToEvent(Container c, User u, Event event, @Nullable Map<String, Object> row)
+    {
+        List<GWTPropertyDescriptor> extraFields = getExtraFields(c, u, SNDSchema.EVENTS_TABLE_NAME);
+        Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
+        for (GWTPropertyDescriptor extraField : extraFields)
+        {
+            if (row == null)
+            {
+                extras.put(extraField, "");
+            }
+            else
+            {
+                extras.put(extraField, row.get(extraField.getName()));
+            }
+        }
+        event.setExtraFields(extras);
+
+        return event;
+    }
+
+    private EventData addExtraFieldsToEventData(Container c, User u, EventData eventData, @Nullable Map<String, Object> row)
+    {
+        List<GWTPropertyDescriptor> extraFields = getExtraFields(c, u, SNDSchema.EVENTDATA_TABLE_NAME);
+        Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
+        for (GWTPropertyDescriptor extraField : extraFields)
+        {
+            if (row == null)
+            {
+                extras.put(extraField, "");
+            }
+            else
+            {
+                extras.put(extraField, row.get(extraField.getName()));
+            }
+        }
+        eventData.setExtraFields(extras);
+
+        return eventData;
+    }
+
+    public Event getEmptyEvent(Container c, User u)
+    {
+        Event event = new Event();
+        event = addExtraFieldsToEvent(c, u, event, null);
+
+        EventData eventData = new EventData();
+        eventData = addExtraFieldsToEventData(c, u, eventData, null);
+
+        List<EventData> eventDatas = new ArrayList<>();
+        eventDatas.add(eventData);
+
+        event.setEventData(eventDatas);
+
+        return event;
+    }
+
+    private String generateLsid(Container c, String eventObjectId)
+    {
+        return new Lsid(Event.SND_EVENT_NAMESPACE, "Folder-" + c.getRowId(), eventObjectId).toString();
+    }
+
+    private String insertExpObjectProperties(Container c, EventData eventData) throws ValidationException
+    {
+        String eventObjectId = GUID.makeGUID();
+        String objectURI = generateLsid(c, eventObjectId);
+
+        OntologyManager.ensureObject(c, objectURI);
+
+        ObjectProperty objectProperty;
+        PropertyDescriptor propertyDescriptor;
+        PropertyType propertyType;
+
+        if (eventData.getAttributes() != null)
+        {
+            for (AttributeData attributeData : eventData.getAttributes())
+            {
+                propertyDescriptor = OntologyManager.getPropertyDescriptor(attributeData.getPropertyId());
+                propertyType = PropertyType.getFromURI(propertyDescriptor.getConceptURI(), propertyDescriptor.getRangeURI());
+                objectProperty = new ObjectProperty(objectURI, c, propertyDescriptor.getPropertyURI(), attributeData.getValue(), propertyType);
+                OntologyManager.insertProperties(c, null, objectProperty);
+            }
+        }
+
+        return objectURI;
+    }
+
+    private void getEventDataRows(Container c, EventData eventData, int eventId, List<Map<String, Object>> eventDataRows) throws ValidationException
+    {
+        String objectURI = insertExpObjectProperties(c, eventData);
+        eventData.setObjectURI(objectURI);
+        eventData.setEventId(eventId);
+
+        if (eventData.getEventDataId() == null)
+        {
+            eventData.setEventDataId(SNDSequencer.EVENTDATAID.ensureId(c, null));
+        }
+
+        eventDataRows.add(eventData.getEventDataRow());
+
+        if (eventData.getSubPackages() != null)
+        {
+            for (EventData data : eventData.getSubPackages())
+            {
+                getEventDataRows(c, data, eventId, eventDataRows);
+            }
+        }
+    }
+
+    private void insertEventDatas(Container c, User u, List<EventData> eventDatas, int eventId, BatchValidationException errors) throws ValidationException, SQLException, QueryUpdateServiceException, BatchValidationException, DuplicateKeyException
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        TableInfo eventDataTable = getTableInfo(schema, SNDSchema.EVENTDATA_TABLE_NAME);
+        QueryUpdateService eventDataQus = getQueryUpdateService(eventDataTable);
+
+        List<Map<String, Object>> eventDataRows = new ArrayList<>();
+
+        for (EventData eventData : eventDatas)
+        {
+            getEventDataRows(c, eventData, eventId, eventDataRows);
+        }
+
+        try (DbScope.Transaction tx = eventDataTable.getSchema().getScope().ensureTransaction())
+        {
+            eventDataQus.insertRows(u, c, eventDataRows, errors, null, null);
+            tx.commit();
+        }
+    }
+
+    private void ensureSuperPkgsBelongToProject(Container c, User u, Event event, BatchValidationException errors)
+    {
+        if (event.getParentObjectId() == null)
+        {
+            errors.addRowError(new ValidationException("Project objectid is null."));
+        }
+
+        if (event.getEventData() != null && event.getEventData().size() > 0)
+        {
+            UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+            TableInfo projectItemsTable = getTableInfo(schema, SNDSchema.PROJECTITEMS_TABLE_NAME);
+
+            // Get from project items table
+            SimpleFilter projectItemsFilter = new SimpleFilter(FieldKey.fromParts("ParentObjectId"), event.getParentObjectId(), CompareType.EQUAL);
+            Set<String> cols = new TreeSet<>();
+            cols.add("SuperPkgId");
+            cols.add("Active");
+            TableSelector projectItemsTs = new TableSelector(projectItemsTable, cols, projectItemsFilter, null);
+
+            TableResultSet projectItems = projectItemsTs.getResultSet();
+            boolean found;
+
+            // Since event datas are in hierarchy structure, top level event datas are top level super packages
+            for (EventData eventData : event.getEventData())
+            {
+                found = false;
+                for (Map<String, Object> projectItem : projectItems)
+                {
+                    if ( (Integer)projectItem.get("SuperPkgId") == eventData.getSuperPkgId() && (Boolean)projectItem.get("Active"))
+                    {
+                        found = true;
+                    }
+                }
+
+                if (!found)
+                {
+                    errors.addRowError(new ValidationException("Super package " + eventData.getSuperPkgId() + " is not allowed for this project revision."));
+                }
+            }
+        }
+    }
+
     public void createEvent(Container c, User u, Event event, BatchValidationException errors)
     {
         String projectObjectId = getProjectObjectId(c, u, event.getProjectIdRev(), errors);
+        event.setParentObjectId(projectObjectId);
+
+        ensureSuperPkgsBelongToProject(c, u, event, errors);
 
         if (!errors.hasErrors())
         {
-            event.setParentObjectId(projectObjectId);
-
             UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
             TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
             QueryUpdateService eventQus = getQueryUpdateService(eventTable);
@@ -1506,25 +1719,59 @@ public class SNDManager
             {
                 eventQus.insertRows(u, c, eventRows, errors, null, null);
                 eventNotesQus.insertRows(u, c, eventNotesRows, errors, null, null);
+                insertEventDatas(c, u, event.getEventData(), event.getEventId(), errors);
                 tx.commit();
             }
-            catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException e)
+            catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException | ValidationException e)
             {
                 errors.addRowError(new ValidationException(e.getMessage()));
             }
-
         }
+    }
 
+    private void deleteEventDatas(Container c, User u, int eventId)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("DELETE FROM ");
+        sql.append(SNDSchema.NAME + "." + SNDSchema.EVENTDATA_TABLE_NAME);
+        sql.append(" WHERE EventId = ?");
+        sql.add(eventId);
+
+        SqlExecutor sqlex = new SqlExecutor(schema.getDbSchema());
+        sqlex.execute(sql);
+
+        deleteExpObjects(c, u, eventId);
+    }
+
+    private void deleteExpObjects(Container c, User u, int eventId)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        TableInfo eventDataTable = getTableInfo(schema, SNDSchema.EVENTDATA_TABLE_NAME);
+
+        // Get from eventNotes table
+        SimpleFilter eventDataFilter = new SimpleFilter(FieldKey.fromParts("EventId"), eventId, CompareType.EQUAL);
+        Set<String> cols = new HashSet<>();
+        cols.add("ObjectURI");
+        TableSelector eventDataTs = new TableSelector(eventDataTable, cols, eventDataFilter, null);
+
+        List<String> objectURIs = eventDataTs.getArrayList(String.class);
+
+        for (String objectUri : objectURIs)
+        {
+            OntologyManager.deleteOntologyObjects(c, objectUri);
+        }
     }
 
     public void updateEvent(Container c, User u, Event event, BatchValidationException errors)
     {
         String projectObjectId = getProjectObjectId(c, u, event.getProjectIdRev(), errors);
+        event.setParentObjectId(projectObjectId);
+
+        ensureSuperPkgsBelongToProject(c, u, event, errors);
 
         if (!errors.hasErrors())
         {
-            event.setParentObjectId(projectObjectId);
-
             UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
             TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
             QueryUpdateService eventQus = getQueryUpdateService(eventTable);
@@ -1543,9 +1790,11 @@ public class SNDManager
                 eventQus.updateRows(u, c, eventRows, null, null, null);
                 deleteEventNotes(c, u, event.getEventId());
                 eventNotesQus.insertRows(u, c, eventNotesRows, errors, null, null);
+                deleteEventDatas(c, u, event.getEventId());
+                insertEventDatas(c, u, event.getEventData(), event.getEventId(), errors);
                 tx.commit();
             }
-            catch (QueryUpdateServiceException | BatchValidationException | SQLException | InvalidKeyException | DuplicateKeyException e)
+            catch (QueryUpdateServiceException | BatchValidationException | SQLException | InvalidKeyException | DuplicateKeyException | ValidationException e)
             {
                 errors.addRowError(new ValidationException(e.getMessage()));
             }
