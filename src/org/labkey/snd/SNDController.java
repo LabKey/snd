@@ -401,7 +401,23 @@ public class SNDController extends SpringActionController
 
             JSONArray pkgIds = json.has("packages") ? json.getJSONArray("packages") : null;
             if (pkgIds == null)
+            {
                 errors.reject(ERROR_MSG, "Package IDs not defined.");
+            }
+            else
+            {
+                for (int j = 0; j < pkgIds.length(); j++)
+                {
+                    try
+                    {
+                        pkgIds.getInt(j);  // just trying to parse as int
+                    }
+                    catch (Exception e)
+                    {
+                        errors.reject(ERROR_MSG, "Package IDs are present but not valid integers.");
+                    }
+                }
+            }
         }
 
         @Override
@@ -735,7 +751,19 @@ public class SNDController extends SpringActionController
         {
             ApiSimpleResponse response = new ApiSimpleResponse();
             JSONObject json = form.getJsonObject();
-            Event event = SNDService.get().getEvent(getContainer(), getUser(), json.getInt("eventId"));
+
+            int eventId = json.getInt("eventId");
+            Event event;
+
+            // Query on new form to get form metadata
+            if (eventId == -1)
+            {
+                event = SNDManager.get().getEmptyEvent(getContainer(), getUser());
+            }
+            else
+            {
+                event = SNDService.get().getEvent(getContainer(), getUser(), json.getInt("eventId"));
+            }
             if (event != null)
             {
                 JSONObject eventJson = event.toJSON(getViewContext().getContainer(), getUser());
@@ -867,6 +895,21 @@ public class SNDController extends SpringActionController
                 eventData = parseEventData(eventDataJson);
 
             Event event = new Event(eventId, participantId, date, projectIdrev, note, eventData, getContainer());
+
+            // Get extra fields
+            JSONArray jsonExtras = json.optJSONArray("extraFields");
+            if (null != jsonExtras)
+            {
+                Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
+                JSONObject extra;
+                for (int e = 0; e < jsonExtras.length(); e++)
+                {
+                    extra = jsonExtras.getJSONObject(e);
+                    extras.put(ExperimentService.get().convertJsonToPropertyDescriptor(extra), extra.get("value"));
+                }
+                event.setExtraFields(extras);
+            }
+
             SNDService.get().saveEvent(getContainer(), getUser(), event);
             return new ApiSimpleResponse();
         }
@@ -892,8 +935,24 @@ public class SNDController extends SpringActionController
                     JSONArray attributesJson = eventDatumJson.has("attributes") ? eventDatumJson.getJSONArray("attributes") : null;
                     attributes = parseAttributeData(attributesJson);
 
+                    EventData eventData = new EventData(eventDataId, superPackageId, null, eventDataChildren, attributes);
+
+                    // Get extra fields
+                    JSONArray jsonExtras = eventDatumJson.optJSONArray("extraFields");
+                    if (null != jsonExtras)
+                    {
+                        Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
+                        JSONObject extra;
+                        for (int e = 0; e < jsonExtras.length(); e++)
+                        {
+                            extra = jsonExtras.getJSONObject(e);
+                            extras.put(ExperimentService.get().convertJsonToPropertyDescriptor(extra), extra.get("value"));
+                        }
+                        eventData.setExtraFields(extras);
+                    }
+
                     // narrative not used for saving, so make it null
-                    eventDataList.add(new EventData(eventDataId, superPackageId, null, eventDataChildren, attributes));
+                    eventDataList.add(eventData);
                 }
             }
 

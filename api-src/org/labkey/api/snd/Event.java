@@ -4,12 +4,17 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.labkey.api.collections.ArrayListMap;
 import org.labkey.api.data.Container;
+import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.security.User;
 
 import java.text.SimpleDateFormat;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class Event
 {
@@ -21,6 +26,7 @@ public class Event
     private Integer _noteId;
     private List<EventData> _eventData;
     private String _parentObjectId;
+    private Map<GWTPropertyDescriptor, Object> _extraFields = new HashMap<>();
 
     public static final String EVENT_ID = "eventId";
     public static final String EVENT_PARTICIPANT_ID = "participantId";
@@ -33,6 +39,8 @@ public class Event
 
     public static final String dateFormat = "yyyy-MM-dd'T'hh:mm:ss";  // ISO8601
     public static final SimpleDateFormat dateFormatter;
+
+    public static final String SND_EVENT_NAMESPACE = "SND.EventData";
 
     static {
         dateFormatter = new SimpleDateFormat(dateFormat);
@@ -131,6 +139,16 @@ public class Event
         _eventData = eventData;
     }
 
+    public Map<GWTPropertyDescriptor, Object> getExtraFields()
+    {
+        return _extraFields;
+    }
+
+    public void setExtraFields(Map<GWTPropertyDescriptor, Object> extraFields)
+    {
+        _extraFields = extraFields;
+    }
+
     public Map<String, Object> getEventRow(Container c)
     {
         Map<String, Object> eventValues = new ArrayListMap<>();
@@ -140,6 +158,12 @@ public class Event
         eventValues.put(EVENT_PARTICIPANT_ID, getParticipantId());
         eventValues.put(EVENT_DATE, getDate());
         eventValues.put(EVENT_PARENT_OBJECTID, getParentObjectId());
+
+        Map<GWTPropertyDescriptor, Object> extras = getExtraFields();
+        for (GWTPropertyDescriptor gpd : extras.keySet())
+        {
+            eventValues.put(gpd.getName(), extras.get(gpd));
+        }
 
         return eventValues;
     }
@@ -160,7 +184,11 @@ public class Event
     {
         JSONObject json = new JSONObject();
         json.put(EVENT_PARTICIPANT_ID, getParticipantId());
-        json.put(EVENT_DATE, dateFormatter.format(getDate()));
+
+        if (getDate() != null)
+            json.put(EVENT_DATE, dateFormatter.format(getDate()));
+
+
         json.put(EVENT_PROJECT_ID_REV, getProjectIdRev());
         json.put(EVENT_NOTE, getNote());
 
@@ -173,6 +201,25 @@ public class Event
             }
         }
         json.put(EVENT_DATA, eventDataJson);
+
+        JSONArray extras = new JSONArray();
+        Map<GWTPropertyDescriptor, Object> extraFields = getExtraFields();
+        if(extraFields != null)
+        {
+            JSONObject jsonExtra;
+            Set<GWTPropertyDescriptor> keys = new TreeSet<>(
+                    Comparator.comparing(GWTPropertyDescriptor::getName)
+            );
+            keys.addAll(extraFields.keySet());
+            for (GWTPropertyDescriptor extraPd : keys)
+            {
+                jsonExtra = SNDService.get().convertPropertyDescriptorToJson(c, u, extraPd, true);
+                jsonExtra.put("value", extraFields.get(extraPd));
+                extras.put(jsonExtra);
+            }
+
+            json.put("extraFields", extras);
+        }
 
         return json;
     }

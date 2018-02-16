@@ -4,24 +4,34 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.labkey.api.collections.ArrayListMap;
 import org.labkey.api.data.Container;
+import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.security.User;
 
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class EventData
 {
     private Integer _eventDataId;
     private int _superPkgId;
+    private int _eventId;
     private String _narrative;
+    private String _objectURI;
     private List<EventData> _subPackages;
     private List<AttributeData> _attributes;
+    private Map<GWTPropertyDescriptor, Object> _extraFields = new HashMap<>();
 
     public static final String EVENT_DATA_ID = "eventDataId";
     public static final String EVENT_DATA_SUPER_PACKAGE_ID = "superPkgId";
     public static final String EVENT_DATA_NARRATIVE = "narrative";
     public static final String EVENT_DATA_SUB_PACKAGES = "subPackages";
     public static final String EVENT_DATA_ATTRIBUTES = "attributes";
+    public static final String EVENT_DATA_OBJECTURI = "objectURI";
+    public static final String EVENT_DATA_EVENTID = "eventId";
 
 
     public EventData(Integer eventDataId, int superPkgId, String narrative, List<EventData> subPackages, List<AttributeData> attributes)
@@ -32,6 +42,8 @@ public class EventData
         _subPackages = subPackages;
         _attributes = attributes;
     }
+
+    public EventData() {}
 
     public Integer getEventDataId()
     {
@@ -63,6 +75,26 @@ public class EventData
         _narrative = narrative;
     }
 
+    public String getObjectURI()
+    {
+        return _objectURI;
+    }
+
+    public void setObjectURI(String objectURI)
+    {
+        _objectURI = objectURI;
+    }
+
+    public int getEventId()
+    {
+        return _eventId;
+    }
+
+    public void setEventId(int eventId)
+    {
+        _eventId = eventId;
+    }
+
     public List<EventData> getSubPackages()
     {
         return _subPackages;
@@ -83,13 +115,29 @@ public class EventData
         _attributes = attributes;
     }
 
+    public Map<GWTPropertyDescriptor, Object> getExtraFields()
+    {
+        return _extraFields;
+    }
+
+    public void setExtraFields(Map<GWTPropertyDescriptor, Object> extraFields)
+    {
+        _extraFields = extraFields;
+    }
+
     public Map<String, Object> getEventDataRow()
     {
         Map<String, Object> attributeDataValues = new ArrayListMap<>();
         attributeDataValues.put(EVENT_DATA_ID, getEventDataId());
         attributeDataValues.put(EVENT_DATA_SUPER_PACKAGE_ID, getSuperPkgId());
-        attributeDataValues.put(EVENT_DATA_SUB_PACKAGES, getSubPackages());
-        attributeDataValues.put(EVENT_DATA_ATTRIBUTES, getAttributes());
+        attributeDataValues.put(EVENT_DATA_OBJECTURI, getObjectURI());
+        attributeDataValues.put(EVENT_DATA_EVENTID, getEventId());
+
+        Map<GWTPropertyDescriptor, Object> extras = getExtraFields();
+        for (GWTPropertyDescriptor gpd : extras.keySet())
+        {
+            attributeDataValues.put(gpd.getName(), extras.get(gpd));
+        }
 
         return attributeDataValues;
     }
@@ -120,6 +168,25 @@ public class EventData
             }
         }
         json.put(EVENT_DATA_ATTRIBUTES, attributesJson);
+
+        JSONArray extras = new JSONArray();
+        Map<GWTPropertyDescriptor, Object> extraFields = getExtraFields();
+        if(extraFields != null)
+        {
+            JSONObject jsonExtra;
+            Set<GWTPropertyDescriptor> keys = new TreeSet<>(
+                    Comparator.comparing(GWTPropertyDescriptor::getName)
+            );
+            keys.addAll(extraFields.keySet());
+            for (GWTPropertyDescriptor extraPd : keys)
+            {
+                jsonExtra = SNDService.get().convertPropertyDescriptorToJson(c, u, extraPd, true);
+                jsonExtra.put("value", extraFields.get(extraPd));
+                extras.put(jsonExtra);
+            }
+
+            json.put("extraFields", extras);
+        }
 
         return json;
     }
