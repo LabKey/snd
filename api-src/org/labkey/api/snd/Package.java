@@ -44,7 +44,7 @@ public class Package
     private boolean _hasProject;
     private List<Integer> _categories = new ArrayList<>();
     private List<GWTPropertyDescriptor> _attributes = new ArrayList<>();
-    private List<SuperPackage> _subpackages;
+    private List<SuperPackage> _subpackages = new ArrayList<>();
     private Map<GWTPropertyDescriptor, Object> _extraFields = new HashMap<>();
     private Map<String, String> _lookups = new HashMap<>();
     private Integer _qcState;

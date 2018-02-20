@@ -7,6 +7,7 @@ import org.labkey.api.data.Container;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.security.User;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -22,7 +23,7 @@ public class EventData
     private String _narrative;
     private String _objectURI;
     private List<EventData> _subPackages;
-    private List<AttributeData> _attributes;
+    private List<AttributeData> _attributes = new ArrayList<>();
     private Map<GWTPropertyDescriptor, Object> _extraFields = new HashMap<>();
 
     public static final String EVENT_DATA_ID = "eventDataId";
@@ -40,7 +41,9 @@ public class EventData
         _superPkgId = superPkgId;
         _narrative = narrative;
         _subPackages = subPackages;
-        _attributes = attributes;
+
+        if (attributes != null)
+            _attributes = attributes;
     }
 
     public EventData() {}

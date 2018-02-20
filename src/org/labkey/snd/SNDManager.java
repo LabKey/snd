@@ -16,6 +16,8 @@
 
 package org.labkey.snd;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.cache.CacheManager;
@@ -692,6 +694,8 @@ public class SNDManager
             {
                 childPkg = new Package();
                 childPkg.setAttributes(getPackageAttributes(c, u, sPkg.getPkgId()));
+                childPkg.setPkgId(sPkg.getPkgId());
+                childPkg.setDescription(sPkg.getDescription());
                 sPkg.setPkg(childPkg);
             }
 
@@ -1693,6 +1697,102 @@ public class SNDManager
         }
     }
 
+    private Package getPackageForSuperPackage(Container c, User u, int superPkgId, BatchValidationException errors)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT PkgId FROM ");
+        sql.append(SNDSchema.NAME + "." + SNDSchema.SUPERPKGS_TABLE_NAME);
+        sql.append(" WHERE SuperPkgId = ?");
+        sql.add(superPkgId);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+
+        List<Integer> pkgIds = Lists.newArrayList(selector.getObject(Integer.class));
+
+
+        return getPackages(c, u, pkgIds, false, false,true, errors).get(0);
+    }
+
+    private void ensureValidPackage(EventData eventData, Package pkg, BatchValidationException errors)
+    {
+        List<AttributeData> attributes = eventData.getAttributes();
+        Map<Integer, Boolean> incomingProps = Maps.newHashMap();
+        boolean found;
+
+        if (attributes.size() > 0)
+        {
+            for (AttributeData attribute : attributes)
+            {
+                incomingProps.put(attribute.getPropertyId(), false);
+            }
+
+            // iterate through defined properties for package
+            for (GWTPropertyDescriptor gwtPropertyDescriptor : pkg.getAttributes())
+            {
+                found = false;
+
+                // mark incoming properties that match expected
+                for (AttributeData attribute : attributes)
+                {
+                    if (attribute.getPropertyId() == gwtPropertyDescriptor.getPropertyId())
+                    {
+                        found = true;
+                        incomingProps.put(attribute.getPropertyId(), true);
+                        break;
+                    }
+                }
+
+                // verify required fields are found
+                if (!found && gwtPropertyDescriptor.isRequired())
+                {
+                    errors.addRowError(new ValidationException("Required field " + gwtPropertyDescriptor.getName() + " in package " + pkg.getPkgId() + " not found."));
+                }
+            }
+
+            // Verify all incoming properties were found in package
+            for (Integer propId : incomingProps.keySet())
+            {
+                if (!incomingProps.get(propId))
+                    errors.addRowError(new ValidationException("Field with property id " + propId + " is not part of package " + pkg.getPkgId()));
+            }
+        }
+
+        for (SuperPackage superPackage : pkg.getSubpackages())
+        {
+            found = false;
+            for (EventData data : eventData.getSubPackages())
+            {
+                if (data.getSuperPkgId() == superPackage.getSuperPkgId())
+                {
+                    found = true;
+                    ensureValidPackage(data, superPackage.getPkg(), errors);
+                }
+            }
+
+            if (!found && pkgContainsRequiredFields(superPackage.getPkg()))
+                errors.addRowError(new ValidationException("Missing data for subpackage " + superPackage.getPkgId() + " which contains required fields"));
+        }
+    }
+
+    private boolean pkgContainsRequiredFields(Package pkg)
+    {
+        for (GWTPropertyDescriptor gwtPropertyDescriptor : pkg.getAttributes())
+        {
+            if (gwtPropertyDescriptor.isRequired())
+                return true;
+        }
+
+        return false;
+    }
+
+    private void ensureValidEventData(Container c, User u, Event event, BatchValidationException errors)
+    {
+        for (EventData eventData : event.getEventData())
+        {
+            ensureValidPackage(eventData, getPackageForSuperPackage(c, u, eventData.getSuperPkgId(), errors), errors);
+        }
+    }
+
     public void createEvent(Container c, User u, Event event, BatchValidationException errors)
     {
         String projectObjectId = getProjectObjectId(c, u, event.getProjectIdRev(), errors);
@@ -1702,34 +1802,39 @@ public class SNDManager
 
         if (!errors.hasErrors())
         {
-            UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
-            TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
-            QueryUpdateService eventQus = getQueryUpdateService(eventTable);
+            ensureValidEventData(c, u, event, errors);
 
-            TableInfo eventNotesTable = getTableInfo(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
-            QueryUpdateService eventNotesQus = getQueryUpdateService(eventNotesTable);
-
-            List<Map<String, Object>> eventRows = new ArrayList<>();
-            eventRows.add(event.getEventRow(c));
-
-            List<Map<String, Object>> eventNotesRows = new ArrayList<>();
-            eventNotesRows.add(event.getEventNotesRow(c));
-
-            try (DbScope.Transaction tx = eventTable.getSchema().getScope().ensureTransaction())
+            if (!errors.hasErrors())
             {
-                eventQus.insertRows(u, c, eventRows, errors, null, null);
-                eventNotesQus.insertRows(u, c, eventNotesRows, errors, null, null);
-                insertEventDatas(c, u, event.getEventData(), event.getEventId(), errors);
-                tx.commit();
-            }
-            catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException | ValidationException e)
-            {
-                errors.addRowError(new ValidationException(e.getMessage()));
+                UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+                TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
+                QueryUpdateService eventQus = getQueryUpdateService(eventTable);
+
+                TableInfo eventNotesTable = getTableInfo(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
+                QueryUpdateService eventNotesQus = getQueryUpdateService(eventNotesTable);
+
+                List<Map<String, Object>> eventRows = new ArrayList<>();
+                eventRows.add(event.getEventRow(c));
+
+                List<Map<String, Object>> eventNotesRows = new ArrayList<>();
+                eventNotesRows.add(event.getEventNotesRow(c));
+
+                try (DbScope.Transaction tx = eventTable.getSchema().getScope().ensureTransaction())
+                {
+                    eventQus.insertRows(u, c, eventRows, errors, null, null);
+                    eventNotesQus.insertRows(u, c, eventNotesRows, errors, null, null);
+                    insertEventDatas(c, u, event.getEventData(), event.getEventId(), errors);
+                    tx.commit();
+                }
+                catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException | ValidationException e)
+                {
+                    errors.addRowError(new ValidationException(e.getMessage()));
+                }
             }
         }
     }
 
-    private void deleteEventDatas(Container c, User u, int eventId)
+    public void deleteEventDatas(Container c, User u, int eventId)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -1772,31 +1877,36 @@ public class SNDManager
 
         if (!errors.hasErrors())
         {
-            UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
-            TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
-            QueryUpdateService eventQus = getQueryUpdateService(eventTable);
+            ensureValidEventData(c, u, event, errors);
 
-            TableInfo eventNotesTable = getTableInfo(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
-            QueryUpdateService eventNotesQus = getQueryUpdateService(eventNotesTable);
-
-            List<Map<String, Object>> eventRows = new ArrayList<>();
-            eventRows.add(event.getEventRow(c));
-
-            List<Map<String, Object>> eventNotesRows = new ArrayList<>();
-            eventNotesRows.add(event.getEventNotesRow(c));
-
-            try (DbScope.Transaction tx = eventTable.getSchema().getScope().ensureTransaction())
+            if (!errors.hasErrors())
             {
-                eventQus.updateRows(u, c, eventRows, null, null, null);
-                deleteEventNotes(c, u, event.getEventId());
-                eventNotesQus.insertRows(u, c, eventNotesRows, errors, null, null);
-                deleteEventDatas(c, u, event.getEventId());
-                insertEventDatas(c, u, event.getEventData(), event.getEventId(), errors);
-                tx.commit();
-            }
-            catch (QueryUpdateServiceException | BatchValidationException | SQLException | InvalidKeyException | DuplicateKeyException | ValidationException e)
-            {
-                errors.addRowError(new ValidationException(e.getMessage()));
+                UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+                TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
+                QueryUpdateService eventQus = getQueryUpdateService(eventTable);
+
+                TableInfo eventNotesTable = getTableInfo(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
+                QueryUpdateService eventNotesQus = getQueryUpdateService(eventNotesTable);
+
+                List<Map<String, Object>> eventRows = new ArrayList<>();
+                eventRows.add(event.getEventRow(c));
+
+                List<Map<String, Object>> eventNotesRows = new ArrayList<>();
+                eventNotesRows.add(event.getEventNotesRow(c));
+
+                try (DbScope.Transaction tx = eventTable.getSchema().getScope().ensureTransaction())
+                {
+                    eventQus.updateRows(u, c, eventRows, null, null, null);
+                    deleteEventNotes(c, u, event.getEventId());
+                    eventNotesQus.insertRows(u, c, eventNotesRows, errors, null, null);
+                    deleteEventDatas(c, u, event.getEventId());
+                    insertEventDatas(c, u, event.getEventData(), event.getEventId(), errors);
+                    tx.commit();
+                }
+                catch (QueryUpdateServiceException | BatchValidationException | SQLException | InvalidKeyException | DuplicateKeyException | ValidationException e)
+                {
+                    errors.addRowError(new ValidationException(e.getMessage()));
+                }
             }
         }
     }

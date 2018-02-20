@@ -231,6 +231,10 @@
         </columns>
     </table>
     <table tableName="EventData" tableDbType="TABLE">
+        <insertUrl></insertUrl>
+        <updateUrl></updateUrl>
+        <importUrl></importUrl>
+        <deleteUrl></deleteUrl>
         <columns>
             <column columnName="EventDataId"/>
             <column columnName="EventId"/>
@@ -256,6 +260,10 @@
         </columns>
     </table>
     <table tableName="EventNotes" tableDbType="TABLE">
+        <insertUrl></insertUrl>
+        <updateUrl></updateUrl>
+        <importUrl></importUrl>
+        <deleteUrl></deleteUrl>
         <columns>
             <column columnName="EventNoteId"/>
             <column columnName="EventId"/>
