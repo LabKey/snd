@@ -47,6 +47,8 @@ import org.labkey.api.query.InvalidKeyException;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.QueryUpdateServiceException;
+import org.labkey.api.query.SimpleQueryUpdateService;
+import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
@@ -131,6 +133,22 @@ public class SNDManager
         QueryUpdateService qus = table.getUpdateService();
         if (qus == null)
             throw new IllegalStateException(table.getName() + " query update service");
+
+        return qus;
+    }
+
+    // Creates a new QUS for extensible tables. Used for tables that have had their QUS blocked.
+    private QueryUpdateService getNewQueryUpdateService(@NotNull UserSchema schema, @NotNull String table)
+    {
+        TableInfo dbTableInfo = schema.getDbSchema().getTable(table);
+        if (dbTableInfo == null)
+            throw new IllegalStateException(table + " db table info not found.");
+
+        SimpleUserSchema.SimpleTable simpleTable = new SimpleUserSchema.SimpleTable(schema, dbTableInfo);
+        QueryUpdateService qus = new SimpleQueryUpdateService(simpleTable, dbTableInfo);
+
+        if (qus == null)
+            throw new IllegalStateException(dbTableInfo.getName() + " query update service");
 
         return qus;
     }
@@ -654,7 +672,7 @@ public class SNDManager
     }
 
     @Nullable
-    private SuperPackage getFullSuperPackage(Container c, User u, int superPkgId)
+    private SuperPackage getFullSuperPackage(Container c, User u, int superPkgId, boolean getFullSubpackages)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -668,8 +686,18 @@ public class SNDManager
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
         SuperPackage superPackage = selector.getObject(SuperPackage.class);
 
+        if (getFullSubpackages)
+        {
+            Package pkg;
+            pkg = new Package();
+            pkg.setAttributes(getPackageAttributes(c, u, superPackage.getPkgId()));
+            pkg.setPkgId(superPackage.getPkgId());
+            pkg.setDescription(superPackage.getDescription());
+            superPackage.setPkg(pkg);
+        }
+
         if (superPackage != null)
-            superPackage.setChildPackages(getAllChildSuperPkgs(c, u, superPackage.getPkgId(), false));
+            superPackage.setChildPackages(getAllChildSuperPkgs(c, u, superPackage.getPkgId(), getFullSubpackages));
 
         return superPackage;
     }
@@ -1328,7 +1356,7 @@ public class SNDManager
             SuperPackage superPackage;
             for (ProjectItem projectItem : selector.getArrayList(ProjectItem.class))
             {
-                superPackage = getFullSuperPackage(c, u, projectItem.getSuperPkgId());
+                superPackage = getFullSuperPackage(c, u, projectItem.getSuperPkgId(), false);
                 if (superPackage != null)
                 {
                     projectItem.setSuperPackage(superPackage);
@@ -1371,51 +1399,102 @@ public class SNDManager
         return tables;
     }
 
-    public List<EventData> getEventData(Container c, User u, int eventId)
+    private EventData getEventData(Container c, User u, int eventDataId, SuperPackage superPackage, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
         TableInfo eventDataTable = getTableInfo(schema, SNDSchema.EVENTDATA_TABLE_NAME);
 
         // Get from EventData table
-        SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("EventId"), eventId, CompareType.EQUAL);
+        SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("EventDataId"), eventDataId, CompareType.EQUAL);
         TableSelector ts = new TableSelector(eventDataTable, filter, null);
 
-        return ts.getArrayList(EventData.class);
+        EventData eventData = ts.getObject(EventData.class);
+
+        OntologyManager.getProperties(c, eventData.getObjectURI());
+        Map<String, ObjectProperty> properties = OntologyManager.getPropertyObjects(c, eventData.getObjectURI());
+
+        List<AttributeData> attributeDatas = new ArrayList<>();
+        AttributeData attribute;
+        for (GWTPropertyDescriptor gwtPropertyDescriptor : superPackage.getPkg().getAttributes())
+        {
+            attribute = new AttributeData();
+            attribute.setPropertyDescriptor(gwtPropertyDescriptor);
+            attribute.setPropertyId(gwtPropertyDescriptor.getPropertyId());
+            if (properties.get(gwtPropertyDescriptor.getPropertyURI()) != null)
+                attribute.setValue(properties.get(gwtPropertyDescriptor.getPropertyURI()).value().toString());
+
+            attributeDatas.add(attribute);
+        }
+
+        eventData.setAttributes(attributeDatas);
+        eventData.setNarrative(superPackage.getNarrative());
+
+        SQLFragment sql = new SQLFragment("SELECT EventDataId, SuperPkgId FROM ");
+        sql.append(SNDSchema.NAME + "." + SNDSchema.EVENTDATA_TABLE_NAME);
+        sql.append(" WHERE ParentEventDataId = ?").add(eventDataId);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+
+        TableResultSet results = selector.getResultSet();
+        Integer superPkgId;
+        SuperPackage eventDataSuperPkg = null;
+        List<EventData> subEventDatas = new ArrayList<>();
+
+        for (Map<String, Object> result : results)
+        {
+            superPkgId = (Integer)result.get("SuperPkgId");
+            for (SuperPackage supPkg : superPackage.getChildPackages())
+            {
+                if (supPkg.getSuperPkgId().equals(superPkgId))
+                {
+                    eventDataSuperPkg = supPkg;
+                    break;
+                }
+            }
+
+            if (eventDataSuperPkg != null)
+            {
+                subEventDatas.add(getEventData(c, u, (Integer)result.get("EventDataId"), eventDataSuperPkg, errors));
+            }
+            else
+            {
+                errors.addRowError(new ValidationException("Super package not found for event data."));
+            }
+        }
+        eventData.setSubPackages(subEventDatas);
+
+        return eventData;
     }
 
-//    private EventData getEventData(Container c, User u, SuperPackage superPackage, int eventId)
-//    {
-//        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
-//        TableInfo eventDataTable = getTableInfo(schema, SNDSchema.EVENTDATA_TABLE_NAME);
-//
-//        // Get from EventData table
-//        SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("EventId"), eventId, CompareType.EQUAL);
-//        filter.addCondition(FieldKey.fromParts("SuperPkgId"), superPackage.getSuperPkgId(), CompareType.EQUAL);
-//        TableSelector ts = new TableSelector(eventDataTable, filter, null);
-//
-//        ts
-//    }
-//
-//    private List<EventData> getEventDatas(Container c, User u, int eventId)
-//    {
-//        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
-//
-//        SQLFragment sql = new SQLFragment("SELECT SuperPkgId FROM ");
-//        sql.append(SNDSchema.NAME + "." + SNDSchema.TOPLEVEL_EVENTDATA_NAME);
-//        sql.append(" WHERE EventId = ?").add(eventId);
-//        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
-//
-//        List<Integer> superPkgIds = selector.getArrayList(Integer.class);
-//
-//        SuperPackage superPackage;
-//        for (Integer superPkgId : superPkgIds)
-//        {
-//            superPackage = getFullSuperPackage(c, u, superPkgId);
-//        }
-//
-//    }
+    private List<EventData> getEventDatas(Container c, User u, int eventId, BatchValidationException errors)
+    {
+        List<EventData> eventDatas = new ArrayList<>();
 
-    public Event getEvent(Container c, User u, int eventId)
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT SuperPkgId, EventDataId FROM ");
+        sql.append(SNDSchema.NAME + "." + SNDSchema.EVENTDATA_TABLE_NAME);
+        sql.append(" WHERE EventId = ? AND ParentEventDataId IS NULL").add(eventId);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+
+        Map<Integer, SuperPackage> topLevelSuperPackages = new HashMap<>();
+        Integer superPkgId;
+
+        TableResultSet results = selector.getResultSet();
+        for (Map<String, Object> result : results)
+        {
+            superPkgId = (Integer)result.get("SuperPkgId");
+            if (!topLevelSuperPackages.containsKey(superPkgId))
+            {
+                topLevelSuperPackages.put(superPkgId, getFullSuperPackage(c, u, superPkgId, true));
+            }
+
+            eventDatas.add(getEventData(c, u, (Integer)result.get("EventDataId"), topLevelSuperPackages.get(superPkgId), errors));
+        }
+
+        return eventDatas;
+    }
+
+    public Event getEvent(Container c, User u, int eventId, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -1438,6 +1517,7 @@ public class SNDManager
 
             event.setNote(eventNoteTs.getObject(String.class));
             event.setProjectIdRev(getProjectIdRev(c, u, event.getParentObjectId()));
+            event.setEventData(getEventDatas(c, u, eventId, errors));
         }
 
         return event;
@@ -1623,12 +1703,13 @@ public class SNDManager
             eventData.setEventDataId(SNDSequencer.EVENTDATAID.ensureId(c, null));
         }
 
-        eventDataRows.add(eventData.getEventDataRow());
+        eventDataRows.add(eventData.getEventDataRow(c));
 
         if (eventData.getSubPackages() != null)
         {
             for (EventData data : eventData.getSubPackages())
             {
+                data.setParentEventDataId(eventData.getEventDataId());
                 getEventDataRows(c, data, eventId, eventDataRows);
             }
         }
@@ -1638,7 +1719,8 @@ public class SNDManager
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
         TableInfo eventDataTable = getTableInfo(schema, SNDSchema.EVENTDATA_TABLE_NAME);
-        QueryUpdateService eventDataQus = getQueryUpdateService(eventDataTable);
+
+        QueryUpdateService eventDataQus = getNewQueryUpdateService(schema, SNDSchema.EVENTDATA_TABLE_NAME);
 
         List<Map<String, Object>> eventDataRows = new ArrayList<>();
 
@@ -1810,8 +1892,7 @@ public class SNDManager
                 TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
                 QueryUpdateService eventQus = getQueryUpdateService(eventTable);
 
-                TableInfo eventNotesTable = getTableInfo(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
-                QueryUpdateService eventNotesQus = getQueryUpdateService(eventNotesTable);
+                QueryUpdateService eventNotesQus = getNewQueryUpdateService(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
 
                 List<Map<String, Object>> eventRows = new ArrayList<>();
                 eventRows.add(event.getEventRow(c));
@@ -1885,8 +1966,7 @@ public class SNDManager
                 TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
                 QueryUpdateService eventQus = getQueryUpdateService(eventTable);
 
-                TableInfo eventNotesTable = getTableInfo(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
-                QueryUpdateService eventNotesQus = getQueryUpdateService(eventNotesTable);
+                QueryUpdateService eventNotesQus = getNewQueryUpdateService(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
 
                 List<Map<String, Object>> eventRows = new ArrayList<>();
                 eventRows.add(event.getEventRow(c));

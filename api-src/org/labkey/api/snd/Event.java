@@ -158,6 +158,7 @@ public class Event
         eventValues.put(EVENT_PARTICIPANT_ID, getParticipantId());
         eventValues.put(EVENT_DATE, getDate());
         eventValues.put(EVENT_PARENT_OBJECTID, getParentObjectId());
+        eventValues.put("Container", c);
 
         Map<GWTPropertyDescriptor, Object> extras = getExtraFields();
         for (GWTPropertyDescriptor gpd : extras.keySet())
@@ -176,6 +177,7 @@ public class Event
 
         eventValues.put(EVENT_NOTE, getNote());
         eventValues.put(EVENT_NOTE_ID, getNoteId());
+        eventValues.put("Container", c);
 
         return eventValues;
     }

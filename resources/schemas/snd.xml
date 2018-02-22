@@ -239,12 +239,9 @@
             <column columnName="EventDataId"/>
             <column columnName="EventId"/>
             <column columnName="SuperPkgId"/>
+            <column columnName="ParentEventDataId"/>
             <column columnName="ObjectURI"/>
             <column columnName="Container"/>
-            <column columnName="CreatedBy"/>
-            <column columnName="Created"/>
-            <column columnName="ModifiedBy"/>
-            <column columnName="Modified"/>
             <column columnName="Lsid">
                 <datatype>lsidtype</datatype>
                 <isReadOnly>true</isReadOnly>

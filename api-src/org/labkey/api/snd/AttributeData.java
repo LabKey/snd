@@ -25,6 +25,9 @@ public class AttributeData
         _value = value;
     }
 
+    public AttributeData()
+    {}
+
     public int getPropertyId()
     {
         return _propertyId;

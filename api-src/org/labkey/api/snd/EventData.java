@@ -20,6 +20,7 @@ public class EventData
     private Integer _eventDataId;
     private int _superPkgId;
     private int _eventId;
+    private Integer _parentEventDataId;
     private String _narrative;
     private String _objectURI;
     private List<EventData> _subPackages;
@@ -33,6 +34,7 @@ public class EventData
     public static final String EVENT_DATA_ATTRIBUTES = "attributes";
     public static final String EVENT_DATA_OBJECTURI = "objectURI";
     public static final String EVENT_DATA_EVENTID = "eventId";
+    public static final String EVENT_DATA_PARENT_EVENTDATAID = "parentEventDataId";
 
 
     public EventData(Integer eventDataId, int superPkgId, String narrative, List<EventData> subPackages, List<AttributeData> attributes)
@@ -66,6 +68,16 @@ public class EventData
     public void setSuperPkgId(int superPkgId)
     {
         _superPkgId = superPkgId;
+    }
+
+    public Integer getParentEventDataId()
+    {
+        return _parentEventDataId;
+    }
+
+    public void setParentEventDataId(Integer parentEventDataId)
+    {
+        _parentEventDataId = parentEventDataId;
     }
 
     public String getNarrative()
@@ -128,21 +140,23 @@ public class EventData
         _extraFields = extraFields;
     }
 
-    public Map<String, Object> getEventDataRow()
+    public Map<String, Object> getEventDataRow(Container c)
     {
-        Map<String, Object> attributeDataValues = new ArrayListMap<>();
-        attributeDataValues.put(EVENT_DATA_ID, getEventDataId());
-        attributeDataValues.put(EVENT_DATA_SUPER_PACKAGE_ID, getSuperPkgId());
-        attributeDataValues.put(EVENT_DATA_OBJECTURI, getObjectURI());
-        attributeDataValues.put(EVENT_DATA_EVENTID, getEventId());
+        Map<String, Object> eventDataValues = new ArrayListMap<>();
+        eventDataValues.put(EVENT_DATA_ID, getEventDataId());
+        eventDataValues.put(EVENT_DATA_SUPER_PACKAGE_ID, getSuperPkgId());
+        eventDataValues.put(EVENT_DATA_OBJECTURI, getObjectURI());
+        eventDataValues.put(EVENT_DATA_EVENTID, getEventId());
+        eventDataValues.put(EVENT_DATA_PARENT_EVENTDATAID, getParentEventDataId());
+        eventDataValues.put("Container", c);
 
         Map<GWTPropertyDescriptor, Object> extras = getExtraFields();
         for (GWTPropertyDescriptor gpd : extras.keySet())
         {
-            attributeDataValues.put(gpd.getName(), extras.get(gpd));
+            eventDataValues.put(gpd.getName(), extras.get(gpd));
         }
 
-        return attributeDataValues;
+        return eventDataValues;
     }
 
     public JSONObject toJSON(Container c, User u)
