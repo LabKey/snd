@@ -17,6 +17,7 @@
 package org.labkey.snd;
 
 import org.jetbrains.annotations.NotNull;
+import org.labkey.api.audit.AuditLogService;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.exp.api.ExperimentService;
@@ -90,6 +91,7 @@ public class SNDModule extends SpringModule
         });
 
         ExperimentService.get().registerExperimentDataHandler(new SNDDataHandler());
+        AuditLogService.get().registerAuditType(new NarrativeAuditProvider());
     }
 
     @Override
