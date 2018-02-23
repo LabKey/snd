@@ -1593,17 +1593,30 @@ public class SNDManager
         return idRev;
     }
 
-    public void deleteEventNotes(Container c, User u, int eventId)
+    public void deleteEventNotes(Container c, User u, int eventId) throws SQLException, QueryUpdateServiceException, BatchValidationException, InvalidKeyException
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
-        SQLFragment sql = new SQLFragment("DELETE FROM ");
+        SQLFragment sql = new SQLFragment("SELECT EventNoteId FROM ");
         sql.append(SNDSchema.NAME + "." + SNDSchema.EVENTNOTES_TABLE_NAME);
         sql.append(" WHERE EventId = ?");
         sql.add(eventId);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
-        SqlExecutor sqlex = new SqlExecutor(schema.getDbSchema());
-        sqlex.execute(sql);
+        List<Integer> eventNoteIds = selector.getArrayList(Integer.class);
+
+        QueryUpdateService eventNotesQus = getNewQueryUpdateService(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
+
+        Map<String, Object> row;
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (Integer eventNoteId : eventNoteIds)
+        {
+            row = new HashMap<>();
+            row.put("EventNoteId", eventNoteId);
+            rows.add(row);
+        }
+
+        eventNotesQus.deleteRows(u, c, rows, null, null);
     }
 
     public Event addExtraFieldsToEvent(Container c, User u, Event event, @Nullable Map<String, Object> row)
@@ -1916,18 +1929,30 @@ public class SNDManager
         }
     }
 
-    public void deleteEventDatas(Container c, User u, int eventId)
+    public void deleteEventDatas(Container c, User u, int eventId) throws SQLException, QueryUpdateServiceException, BatchValidationException, InvalidKeyException
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
-        SQLFragment sql = new SQLFragment("DELETE FROM ");
+        SQLFragment sql = new SQLFragment("SELECT EventDataId FROM ");
         sql.append(SNDSchema.NAME + "." + SNDSchema.EVENTDATA_TABLE_NAME);
         sql.append(" WHERE EventId = ?");
         sql.add(eventId);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
-        SqlExecutor sqlex = new SqlExecutor(schema.getDbSchema());
-        sqlex.execute(sql);
+        List<Integer> eventDataIds = selector.getArrayList(Integer.class);
 
+        QueryUpdateService eventDataQus = getNewQueryUpdateService(schema, SNDSchema.EVENTDATA_TABLE_NAME);
+
+        Map<String, Object> row;
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (Integer eventDataId : eventDataIds)
+        {
+            row = new HashMap<>();
+            row.put("EventDataId", eventDataId);
+            rows.add(row);
+        }
+
+        eventDataQus.deleteRows(u, c, rows, null, null);
         deleteExpObjects(c, u, eventId);
     }
 

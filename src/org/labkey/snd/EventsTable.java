@@ -2,6 +2,7 @@ package org.labkey.snd;
 
 import org.labkey.api.data.Container;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.InvalidKeyException;
 import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.QueryUpdateServiceException;
@@ -45,8 +46,15 @@ public class EventsTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
         {
             int eventId = (Integer) oldRowMap.get("EventId");
 
-            SNDManager.get().deleteEventDatas(container, user, eventId);
-            SNDManager.get().deleteEventNotes(container, user, eventId);
+            try
+            {
+                SNDManager.get().deleteEventDatas(container, user, eventId);
+                SNDManager.get().deleteEventNotes(container, user, eventId);
+            }
+            catch (BatchValidationException e)
+            {
+                throw new QueryUpdateServiceException(e.getMessage());
+            }
 
             // now delete package row
             return super.deleteRow(user, container, oldRowMap);
