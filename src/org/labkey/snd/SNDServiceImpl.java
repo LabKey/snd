@@ -20,6 +20,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.labkey.api.action.ApiUsageException;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.DbScope;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.exp.api.ExperimentService;
@@ -37,12 +38,13 @@ import org.labkey.api.snd.Project;
 import org.labkey.api.snd.SNDSequencer;
 import org.labkey.api.snd.SNDService;
 import org.labkey.api.snd.SuperPackage;
-import org.labkey.api.util.UnexpectedException;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by marty on 8/4/2017.
@@ -50,9 +52,16 @@ import java.util.Map;
 public class SNDServiceImpl implements SNDService
 {
     public static final SNDServiceImpl INSTANCE = new SNDServiceImpl();
+    private final ReentrantLock lock = new ReentrantLock();
 
     private SNDServiceImpl()
     {
+    }
+
+    @Override
+    public Lock getWriteLock()
+    {
+        return lock;
     }
 
     @Override
@@ -72,18 +81,23 @@ public class SNDServiceImpl implements SNDService
             String domainURI = PackageDomainKind.getDomainURI(PackageDomainKind.getPackageSchemaName(), SNDManager.getPackageName(pkg.getPkgId()), c, u);
             domain = PropertyService.get().getDomain(c, domainURI);
         }
-        if ((null != domain) && !cloneFlag)  // clone case is basically creation
-        {
-            SNDManager.get().updatePackage(u, c, pkg, superPkg, errors);
-        }
-        else
-        {
-            pkg.setPkgId(SNDSequencer.PKGID.ensureId(c, pkg.getPkgId()));
 
-            if (superPkg != null)
-                superPkg.setPkgId(pkg.getPkgId());
+        try (DbScope.Transaction tx = SNDSchema.getInstance().getSchema().getScope().ensureTransaction(lock))
+        {
+            if ((null != domain) && !cloneFlag)  // clone case is basically creation
+            {
+                SNDManager.get().updatePackage(u, c, pkg, superPkg, errors);
+            }
+            else
+            {
+                pkg.setPkgId(SNDSequencer.PKGID.ensureId(c, pkg.getPkgId()));
 
-            SNDManager.get().createPackage(u, c, pkg, superPkg, errors);
+                if (superPkg != null)
+                    superPkg.setPkgId(pkg.getPkgId());
+
+                SNDManager.get().createPackage(u, c, pkg, superPkg, errors);
+            }
+            tx.commit();
         }
         if (errors.hasErrors())
             throw new ApiUsageException(errors);
@@ -141,24 +155,28 @@ public class SNDServiceImpl implements SNDService
         BatchValidationException errors = new BatchValidationException();
 
         String objectId = SNDManager.get().getProjectObjectId(c, u, project, errors);
-        if (objectId != null)
+
+        try (DbScope.Transaction tx = SNDSchema.getInstance().getSchema().getScope().ensureTransaction(lock))
         {
-            project.updateObjectId(objectId);
-            if (isRevision)
+            if (objectId != null)
             {
-                SNDManager.get().reviseProject(c, u, project, errors);
+                project.updateObjectId(objectId);
+                if (isRevision)
+                {
+                    SNDManager.get().reviseProject(c, u, project, errors);
+                }
+                else
+                {
+                    SNDManager.get().updateProject(c, u, project, errors);
+                }
             }
             else
             {
-                SNDManager.get().updateProject(c, u, project, errors);
+                project.setRevisionNum(0);
+                SNDManager.get().createProject(c, u, project, errors);
             }
+            tx.commit();
         }
-        else
-        {
-            project.setRevisionNum(0);
-            SNDManager.get().createProject(c, u, project, errors);
-        }
-
         if (errors.hasErrors())
             throw new ApiUsageException(errors);
     }

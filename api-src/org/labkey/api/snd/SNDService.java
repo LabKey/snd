@@ -25,6 +25,7 @@ import org.labkey.api.services.ServiceRegistry;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
 
 /**
  * Created by marty on 8/4/2017.
@@ -50,4 +51,5 @@ public interface SNDService
     Event getEvent(Container c, User u, int eventId);
     JSONObject convertPropertyDescriptorToJson(Container c, User u, GWTPropertyDescriptor pd, boolean resolveLookupValues);
     JSONArray lookupValuesToJson(Container c, User u, String schema, String query);
+    Lock getWriteLock();
 }

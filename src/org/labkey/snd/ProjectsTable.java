@@ -1,9 +1,9 @@
 package org.labkey.snd;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.DbScope;
 import org.labkey.api.data.JdbcType;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
@@ -20,7 +20,7 @@ import org.labkey.api.query.SimpleQueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
-import org.labkey.api.snd.Project;
+import org.labkey.api.snd.SNDService;
 
 import java.sql.SQLException;
 import java.util.HashSet;
@@ -105,14 +105,18 @@ public class ProjectsTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             TableInfo projectItemsTable = getTableInfo(schema, SNDSchema.PROJECTITEMS_TABLE_NAME);
             QueryUpdateService projectItemsQus = getQueryUpdateService(projectItemsTable);
 
-            List<Map<String, Object>> rows = SNDManager.get().getProjectItems(container, user, projectId, revNum);
-            try
+            try (DbScope.Transaction tx = SNDSchema.getInstance().getSchema().getScope().ensureTransaction(SNDService.get().getWriteLock()))
             {
-                projectItemsQus.deleteRows(user, container, rows, null, null);
-            }
-            catch (BatchValidationException e)
-            {
-                throw new QueryUpdateServiceException(e);
+                List<Map<String, Object>> rows = SNDManager.get().getProjectItems(container, user, projectId, revNum);
+                try
+                {
+                    projectItemsQus.deleteRows(user, container, rows, null, null);
+                }
+                catch (BatchValidationException e)
+                {
+                    throw new QueryUpdateServiceException(e);
+                }
+                tx.commit();
             }
 
             // now delete package row

@@ -18,6 +18,7 @@ package org.labkey.snd;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.DbScope;
 import org.labkey.api.data.JdbcType;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
@@ -43,6 +44,7 @@ import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.PackageDomainKind;
+import org.labkey.api.snd.SNDService;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -157,46 +159,49 @@ public class PackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             if (isPackageInUse(pkgId))
                 throw new QueryUpdateServiceException("Package in use, cannot delete.");
 
-            SNDManager.get().deletePackageCategories(container, user, pkgId);
-
             String domainName = SNDManager.getPackageName(pkgId);
             Domain domain = PropertyService.get().getDomain(getDomainContainer(container), PackageDomainKind.getDomainURI(SNDSchema.NAME, domainName, container, user));
             if (domain == null)
                 throw new QueryUpdateServiceException("Package domain not found.");
 
-            try
+            try (DbScope.Transaction tx = SNDSchema.getInstance().getSchema().getScope().ensureTransaction(SNDService.get().getWriteLock()))
             {
-                domain.delete(user);
-            }
-            catch (DomainNotFoundException e)
-            {
-                throw new QueryUpdateServiceException(e);
-            }
+                SNDManager.get().deletePackageCategories(container, user, pkgId);
 
-            // get all super packages for this package and delete them (if they exist)
-            UserSchema schema = QueryService.get().getUserSchema(user, container, SNDSchema.NAME);
-            TableInfo superPkgsTable = getTableInfo(schema, SNDSchema.SUPERPKGS_TABLE_NAME);
-            QueryUpdateService superPkgQus = getQueryUpdateService(superPkgsTable);
-            List<Map<String, Object>> superPkgRows = new ArrayList<Map<String, Object>>();
-            List<Integer> superPkgIds = SNDManager.getSuperPkgIdsForPkg(container, user, pkgId);
-            if(superPkgIds != null)
-            {
-                for (Integer superPkgId : superPkgIds)
-                {
-                    Map<String, Object> superPkgRow = new HashMap<>();
-                    superPkgRow.put("SuperPkgId", superPkgId);
-                    superPkgRows.add(superPkgRow);
-                }
                 try
                 {
-                    superPkgQus.deleteRows(user, container, superPkgRows, null, null);
+                    domain.delete(user);
                 }
-                catch (BatchValidationException e)
+                catch (DomainNotFoundException e)
                 {
                     throw new QueryUpdateServiceException(e);
                 }
-            }
 
+                // get all super packages for this package and delete them (if they exist)
+                UserSchema schema = QueryService.get().getUserSchema(user, container, SNDSchema.NAME);
+                TableInfo superPkgsTable = getTableInfo(schema, SNDSchema.SUPERPKGS_TABLE_NAME);
+                QueryUpdateService superPkgQus = getQueryUpdateService(superPkgsTable);
+                List<Map<String, Object>> superPkgRows = new ArrayList<Map<String, Object>>();
+                List<Integer> superPkgIds = SNDManager.getSuperPkgIdsForPkg(container, user, pkgId);
+                if (superPkgIds != null)
+                {
+                    for (Integer superPkgId : superPkgIds)
+                    {
+                        Map<String, Object> superPkgRow = new HashMap<>();
+                        superPkgRow.put("SuperPkgId", superPkgId);
+                        superPkgRows.add(superPkgRow);
+                    }
+                    try
+                    {
+                        superPkgQus.deleteRows(user, container, superPkgRows, null, null);
+                    }
+                    catch (BatchValidationException e)
+                    {
+                        throw new QueryUpdateServiceException(e);
+                    }
+                }
+                tx.commit();
+            }
             // now delete package row
             return super.deleteRow(user, container, oldRowMap);
         }
