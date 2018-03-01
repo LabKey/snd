@@ -157,9 +157,9 @@
         html.push(
                 '<thead>',
                 '<tr>',
-                '<th class="test-results-list">Test Name</th>',
-                '<th class="test-results-list">Status</th>',
-                '<th>Reason</th>',
+                '<th class="test-results-list"><b>Test Name</b></th>',
+                '<th class="test-results-list"><b>Status</b></th>',
+                '<th><b>Reason</b></th>',
                 '</tr>',
                 '</thead>'
         );
