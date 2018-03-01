@@ -92,7 +92,7 @@ export class SubpackageViewerImpl extends React.Component<SubpackageViewerProps,
         const { selectedSubPackage, handleAssignedPackageRemove, handleAssignedPackageReorder, handleRowClick,
             handleToggleActiveAction, view, showActive } = this.props;
         const { collapsed } = this.state;
-        const idProp = selectedSubPackage != undefined && selectedSubPackage.superPkgId ? 'SuperPkgId' : 'altId';
+        const idProp = selectedSubPackage != undefined && selectedSubPackage.superPkgId ? 'superPkgId' : 'altId';
         const treeCollapsed = collapsed[this.getModelId(assignedPackage)] || false;
         const isTopLevelSubpackage = treeLevel == 0;
 

@@ -193,7 +193,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         const { model } = this.props;
         for (let i = 0; i < model.subPackages.length; i++) {
             const subPackage = model.subPackages[i];
-            const idProp = assignedPackage.superPkgId != undefined ? 'SuperPkgId' : 'altId';
+            const idProp = assignedPackage.superPkgId != undefined ? 'superPkgId' : 'altId';
             if (subPackage[idProp] == assignedPackage[idProp]) {
                 return i;
             }

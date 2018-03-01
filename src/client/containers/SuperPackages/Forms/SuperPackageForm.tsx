@@ -55,7 +55,7 @@ export class SuperPackageFormImpl extends React.Component<SuperPackageFormProps,
     handleAssignedPackageClick(assignedPackage: AssignedPackageModel) {
         let {selectedSubPackage} = this.state;
 
-        let idProp = assignedPackage.superPkgId ? 'SuperPkgId' : 'altId';
+        let idProp = assignedPackage.superPkgId ? 'superPkgId' : 'altId';
 
         if (selectedSubPackage == undefined || selectedSubPackage[idProp] != assignedPackage[idProp]) {
             this.setState({selectedSubPackage: assignedPackage});
