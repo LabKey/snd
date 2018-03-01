@@ -64,6 +64,7 @@ import org.labkey.api.snd.SNDSequencer;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.util.DateUtil;
 import org.labkey.api.util.GUID;
+import org.labkey.api.util.ResultSetUtil;
 
 import java.sql.SQLException;
 import java.text.ParseException;
@@ -1461,6 +1462,7 @@ public class SNDManager
                 errors.addRowError(new ValidationException("Super package not found for event data."));
             }
         }
+        ResultSetUtil.close(results);
         eventData.setSubPackages(subEventDatas);
 
         return eventData;
@@ -1491,7 +1493,7 @@ public class SNDManager
 
             eventDatas.add(getEventData(c, u, (Integer)result.get("EventDataId"), topLevelSuperPackages.get(superPkgId), errors));
         }
-
+        ResultSetUtil.close(results);
         return eventDatas;
     }
 
@@ -1785,7 +1787,7 @@ public class SNDManager
                         found = true;
                     }
                 }
-
+                ResultSetUtil.close(projectItems);
                 if (!found)
                 {
                     errors.addRowError(new ValidationException("Super package " + eventData.getSuperPkgId() + " is not allowed for this project revision."));
