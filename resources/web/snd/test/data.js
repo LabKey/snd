@@ -385,7 +385,7 @@
                     ]
                 },
                 expected: {
-                    // eventId: 1800000,
+                    eventId: 1800000,
                     participantId: 1,
                     date: "2018-02-26T17:51:20",
                     note: "This is a test event note.",

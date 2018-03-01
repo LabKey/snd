@@ -185,6 +185,7 @@ public class Event
     public JSONObject toJSON(Container c, User u)
     {
         JSONObject json = new JSONObject();
+        json.put(EVENT_ID, getEventId());
         json.put(EVENT_PARTICIPANT_ID, getParticipantId());
 
         if (getDate() != null)
