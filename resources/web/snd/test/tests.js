@@ -4,7 +4,7 @@
 
     var TESTS = [
         {
-            name: 'Invalid GetEvent - No JSON',
+            name: 'Invalid Get Event: No JSON',
             run: function () {
                 return {
                     request: {

@@ -350,9 +350,7 @@
                     }
                 }
             ]
-        },
-
-        GET_EVENT_TEST: {}
+        }
     };
 
 
@@ -363,11 +361,11 @@
 
         return [
             {
-                name: 'Save Valid Event Test',
+                name: 'Valid Save Event',
                 jsonData: {
                     eventId: 1800000,
                     participantId: 1,
-                    // date: "2018-02-26T17:51:20.551Z",
+                    date: "2018-02-26T17:51:20",
                     note: "This is a test event note.",
                     projectIdRev: '60|0',
                     eventData: [
@@ -389,7 +387,7 @@
                 expected: {
                     // eventId: 1800000,
                     participantId: 1,
-                    // date: "2018-02-26T17:51:20.551Z",
+                    date: "2018-02-26T17:51:20",
                     note: "This is a test event note.",
                     projectIdRev: '60|0',
                     eventData: [
@@ -410,10 +408,9 @@
                     ]
                 }
             },{
-                name: 'Invalid Test Missing ParticipantId',
+                name: 'Invalid Save Event: Missing ParticipantId',
                 jsonData: {
                     eventId: 1800001,
-                    // date: "2018-02-26T17:51:20.551Z",
                     note: "This is a test event note.",
                     projectIdRev: '60|0',
                     eventData: [
