@@ -3,22 +3,17 @@
 (function($) {
 
     var TESTS = [
-        // {
-        //     name: 'This is a test',
-        //     run: function () {
-        //         return {
-        //             request: {
-        //                 url: LABKEY.SND_TEST_URLS.GET_EVENT_URL,
-        //                 jsonData: SNDTEST_INPUT_DATA.GET_EVENT_TEST.jsonData
-        //             },
-        //             response: function(response, json) {
-        //                 return true;
-        //
-        //                 // return 'Response shape not what was expected.';
-        //             }
-        //         }
-        //     }
-        // }
+        {
+            name: 'Invalid GetEvent - No JSON',
+            run: function () {
+                return {
+                    request: {
+                        url: LABKEY.SND_TEST_URLS.GET_EVENT_URL
+                    },
+                    expectedFailure: "Missing json parameter."
+                }
+            }
+        }
     ];
 
 
