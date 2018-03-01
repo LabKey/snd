@@ -13,6 +13,10 @@
             <narrative>Research surger sedation</narrative>
             <attributes />
         </package>
+        <package id="275" description="Empty Package" repeatable="true" displayable="true" usda-category="U">
+            <narrative>This is an empty package</narrative>
+            <attributes />
+        </package>
         <package id="250" description="Vet Comment" repeatable="true" displayable="true" usda-category="U">
             <narrative>Vet comment: {comment}</narrative>
             <attributes>
@@ -127,6 +131,9 @@
             </children>
         </superPackage>
         <superPackage superPkgId="5250" pkgId="250">
+            <children />
+        </superPackage>
+        <superPackage superPkgId="5275" pkgId="275">
             <children />
         </superPackage>
         <superPackage superPkgId="5300" pkgId="300">
