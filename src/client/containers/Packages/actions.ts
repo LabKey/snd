@@ -18,7 +18,7 @@ import { PackagesModel } from './model'
 
 import { deleteRows, queryInvalidate } from '../../query/actions'
 import { QueryModel } from '../../query/model'
-import { setAppError, setAppMessage } from "../App/actions";
+import {clearAppMessage, setAppError, setAppMessage} from "../App/actions";
 import {TOPLEVEL_SUPER_PKG_SQ} from "../SuperPackages/constants";
 
 export function deletePackage(id: number) {
@@ -32,10 +32,10 @@ export function deletePackage(id: number) {
             dispatch(queryInvalidate(PKG_SQ));
             dispatch(queryInvalidate(TOPLEVEL_SUPER_PKG_SQ));
             dispatch(packagesInvalidate());
-
-            dispatch(setAppMessage('Package ' +  id + ' successfully removed.'));
+            let msg = 'Package ' +  id + ' successfully removed.';
+            dispatch(setAppMessage(msg));
             setTimeout(() => {
-                dispatch(setAppMessage(''));
+                dispatch(clearAppMessage({message: msg}));
             }, 2000);
         }).catch((error) => {
             dispatch(packagesResetWarning());

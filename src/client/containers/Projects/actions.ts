@@ -5,7 +5,7 @@ import { ProjectsModel } from './model'
 
 import { deleteRows, queryInvalidate } from '../../query/actions'
 import { QueryModel } from '../../query/model'
-import { setAppError, setAppMessage } from "../App/actions";
+import { setAppError, setAppMessage, clearAppMessage } from "../App/actions";
 
 export function deleteProject(id: number, rev: number, objId: number) {
     return (dispatch) => {
@@ -14,10 +14,10 @@ export function deleteProject(id: number, rev: number, objId: number) {
         return deleteRows(SND_PROJECT_SCHEMA, SND_PROJECT_QUERY, rows).then((response) => {
             dispatch(queryInvalidate(PROJECT_SQL));
             dispatch(projectsInvalidate());
-
-            dispatch(setAppMessage('Project ' +  id + ', ' + 'Revision ' + rev + ' successfully removed.'));
+            let msg = 'Project ' +  id + ', ' + 'Revision ' + rev + ' successfully removed.';
+            dispatch(setAppMessage(msg));
             setTimeout(() => {
-                dispatch(setAppMessage(''));
+                dispatch(clearAppMessage({message: msg}));
             }, 2000);
         }).catch((error) => {
             dispatch(projectsResetWarning());
