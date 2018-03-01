@@ -116,10 +116,12 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     private static final int TEST_PARTICIPANT_ID = 1;
 
     private static final int TEST_PROJECT_ID = 50;
+    private static final int PKG_TEST_PROJECT_ID = 55;
     private static final int TEST_PROJECT_REF_ID = 100;
     private static final String TEST_PROJECT_START_DATE = "2018-01-01";
     private static final String TEST_PROJECT_DB_START_DATE = "2018-01-01";
     private static final String TEST_PROJECT_END_DATE = "2018-01-02";
+    private static final String TEST_PROJECT_FUTURE_END_DATE = "2030-01-02";
     private static final String TEST_PROJECT_DB_END_DATE = "2018-01-02";
     private static final String TEST_PROJECT_COMMON_DATE = "2018-02-10";
     private static final String TEST_PROJECT_DESC = "Project Test";
@@ -129,6 +131,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     private static final String TEST_PROJECT_DEFAULT_PKGS = "default";
     private static final int TEST_IMPORT_SUPERPKG1 = 5100;
     private static final int TEST_IMPORT_SUPERPKG2 = 5150;
+    private static final int TEST_IMPORT_SUPERPKG3 = 5275;
 
     private static final String UITEST_PROJECT_SUBPKG1 = "TB and Weight";
     private static final String UITEST_PROJECT_SUBPKG2 = "Vet Comment";
@@ -483,104 +486,26 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
                 "});";
     }
 
-    private static final String ADDEVENT = "LABKEY.Query.insertRows({           \n" +
-            "		containerPath: '" + PROJECTNAME + "',                       \n" +
-            "		schemaName: 'snd',                                          \n" +
-            "		queryName: 'SuperPkgs',                                     \n" +
-            "		rows:                                                       \n" +
-            "       [{                                                          \n" +
-            "           'PkgId': " + TEST_PKG_ID + ",                           \n" +
-            "           'SuperPkgId': " + TEST_PKG_ID + ",                      \n" +
-            "           'SuperPkgPath': 'test'                                  \n" +
-            "       }],                                                         \n" +
-            "       successCallback: function(data){                            \n" +
-            "           createEvent(" + TEST_PKG_ID + ");                       \n" +
-            "       },                                                          \n" +
-            "       failureCallback: function(e){                               \n" +
-            "           callback(e.exception);                                  \n" +
-            "       }                                                           \n" +
-            "	});                                                             \n" +
-            "   function createEvent(id){                                       \n" +
-            "       LABKEY.Query.insertRows({                                   \n" +
-            "       containerPath: '" + PROJECTNAME + "',                       \n" +
-            "       schemaName: 'snd',                                          \n" +
-            "       queryName: 'Events',                                        \n" +
-            "       rows: [{                                                    \n" +
-            "           'EventId': id,                                          \n" +
-            "           'ParticipantId': " + TEST_PARTICIPANT_ID + ",           \n" +
-            "           'Date': new Date()                                      \n" +
-            "       }],                                                         \n" +
-            "       successCallback: function(data){                            \n" +
-            "           createEventData(id);                                    \n" +
-            "       },                                                          \n" +
-            "       failureCallback: function(e){                               \n" +
-            "           callback(e.exception);                                  \n" +
-            "       }                                                           \n" +
-            "	    });                                                         \n" +
-            "   }                                                               \n" +
-            "   function createEventData(id){                                   \n" +
-            "       LABKEY.Query.insertRows({                                   \n" +
-            "       containerPath: '" + PROJECTNAME + "',                       \n" +
-            "       schemaName: 'snd',                                          \n" +
-            "       queryName: 'EventData',                                     \n" +
-            "       rows: [{                                                    \n" +
-            "           'EventId': id,                                          \n" +
-            "           'EventDataId': id,                                      \n" +
-            "           'SuperPkgId': id,                                       \n" +
-            "           'ObjectURI': 'testSNDEventDataURI'                      \n" +
-            "       }],                                                         \n" +
-            "       successCallback: function(data){                            \n" +
-            "           callback('Success!');                                   \n" +
-            "       },                                                          \n" +
-            "       failureCallback: function(e){                               \n" +
-            "           callback(e.exception);                                  \n" +
-            "       }                                                           \n" +
-            "	    });                                                         \n" +
-            "   }                                                               \n";
-
-    private static final String ADDPACKAGETOPROJECT ="LABKEY.Query.insertRows({ \n" +
-            "		containerPath: '"+ PROJECTNAME + "',                        \n" +
-            "		schemaName: 'snd',                                          \n" +
-            "		queryName: 'Projects',                                      \n" +
-            "		rows:                                                       \n" +
-            "       [{                                                          \n" +
-            "           'ProjectId': " + TEST_PKG_ID + ",                       \n" +
-            "           'RevisionNum': 1,                                       \n" +
-            "           'ReferenceId': 1,                                       \n" +
-            "           'Active': true,                                         \n" +
-            "           'StartDate': new Date(),                                \n" +
-            "		    'Description': 'Description for package-' + " + TEST_PKG_ID + ",\n" +
-            "           'ObjectId': '657b0012-c94e-4cfb-b4a7-499a57c00900'      \n" +
-            "       }],                                                         \n" +
-            "       successCallback: function(data){                            \n" +
-            "           createProjectItem(" + TEST_PKG_ID + ");                 \n" +
-            "       },                                                          \n" +
-            "       failureCallback: function(e){                               \n" +
-            "           callback(e.exception);                                  \n" +
-            "       }                                                           \n" +
-            "    });                                                            \n" +
-            "                                                                   \n" +
-            "                                                                   \n" +
-            "   function createProjectItem(id) {                                \n" +
-            "	    LABKEY.Query.insertRows({                                   \n" +
-            "		containerPath: '"+ PROJECTNAME + "',                        \n" +
-            "		schemaName: 'snd',                                          \n" +
-            "		queryName: 'ProjectItems',                                  \n" +
-            "		rows:                                                       \n" +
-            "       [{                                                          \n" +
-            "           'ProjectItemId': id,                                    \n" +
-            "           'ParentObjectId': '657b0012-c94e-4cfb-b4a7-499a57c00900',\n" +
-            "           'SuperPkgId': id,                                       \n" +
-            "           'Active': true                                          \n" +
-            "       }],                                                         \n" +
-            "       successCallback: function(data){                            \n" +
-            "           callback('Success!');                                   \n" +
-            "       },                                                          \n" +
-            "       failureCallback: function(e){                               \n" +
-            "          callback(e.exception);                                   \n" +
-            "       }                                                           \n" +
-            "	    });                                                         \n" +
-            "   }                                                               \n";
+    private static final String ADDEVENT = "LABKEY.Ajax.request({   \n" +
+        "   method: 'POST',                                         \n" +
+        "   url: LABKEY.ActionURL.buildURL('snd', 'saveEvent.api'), \n" +
+        "   success: function(data){                                \n" +
+        "       callback('Success!');                               \n" +
+        "   },                                                      \n" +
+        "   failure: function(e){                                   \n" +
+        "       callback(e.exception); },                           \n" +
+        "   jsonData: {                                             \n" +
+        "       eventId: 1812345,                                   \n" +
+        "       participantId: 1,                                   \n" +
+        "       note: 'This is a test event note.',                 \n" +
+        "       projectIdRev: '" + PKG_TEST_PROJECT_ID + "|0',      \n" +
+        "       eventData: [{                                       \n" +
+        "           superPkgId: " + TEST_IMPORT_SUPERPKG3 + ",      \n" +
+        "           extraFields: [],                                \n" +
+        "           attributes: []                                  \n" +
+        "       }]                                                  \n" +
+        "   }                                                       \n" +
+        "})                                                         \n";
 
     private static final String APISCRIPTS =
         "var container = '"+ PROJECTNAME +"';               \n"+
@@ -641,7 +566,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
                 "}\n" +
                 "if (packages != 'null' && packages != \"\") {\n" +
                 "   if (packages === \"default\") {\n" +
-                "       json[\"projectItems\"] = [{\"superPkgId\":" + TEST_IMPORT_SUPERPKG1 + ", \"active\":true}, {\"superPkgId\":" + TEST_IMPORT_SUPERPKG2 + ", \"active\":false}];\n" +
+                "       json[\"projectItems\"] = [{\"superPkgId\":" + TEST_IMPORT_SUPERPKG1 + ", \"active\":true}, {\"superPkgId\":" + TEST_IMPORT_SUPERPKG2 + ", \"active\":false}, {\"superPkgId\":" + TEST_IMPORT_SUPERPKG3 + ", \"active\":true}];\n" +
                 "   }\n" +
                 "   else {\n" +
                 "       json[\"projectItems\"] = packages;\n" +
@@ -938,8 +863,8 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         populateLookups();
 
         // These will run as part of project setup to populate data
-        testPackageApis();
         testSNDImport();
+        testPackageApis();
     }
 
     private void setupTest1Project()
@@ -1076,7 +1001,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 
         List<List<String>> rows = results.getRows("PkgId", "Description", "Active", "Repeatable", "Narrative");
         List<String> row_expected = Arrays.asList("878", "Vitals", "true", "true", "Check Vitals Test");
-        assertEquals("Initial package insert - data not as expected in snd.Pkgs", row_expected, rows.get(1));
+        assertEquals("Initial package insert - data not as expected in snd.Pkgs", row_expected, rows.get(0));
 
         //TODO: Uncomment below and test for validity - I was unable to test since these tables are not exposed yet
 //        //DomainDescriptor
@@ -1119,7 +1044,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         results = new DataRegionTable("query", getDriver());
         rows = results.getRows("PkgId", "Description", "Active", "Repeatable", "Narrative");
         row_expected = Arrays.asList("878", "Vitals", "true", "true", "Check Vitals");
-        assertEquals("Updated narrative - data not as expected in snd.Pkgs", row_expected, rows.get(1));
+        assertEquals("Updated narrative - data not as expected in snd.Pkgs", row_expected, rows.get(0));
 
         //import 3_insertPackage.snd.xml
         goToModule("Pipeline");
@@ -1138,7 +1063,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 
         rows = results.getRows("PkgId", "Description", "Active", "Repeatable", "Narrative");
         row_expected = Arrays.asList("877", "Therapy", "false", "true", "Therapy started");
-        assertEquals("New Package inserted - data not as expected in snd.Pkgs", row_expected, rows.get(1));
+        assertEquals("New Package inserted - data not as expected in snd.Pkgs", row_expected, rows.get(0));
 
         //import 4_addAttribute.snd.xml
         goToModule("Pipeline");
@@ -1638,21 +1563,23 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         assertEquals("Has event not false","false",dataRegionTable.getDataAsText(0,"Has Event"));
         assertEquals("Has project not false","false",dataRegionTable.getDataAsText(0,"Has Project"));
 
+        //add package to project
+        runScript(createProjectApi(PKG_TEST_PROJECT_ID, "Package API test project", TEST_PROJECT_REF_ID + 10, TEST_PROJECT_START_DATE, TEST_PROJECT_FUTURE_END_DATE, TEST_PROJECT_DEFAULT_PKGS));
+        refresh();
+        dataRegionTable = new DataRegionTable("query",this);
+        int rowIndex = dataRegionTable.getRowIndex("Description", "TB and Weight");
+        assertEquals("Has event not false","false",dataRegionTable.getDataAsText(rowIndex,"Has Event"));
+        assertEquals("Has project not true","true",dataRegionTable.getDataAsText(rowIndex,"Has Project"));
+
         //create event
         runScript(ADDEVENT);
         refresh();
         dataRegionTable = new DataRegionTable("query",this);
-        int rowIndex = dataRegionTable.getRowIndex("Description", "My package description");
-        assertEquals("Has event not true","true",dataRegionTable.getDataAsText(rowIndex,"Has Event"));
-        assertEquals("Has project not false","false",dataRegionTable.getDataAsText(rowIndex,"Has Project"));
-
-        //add package to project
-        runScript(ADDPACKAGETOPROJECT);
-        refresh();
-        dataRegionTable = new DataRegionTable("query",this);
-        rowIndex = dataRegionTable.getRowIndex("Description", "My package description");
+        rowIndex = dataRegionTable.getRowIndex("Description", "Empty Package");
         assertEquals("Has event not true","true",dataRegionTable.getDataAsText(rowIndex,"Has Event"));
         assertEquals("Has project not true","true",dataRegionTable.getDataAsText(rowIndex,"Has Project"));
+
+
     }
 
     @Test
@@ -1720,7 +1647,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         goToSchemaBrowser();
         viewQueryData("snd", "ProjectItems");
         assertTextPresent(TEST_REV_PROJECT_DESC, 2);
-        assertTextPresent(TEST_PROJECT_DESC, 2);
+        assertTextPresent(TEST_PROJECT_DESC, 3);
         assertTextPresent(TEST_EDIT_PROJECT_DESC, 4);
         assertTextNotPresent(TEST_PROJECT_DESC2);
     }
