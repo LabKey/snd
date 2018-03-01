@@ -1428,6 +1428,7 @@ public class SNDManager
 
         eventData.setAttributes(attributeDatas);
         eventData.setNarrative(superPackage.getNarrative());
+        addExtraFieldsToEventData(c, u, eventData, ts.getMap());
 
         SQLFragment sql = new SQLFragment("SELECT EventDataId, SuperPkgId FROM ");
         sql.append(SNDSchema.NAME + "." + SNDSchema.EVENTDATA_TABLE_NAME);
@@ -1518,6 +1519,7 @@ public class SNDManager
             event.setNote(eventNoteTs.getObject(String.class));
             event.setProjectIdRev(getProjectIdRev(c, u, event.getParentObjectId()));
             event.setEventData(getEventDatas(c, u, eventId, errors));
+            addExtraFieldsToEvent(c, u, event, eventTs.getMap());
         }
 
         return event;
