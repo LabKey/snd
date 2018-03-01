@@ -37,7 +37,7 @@ public class Event
     public static final String EVENT_DATA = "eventData";
     public static final String EVENT_PARENT_OBJECTID = "parentObjectId";
 
-    public static final String dateFormat = "yyyy-MM-dd'T'hh:mm:ss";  // ISO8601
+    public static final String dateFormat = "yyyy-MM-dd'T'kk:mm:ss";  // ISO8601
     public static final SimpleDateFormat dateFormatter;
 
     public static final String SND_EVENT_NAMESPACE = "SND.EventData";
