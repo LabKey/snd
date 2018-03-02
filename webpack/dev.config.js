@@ -21,7 +21,7 @@ module.exports = {
     },
 
     output: {
-        path: path.resolve(__dirname, '../resources/web/snd/'),
+        path: path.resolve(__dirname, '../resources/web/snd/app/'),
         publicPath: 'http://localhost:3000/',
         filename: '[name].js'
     },

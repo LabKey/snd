@@ -44,7 +44,7 @@
       }
     },
     "clean": {
-      "command": "rimraf resources/web/snd/"
+      "command": "rimraf resources/web/snd/app/"
     }
   },
   "jest": {

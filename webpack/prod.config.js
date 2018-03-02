@@ -22,7 +22,7 @@ module.exports = {
     },
 
     output: {
-        path: path.resolve(__dirname, '../resources/web/snd/'),
+        path: path.resolve(__dirname, '../resources/web/snd/app/'),
         publicPath: './', // allows context path to resolve in both js/css
         filename: "[name].js"
     },

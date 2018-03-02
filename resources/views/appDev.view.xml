@@ -3,6 +3,6 @@
         <permission name="login"/>
     </permissions>
     <dependencies>
-        <dependency path="snd/app.css"/>
+        <dependency path="snd/app/app.css"/>
     </dependencies>
 </view>

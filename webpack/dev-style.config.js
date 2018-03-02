@@ -15,7 +15,7 @@ module.exports = {
     },
 
     output: {
-        path: path.resolve(__dirname, '../resources/web/snd'),
+        path: path.resolve(__dirname, '../resources/web/snd/app/'),
         publicPath: '/labkey/snd/',
         filename: 'style.js' // do not override app.js
     },
