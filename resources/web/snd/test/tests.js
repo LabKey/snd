@@ -28,12 +28,13 @@
         }
     }
 
-    function handleExpectedResponse(expected, response, data) {
+    function handleExpectedResponse(test, expected, response, data) {
         if (response && response.status === 200) {
             if (data && data.json) {
                 if (matchExpected(expected, data.json)) {
                     return true;
                 }
+                LABKEY.showMismatchData(test, "Actual: " + JSON.stringify(data.json));
                 return 'Expected data does not match actual data'
             }
             return 'Shape of response data is not expected.'
@@ -82,7 +83,7 @@
             if (testData['expected']) {
                 getResponse = {
                     response: function(response, data) {
-                        return handleExpectedResponse(testData['expected'], response, data)
+                        return handleExpectedResponse(testData['name'], testData['expected'], response, data)
                     }
                 };
             }

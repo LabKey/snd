@@ -243,6 +243,15 @@
         $('.snd-test-runner-frame').html(html.join(''));
     }
 
+    function showMismatchData(test, actual) {
+        var html = ['<div>'];
+        html.push('<br><u>' + test + ' - Failure</u><br>');
+        html.push(actual)
+
+        html.push('</div>');
+        $('.snd-test-data-frame').html(html.join(''));
+    }
+
     // Save packages one at a time
     function savePackage(index, cb) {
         var pkgIds = [];
@@ -288,7 +297,7 @@
                         if (index === LABKEY.getInitData().BEFORE_ALL_TESTS.INIT_PACKAGES.length) {
                             cb();
                         } else {
-                            var msg = 'Initializing data...';
+                            var msg = 'Initializing data....';
                             for (var d = 0; d < index; d++) {
                                 msg += '.'
                             }
@@ -845,6 +854,7 @@
         )
     };
 
+    LABKEY.showMismatchData = showMismatchData;
 
     LABKEY.SND_TEST_URLS = TEST_URLS;
 
