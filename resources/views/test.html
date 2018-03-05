@@ -20,7 +20,9 @@
 
     .test-results-list {
         padding-right: 50px;
+        padding-bottom: 10px;
     }
+
 </style>
 <div>
     <button class="snd-test-run-btn" type="button">Run tests</button>
@@ -32,3 +34,40 @@
 </div>
 <div class="snd-test-runner-frame"></div>
 <div class="snd-test-data-frame"></div>
+
+<script type="text/javascript">
+
+
+    (function($) {
+        var _oldShow = $.fn.show;
+
+        $.fn.show = function(speed, oldCallback) {
+            return $(this).each(
+                    function() {
+                        var obj = $(this),
+                                newCallback = function() {
+                                    if ($.isFunction(oldCallback)) {
+                                        oldCallback.apply(obj);
+                                    }
+                                    obj.trigger('afterShow');
+                                };
+
+                        // you can trigger a before show if you want
+                        obj.trigger('beforeShow');
+
+                        // now use the old function to show the element passing the new callback
+                        _oldShow.apply(obj, [speed, newCallback]);
+
+                        // you can trigger a before show if you want
+                        newCallback();
+                    });
+        };
+
+         $('.snd-test-data-frame').bind( 'afterShow', function () {
+             LABKEY.initData(function () {
+                 LABKEY.sndAddEventTests();
+                 LABKEY.sndTestDriver();
+             })
+         }).show(0, null);
+    })(jQuery);
+</script>

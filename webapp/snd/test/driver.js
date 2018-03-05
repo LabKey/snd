@@ -159,7 +159,7 @@
                 '<tr>',
                 '<th class="test-results-list"><b>Test Name</b></th>',
                 '<th class="test-results-list"><b>Status</b></th>',
-                '<th><b>Reason</b></th>',
+                '<th class="test-results-list"><b>Reason</b></th>',
                 '</tr>',
                 '</thead>'
         );
@@ -177,10 +177,10 @@
                 }
 
                 html.push(
-                        '<tr>',
+                        '<tr class="test-results-row">',
                         '<td class="test-results-list">' + indent + tests[t].name + '</td>',
                         '<td class="test-results-list"><span style="color: ' + statusColor + '">' + tests[t].status + '</span></td>',
-                        '<td>' + (tests[t].error ? tests[t].error : '') + '</td>',
+                        '<td class="test-results-list">' + (tests[t].error ? tests[t].error : '') + '</td>',
                         '</tr>'
                 );
             }
@@ -228,7 +228,7 @@
     }
 
     function showStackTrace(exception, stackTrace) {
-        var html = ['<div>'];
+        var html = ['<div><br>'];
         html.push(exception + '<br>');
 
         for (var s = 0; s < stackTrace.length; s++) {
@@ -240,7 +240,7 @@
         }
 
         html.push('</div>');
-        $('.snd-test-runner-frame').html(html.join(''));
+        $('.snd-test-data-frame').html(html.join(''));
     }
 
     function showMismatchData(test, actual) {
@@ -677,6 +677,7 @@
                         catch (e) {
                             // could have responded html...
                             finish('Test "' + test.name + '" unexpectedly failed. Response not JSON.');
+                            handleFailure(json, 'Test "' + test.name + '" stack trace.');
                             return;
                         }
 
@@ -687,9 +688,11 @@
                             }
                             else if (LABKEY.Utils.isString(result)) {
                                 finish('Test "' + test.name + '" failed. ' + result);
+                                handleFailure(json, 'Test "' + test.name + '" stack trace.');
                             }
                             else {
                                 finish('Test "' + test.name + '" failed. Test should specify a reason for failure or return true.');
+                                handleFailure(json, 'Test "' + test.name + '" stack trace.');
                             }
                         }
                         else {
@@ -698,6 +701,7 @@
                             }
                             else {
                                 finish('Test "' + test.name + '" failed.<br>Expected: \"' + testRun.expectedFailure + '\"<br>Actual: \"' + json.exception + '\"');
+                                handleFailure(json, 'Test "' + test.name + '" stack trace.');
                             }
                         }
                     }
@@ -746,6 +750,7 @@
                                 }
                                 else if (json && json.exception) {
                                     finish(error.status + ': ' + json.exception);
+                                    handleFailure(json, 'Test "' + test.name + '" stack trace.');
                                 }
                             }
                             catch (e) {
@@ -854,8 +859,9 @@
         )
     };
 
-    LABKEY.handleSndFailure = handleFailure;
+    LABKEY.showStackTrace = showStackTrace;
     LABKEY.showMismatchData = showMismatchData;
+    LABKEY.handleSndFailure = handleFailure;
 
     LABKEY.SND_TEST_URLS = TEST_URLS;
 

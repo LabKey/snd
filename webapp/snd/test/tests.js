@@ -16,8 +16,6 @@
         }
     ];
 
-
-
     function matchExpected(expected, actual) {
         return LABKEY.equals(actual, deepmerge(actual, expected));
     }
@@ -42,9 +40,9 @@
         return false;
     }
 
-    function addSndEventTests () {
-        var test, testData, eventId, saveResponse, getResponse;
-        LABKEY.getEventTests().forEach(function(testData) {
+    function sndAddEventTests () {
+        var test, eventId, saveResponse, getResponse;
+        LABKEY.getEventTestData().forEach(function(testData) {
             eventId = testData.jsonData['eventId'];
             test = {name: testData['name'] + ' - Save'};
 
@@ -65,6 +63,7 @@
                             return true;
                         }
 
+                        LABKEY.handleFailure(response, test + " - Stack Trace");
                         return false;
                     }
                 };
@@ -112,9 +111,9 @@
         }, this);
     }
 
-    LABKEY.initData(function() {
-        addSndEventTests();
+    LABKEY.sndAddEventTests = sndAddEventTests;
+    LABKEY.sndTestDriver = function() {
         new LABKEY.testDriver(TESTS);
-    });
+    }
 
 })(jQuery);

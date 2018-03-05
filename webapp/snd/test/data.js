@@ -354,7 +354,7 @@
     };
 
 
-    function getEventTests() {
+    function getEventTestData() {
         if (!LABKEY.SND_PKG_CACHE || !LABKEY.SND_PKG_CACHE.loaded) {
             return [];
         }
@@ -440,6 +440,6 @@
 
      LABKEY.getInitData = function () {return SNDTEST_INIT_DATA};
      LABKEY.getCleanData = function () {return SNDTEST_CLEAN_DATA};
-     LABKEY.getEventTests = function () {return getEventTests()};
+     LABKEY.getEventTestData = function () {return getEventTestData()};
 
 })(jQuery);
