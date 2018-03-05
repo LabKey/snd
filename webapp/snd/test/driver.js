@@ -854,6 +854,7 @@
         )
     };
 
+    LABKEY.handleSndFailure = handleFailure;
     LABKEY.showMismatchData = showMismatchData;
 
     LABKEY.SND_TEST_URLS = TEST_URLS;
