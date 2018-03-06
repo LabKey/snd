@@ -6,8 +6,8 @@ import org.labkey.api.collections.ArrayListMap;
 import org.labkey.api.data.Container;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.security.User;
+import org.labkey.api.util.DateUtil;
 
-import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -37,14 +37,10 @@ public class Event
     public static final String EVENT_DATA = "eventData";
     public static final String EVENT_PARENT_OBJECTID = "parentObjectId";
 
-    public static final String dateFormat = "yyyy-MM-dd'T'kk:mm:ss";  // ISO8601
-    public static final SimpleDateFormat dateFormatter;
+    public static final String DATE_FORMAT = "yyyy-MM-dd'T'kk:mm:ss";  // ISO8601 w/24-hour time and 'T' character
 
     public static final String SND_EVENT_NAMESPACE = "SND.EventData";
 
-    static {
-        dateFormatter = new SimpleDateFormat(dateFormat);
-    }
 
     public Event(Integer eventId, int participantId, Date date, String projectIdRev, String note, List<EventData> eventData, Container c)
     {
@@ -189,8 +185,7 @@ public class Event
         json.put(EVENT_PARTICIPANT_ID, getParticipantId());
 
         if (getDate() != null)
-            json.put(EVENT_DATE, dateFormatter.format(getDate()));
-
+            json.put(EVENT_DATE, DateUtil.formatDateTime(getDate(), DATE_FORMAT));
 
         json.put(EVENT_PROJECT_ID_REV, getProjectIdRev());
         json.put(EVENT_NOTE, getNote());

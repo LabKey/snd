@@ -39,6 +39,7 @@ import org.labkey.api.snd.ProjectItem;
 import org.labkey.api.snd.SNDSequencer;
 import org.labkey.api.snd.SNDService;
 import org.labkey.api.snd.SuperPackage;
+import org.labkey.api.util.DateUtil;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ActionURL;
 import org.springframework.validation.BindException;
@@ -879,7 +880,7 @@ public class SNDController extends SpringActionController
             Date date = null;
             try
             {
-                date = (dateString == null ? new Date() : Event.dateFormatter.parse(dateString));
+                date = (dateString == null ? new Date() : DateUtil.parseDateTime(dateString, Event.DATE_FORMAT));
             }
             catch (ParseException e)
             {
