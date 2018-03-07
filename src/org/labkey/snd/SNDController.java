@@ -887,31 +887,34 @@ public class SNDController extends SpringActionController
                 errors.reject(ERROR_MSG, e.getMessage());
             }
 
-            String projectIdrev = json.getString("projectIdRev");
-            String note = json.getString("note");
-
-            List<EventData> eventData = null;
-            JSONArray eventDataJson = json.has("eventData") ? json.getJSONArray("eventData") : null;
-            if (eventDataJson != null)
-                eventData = parseEventData(eventDataJson);
-
-            Event event = new Event(eventId, participantId, date, projectIdrev, note, eventData, getContainer());
-
-            // Get extra fields
-            JSONArray jsonExtras = json.optJSONArray("extraFields");
-            if (null != jsonExtras)
+            if (!errors.hasErrors())
             {
-                Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
-                JSONObject extra;
-                for (int e = 0; e < jsonExtras.length(); e++)
-                {
-                    extra = jsonExtras.getJSONObject(e);
-                    extras.put(ExperimentService.get().convertJsonToPropertyDescriptor(extra), extra.get("value"));
-                }
-                event.setExtraFields(extras);
-            }
+                String projectIdrev = json.getString("projectIdRev");
+                String note = json.getString("note");
 
-            SNDService.get().saveEvent(getContainer(), getUser(), event);
+                List<EventData> eventData = null;
+                JSONArray eventDataJson = json.has("eventData") ? json.getJSONArray("eventData") : null;
+                if (eventDataJson != null)
+                    eventData = parseEventData(eventDataJson);
+
+                Event event = new Event(eventId, participantId, date, projectIdrev, note, eventData, getContainer());
+
+                // Get extra fields
+                JSONArray jsonExtras = json.optJSONArray("extraFields");
+                if (null != jsonExtras)
+                {
+                    Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
+                    JSONObject extra;
+                    for (int e = 0; e < jsonExtras.length(); e++)
+                    {
+                        extra = jsonExtras.getJSONObject(e);
+                        extras.put(ExperimentService.get().convertJsonToPropertyDescriptor(extra), extra.get("value"));
+                    }
+                    event.setExtraFields(extras);
+                }
+
+                SNDService.get().saveEvent(getContainer(), getUser(), event);
+            }
             return new ApiSimpleResponse();
         }
 
