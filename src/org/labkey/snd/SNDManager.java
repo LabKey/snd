@@ -1543,31 +1543,54 @@ public class SNDManager
     private String getProjectObjectId(Container c, User u, String projectIdRev, BatchValidationException errors)
     {
         if (projectIdRev == null)
-            errors.addRowError(new ValidationException("Invalid project id|rev."));
-
-        String[] idRevParts = projectIdRev.split("\\|");
-
-        if (idRevParts.length != 2)
-            errors.addRowError(new ValidationException("Project Id|Rev not formatted correctly"));
-
-        Integer projectId = Integer.parseInt(idRevParts[0]);
-        Integer revisionNum = Integer.parseInt(idRevParts[1]);
-
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
-
-        SQLFragment sql = new SQLFragment("SELECT ObjectId FROM ");
-        sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_TABLE_NAME);
-        sql.append(" WHERE ProjectId = ? AND RevisionNum = ?");
-        sql.add(projectId).add(revisionNum);
-        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
-
-        List<String> results = selector.getArrayList(String.class);
-        if (results.size() < 1)
         {
-            errors.addRowError(new ValidationException("Project|revision not found: " + projectIdRev ));
+            errors.addRowError(new ValidationException("Invalid project id|rev."));
+        }
+        else
+        {
+
+            String[] idRevParts = projectIdRev.split("\\|");
+
+            if (idRevParts.length != 2)
+            {
+                errors.addRowError(new ValidationException("Project Id|Rev not formatted correctly"));
+            }
+            else
+            {
+                Integer projectId = null;
+                Integer revisionNum = null;
+                try
+                {
+                    projectId = Integer.parseInt(idRevParts[0]);
+                    revisionNum = Integer.parseInt(idRevParts[1]);
+                }
+                catch (NumberFormatException e)
+                {
+                    errors.addRowError(new ValidationException("Number Format Exception on projectIdRev: " + e.getMessage()));
+                }
+
+                if (!errors.hasErrors() && projectId != null && revisionNum != null)
+                {
+                    UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+                    SQLFragment sql = new SQLFragment("SELECT ObjectId FROM ");
+                    sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_TABLE_NAME);
+                    sql.append(" WHERE ProjectId = ? AND RevisionNum = ?");
+                    sql.add(projectId).add(revisionNum);
+                    SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+
+                    List<String> results = selector.getArrayList(String.class);
+                    if (results.size() < 1)
+                    {
+                        errors.addRowError(new ValidationException("Project|revision not found: " + projectIdRev));
+                    }
+
+                    return results.size() > 0 ? results.get(0) : null;
+                }
+            }
         }
 
-        return results.size() > 0? results.get(0) : null;
+        return null;
     }
 
     @Nullable
@@ -1757,10 +1780,10 @@ public class SNDManager
     {
         if (event.getParentObjectId() == null)
         {
-            errors.addRowError(new ValidationException("Project objectid is null."));
+            errors.addRowError(new ValidationException("Project is not found."));
         }
 
-        if (event.getEventData() != null && event.getEventData().size() > 0)
+        if (!errors.hasErrors() && event.getEventData() != null && event.getEventData().size() > 0)
         {
             UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -1895,39 +1918,42 @@ public class SNDManager
     public void createEvent(Container c, User u, Event event, BatchValidationException errors)
     {
         String projectObjectId = getProjectObjectId(c, u, event.getProjectIdRev(), errors);
-        event.setParentObjectId(projectObjectId);
-
-        ensureSuperPkgsBelongToProject(c, u, event, errors);
 
         if (!errors.hasErrors())
         {
-            ensureValidEventData(c, u, event, errors);
+            event.setParentObjectId(projectObjectId);
+            ensureSuperPkgsBelongToProject(c, u, event, errors);
 
             if (!errors.hasErrors())
             {
-                UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
-                TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
-                QueryUpdateService eventQus = getQueryUpdateService(eventTable);
+                ensureValidEventData(c, u, event, errors);
 
-                QueryUpdateService eventNotesQus = getNewQueryUpdateService(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
-
-                List<Map<String, Object>> eventRows = new ArrayList<>();
-                eventRows.add(event.getEventRow(c));
-
-                List<Map<String, Object>> eventNotesRows = new ArrayList<>();
-                eventNotesRows.add(event.getEventNotesRow(c));
-
-                try (DbScope.Transaction tx = eventTable.getSchema().getScope().ensureTransaction())
+                if (!errors.hasErrors())
                 {
-                    eventQus.insertRows(u, c, eventRows, errors, null, null);
-                    eventNotesQus.insertRows(u, c, eventNotesRows, errors, null, null);
-                    insertEventDatas(c, u, event.getEventData(), event.getEventId(), errors);
-                    NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getParticipantId(),"Fill in full narrative.", "Create event");
-                    tx.commit();
-                }
-                catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException | ValidationException e)
-                {
-                    errors.addRowError(new ValidationException(e.getMessage()));
+                    UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+                    TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
+                    QueryUpdateService eventQus = getQueryUpdateService(eventTable);
+
+                    QueryUpdateService eventNotesQus = getNewQueryUpdateService(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
+
+                    List<Map<String, Object>> eventRows = new ArrayList<>();
+                    eventRows.add(event.getEventRow(c));
+
+                    List<Map<String, Object>> eventNotesRows = new ArrayList<>();
+                    eventNotesRows.add(event.getEventNotesRow(c));
+
+                    try (DbScope.Transaction tx = eventTable.getSchema().getScope().ensureTransaction())
+                    {
+                        eventQus.insertRows(u, c, eventRows, errors, null, null);
+                        eventNotesQus.insertRows(u, c, eventNotesRows, errors, null, null);
+                        insertEventDatas(c, u, event.getEventData(), event.getEventId(), errors);
+                        NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getParticipantId(), "Fill in full narrative.", "Create event");
+                        tx.commit();
+                    }
+                    catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException | ValidationException e)
+                    {
+                        errors.addRowError(new ValidationException(e.getMessage()));
+                    }
                 }
             }
         }
