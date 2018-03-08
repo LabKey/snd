@@ -41,6 +41,7 @@ import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.TestFileUtils;
 import org.labkey.test.TestTimeoutException;
+import org.labkey.test.WebTestHelper;
 import org.labkey.test.categories.CustomModules;
 import org.labkey.test.components.CustomizeView;
 import org.labkey.test.components.bootstrap.ModalDialog;
@@ -845,9 +846,9 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     @BeforeClass
     public static void setupProject()
     {
-        SNDTest init = (SNDTest) getCurrentTest();
+         SNDTest init = (SNDTest) getCurrentTest();
 
-        init.doSetup();
+         init.doSetup();
     }
 
     private void doSetup()
@@ -1955,6 +1956,22 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         assertEquals("Start date not equal to set value.", tomorrowString, viewPage.getStartDate());
         assertFalse("Unassigned package found assigned.", viewPage.isAssignedPackagePresent(UITEST_PROJECT_SUBPKG1));
         assertFalse("Unassigned package found assigned.", viewPage.isAssignedPackagePresent(UITEST_PROJECT_SUBPKG2));
+    }
+
+    @Test
+    public void verifyTestFrameworkAPITests()
+    {
+        log("Launching the Testing framework");
+        goToProjectHome();
+        beginAt(WebTestHelper.buildURL("snd",getProjectName(), "test"));
+        waitForText("Tests are ready to run");
+
+        log("Waiting for test to load");
+        clickButton("Run tests", 0);
+        waitForText("Total tests:", 1, WAIT_FOR_PAGE);
+
+        log("Verifying no test failed");
+        assertTextPresent("Failed tests: 0");
     }
 
     private void truncateSndPkg() throws Exception
