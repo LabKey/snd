@@ -696,9 +696,7 @@
                             }
                         }
                         else {
-                            if (json.exception.startsWith('\n')) {
-                                json.exception = json.exception.substr(1);
-                            }
+                            json.exception = json.exception.trim();
 
                             if (json.exception === testRun.expectedFailure) {
                                 finish();
