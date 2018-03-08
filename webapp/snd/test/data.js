@@ -348,6 +348,24 @@
                         }
                         ]
                     }
+                },{
+
+                    jsonData:{
+                        projectId:61,
+                        active:true,
+                        description:"Testing the framework",
+                        referenceId:121,
+                        startDate:"2018-02-27",
+                        projectItems: [{
+                            pkgId: 817,
+                            active: true
+                        }, {
+                            pkgId:818,
+                            active: true
+
+                        }
+                        ]
+                    }
                 }
             ]
         }
@@ -407,35 +425,12 @@
                         }
                     ]
                 }
-            },{
-                name: 'Invalid Save Event: Missing ParticipantId',
-                jsonData: {
-                    eventId: 1800001,
-                    note: "This is a test event note.",
-                    projectIdRev: '60|0',
-                    eventData: [
-                        {
-                            superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
-                            attributes: [{
-                                propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['propertyId'],
-                                value: '10'
-                            }, {
-                                propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'units')['propertyId'],
-                                value: 'mL'
-                            }, {
-                                propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['propertyId'],
-                                value: 'red'
-                            }]
-                        }
-                    ]
-                },
-                expectedFailure: "Missing required json parameter: participantId."
             }
         ];
     }
 
     var SNDTEST_CLEAN_DATA = {
-        EVENTIDS: [1800000]
+        EVENTIDS: [1800000,170006]
     };
 
      LABKEY.getInitData = function () {return SNDTEST_INIT_DATA};

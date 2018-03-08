@@ -13,6 +13,295 @@
                     expectedFailure: "Missing json parameter."
                 }
             }
+        },
+        {
+            name: 'Invalid Save Event: No JSON',
+            run: function(){
+                return{
+                    request:{
+                        url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL
+                    },
+                    expectedFailure:"Missing json parameter."
+                }
+            }
+        },{
+            name: 'Save Event: Missing Participant ID',
+            run: function(){
+                return{
+                    request:{
+                        url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
+                        jsonData:{
+                            eventId: 1800001,
+                            date: "2018-02-26T17:51:20",
+                            note: "This is a test event note.",
+                            projectIdRev: '60|0',
+                            eventData: [
+                                {
+                                    superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
+                                    attributes: [{
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['propertyId'],
+                                        value: '10'
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'units')['propertyId'],
+                                        value: 'mL'
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['propertyId'],
+                                        value: 'red'
+                                    }]
+                                }
+                            ]
+                        }
+                    },
+                    expectedFailure:"Missing required json parameter: participantId."
+                }
+            }
+
+        },{
+
+            name: 'Save Event: Invalid eventID',
+            run : function()
+            {
+                return{
+                    request:{
+                        url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
+                        jsonData:{
+                            eventId: "1800001-1",
+                            participantId : 1,
+                            date: "2018-02-26T17:51:20",
+                            note: "This is a test event note.",
+                            projectIdRev: '60|0',
+                            eventData: [
+                                {
+                                    superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
+                                    attributes: [{
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['propertyId'],
+                                        value: '10'
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'units')['propertyId'],
+                                        value: 'mL'
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['propertyId'],
+                                        value: 'red'
+                                    }]
+                                }
+                            ]
+                        }
+                    },
+                    expectedFailure:"eventId is present but not a valid integer."
+                }
+            }
+
+        },{
+            name:'Save Event:Missing Project ID',
+            run:function(){
+                return{
+                    request:{
+                        url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
+                        jsonData:{
+                            eventId: 1800001,
+                            participantId:1,
+                            date: "2018-02-26T17:51:20",
+                            note: "Note for Save Event with Missing Project ID",
+                            eventData: [
+                                {
+                                    superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
+                                    attributes: [{
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['propertyId'],
+                                        value: '10'
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'units')['propertyId'],
+                                        value: 'mL'
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['propertyId'],
+                                        value: 'red'
+                                    }]
+                                }
+                            ]
+
+                        }
+                    },
+                    expectedFailure:"Missing required json parameter: projectIdRev."
+                }
+            }
+
+        },{
+            name:'Save Event:Missing Revision number for project Id',
+            run:function(){
+                return{
+                    request:{
+                        url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
+                        jsonData:{
+                            eventId : 180002,
+                            participantId : 1,
+                            date : "2018-03-03T17:21:22",
+                            projectIdRev : "61",
+                            note : "Note for Save Event with Missing Revision number for project Id",
+                            eventData: [
+                                    {
+                                        superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
+                                        attributes: [{
+                                            propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['propertyId'],
+                                            value: '10'
+                                        }, {
+                                            propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'units')['propertyId'],
+                                            value: 'mL'
+                                        }, {
+                                            propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['propertyId'],
+                                            value: 'red'
+                                        }]
+                                    }
+                            ]
+                        }
+                    },
+                   expectedFailure :"Project Id|Rev not formatted correctly\n" +
+                   "Project is not found."
+                }
+            }
+
+        },{
+            name:'Save Event:Invalid project Id',
+            run:function(){
+                return{
+                    request:{
+                        url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
+                        jsonData:{
+                            eventId : 180002,
+                            participantId : 1,
+                            date : "2018-03-03T17:21:22",
+                            projectIdRev : "64|0",
+                            note : "Note for Save Event with Invalid project Id",
+                            eventData: [
+                                {
+                                    superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
+                                    attributes: [{
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['propertyId'],
+                                        value: '10'
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'units')['propertyId'],
+                                        value: 'mL'
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['propertyId'],
+                                        value: 'red'
+                                    }]
+                                }
+                            ]
+                        }
+                    },
+                    expectedFailure : "Project|revision not found: 64|0\n" +
+                    "Project is not found."
+                }
+            }
+
+        },
+        {
+            name:'Save Event:Invalid date',
+            run:function(){
+                return{
+                    request:{
+                        url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
+                        jsonData:{
+                            eventId : 170007,
+                            date:"xx",
+                            participantId : 1,
+                            projectIdRev : "60|0",
+                            note : "Note for Save Event with Invalid date",
+                            eventData: [
+                                {
+                                    superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
+                                    attributes: [{
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['propertyId'],
+                                        value: '10'
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'units')['propertyId'],
+                                        value: 'mL'
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['propertyId'],
+                                        value: 'red'
+                                    }]
+                                }
+                            ]
+                        }
+                    },
+                    expectedFailure: "Unparseable date: \"xx\""
+                }
+            }
+
+        },{
+            name: 'Save Event: Creating auto generated event ID ',
+            run: function(){
+                return{
+                    request: {
+                        url: LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
+                        jsonData: {
+                            participantId: 1,
+                            date: "2018-02-26T17:51:20",
+                            note: "Note for auto generated event ID",
+                            projectIdRev: '60|0',
+                            eventData: [
+                                {
+                                    superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
+                                    attributes: [{
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['propertyId'],
+                                        value: '10'
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'units')['propertyId'],
+                                        value: 'mL'
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['propertyId'],
+                                        value: 'red'
+                                    }]
+                                }
+                            ]
+                        }
+
+                    },
+                    response: function(response){
+                        if (response.status === 200) {
+                            return true;
+                        }
+
+                        LABKEY.handleFailure(response, name + " - Stack Trace");
+                        return false;
+                    }
+                }
+            }
+        },{
+
+            name: 'Get Event: Invalid eventID - Alphanumeric character',
+            run : function()
+            {
+                return{
+                    request:{
+                        url:LABKEY.SND_TEST_URLS.GET_EVENT_URL,
+                        jsonData:{"eventId": "1800000a"}
+                    },
+                    expectedFailure : "eventId is present but not a valid integer."
+                }
+            }
+
+        },{
+
+            name: 'Get Event: Invalid eventID - Not present',
+            run : function()
+            {
+                return{
+                    request:{
+                        url:LABKEY.SND_TEST_URLS.GET_EVENT_URL,
+                        jsonData:{"eventId": "18000010"}
+                    },
+                    response:function(response,json)
+                    {
+                        if(response.status === 200)
+                        {
+                            return true;
+                        }
+
+                        LABKEY.handleFailure(response, name + " - Stack Trace");
+                        return false;
+                    }
+                }
+            }
+
         }
     ];
 
