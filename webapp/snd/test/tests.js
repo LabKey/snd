@@ -153,8 +153,7 @@
                             ]
                         }
                     },
-                   expectedFailure :"Project Id|Rev not formatted correctly\n" +
-                   "Project is not found."
+                   expectedFailure :"Project Id|Rev not formatted correctly"
                 }
             }
 
@@ -187,8 +186,7 @@
                             ]
                         }
                     },
-                    expectedFailure : "Project|revision not found: 64|0\n" +
-                    "Project is not found."
+                    expectedFailure : "Project|revision not found: 64|0"
                 }
             }
 
