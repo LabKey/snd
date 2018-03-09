@@ -261,6 +261,7 @@
             pkgIds.push(packageData.subPackages[i].pkgId)
         }
 
+        console.log('savePackage, selectRows TopLevelSuperPkgs - index: ' + index);
         LABKEY.Query.selectRows({
             schemaName: 'snd',
             queryName: 'TopLevelSuperPkgs',
@@ -272,7 +273,7 @@
             },
             success: function(results) {
                 var subPackages = [];
-
+                console.log('savePackage, selectRows TopLevelSuperPkgs SUCCESS - index: ' + index);
                 for (var r = 0; r < results.rows.length; r++) {
                     for (var p = 0; p < packageData.subPackages.length; p++) {
                         if (packageData.subPackages[p].pkgId === results.rows[r]["PkgId"]) {
@@ -284,6 +285,7 @@
 
                 packageData.subPackages = subPackages;
 
+                console.log('savePackage, savePackage api - index: ' + index);
                 LABKEY.Ajax.request({
                     url: TEST_URLS.SAVE_PKG_URL,
                     jsonData: packageData,
@@ -293,8 +295,10 @@
                     },
                     success: function() {
                         // Only call callback when all have returned
+                        console.log('savePackage, savePackage api SUCCESS - index: ' + index);
                         index++;
                         if (index === LABKEY.getInitData().BEFORE_ALL_TESTS.INIT_PACKAGES.length) {
+                            console.log('savePackage, callback - index: ' + index);
                             cb();
                         } else {
                             var msg = 'Initializing data....';
