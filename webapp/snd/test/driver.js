@@ -379,7 +379,7 @@
     }
 
     function initData(cb) {
-        initPackageData(function initProjects() {initProjectData(cb);});
+        cleanTestData(function() {initPackageData(function initProjects() {initProjectData(cb);})});
     }
 
     function deleteProject(projectId, cb) {
@@ -823,6 +823,18 @@
         }
     }
 
+    function getSubpackageSuperPkgId(pkgId, subPackages) {
+        var superPkgId = null;
+
+        subPackages.forEach(function(sub) {
+            if (sub.pkgId == pkgId) {
+                superPkgId = sub.superPkgId;
+            }
+        }, this);
+
+        return superPkgId;
+    }
+
     function getRunBtn() {
         return $('.snd-test-run-btn');
     }
@@ -868,6 +880,7 @@
     LABKEY.showStackTrace = showStackTrace;
     LABKEY.showMismatchData = showMismatchData;
     LABKEY.handleSndFailure = handleFailure;
+    LABKEY.getSubpackageSuperPkgId = getSubpackageSuperPkgId;
 
     LABKEY.SND_TEST_URLS = TEST_URLS;
 

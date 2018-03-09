@@ -355,14 +355,10 @@
                         active:true,
                         description:"Testing the framework",
                         referenceId:121,
-                        startDate:"2018-02-27",
+                        startDate:"2018-01-27",
                         projectItems: [{
-                            pkgId: 817,
+                            pkgId: 814,
                             active: true
-                        }, {
-                            pkgId:818,
-                            active: true
-
                         }
                         ]
                     }
@@ -425,12 +421,153 @@
                         }
                     ]
                 }
+            },{
+                name :'Valid Save Event with super package',
+                jsonData: {
+                    eventId: 1800001,
+                    participantId: 2,
+                    date: "2018-02-26T17:51:20",
+                    note: "Note for event attribute data sample JSON",
+                    projectIdRev: '61|0',
+                    eventData: [
+                        {
+                            superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
+                            attributes : [],
+                            subPackages : [{
+                                superPkgId : LABKEY.getSubpackageSuperPkgId(810, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'amount')['propertyId'],
+                                        value: 100
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'units')['propertyId'],
+                                        value: "mL"
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'kit_type')['propertyId'],
+                                        value: "Sodium Colorimetric Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(811, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'amount')['propertyId'],
+                                        value: "200"
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'units')['propertyId'],
+                                        value: "l"
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'kit_type')['propertyId'],
+                                        value: "Potassium Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(812, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['812']['attributes'], 'amount')['propertyId'],
+                                        value: "300"
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['812']['attributes'], 'units')['propertyId'],
+                                        value: "ml"
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['812']['attributes'], 'kit_type')['propertyId'],
+                                        value: "Carbon Dioxide (CO2) Colorimetric Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(813, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'amount')['propertyId'],
+                                        value: "400"
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'units')['propertyId'],
+                                        value: "l"
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'kit_type')['propertyId'],
+                                        value: "Chloride Blood Detection Kit"
+                                    }]
+                            }]
+                        }
+                    ]
+                },
+                expected : {
+                    eventId: 1800001,
+                    participantId: 2,
+                    date: "2018-02-26T17:51:20",
+                    note: "Note for event attribute data sample JSON",
+                    projectIdRev: '61|0',
+                    eventData: [
+                        {
+                            superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
+                            attributes : [],
+                            subPackages : [{
+                                superPkgId : LABKEY.getSubpackageSuperPkgId(810, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'amount')['propertyId'],
+                                        value: "100"
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'units')['propertyId'],
+                                        value: "mL"
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'kit_type')['propertyId'],
+                                        value: "Sodium Colorimetric Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(811, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'amount')['propertyId'],
+                                        value: "200"
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'units')['propertyId'],
+                                        value: "l"
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'kit_type')['propertyId'],
+                                        value: "Potassium Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(812, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['812']['attributes'], 'amount')['propertyId'],
+                                        value: "300"
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['812']['attributes'], 'units')['propertyId'],
+                                        value: "ml"
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['812']['attributes'], 'kit_type')['propertyId'],
+                                        value: "Carbon Dioxide (CO2) Colorimetric Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(813, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'amount')['propertyId'],
+                                        value: "400"
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'units')['propertyId'],
+                                        value: "l"
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'kit_type')['propertyId'],
+                                        value: "Chloride Blood Detection Kit"
+                                    }]
+                            }]
+                        }
+                    ]
+                }
             }
+
         ];
     }
 
     var SNDTEST_CLEAN_DATA = {
-        EVENTIDS: [1800000,170006]
+        EVENTIDS: [1800000,1800001]
     };
 
      LABKEY.getInitData = function () {return SNDTEST_INIT_DATA};

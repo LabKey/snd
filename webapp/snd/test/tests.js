@@ -300,6 +300,29 @@
                 }
             }
 
+        },{
+
+            name: 'Save Event: ',
+            run : function()
+            {
+                return{
+                    request:{
+                        url:LABKEY.SND_TEST_URLS.GET_EVENT_URL,
+                        jsonData:{"eventId": "18000010"}
+                    },
+                    response:function(response,json)
+                    {
+                        if(response.status === 200)
+                        {
+                            return true;
+                        }
+
+                        LABKEY.handleFailure(response, name + " - Stack Trace");
+                        return false;
+                    }
+                }
+            }
+
         }
     ];
 
