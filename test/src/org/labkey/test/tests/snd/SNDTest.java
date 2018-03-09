@@ -17,8 +17,6 @@
 package org.labkey.test.tests.snd;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -60,8 +58,6 @@ import org.labkey.test.pages.snd.ProjectListPage;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Maps;
 import org.labkey.test.util.SqlserverOnlyTest;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.remote.service.DriverService;
 
 import java.io.File;
 import java.io.IOException;
@@ -835,12 +831,6 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
             deleteCmd.addRow(map);
             deleteCmd.execute(cn, path);
         }
-    }
-
-    @Override
-    protected Pair<WebDriver, DriverService> createNewWebDriver(@NotNull Pair<WebDriver, DriverService> oldDriverAndService, BrowserType browserType, File downloadDir)
-    {
-        return super.createNewWebDriver(oldDriverAndService, BrowserType.CHROME, downloadDir);
     }
 
     @BeforeClass
