@@ -122,6 +122,14 @@ public class SNDUserSchema extends SimpleUserSchema
                         return new EventDataTable(schema, SNDSchema.getInstance().getTableInfoEventData()).init();
                     }
                 },
+        AttributeData
+                {
+                    @Override
+                    public TableInfo createTable(SNDUserSchema schema)
+                    {
+                        return new AttributeDataTable(schema);
+                    }
+                },
         Lookups
                 {
                     @Override
@@ -217,6 +225,10 @@ public class SNDUserSchema extends SimpleUserSchema
         Set<String> tables = new CaseInsensitiveTreeSet();
         tables.addAll(getLookupSets().keySet());
         tables.addAll(super.getTableNames());
+        for (TableType tableType : TableType.values())
+        {
+            tables.add(tableType.name());
+        }
 
         return tables;
     }
@@ -227,6 +239,10 @@ public class SNDUserSchema extends SimpleUserSchema
         Set<String> tables = new CaseInsensitiveTreeSet();
         tables.addAll(super.getVisibleTableNames());
         tables.addAll(getLookupSets().keySet());
+        for (TableType tableType : TableType.values())
+        {
+            tables.add(tableType.name());
+        }
 
         return tables;
     }
