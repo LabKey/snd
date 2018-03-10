@@ -199,13 +199,17 @@ public class SNDServiceImpl implements SNDService
     {
         BatchValidationException errors = new BatchValidationException();
 
-        if (event.getEventId() != null && SNDManager.get().eventExists(c, u, event.getEventId()))
+        try (DbScope.Transaction tx = SNDSchema.getInstance().getSchema().getScope().ensureTransaction(lock))
         {
-            SNDManager.get().updateEvent(c, u, event, errors);
-        }
-        else
-        {
-            SNDManager.get().createEvent(c, u, event, errors);
+            if (event.getEventId() != null && SNDManager.get().eventExists(c, u, event.getEventId()))
+            {
+                SNDManager.get().updateEvent(c, u, event, errors);
+            }
+            else
+            {
+                SNDManager.get().createEvent(c, u, event, errors);
+            }
+            tx.commit();
         }
 
         if (errors.hasErrors())

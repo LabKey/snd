@@ -5,21 +5,18 @@ import org.labkey.api.data.DbScope;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.InvalidKeyException;
-import org.labkey.api.query.QueryService;
 import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.QueryUpdateServiceException;
 import org.labkey.api.query.SimpleQueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.security.User;
+import org.labkey.api.snd.SNDService;
 
 import java.sql.SQLException;
 import java.util.Map;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class EventsTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
 {
-    private static final ReentrantLock eventLock = new ReentrantLock();
-
     /**
      * Create the simple table.
      * SimpleTable doesn't add columns until .init() has been called to allow derived classes to fully initialize themselves before adding columns.
@@ -51,7 +48,7 @@ public class EventsTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             int eventId = (Integer) oldRowMap.get("EventId");
 
             // This needs to be an atomic operation otherwise could get deadlock
-            try (DbScope.Transaction tx = QueryService.get().getUserSchema(user, container, SNDSchema.NAME).getDbSchema().getScope().ensureTransaction(eventLock))
+            try (DbScope.Transaction tx = SNDSchema.getInstance().getSchema().getScope().ensureTransaction(SNDService.get().getWriteLock()))
             {
                 SNDManager.get().deleteEventDatas(container, user, eventId);
                 SNDManager.get().deleteEventNotes(container, user, eventId);
