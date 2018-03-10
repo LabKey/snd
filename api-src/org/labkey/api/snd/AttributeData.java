@@ -1,5 +1,7 @@
 package org.labkey.api.snd;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONObject;
 import org.labkey.api.collections.ArrayListMap;
 import org.labkey.api.data.Container;
@@ -8,6 +10,9 @@ import org.labkey.api.security.User;
 
 import java.util.Map;
 
+/**
+ * Class for attribute data and related methods. Used in EventData class
+ */
 public class AttributeData
 {
     private int _propertyId;
@@ -18,7 +23,7 @@ public class AttributeData
     public static final String ATTRIBUTE_DATA_PROPERTY_DESCRIPTOR = "propertyDescriptor";
     public static final String ATTRIBUTE_DATA_VALUE = "value";
 
-    public AttributeData(int propertyId, GWTPropertyDescriptor propertyDescriptor, String value)
+    public AttributeData(int propertyId, @Nullable GWTPropertyDescriptor propertyDescriptor, @Nullable String value)
     {
         _propertyId = propertyId;
         _propertyDescriptor = propertyDescriptor;
@@ -38,6 +43,7 @@ public class AttributeData
         _propertyId = propertyId;
     }
 
+    @Nullable
     public GWTPropertyDescriptor getPropertyDescriptor()
     {
         return _propertyDescriptor;
@@ -48,6 +54,7 @@ public class AttributeData
         _propertyDescriptor = propertyDescriptor;
     }
 
+    @Nullable
     public String getValue()
     {
         return _value;
@@ -58,6 +65,7 @@ public class AttributeData
         _value = value;
     }
 
+    @NotNull
     public Map<String, Object> getAttributeDataRow()
     {
         Map<String, Object> attributeDataValues = new ArrayListMap<>();
@@ -67,6 +75,7 @@ public class AttributeData
         return attributeDataValues;
     }
 
+    @NotNull
     public JSONObject toJSON(Container c, User u)
     {
         JSONObject json = new JSONObject();

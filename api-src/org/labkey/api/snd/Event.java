@@ -1,5 +1,7 @@
 package org.labkey.api.snd;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.labkey.api.collections.ArrayListMap;
@@ -16,6 +18,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+/**
+ * Class for event data and related methods. Used when saving, updating, deleting and getting an event
+ */
 public class Event
 {
     private Integer _eventId;
@@ -42,7 +47,7 @@ public class Event
     public static final String SND_EVENT_NAMESPACE = "SND.EventData";
 
 
-    public Event(Integer eventId, int participantId, Date date, String projectIdRev, String note, List<EventData> eventData, Container c)
+    public Event(@Nullable Integer eventId, int participantId, @Nullable Date date, @NotNull String projectIdRev, @Nullable String note, @Nullable List<EventData> eventData, @NotNull Container c)
     {
         _eventId = eventId != null ? eventId : SNDSequencer.EVENTID.ensureId(c, null);
         _participantId = participantId;
@@ -55,6 +60,7 @@ public class Event
 
     public Event () {}
 
+    @Nullable
     public Integer getEventId()
     {
         return _eventId;
@@ -75,6 +81,7 @@ public class Event
         _participantId = participantId;
     }
 
+    @Nullable
     public Date getDate()
     {
         return _date;
@@ -85,6 +92,7 @@ public class Event
         _date = date;
     }
 
+    @Nullable
     public String getProjectIdRev()
     {
         return _projectIdRev;
@@ -95,6 +103,7 @@ public class Event
         _projectIdRev = projectIdRev;
     }
 
+    @Nullable
     public String getParentObjectId()
     {
         return _parentObjectId;
@@ -105,6 +114,7 @@ public class Event
         _parentObjectId = parentObjectId;
     }
 
+    @Nullable
     public String getNote()
     {
         return _note;
@@ -115,6 +125,7 @@ public class Event
         _note = note;
     }
 
+    @Nullable
     public Integer getNoteId()
     {
         return _noteId;
@@ -125,6 +136,7 @@ public class Event
         _noteId = noteId;
     }
 
+    @Nullable
     public List<EventData> getEventData()
     {
         return _eventData;
@@ -135,16 +147,18 @@ public class Event
         _eventData = eventData;
     }
 
+    @NotNull
     public Map<GWTPropertyDescriptor, Object> getExtraFields()
     {
         return _extraFields;
     }
 
-    public void setExtraFields(Map<GWTPropertyDescriptor, Object> extraFields)
+    public void setExtraFields(@NotNull Map<GWTPropertyDescriptor, Object> extraFields)
     {
         _extraFields = extraFields;
     }
 
+    @NotNull
     public Map<String, Object> getEventRow(Container c)
     {
         Map<String, Object> eventValues = new ArrayListMap<>();
@@ -165,6 +179,7 @@ public class Event
         return eventValues;
     }
 
+    @NotNull
     public Map<String, Object> getEventNotesRow(Container c)
     {
         Map<String, Object> eventValues = new ArrayListMap<>();
@@ -178,6 +193,7 @@ public class Event
         return eventValues;
     }
 
+    @NotNull
     public JSONObject toJSON(Container c, User u)
     {
         JSONObject json = new JSONObject();

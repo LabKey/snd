@@ -1,5 +1,7 @@
 package org.labkey.api.snd;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONObject;
 import org.labkey.api.collections.ArrayListMap;
 import org.labkey.api.data.Container;
@@ -7,6 +9,11 @@ import org.labkey.api.security.User;
 
 import java.util.Map;
 
+/**
+ * Created by marty on 8/4/2017.
+ *
+ * Class for project item data and related methods. Used in project class.
+ */
 public class ProjectItem
 {
     boolean _active;
@@ -53,6 +60,7 @@ public class ProjectItem
         _superPkgId = superPkgId;
     }
 
+    @Nullable
     public String getParentObjectId()
     {
         return _parentObjectId;
@@ -63,6 +71,7 @@ public class ProjectItem
         _parentObjectId = parentObjectId;
     }
 
+    @Nullable
     public String getContainer()
     {
         return _container;
@@ -73,6 +82,7 @@ public class ProjectItem
         _container = container;
     }
 
+    @Nullable
     public SuperPackage getSuperPackage()
     {
         return _superPackage;
@@ -83,6 +93,7 @@ public class ProjectItem
         _superPackage = superPackage;
     }
 
+    @NotNull
     public Map<String, Object> getRow(Container c)
     {
         Map<String, Object> projectItemValues = new ArrayListMap<>();
@@ -95,6 +106,7 @@ public class ProjectItem
         return projectItemValues;
     }
 
+    @NotNull
     public JSONObject toJSON(Container c, User u)
     {
         JSONObject json = new JSONObject();

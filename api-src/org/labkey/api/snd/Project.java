@@ -1,5 +1,7 @@
 package org.labkey.api.snd;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.labkey.api.collections.ArrayListMap;
@@ -17,6 +19,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+
+/**
+ * Created by marty on 8/4/2017.
+ *
+ * Class for project data and related methods. Used when saving, updating, deleting and getting a project
+ */
 
 public class Project
 {
@@ -51,7 +59,7 @@ public class Project
 
     public static final String PROJECT_HASEVENT = "hasEvent";
 
-    public Project (int id, Integer revNum, boolean edit, boolean revision, Container c)
+    public Project (int id, @Nullable Integer revNum, boolean edit, boolean revision, @NotNull Container c)
     {
         _projectId = ((edit || revision) ? id : SNDSequencer.PROJECTID.ensureId(c, id));
         _objectId = ((edit || revision) ? null : GUID.makeGUID());
@@ -86,6 +94,7 @@ public class Project
         _referenceId = refId;
     }
 
+    @Nullable
     public String getContainer()
     {
         return _container;
@@ -106,6 +115,7 @@ public class Project
         _revisionNum = revisionNum;
     }
 
+    @Nullable
     public String getObjectId()
     {
         return _objectId;
@@ -125,6 +135,7 @@ public class Project
         }
     }
 
+    @Nullable
     public String getRevisedObjectId()
     {
         return _revisedObjectId;
@@ -135,6 +146,7 @@ public class Project
         _revisedObjectId = revisedObjectId;
     }
 
+    @Nullable
     public Integer getRevisedRevNum()
     {
         return _revisedRevNum;
@@ -145,11 +157,13 @@ public class Project
         _revisedRevNum = revisedRevNum;
     }
 
+    @Nullable
     public Date getStartDate()
     {
         return _startDate;
     }
 
+    @Nullable
     public String startDateToString()
     {
         return DateUtil.formatDateISO8601(getStartDate());
@@ -160,11 +174,13 @@ public class Project
         _startDate = startDate;
     }
 
+    @Nullable
     public Date getEndDate()
     {
         return _endDate;
     }
 
+    @Nullable
     public String endDateToString()
     {
         return DateUtil.formatDateISO8601(getEndDate());
@@ -175,6 +191,7 @@ public class Project
         _endDate = endDate;
     }
 
+    @Nullable
     public String getDescription()
     {
         return _description;
@@ -215,6 +232,7 @@ public class Project
         _copyRevisedPkgs = copyRevisedPkgs;
     }
 
+    @Nullable
     public Date getEndDateRevised()
     {
         return _endDateRevised;
@@ -225,26 +243,29 @@ public class Project
         _endDateRevised = endDateRevised;
     }
 
+    @NotNull
     public List<ProjectItem> getProjectItems()
     {
         return _projectItems;
     }
 
-    public void setProjectItems(List<ProjectItem> subpackages)
+    public void setProjectItems(@NotNull List<ProjectItem> subpackages)
     {
         _projectItems = subpackages;
     }
 
+    @NotNull
     public Map<GWTPropertyDescriptor, Object> getExtraFields()
     {
         return _extraFields;
     }
 
-    public void setExtraFields(Map<GWTPropertyDescriptor, Object> extraFields)
+    public void setExtraFields(@NotNull Map<GWTPropertyDescriptor, Object> extraFields)
     {
         _extraFields = extraFields;
     }
 
+    @NotNull
     public Map<String, Object> getProjectRow(Container c)
     {
         Map<String, Object> projectValues = new ArrayListMap<>();
@@ -267,6 +288,7 @@ public class Project
         return projectValues;
     }
 
+    @NotNull
     public List<Map<String, Object>> getProjectItemRows(Container c)
     {
         List<Map<String, Object>> rows = new ArrayList<>();
@@ -279,6 +301,7 @@ public class Project
         return rows;
     }
 
+    @NotNull
     public JSONObject toJSON(Container c, User u)
     {
         JSONObject json = new JSONObject();

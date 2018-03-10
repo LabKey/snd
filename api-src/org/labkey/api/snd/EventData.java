@@ -1,5 +1,7 @@
 package org.labkey.api.snd;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.labkey.api.collections.ArrayListMap;
@@ -15,6 +17,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+/**
+ * Class for event data and related methods. Used in Event class
+ */
 public class EventData
 {
     private Integer _eventDataId;
@@ -37,7 +42,7 @@ public class EventData
     public static final String EVENT_DATA_PARENT_EVENTDATAID = "parentEventDataId";
 
 
-    public EventData(Integer eventDataId, int superPkgId, String narrative, List<EventData> subPackages, List<AttributeData> attributes)
+    public EventData(@Nullable Integer eventDataId, int superPkgId, @Nullable String narrative, @Nullable List<EventData> subPackages, @NotNull List<AttributeData> attributes)
     {
         _eventDataId = eventDataId;
         _superPkgId = superPkgId;
@@ -50,6 +55,7 @@ public class EventData
 
     public EventData() {}
 
+    @Nullable
     public Integer getEventDataId()
     {
         return _eventDataId;
@@ -70,6 +76,7 @@ public class EventData
         _superPkgId = superPkgId;
     }
 
+    @Nullable
     public Integer getParentEventDataId()
     {
         return _parentEventDataId;
@@ -80,6 +87,7 @@ public class EventData
         _parentEventDataId = parentEventDataId;
     }
 
+    @Nullable
     public String getNarrative()
     {
         return _narrative;
@@ -90,6 +98,7 @@ public class EventData
         _narrative = narrative;
     }
 
+    @Nullable
     public String getObjectURI()
     {
         return _objectURI;
@@ -110,6 +119,7 @@ public class EventData
         _eventId = eventId;
     }
 
+    @Nullable
     public List<EventData> getSubPackages()
     {
         return _subPackages;
@@ -120,26 +130,29 @@ public class EventData
         _subPackages = subPackages;
     }
 
+    @NotNull
     public List<AttributeData> getAttributes()
     {
         return _attributes;
     }
 
-    public void setAttributes(List<AttributeData> attributes)
+    public void setAttributes(@NotNull List<AttributeData> attributes)
     {
         _attributes = attributes;
     }
 
+    @NotNull
     public Map<GWTPropertyDescriptor, Object> getExtraFields()
     {
         return _extraFields;
     }
 
-    public void setExtraFields(Map<GWTPropertyDescriptor, Object> extraFields)
+    public void setExtraFields(@NotNull Map<GWTPropertyDescriptor, Object> extraFields)
     {
         _extraFields = extraFields;
     }
 
+    @NotNull
     public Map<String, Object> getEventDataRow(Container c)
     {
         Map<String, Object> eventDataValues = new ArrayListMap<>();
@@ -159,6 +172,7 @@ public class EventData
         return eventDataValues;
     }
 
+    @NotNull
     public JSONObject toJSON(Container c, User u)
     {
         JSONObject json = new JSONObject();

@@ -15,6 +15,8 @@
  */
 package org.labkey.api.snd;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.labkey.api.collections.ArrayListMap;
@@ -29,6 +31,8 @@ import static org.labkey.api.snd.Package.PKG_ATTRIBUTES;
 
 /**
  * Created by marty on 8/14/2017.
+ *
+ * Class for holding super package data and methods. Used when saving, updating, getting and deleting super packages
  */
 public class SuperPackage
 {
@@ -78,6 +82,7 @@ public class SuperPackage
         this._repeatable = _superPackage.getRepeatable();
     }
 
+    @Nullable
     public Integer getParentSuperPkgId()
     {
         return _parentSuperPkgId;
@@ -88,11 +93,13 @@ public class SuperPackage
         _parentSuperPkgId = parentSuperPkgId;
     }
 
+    @Nullable
     public List<SuperPackage> getChildPackages()
     {
         return _childPackages;
     }
 
+    @Nullable
     public Integer getSortOrder()
     {
         return _sortOrder;
@@ -103,6 +110,7 @@ public class SuperPackage
         _sortOrder = sortOrder;
     }
 
+    @Nullable
     public String getDescription()
     {
         return _description;
@@ -113,10 +121,12 @@ public class SuperPackage
         _description = description;
     }
 
+    @Nullable
     public Boolean getRepeatable() { return _repeatable; }
 
     public void setRepeatable(Boolean repeatable) { _repeatable = repeatable; }
 
+    @Nullable
     public String getNarrative()
     {
         return _narrative;
@@ -132,6 +142,7 @@ public class SuperPackage
         _childPackages = childPackages;
     }
 
+    @Nullable
     public String getSuperPkgPath()
     {
         return _superPkgPath;
@@ -142,6 +153,7 @@ public class SuperPackage
         _superPkgPath = superPkgPath;
     }
 
+    @Nullable
     public Integer getSuperPkgId()
     {
         return _superPkgId;
@@ -152,7 +164,7 @@ public class SuperPackage
         _superPkgId = superPkgId;
     }
 
-
+    @Nullable
     public Integer getPkgId()
     {
         return _pkgId;
@@ -163,6 +175,7 @@ public class SuperPackage
         _pkgId = pkgId;
     }
 
+    @Nullable
     public Package getPkg()
     {
         return _pkg;
@@ -173,6 +186,7 @@ public class SuperPackage
         _pkg = pkg;
     }
 
+    @NotNull
     public Map<String, Object> getSuperPackageRow(Container c)
     {
         Map<String, Object> superPkgValues = new ArrayListMap<>();
@@ -187,6 +201,7 @@ public class SuperPackage
         return superPkgValues;
     }
 
+    @NotNull
     public JSONObject toJSON(Container c, User u)
     {
         JSONObject json = new JSONObject();

@@ -15,6 +15,8 @@
  */
 package org.labkey.api.snd;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.labkey.api.collections.ArrayListMap;
@@ -32,6 +34,8 @@ import java.util.TreeSet;
 
 /**
  * Created by marty on 8/4/2017.
+ *
+ * Class for package data and related methods. Used when saving, updating, deleting and getting a package
  */
 public class Package
 {
@@ -65,6 +69,7 @@ public class Package
     public static final String PKG_ATTRIBUTES = "attributes";
     public static final String PKG_SUBPACKAGES = "subPackages";
 
+    @Nullable
     public Integer getPkgId()
     {
         return _pkgId;
@@ -75,6 +80,7 @@ public class Package
         this._pkgId = pkgId;
     }
 
+    @Nullable
     public String getDescription()
     {
         return _description;
@@ -85,6 +91,7 @@ public class Package
         this._description = description;
     }
 
+    @Nullable
     public String getNarrative()
     {
         return _narrative;
@@ -135,56 +142,62 @@ public class Package
         _hasProject = hasProject;
     }
 
+    @NotNull
     public List<Integer> getCategories()
     {
         return _categories;
     }
 
-    public void setCategories(List<Integer> categories)
+    public void setCategories(@NotNull List<Integer> categories)
     {
         this._categories = categories;
     }
 
+    @NotNull
     public List<GWTPropertyDescriptor> getAttributes()
     {
         return _attributes;
     }
 
-    public void setAttributes(List<GWTPropertyDescriptor> attributes)
+    public void setAttributes(@NotNull List<GWTPropertyDescriptor> attributes)
     {
         this._attributes = attributes;
     }
 
+    @NotNull
     public List<SuperPackage> getSubpackages()
     {
         return _subpackages;
     }
 
-    public void setSubpackages(List<SuperPackage> subpackages)
+    public void setSubpackages(@NotNull List<SuperPackage> subpackages)
     {
         this._subpackages = subpackages;
     }
 
+    @NotNull
     public Map<GWTPropertyDescriptor, Object> getExtraFields()
     {
         return _extraFields;
     }
 
-    public void setExtraFields(Map<GWTPropertyDescriptor, Object> extraFields)
+    public void setExtraFields(@NotNull Map<GWTPropertyDescriptor, Object> extraFields)
     {
         this._extraFields = extraFields;
     }
 
+    @NotNull
     public Map<String, String> getLookups()
     {
         return _lookups;
     }
 
-    public void setLookups(Map<String, String> lookups)
+    public void setLookups(@NotNull Map<String, String> lookups)
     {
         _lookups = lookups;
     }
 
+    @Nullable
     public Integer getQcState()
     {
         return _qcState;
@@ -195,6 +208,7 @@ public class Package
         _qcState = qcState;
     }
 
+    @Nullable
     public Integer getTopLevelSuperPkgId()
     {
         return _topLevelSuperPkgId;
@@ -205,6 +219,7 @@ public class Package
         _topLevelSuperPkgId = topLevelSuperPkgId;
     }
 
+    @NotNull
     public Map<String, Object> getPackageRow(Container c)
     {
         Map<String, Object> pkgValues = new ArrayListMap<>();
@@ -225,6 +240,7 @@ public class Package
         return pkgValues;
     }
 
+    @NotNull
     public List<Map<String, Object>> getCategoryRows(Container c)
     {
         List<Map<String, Object>> rows = new ArrayList<>();
@@ -242,6 +258,7 @@ public class Package
         return rows;
     }
 
+    @NotNull
     public JSONArray attributesToJson(Container c, User u)
     {
         JSONArray attributes = new JSONArray();
@@ -256,6 +273,7 @@ public class Package
         return attributes;
     }
 
+    @NotNull
     public JSONObject toJSON(Container c, User u)
     {
         JSONObject json = new JSONObject();
