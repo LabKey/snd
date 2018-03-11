@@ -13,6 +13,7 @@ import org.labkey.api.security.User;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -23,6 +24,7 @@ public class NarrativeAuditProvider extends AbstractAuditTypeProvider implements
     public static final String COLUMN_NAME_NARRATIVE = "Narrative";
     public static final String COLUMN_NAME_EVENTID = "EventId";
     public static final String COLUMN_NAME_PARTICIPANTID = "ParticipantId";
+    public static final String COLUMN_NAME_EVENTDATE = "EventDate";
 
     static final List<FieldKey> defaultVisibleColumns = new ArrayList<>();
 
@@ -35,6 +37,7 @@ public class NarrativeAuditProvider extends AbstractAuditTypeProvider implements
         defaultVisibleColumns.add(FieldKey.fromParts(COLUMN_NAME_NARRATIVE));
         defaultVisibleColumns.add(FieldKey.fromParts(COLUMN_NAME_EVENTID));
         defaultVisibleColumns.add(FieldKey.fromParts(COLUMN_NAME_PARTICIPANTID));
+        defaultVisibleColumns.add(FieldKey.fromParts(COLUMN_NAME_EVENTDATE));
     }
 
     @Override
@@ -73,12 +76,13 @@ public class NarrativeAuditProvider extends AbstractAuditTypeProvider implements
         return (Class<K>)NarrativeAuditTypeEvent.class;
     }
 
-    public static void addAuditEntry(Container container, User user, Integer eventId, Integer participantId, String narrative, String comment)
+    public static void addAuditEntry(Container container, User user, Integer eventId, Integer participantId, Date eventDate, String narrative, String comment)
     {
         NarrativeAuditProvider.NarrativeAuditTypeEvent event = new NarrativeAuditProvider.NarrativeAuditTypeEvent(container.getId(), comment);
         event.setNarrative(narrative);
         event.setEventId(eventId);
         event.setParticipantId(participantId);
+        event.setEventDate(eventDate);
 
         AuditLogService.get().addEvent(user, event);
     }
@@ -88,6 +92,7 @@ public class NarrativeAuditProvider extends AbstractAuditTypeProvider implements
         private String _narrative;
         private Integer _eventId;
         private Integer _participantId;
+        private Date _eventDate;
 
         public NarrativeAuditTypeEvent()
         {
@@ -128,6 +133,16 @@ public class NarrativeAuditProvider extends AbstractAuditTypeProvider implements
         {
             _participantId = participantId;
         }
+
+        public Date getEventDate()
+        {
+            return _eventDate;
+        }
+
+        public void setEventDate(Date eventDate)
+        {
+            _eventDate = eventDate;
+        }
     }
 
     public static class NarrativeAuditDomainKind extends AbstractAuditDomainKind
@@ -145,6 +160,7 @@ public class NarrativeAuditProvider extends AbstractAuditTypeProvider implements
             fields.add(createPropertyDescriptor(COLUMN_NAME_NARRATIVE, PropertyType.STRING));
             fields.add(createPropertyDescriptor(COLUMN_NAME_EVENTID, PropertyType.INTEGER));
             fields.add(createPropertyDescriptor(COLUMN_NAME_PARTICIPANTID, PropertyType.INTEGER));
+            fields.add(createPropertyDescriptor(COLUMN_NAME_EVENTDATE, PropertyType.DATE_TIME));
             _fields = Collections.unmodifiableSet(fields);
         }
 

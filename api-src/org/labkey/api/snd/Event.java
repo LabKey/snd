@@ -41,6 +41,7 @@ public class Event
     public static final String EVENT_NOTE_ID = "EventNoteId";
     public static final String EVENT_DATA = "eventData";
     public static final String EVENT_PARENT_OBJECTID = "parentObjectId";
+    public static final String EVENT_CONTAINER = "Container";
 
     public static final String DATE_FORMAT = "yyyy-MM-dd'T'kk:mm:ss";  // ISO8601 w/24-hour time and 'T' character
 
@@ -168,7 +169,7 @@ public class Event
         eventValues.put(EVENT_PARTICIPANT_ID, getParticipantId());
         eventValues.put(EVENT_DATE, getDate());
         eventValues.put(EVENT_PARENT_OBJECTID, getParentObjectId());
-        eventValues.put("Container", c);
+        eventValues.put(EVENT_CONTAINER, c);
 
         Map<GWTPropertyDescriptor, Object> extras = getExtraFields();
         for (GWTPropertyDescriptor gpd : extras.keySet())

@@ -13,6 +13,7 @@ import org.labkey.api.security.User;
 import org.labkey.api.snd.SNDService;
 
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.Map;
 
 public class EventsTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
@@ -46,6 +47,8 @@ public class EventsTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
         protected Map<String, Object> deleteRow(User user, Container container, Map<String, Object> oldRowMap) throws QueryUpdateServiceException, SQLException, InvalidKeyException
         {
             int eventId = (Integer) oldRowMap.get("EventId");
+            int participantId = Integer.parseInt((String) oldRowMap.get("ParticipantId"));
+            Date eventDate = (Date) oldRowMap.get("Date");
 
             // This needs to be an atomic operation otherwise could get deadlock
             try (DbScope.Transaction tx = SNDSchema.getInstance().getSchema().getScope().ensureTransaction(SNDService.get().getWriteLock()))
@@ -58,6 +61,8 @@ public class EventsTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             {
                 throw new QueryUpdateServiceException(e.getMessage());
             }
+
+            NarrativeAuditProvider.addAuditEntry(container, user, eventId, participantId, eventDate,"Fill in full narrative.", "Delete event");
 
             // now delete package row
             return super.deleteRow(user, container, oldRowMap);

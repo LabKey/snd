@@ -40,6 +40,7 @@ public class EventData
     public static final String EVENT_DATA_OBJECTURI = "objectURI";
     public static final String EVENT_DATA_EVENTID = "eventId";
     public static final String EVENT_DATA_PARENT_EVENTDATAID = "parentEventDataId";
+    public static final String EVENT_DATA_CONTAINER = "Container";
 
 
     public EventData(@Nullable Integer eventDataId, int superPkgId, @Nullable String narrative, @Nullable List<EventData> subPackages, @NotNull List<AttributeData> attributes)
@@ -161,7 +162,7 @@ public class EventData
         eventDataValues.put(EVENT_DATA_OBJECTURI, getObjectURI());
         eventDataValues.put(EVENT_DATA_EVENTID, getEventId());
         eventDataValues.put(EVENT_DATA_PARENT_EVENTDATAID, getParentEventDataId());
-        eventDataValues.put("Container", c);
+        eventDataValues.put(EVENT_DATA_CONTAINER, c);
 
         Map<GWTPropertyDescriptor, Object> extras = getExtraFields();
         for (GWTPropertyDescriptor gpd : extras.keySet())
