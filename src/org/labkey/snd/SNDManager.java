@@ -110,6 +110,9 @@ public class SNDManager
         return PackageDomainKind.getPackageKindName() + "-" + id;
     }
 
+    /**
+     * Deletes category package associations in junction table for a given package
+     */
     public void deletePackageCategories(Container c, User u, int pkgId)
     {
         SQLFragment sql = new SQLFragment("DELETE FROM " + SNDSchema.getInstance().getTableInfoPkgCategoryJunction());
@@ -120,6 +123,9 @@ public class SNDManager
         sqlex.execute(sql);
     }
 
+    /**
+     * Generic get table info function
+     */
     private TableInfo getTableInfo(@NotNull UserSchema schema, @NotNull String table)
     {
         TableInfo tableInfo = schema.getTable(table);
@@ -129,6 +135,9 @@ public class SNDManager
         return tableInfo;
     }
 
+    /**
+     * Generic get update service function
+     */
     private QueryUpdateService getQueryUpdateService(@NotNull TableInfo table)
     {
         QueryUpdateService qus = table.getUpdateService();
@@ -138,7 +147,9 @@ public class SNDManager
         return qus;
     }
 
-    // Creates a new QUS for extensible tables. Used for tables that have had their QUS blocked.
+    /**
+     * Creates a new QUS for extensible tables. Used for tables that have had their QUS blocked.
+     */
     private QueryUpdateService getNewQueryUpdateService(@NotNull UserSchema schema, @NotNull String table)
     {
         TableInfo dbTableInfo = schema.getDbSchema().getTable(table);
@@ -154,6 +165,9 @@ public class SNDManager
         return qus;
     }
 
+    /**
+     * Gets lookup values for default values of a property descriptor. Used when creating json for a property descriptor.
+     */
     public Object getDefaultLookupDisplayValue(User u, Container c, String schema, String table, Object key)
     {
         UserSchema userSchema = QueryService.get().getUserSchema(u, c, schema);
@@ -184,6 +198,9 @@ public class SNDManager
         return rows.get(0).get(tableInfo.getTitleColumn());
     }
 
+    /**
+     * Gets key value of a default lookup value. Used when converting json to property descriptor.
+     */
     public Object normalizeLookupDefaultValue(User u, Container c, String schema, String table, String display)
     {
         UserSchema userSchema = QueryService.get().getUserSchema(u, c, schema);
@@ -203,6 +220,9 @@ public class SNDManager
         return lookupRows.get(0);
     }
 
+    /**
+     * Called from SNDService.savePackage when saving updates to an already existing package.
+     */
     public void updatePackage(User u, Container c, @NotNull Package pkg, @Nullable SuperPackage superPkg, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -255,6 +275,9 @@ public class SNDManager
         }
     }
 
+    /**
+     * Called from SNDService.savePackage when creating a new package.
+     */
     public void createPackage(User u, Container c, @NotNull Package pkg, @Nullable SuperPackage superPkg, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -306,6 +329,9 @@ public class SNDManager
         }
     }
 
+    /**
+     * Gets all saved super package Ids
+     */
     private List<Integer> getSavedSuperPkgs(Container c, User u)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -316,6 +342,9 @@ public class SNDManager
         return selector.getArrayList(Integer.class);
     }
 
+    /**
+     * Called from saveSuperPackages. Deletes any subpackages that have been removed from a super package.
+     */
     private void deleteRemovedChildren(User u, Container c, SuperPackage superPkg, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -344,6 +373,10 @@ public class SNDManager
         }
     }
 
+    /**
+     * Called from create and update package functions, as well as import super packages functions.  Saves all the sub super packages
+     * for a given package and the super package defined for the package itself.
+     */
     public void saveSuperPackages(User u, Container c, List<SuperPackage> superPkgs, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -401,6 +434,9 @@ public class SNDManager
         }
     }
 
+    /**
+     * Gets the property descriptors for a given package by getting the full domain for the package
+     */
     private List<GWTPropertyDescriptor> getPackageAttributes(Container c, User u, int pkgId)
     {
         String uri = PackageDomainKind.getDomainURI(SNDSchema.NAME, getPackageName(pkgId), c, u);
@@ -411,7 +447,9 @@ public class SNDManager
         return Collections.emptyList();
     }
 
-
+    /**
+     * Gets the category ids associated with a given package
+     */
     private List<Integer> getPackageCategories(Container c, User u, int pkgId)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -423,6 +461,9 @@ public class SNDManager
         return selector.getArrayList(Integer.class);
     }
 
+    /**
+     * Gets the extensible fields for a given table
+     */
     private List<GWTPropertyDescriptor> getExtraFields(Container c, User u, String tableName)
     {
         String uri = SNDDomainKind.getDomainURI(SNDSchema.NAME, tableName, c, u);
@@ -433,6 +474,9 @@ public class SNDManager
         return Collections.emptyList();
     }
 
+    /**
+     * Add extensible fields to the package object when getting the package for an API
+     */
     public Package addExtraFieldsToPackage(Container c, User u, Package pkg, @Nullable Map<String, Object> row)
     {
         List<GWTPropertyDescriptor> extraFields = getExtraFields(c, u, SNDSchema.PKGS_TABLE_NAME);
@@ -453,6 +497,9 @@ public class SNDManager
         return pkg;
     }
 
+    /**
+     * Recursive call to iterate through the hierarchy of a super package to get its subpackages
+     */
     private SuperPackage addChildren(SuperPackage parent, List<SuperPackage> descendants)
     {
         List<SuperPackage> children = new ArrayList<>();
@@ -470,7 +517,9 @@ public class SNDManager
         return parent;
     }
 
-    // return all super package IDs which correspond to this package ID
+    /**
+     * Returns all super package IDs which correspond to this package ID
+     */
     @Nullable
     public static List<Integer> getSuperPkgIdsForPkg(Container c, User u, Integer packageId)
     {
@@ -487,7 +536,9 @@ public class SNDManager
             return null;
     }
 
-    // return the top-level super package which corresponds to this package ID
+    /**
+     * Returns the top-level super package which corresponds to this package ID
+     */
     @Nullable
     public static SuperPackage getTopLevelSuperPkgForPkg(Container c, User u, Integer packageId)
     {
@@ -505,7 +556,9 @@ public class SNDManager
             return null;
     }
 
-    // return the super packages which correspond to these super package IDs
+    /**
+     * Returns the super packages which correspond to these super package IDs
+     */
     @Nullable
     public static List<SuperPackage> getSuperPkgs(Container c, User u, List<Integer> superPackageIds)
     {
@@ -524,7 +577,9 @@ public class SNDManager
             return null;
     }
 
-    // convert all passed-in super packages to distinct top-level super packages
+    /**
+     * Convert all passed-in super packages to distinct top-level super packages
+     */
     @Nullable
     public static List<SuperPackage> convertToTopLevelSuperPkgs(Container c, User u, List<Integer> superPackageIds)
     {
@@ -547,7 +602,9 @@ public class SNDManager
             return null;
     }
 
-    // filters list of superPackageIds down to super packages which have no parent
+    /**
+     * Filters list of superPackageIds down to super packages which have no parent
+     */
     @Nullable
     public static List<SuperPackage> filterTopLevelSuperPkgs(Container c, User u, List<Integer> superPackageIds)
     {
@@ -569,7 +626,9 @@ public class SNDManager
             return null;
     }
 
-    // only gets IDs for all child super packages that point to a certain super package ID
+    /**
+     * Only gets IDs for all child super packages that point to a certain super package ID
+     */
     @Nullable
     public static List<SuperPackage> getChildSuperPkgs(Container c, User u, Integer parentSuperPackageId)
     {
@@ -586,7 +645,9 @@ public class SNDManager
             return null;
     }
 
-    // filters list of superPackageIds down to super packages that have parentSuperPackageId as a parent
+    /**
+     * Filters list of superPackageIds down to super packages that have parentSuperPackageId as a parent
+     */
     @Nullable
     public static List<SuperPackage> filterChildSuperPkgs(Container c, User u, List<Integer> superPackageIds, Integer parentSuperPackageId)
     {
@@ -608,7 +669,9 @@ public class SNDManager
             return null;
     }
 
-    // return list of super package IDs that should be deleted based on passed-in superPackageIds and parentSuperPackage ID
+    /**
+     * Return list of super package IDs that should be deleted based on passed-in superPackageIds and parentSuperPackage ID
+     */
     @Nullable
     public static List<Integer> getDeletedChildSuperPkgs(Container c, User u, List<SuperPackage> superPackages, Integer parentSuperPackageId)
     {
@@ -640,6 +703,9 @@ public class SNDManager
             return null;
     }
 
+    /**
+     * Used for building sql statements when adding subpackages to parameters
+     */
     private static void addSubPkgParameters(SQLFragment sql, Iterator<Integer> subPkgIterator)
     {
         while (subPkgIterator.hasNext())
@@ -652,6 +718,9 @@ public class SNDManager
         }
     }
 
+    /**
+     * Checks if package is descendent of a super package
+     */
     public boolean isDescendent(Container c, User u, int topLevelSuperPkgId, int pkgId)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -672,6 +741,10 @@ public class SNDManager
         return selector.exists();
     }
 
+    /**
+     * Gets the full SuperPackage object for a given super package Id.  Option to include full subpackages as well,
+     * otherwise just a list of super package Ids for subpackages.
+     */
     @Nullable
     private SuperPackage getFullSuperPackage(Container c, User u, int superPkgId, boolean fullSubpackages)
     {
@@ -703,7 +776,9 @@ public class SNDManager
         return superPackage;
     }
 
-    // recursively get all children for the super package which corresponds to pkgId
+    /**
+     * Recursively get all children for the super package which corresponds to pkgId
+     */
     private List<SuperPackage> getAllChildSuperPkgs(Container c, User u, int pkgId, boolean allAttributes)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -756,6 +831,9 @@ public class SNDManager
         return pkg;
     }
 
+    /**
+     * Adds lookup sets to a package being retrieved in API
+     */
     public Package addLookupsToPkg(Container c, User u, Package pkg)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -788,6 +866,10 @@ public class SNDManager
         return pkg;
     }
 
+    /**
+     * Given a row from the snd.Pkgs table, this creates the Package object.  Options to include extensible columns, lookup values
+     * and attributes of subpackages
+     */
     private Package createPackage(Container c, User u, Map<String, Object> row, boolean includeExtraFields, boolean includeLookups, boolean includeAllAttributes)
     {
         Package pkg = new Package();
@@ -818,6 +900,10 @@ public class SNDManager
         return pkg;
     }
 
+    /**
+     * Gets a list of full packages given a list of package Ids. Options to include extensible columns, lookup values and
+     * all attributes for sub packages.
+     */
     public List<Package> getPackages(Container c, User u, List<Integer> pkgIds, boolean includeExtraFields, boolean includeLookups,
                                      boolean includeAllAttributes, BatchValidationException errors)
     {
@@ -857,6 +943,9 @@ public class SNDManager
         return packages;
     }
 
+    /**
+     * Used for validation to ensure there are no later project revisions
+     */
     public boolean projectRevisionIsLatest(Container c, User u, int id, int rev)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -870,6 +959,9 @@ public class SNDManager
         return !selector.exists();
     }
 
+    /**
+     * Used for validation to ensure a project revision is valid
+     */
     private boolean projectRevisionExists(Container c, User u, int id, int rev)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -883,6 +975,9 @@ public class SNDManager
         return selector.exists();
     }
 
+    /**
+     * Used for validation to check for overlap of dates in project with passed in row
+     */
     private boolean hasOverlap(Project project, Map<String, Object> row, boolean revision, BatchValidationException errors)
     {
         int rowRev = (int) row.get("RevisionNum");
@@ -950,6 +1045,10 @@ public class SNDManager
         return overlap;
     }
 
+    /**
+     * Used for validation to check reference Ids for overlap with other projects and not allow changing ref Id once
+     * a project is in use.
+     */
     private boolean isValidReferenceId(Container c, User u, Project project, boolean revision, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -1027,6 +1126,9 @@ public class SNDManager
         return valid;
     }
 
+    /**
+     * Used for validation.  Validates a project revision before allowing it to be saved.
+     */
     private boolean isValidRevision(Container c, User u, Project project, boolean revision, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -1112,7 +1214,10 @@ public class SNDManager
         return errors.hasErrors();
     }
 
-    public boolean validProject(Container c, User u, Project project, boolean revision, BatchValidationException errors)
+    /**
+     * Used for validation to check a valid reference Id and revision
+     */
+    private boolean validProject(Container c, User u, Project project, boolean revision, BatchValidationException errors)
     {
         if (revision && projectRevisionExists(c, u, project.getProjectId(), project.getRevisedRevNum()))
         {
@@ -1126,6 +1231,9 @@ public class SNDManager
 
     }
 
+    /**
+     * Called from SNDService.saveProject to create a new project.
+     */
     public void createProject(Container c, User u, Project project, BatchValidationException errors)
     {
         if (validProject(c, u, project, false, errors))
@@ -1154,6 +1262,9 @@ public class SNDManager
         }
     }
 
+    /**
+     * Used in reviseProject to update a project
+     */
     private void updateProjectField(Container c, User u, int id, int rev, String field, String value)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -1166,6 +1277,10 @@ public class SNDManager
         new SqlExecutor(schema.getDbSchema().getScope()).execute(sql);
     }
 
+    /**
+     * Called from SNDService.saveProject to create a project revision.  This is called when an isRevision flag is passed
+     * into SaveProject API.
+     */
     public void reviseProject(Container c, User u, Project project, BatchValidationException errors)
     {
         if (validProject(c, u, project, true, errors))
@@ -1228,6 +1343,9 @@ public class SNDManager
         }
     }
 
+    /**
+     * Called from SNDService.saveProject to update an existing project
+     */
     public void updateProject(Container c, User u, Project project, BatchValidationException errors)
     {
         if (validProject(c, u, project, false, errors))
@@ -1265,6 +1383,10 @@ public class SNDManager
         }
     }
 
+    /**
+     * Called from SNDService.saveProject to determine if a project exists.  If project exists then will perform an update
+     * or revision.  If not, will create a new project.
+     */
     public String getProjectObjectId(Container c, User u, Project project, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -1280,6 +1402,9 @@ public class SNDManager
         return selector.getArrayList(String.class).get(0);
     }
 
+    /**
+     * Gets project item Ids for a project.  Used when deleting a project.
+     */
     public List<Map<String, Object>> getProjectItems(Container c, User u, int projectId, int revNum)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -1309,6 +1434,9 @@ public class SNDManager
         return projectItems;
     }
 
+    /**
+     * Gets extensible columns for a project. Used when getting a project in API call
+     */
     public Project addExtraFieldsToProject(Container c, User u, Project project, @Nullable Map<String, Object> row)
     {
         List<GWTPropertyDescriptor> extraFields = getExtraFields(c, u, SNDSchema.PROJECTS_TABLE_NAME);
@@ -1329,6 +1457,9 @@ public class SNDManager
         return project;
     }
 
+    /**
+     * Gets a project for GetProject API
+     */
     public Project getProject(Container c, User u, int projectId, int revNum)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -1373,6 +1504,10 @@ public class SNDManager
 
     }
 
+    /**
+     * Called from SNDService to allow lookup tables from outside the SND module to be added to the list of lookups
+     * available package attributes.
+     */
     public void registerAttributeLookups(Container c, User u, String schema, String table)
     {
         UserSchema userSchema = QueryService.get().getUserSchema(u, c, schema);
@@ -1386,6 +1521,9 @@ public class SNDManager
         }
     }
 
+    /**
+     * Gets registered attribute lookup sets
+     */
     public Map<String, String> getAttributeLookups(Container c, User u)
     {
         Map<String, String> tables = new HashMap<>();
@@ -1399,6 +1537,10 @@ public class SNDManager
         return tables;
     }
 
+    /**
+     * Gets event data for a given event.  This includes the data from snd.EventData and the attribute data stored in
+     * exp.ObjectProperty.  Recursively iterates through subpackages to get data.
+     */
     private EventData getEventData(Container c, User u, int eventDataId, SuperPackage superPackage, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -1473,6 +1615,10 @@ public class SNDManager
         return eventData;
     }
 
+    /**
+     * Gets event data for a given event.  This includes the data from snd.EventData and the attribute data stored in
+     * exp.ObjectProperty.  Calls getEventData to get full hierarchy of event datas.
+     */
     private List<EventData> getEventDatas(Container c, User u, int eventId, BatchValidationException errors)
     {
         List<EventData> eventDatas = new ArrayList<>();
@@ -1507,6 +1653,9 @@ public class SNDManager
         return eventDatas;
     }
 
+    /**
+     * Gets event for a given event Id.  Call from SNDService.getEvent
+     */
     public Event getEvent(Container c, User u, int eventId, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -1537,6 +1686,9 @@ public class SNDManager
         return event;
     }
 
+    /**
+     * Called from SNDService.saveEvent to determine if save event is creating a new event or updating an event.
+     */
     public boolean eventExists(Container c, User u, int eventId)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -1550,6 +1702,9 @@ public class SNDManager
         return selector.exists();
     }
 
+    /**
+     * Get a project ObjectId given a projectId and revision in the format projectId|rev (ex. 61|1).
+     */
     private String getProjectObjectId(Container c, User u, String projectIdRev, BatchValidationException errors)
     {
         if (projectIdRev == null)
@@ -1603,6 +1758,9 @@ public class SNDManager
         return null;
     }
 
+    /**
+     * Get a projectId and revision in the format projectId|rev (ex. 61|1). Used for getEvent.
+     */
     @Nullable
     private String getProjectIdRev(Container c, User u, String objectId, BatchValidationException errors)
     {
@@ -1630,6 +1788,9 @@ public class SNDManager
         return idRev;
     }
 
+    /**
+     * Delete event notes for a given event id.
+     */
     public void deleteEventNotes(Container c, User u, int eventId) throws SQLException, QueryUpdateServiceException, BatchValidationException, InvalidKeyException
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -1656,6 +1817,9 @@ public class SNDManager
         eventNotesQus.deleteRows(u, c, rows, null, null);
     }
 
+    /**
+     * Add extensible columns to an event.
+     */
     public Event addExtraFieldsToEvent(Container c, User u, Event event, @Nullable Map<String, Object> row)
     {
         List<GWTPropertyDescriptor> extraFields = getExtraFields(c, u, SNDSchema.EVENTS_TABLE_NAME);
@@ -1676,6 +1840,9 @@ public class SNDManager
         return event;
     }
 
+    /**
+     * Add extensible columns to event data.
+     */
     private EventData addExtraFieldsToEventData(Container c, User u, EventData eventData, @Nullable Map<String, Object> row)
     {
         List<GWTPropertyDescriptor> extraFields = getExtraFields(c, u, SNDSchema.EVENTDATA_TABLE_NAME);
@@ -1696,6 +1863,9 @@ public class SNDManager
         return eventData;
     }
 
+    /**
+     * Get an empty event with just event meta data.  Used for creating the initial forms.  Called from SND GetEvent API
+     */
     public Event getEmptyEvent(Container c, User u)
     {
         Event event = new Event();
@@ -1712,11 +1882,17 @@ public class SNDManager
         return event;
     }
 
+    /**
+     * Create ObjectURI that will link snd.EventData rows with exp.Object rows
+     */
     private String generateLsid(Container c, String eventDataId)
     {
         return new Lsid(Event.SND_EVENT_NAMESPACE, "Folder-" + c.getRowId(), eventDataId).toString();
     }
 
+    /**
+     * Gets package Id for a given super package
+     */
     private Integer getPackageIdForSuperPackage(Container c, User u, int superPkgId)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -1730,6 +1906,9 @@ public class SNDManager
         return selector.getObject(Integer.class);
     }
 
+    /**
+     * Inserts event data and attribute data into exp.Object and exp.ObjectProperty tables.  Used in save event API
+     */
     private String insertExpObjectProperties(Container c, User u, EventData eventData) throws ValidationException
     {
 //        String eventObjectId = GUID.makeGUID();
@@ -1773,6 +1952,9 @@ public class SNDManager
         return objectURI;
     }
 
+    /**
+     * Recursive call that iterates through event data and its sub packages to insert event data and attribute data.
+     */
     private void getEventDataRows(Container c, User u, EventData eventData, int eventId, List<Map<String, Object>> eventDataRows) throws ValidationException
     {
         if (eventData.getEventDataId() == null)
@@ -1796,6 +1978,9 @@ public class SNDManager
         }
     }
 
+    /**
+     * Inserts event and attribute data and their sub packages.
+     */
     private void insertEventDatas(Container c, User u, List<EventData> eventDatas, int eventId, BatchValidationException errors) throws ValidationException, SQLException, QueryUpdateServiceException, BatchValidationException, DuplicateKeyException
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -1817,6 +2002,9 @@ public class SNDManager
         }
     }
 
+    /**
+     * Used to validate save event API call.  Verifies super packages belong to a project.
+     */
     private void ensureSuperPkgsBelongToProject(Container c, User u, Event event, BatchValidationException errors)
     {
         if (event.getParentObjectId() == null)
@@ -1865,6 +2053,9 @@ public class SNDManager
         }
     }
 
+    /**
+     * Gets the full package for a given super pakcage Id.  Uses the SNDManager.getPackages function used in SND getPackage API
+     */
     private Package getPackageForSuperPackage(Container c, User u, int superPkgId, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -1881,6 +2072,10 @@ public class SNDManager
         return getPackages(c, u, pkgIds, false, false,true, errors).get(0);
     }
 
+    /**
+     * Ensure incoming event data super packages match the structure of the top level super package and that required fields
+     * are filled in.
+     */
     private void ensureValidPackage(EventData eventData, Package pkg, BatchValidationException errors)
     {
         List<AttributeData> attributes = eventData.getAttributes();
@@ -1957,6 +2152,10 @@ public class SNDManager
         }
     }
 
+    /**
+     * Helper function to check if a package contains required fields.  Used to determine if missing packages in event
+     * data has required fields.
+     */
     private boolean pkgContainsRequiredFields(Package pkg)
     {
         for (GWTPropertyDescriptor gwtPropertyDescriptor : pkg.getAttributes())
@@ -1968,6 +2167,9 @@ public class SNDManager
         return false;
     }
 
+    /**
+     * Iterates through top level super package event datas to validate data.
+     */
     private void ensureValidEventData(Container c, User u, Event event, BatchValidationException errors)
     {
         for (EventData eventData : event.getEventData())
@@ -1976,6 +2178,9 @@ public class SNDManager
         }
     }
 
+    /**
+     * Called from SNDService.saveEvent to insert a new event.
+     */
     public void createEvent(Container c, User u, Event event, BatchValidationException errors)
     {
         String projectObjectId = getProjectObjectId(c, u, event.getProjectIdRev(), errors);
@@ -2020,6 +2225,9 @@ public class SNDManager
         }
     }
 
+    /**
+     * Deletes and event datas associated with an eventId and their associated exp.Object and attribute data in exp.ObjectProperty
+     */
     public void deleteEventDatas(Container c, User u, int eventId) throws SQLException, QueryUpdateServiceException, BatchValidationException, InvalidKeyException
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -2047,6 +2255,9 @@ public class SNDManager
         deleteExpObjects(c, u, eventId);
     }
 
+    /**
+     * Deletes exp Objects and ObjectProperties for a given event
+     */
     private void deleteExpObjects(Container c, User u, int eventId)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -2066,6 +2277,9 @@ public class SNDManager
         }
     }
 
+    /**
+     * Called from SNDService.saveEvent to update an existing event.
+     */
     public void updateEvent(Container c, User u, Event event, BatchValidationException errors)
     {
         String projectObjectId = getProjectObjectId(c, u, event.getProjectIdRev(), errors);
