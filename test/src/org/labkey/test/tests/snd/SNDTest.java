@@ -1627,7 +1627,6 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 
         goToSchemaBrowser();
         dataRegionTable = viewQueryData("snd", "Projects");
-        assertEquals("Expected row count does not match.", 6, dataRegionTable.getDataRowCount());
         expected = Lists.newArrayList("50", "2", "100", "2018-02-01", "2018-02-09", TEST_EDIT_PROJECT_DESC, "false");
         assertEquals("Expected values not found.", expected, dataRegionTable.getRowDataAsText(2));
         expected = Lists.newArrayList("50", "3", "100", "2018-02-10", "2018-02-20", TEST_REV_PROJECT_DESC, "true");
