@@ -799,9 +799,9 @@ public class SNDController extends SpringActionController
                 }
             }
 
-            if (!json.has("participantId") || json.get("participantId") == null)
+            if (!json.has("subjectId") || json.get("subjectId") == null)
             {
-                errors.reject(ERROR_MSG, "Missing required json parameter: participantId.");
+                errors.reject(ERROR_MSG, "Missing required json parameter: subjectId.");
             }
             if (!json.has("projectIdRev") || json.get("projectIdRev") == null)
             {
@@ -875,7 +875,7 @@ public class SNDController extends SpringActionController
         {
             JSONObject json = form.getJsonObject();
             Integer eventId = json.has("eventId") ? json.getInt("eventId") : null;
-            int participantId = json.getInt("participantId");
+            int subjectId = json.getInt("subjectId");
             String dateString = json.getString("date");
 
             Date date = null;
@@ -898,7 +898,7 @@ public class SNDController extends SpringActionController
                 if (eventDataJson != null)
                     eventData = parseEventData(eventDataJson);
 
-                Event event = new Event(eventId, participantId, date, projectIdrev, note, eventData, getContainer());
+                Event event = new Event(eventId, subjectId, date, projectIdrev, note, eventData, getContainer());
 
                 // Get extra fields
                 JSONArray jsonExtras = json.optJSONArray("extraFields");

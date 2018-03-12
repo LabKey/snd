@@ -493,7 +493,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         "       callback(e.exception); },                           \n" +
         "   jsonData: {                                             \n" +
         "       eventId: 1812345,                                   \n" +
-        "       participantId: 1,                                   \n" +
+        "       subjectId: 1,                                       \n" +
         "       note: 'This is a test event note.',                 \n" +
         "       projectIdRev: '" + PKG_TEST_PROJECT_ID + "|0',      \n" +
         "       eventData: [{                                       \n" +
@@ -751,7 +751,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
                 "           insertIfNotExists('snd', 'Events', 'EventId', projectId + revNum,\n" +
                 "               [{\n" +
                 "                   \"EventId\": projectId + revNum,\n" +
-                "                   \"ParticipantId\": 1,\n" +
+                "                   \"SubjectId\": 1,\n" +
                 "                   \"Date\": new Date(),\n" +
                 "                   \"ParentObjectId\": data.rows[0][\"ObjectId\"].value\n" +
                 "               }],\n" +

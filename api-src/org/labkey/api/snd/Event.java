@@ -24,7 +24,7 @@ import java.util.TreeSet;
 public class Event
 {
     private Integer _eventId;
-    private int _participantId;  // sometimes also a molecule ID
+    private int _subjectId;  // sometimes also a molecule ID
     private Date _date;
     private String _projectIdRev;
     private String _note;
@@ -34,7 +34,7 @@ public class Event
     private Map<GWTPropertyDescriptor, Object> _extraFields = new HashMap<>();
 
     public static final String EVENT_ID = "eventId";
-    public static final String EVENT_PARTICIPANT_ID = "participantId";
+    public static final String EVENT_SUBJECT_ID = "subjectId";
     public static final String EVENT_DATE = "date";
     public static final String EVENT_PROJECT_ID_REV = "projectIdRev";
     public static final String EVENT_NOTE = "note";
@@ -48,10 +48,10 @@ public class Event
     public static final String SND_EVENT_NAMESPACE = "SND.EventData";
 
 
-    public Event(@Nullable Integer eventId, int participantId, @Nullable Date date, @NotNull String projectIdRev, @Nullable String note, @Nullable List<EventData> eventData, @NotNull Container c)
+    public Event(@Nullable Integer eventId, int subjectId, @Nullable Date date, @NotNull String projectIdRev, @Nullable String note, @Nullable List<EventData> eventData, @NotNull Container c)
     {
         _eventId = eventId != null ? eventId : SNDSequencer.EVENTID.ensureId(c, null);
-        _participantId = participantId;
+        _subjectId = subjectId;
         _date = date;
         _projectIdRev = projectIdRev;
         _note = note;
@@ -72,14 +72,14 @@ public class Event
         _eventId = eventId;
     }
 
-    public int getParticipantId()
+    public int getSubjectId()
     {
-        return _participantId;
+        return _subjectId;
     }
 
-    public void setParticipantId(int participantId)
+    public void setSubjectId(int subjectId)
     {
-        _participantId = participantId;
+        _subjectId = subjectId;
     }
 
     @Nullable
@@ -166,7 +166,7 @@ public class Event
         if (getEventId() != null)
             eventValues.put(EVENT_ID, getEventId());
 
-        eventValues.put(EVENT_PARTICIPANT_ID, getParticipantId());
+        eventValues.put(EVENT_SUBJECT_ID, getSubjectId());
         eventValues.put(EVENT_DATE, getDate());
         eventValues.put(EVENT_PARENT_OBJECTID, getParentObjectId());
         eventValues.put(EVENT_CONTAINER, c);
@@ -199,7 +199,7 @@ public class Event
     {
         JSONObject json = new JSONObject();
         json.put(EVENT_ID, getEventId());
-        json.put(EVENT_PARTICIPANT_ID, getParticipantId());
+        json.put(EVENT_SUBJECT_ID, getSubjectId());
 
         if (getDate() != null)
             json.put(EVENT_DATE, DateUtil.formatDateTime(getDate(), DATE_FORMAT));

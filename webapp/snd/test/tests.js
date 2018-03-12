@@ -52,7 +52,7 @@
                             ]
                         }
                     },
-                    expectedFailure:"Missing required json parameter: participantId."
+                    expectedFailure:"Missing required json parameter: subjectId."
                 }
             }
 
@@ -66,7 +66,7 @@
                         url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
                         jsonData:{
                             eventId: "1800001-1",
-                            participantId : 1,
+                            subjectId : 1,
                             date: "2018-02-26T17:51:20",
                             note: "This is a test event note.",
                             projectIdRev: '60|0',
@@ -99,7 +99,7 @@
                         url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
                         jsonData:{
                             eventId: 1800001,
-                            participantId:1,
+                            subjectId:1,
                             date: "2018-02-26T17:51:20",
                             note: "Note for Save Event with Missing Project ID",
                             eventData: [
@@ -132,7 +132,7 @@
                         url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
                         jsonData:{
                             eventId : 180002,
-                            participantId : 1,
+                            subjectId : 1,
                             date : "2018-03-03T17:21:22",
                             projectIdRev : "61",
                             note : "Note for Save Event with Missing Revision number for project Id",
@@ -165,7 +165,7 @@
                         url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
                         jsonData:{
                             eventId : 180002,
-                            participantId : 1,
+                            subjectId : 1,
                             date : "2018-03-03T17:21:22",
                             projectIdRev : "64|0",
                             note : "Note for Save Event with Invalid project Id",
@@ -200,7 +200,7 @@
                         jsonData:{
                             eventId : 170007,
                             date:"xx",
-                            participantId : 1,
+                            subjectId : 1,
                             projectIdRev : "60|0",
                             note : "Note for Save Event with Invalid date",
                             eventData: [
@@ -231,7 +231,7 @@
                     request: {
                         url: LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
                         jsonData: {
-                            participantId: 1,
+                            subjectId: 1,
                             date: "2018-02-26T17:51:20",
                             note: "Note for auto generated event ID",
                             projectIdRev: '60|0',

@@ -206,7 +206,7 @@
     <table tableName="Events" tableDbType="TABLE">
         <columns>
             <column columnName="EventId"/>
-            <column columnName="ParticipantId"/>
+            <column columnName="SubjectId"/>
             <column columnName="ParentObjectId"/>
             <column columnName="Date"/>
             <column columnName="QcState"/>

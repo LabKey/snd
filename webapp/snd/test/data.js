@@ -378,7 +378,7 @@
                 name: 'Valid Save Event: Use Property Names',
                 jsonData: {
                     eventId: 1800000,
-                    participantId: 1,
+                    subjectId: 1,
                     date: "2018-02-26T17:51:20",
                     note: "This is a test event note.",
                     projectIdRev: '60|0',
@@ -386,13 +386,26 @@
                         {
                             superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
                             attributes: [{
-                                propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['name'],
+                                propertyName: 'amount',
                                 value: '10'
                             }, {
-                                propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'units')['name'],
+                                propertyName: 'units',
                                 value: 'mL'
                             }, {
-                                propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['name'],
+                                propertyName: 'tube',
+                                value: 'red'
+                            }]
+                        },
+                        {
+                            superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
+                            attributes: [{
+                                propertyName: 'amount',
+                                value: '11'
+                            }, {
+                                propertyName: 'units',
+                                value: 'mL'
+                            }, {
+                                propertyName: 'tube',
                                 value: 'red'
                             }]
                         }
@@ -400,7 +413,7 @@
                 },
                 expected: {
                     eventId: 1800000,
-                    participantId: 1,
+                    subjectId: 1,
                     date: "2018-02-26T17:51:20",
                     note: "This is a test event note.",
                     projectIdRev: '60|0',
@@ -428,7 +441,7 @@
                 name :'Valid Save Event with super package',
                 jsonData: {
                     eventId: 1800001,
-                    participantId: 2,
+                    subjectId: 2,
                     date: "2018-02-26T17:51:20",
                     note: "Note for event attribute data sample JSON",
                     projectIdRev: '61|0',
@@ -497,7 +510,7 @@
                 },
                 expected : {
                     eventId: 1800001,
-                    participantId: 2,
+                    subjectId: 2,
                     date: "2018-02-26T17:51:20",
                     note: "Note for event attribute data sample JSON",
                     projectIdRev: '61|0',

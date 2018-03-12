@@ -2213,7 +2213,7 @@ public class SNDManager
                         eventQus.insertRows(u, c, eventRows, errors, null, null);
                         eventNotesQus.insertRows(u, c, eventNotesRows, errors, null, null);
                         insertEventDatas(c, u, event.getEventData(), event.getEventId(), errors);
-                        NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getParticipantId(), event.getDate(),"Fill in full narrative.", "Create event");
+                        NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(),"Fill in full narrative.", "Create event");
                         tx.commit();
                     }
                     catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException | ValidationException e)
@@ -2312,7 +2312,7 @@ public class SNDManager
                     eventNotesQus.insertRows(u, c, eventNotesRows, errors, null, null);
                     deleteEventDatas(c, u, event.getEventId());
                     insertEventDatas(c, u, event.getEventData(), event.getEventId(), errors);
-                    NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getParticipantId(), event.getDate(),"Fill in full narrative.", "Event update");
+                    NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(),"Fill in full narrative.", "Event update");
                     tx.commit();
                 }
                 catch (QueryUpdateServiceException | BatchValidationException | SQLException | InvalidKeyException | DuplicateKeyException | ValidationException e)
