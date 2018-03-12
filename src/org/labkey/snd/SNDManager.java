@@ -669,11 +669,11 @@ public class SNDManager
         sql.add(topLevelPkgId).add(pkgId);
 
         selector = new SqlSelector(schema.getDbSchema(), sql);
-        return selector.getRowCount() > 0;
+        return selector.exists();
     }
 
     @Nullable
-    private SuperPackage getFullSuperPackage(Container c, User u, int superPkgId, boolean getFullSubpackages)
+    private SuperPackage getFullSuperPackage(Container c, User u, int superPkgId, boolean fullSubpackages)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -687,7 +687,7 @@ public class SNDManager
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
         SuperPackage superPackage = selector.getObject(SuperPackage.class);
 
-        if (getFullSubpackages)
+        if (fullSubpackages)
         {
             Package pkg;
             pkg = new Package();
@@ -698,13 +698,13 @@ public class SNDManager
         }
 
         if (superPackage != null)
-            superPackage.setChildPackages(getAllChildSuperPkgs(c, u, superPackage.getPkgId(), getFullSubpackages));
+            superPackage.setChildPackages(getAllChildSuperPkgs(c, u, superPackage.getPkgId(), fullSubpackages));
 
         return superPackage;
     }
 
     // recursively get all children for the super package which corresponds to pkgId
-    private List<SuperPackage> getAllChildSuperPkgs(Container c, User u, int pkgId, boolean getAllAttributes)
+    private List<SuperPackage> getAllChildSuperPkgs(Container c, User u, int pkgId, boolean allAttributes)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -719,7 +719,7 @@ public class SNDManager
         Package childPkg;
         for (SuperPackage sPkg : descendants)
         {
-            if (getAllAttributes)
+            if (allAttributes)
             {
                 childPkg = new Package();
                 childPkg.setAttributes(getPackageAttributes(c, u, sPkg.getPkgId()));
@@ -867,7 +867,7 @@ public class SNDManager
         sql.add(id).add(rev);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
-        return selector.getRowCount() < 1;
+        return !selector.exists();
     }
 
     private boolean projectRevisionExists(Container c, User u, int id, int rev)
@@ -880,7 +880,7 @@ public class SNDManager
         sql.add(id).add(rev);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
-        return selector.getRowCount() > 0;
+        return selector.exists();
     }
 
     private boolean hasOverlap(Project project, Map<String, Object> row, boolean revision, BatchValidationException errors)
@@ -1276,7 +1276,7 @@ public class SNDManager
         sql.append(" WHERE ProjectId = ? AND RevisionNum = ?");
         sql.add(project.getProjectId()).add(project.getRevisionNum());
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
-        if (selector.getRowCount() < 1)
+        if (!selector.exists())
             return null;
 
         return selector.getArrayList(String.class).get(0);
@@ -1437,34 +1437,39 @@ public class SNDManager
         sql.append(" WHERE ParentEventDataId = ?").add(eventDataId);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
-        TableResultSet results = selector.getResultSet();
-        Integer superPkgId;
-        SuperPackage eventDataSuperPkg = null;
-        List<EventData> subEventDatas = new ArrayList<>();
-
-        for (Map<String, Object> result : results)
+        try(TableResultSet results = selector.getResultSet())
         {
-            superPkgId = (Integer)result.get("SuperPkgId");
-            for (SuperPackage supPkg : superPackage.getChildPackages())
+            Integer superPkgId;
+            SuperPackage eventDataSuperPkg = null;
+            List<EventData> subEventDatas = new ArrayList<>();
+
+            for (Map<String, Object> result : results)
             {
-                if (supPkg.getSuperPkgId().equals(superPkgId))
+                superPkgId = (Integer) result.get("SuperPkgId");
+                for (SuperPackage supPkg : superPackage.getChildPackages())
                 {
-                    eventDataSuperPkg = supPkg;
-                    break;
+                    if (supPkg.getSuperPkgId().equals(superPkgId))
+                    {
+                        eventDataSuperPkg = supPkg;
+                        break;
+                    }
+                }
+
+                if (eventDataSuperPkg != null)
+                {
+                    subEventDatas.add(getEventData(c, u, (Integer) result.get("EventDataId"), eventDataSuperPkg, errors));
+                }
+                else
+                {
+                    errors.addRowError(new ValidationException("Super package not found for event data."));
                 }
             }
-
-            if (eventDataSuperPkg != null)
-            {
-                subEventDatas.add(getEventData(c, u, (Integer)result.get("EventDataId"), eventDataSuperPkg, errors));
-            }
-            else
-            {
-                errors.addRowError(new ValidationException("Super package not found for event data."));
-            }
+            eventData.setSubPackages(subEventDatas);
         }
-        ResultSetUtil.close(results);
-        eventData.setSubPackages(subEventDatas);
+        catch (SQLException e)
+        {
+            errors.addRowError(new ValidationException(e.getMessage()));
+        }
 
         return eventData;
     }
@@ -1483,18 +1488,23 @@ public class SNDManager
         Map<Integer, SuperPackage> topLevelSuperPackages = new HashMap<>();
         Integer superPkgId;
 
-        TableResultSet results = selector.getResultSet();
-        for (Map<String, Object> result : results)
+        try(TableResultSet results = selector.getResultSet())
         {
-            superPkgId = (Integer)result.get("SuperPkgId");
-            if (!topLevelSuperPackages.containsKey(superPkgId))
+            for (Map<String, Object> result : results)
             {
-                topLevelSuperPackages.put(superPkgId, getFullSuperPackage(c, u, superPkgId, true));
-            }
+                superPkgId = (Integer) result.get("SuperPkgId");
+                if (!topLevelSuperPackages.containsKey(superPkgId))
+                {
+                    topLevelSuperPackages.put(superPkgId, getFullSuperPackage(c, u, superPkgId, true));
+                }
 
-            eventDatas.add(getEventData(c, u, (Integer)result.get("EventDataId"), topLevelSuperPackages.get(superPkgId), errors));
+                eventDatas.add(getEventData(c, u, (Integer) result.get("EventDataId"), topLevelSuperPackages.get(superPkgId), errors));
+            }
         }
-        ResultSetUtil.close(results);
+        catch (SQLException e)
+        {
+            errors.addRowError(new ValidationException(e.getMessage()));
+        }
         return eventDatas;
     }
 
@@ -1520,7 +1530,7 @@ public class SNDManager
             TableSelector eventNoteTs = new TableSelector(eventNotesTable, cols, eventNotesFilter, null);
 
             event.setNote(eventNoteTs.getObject(String.class));
-            event.setProjectIdRev(getProjectIdRev(c, u, event.getParentObjectId()));
+            event.setProjectIdRev(getProjectIdRev(c, u, event.getParentObjectId(), errors));
             event.setEventData(getEventDatas(c, u, eventId, errors));
             addExtraFieldsToEvent(c, u, event, eventTs.getMap());
         }
@@ -1538,7 +1548,7 @@ public class SNDManager
         sql.add(eventId);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
-        return selector.getRowCount() > 0;
+        return selector.exists();
     }
 
     private String getProjectObjectId(Container c, User u, String projectIdRev, BatchValidationException errors)
@@ -1595,7 +1605,7 @@ public class SNDManager
     }
 
     @Nullable
-    private String getProjectIdRev(Container c, User u, String objectId)
+    private String getProjectIdRev(Container c, User u, String objectId, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -1615,7 +1625,7 @@ public class SNDManager
         }
         catch (SQLException e)
         {
-            // swallow
+            errors.addRowError(new ValidationException(e.getMessage()));
         }
 
         return idRev;
@@ -1703,9 +1713,9 @@ public class SNDManager
         return event;
     }
 
-    private String generateLsid(Container c, String eventObjectId)
+    private String generateLsid(Container c, String eventDataId)
     {
-        return new Lsid(Event.SND_EVENT_NAMESPACE, "Folder-" + c.getRowId(), eventObjectId).toString();
+        return new Lsid(Event.SND_EVENT_NAMESPACE, "Folder-" + c.getRowId(), eventDataId).toString();
     }
 
     private Integer getPackageIdForSuperPackage(Container c, User u, int superPkgId)
@@ -1723,8 +1733,13 @@ public class SNDManager
 
     private String insertExpObjectProperties(Container c, User u, EventData eventData) throws ValidationException
     {
-        String eventObjectId = GUID.makeGUID();
-        String objectURI = generateLsid(c, eventObjectId);
+//        String eventObjectId = GUID.makeGUID();
+        if (eventData == null || eventData.getEventDataId() == null)
+        {
+            throw new ValidationException("Cannot enter exp object for null event data.");
+        }
+
+        String objectURI = generateLsid(c, Integer.toString(eventData.getEventDataId()));
         Integer pkgId = getPackageIdForSuperPackage(c, u, eventData.getSuperPkgId());
 
         OntologyManager.ensureObject(c, objectURI);
@@ -1761,14 +1776,14 @@ public class SNDManager
 
     private void getEventDataRows(Container c, User u, EventData eventData, int eventId, List<Map<String, Object>> eventDataRows) throws ValidationException
     {
-        String objectURI = insertExpObjectProperties(c, u, eventData);
-        eventData.setObjectURI(objectURI);
-        eventData.setEventId(eventId);
-
         if (eventData.getEventDataId() == null)
         {
             eventData.setEventDataId(SNDSequencer.EVENTDATAID.ensureId(c, null));
         }
+
+        String objectURI = insertExpObjectProperties(c, u, eventData);
+        eventData.setObjectURI(objectURI);
+        eventData.setEventId(eventId);
 
         eventDataRows.add(eventData.getEventDataRow(c));
 
@@ -1823,25 +1838,30 @@ public class SNDManager
             cols.add("Active");
             TableSelector projectItemsTs = new TableSelector(projectItemsTable, cols, projectItemsFilter, null);
 
-            TableResultSet projectItems = projectItemsTs.getResultSet();
-            boolean found;
-
-            // Since event datas are in hierarchy structure, top level event datas are top level super packages
-            for (EventData eventData : event.getEventData())
+            try(TableResultSet projectItems = projectItemsTs.getResultSet())
             {
-                found = false;
-                for (Map<String, Object> projectItem : projectItems)
+                boolean found;
+
+                // Since event datas are in hierarchy structure, top level event datas are top level super packages
+                for (EventData eventData : event.getEventData())
                 {
-                    if ( (Integer)projectItem.get("SuperPkgId") == eventData.getSuperPkgId() && (Boolean)projectItem.get("Active"))
+                    found = false;
+                    for (Map<String, Object> projectItem : projectItems)
                     {
-                        found = true;
+                        if ((Integer) projectItem.get("SuperPkgId") == eventData.getSuperPkgId() && (Boolean) projectItem.get("Active"))
+                        {
+                            found = true;
+                        }
+                    }
+                    if (!found)
+                    {
+                        errors.addRowError(new ValidationException("Super package " + eventData.getSuperPkgId() + " is not allowed for this project revision."));
                     }
                 }
-                ResultSetUtil.close(projectItems);
-                if (!found)
-                {
-                    errors.addRowError(new ValidationException("Super package " + eventData.getSuperPkgId() + " is not allowed for this project revision."));
-                }
+            }
+            catch (SQLException e)
+            {
+                errors.addRowError(new ValidationException(e.getMessage()));
             }
         }
     }
