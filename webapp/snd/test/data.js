@@ -24,13 +24,11 @@
                                 label: 'Units',
                                 rangeURI: 'string',
                                 required: true
-
                             }, {
                                 name: 'kit_type',
                                 label: 'Kit',
                                 rangeURI: 'string',
                                 required: true
-
                             }
                         ]
                     }
@@ -60,7 +58,6 @@
                                 label: 'Kit',
                                 rangeURI: 'string',
                                 required: true
-
                             }
                         ]
                     }
@@ -90,7 +87,6 @@
                                 label: 'Kit',
                                 rangeURI: 'string',
                                 required: true
-
                             }
                         ]
                     }
@@ -120,7 +116,6 @@
                                 label: 'Kit',
                                 rangeURI: 'string',
                                 required: true
-
                             }
                         ]
                     }
@@ -173,7 +168,6 @@
                                 label: 'Kit',
                                 rangeURI: 'string',
                                 required: true
-
                             }
                         ]
                     }
@@ -203,7 +197,6 @@
                                 label: 'Kit',
                                 rangeURI: 'string',
                                 required: true
-
                             }
                         ]
                     }
@@ -233,7 +226,6 @@
                                 label: 'Kit',
                                 rangeURI: 'string',
                                 required: true
-
                             }
                         ]
                     }
@@ -263,7 +255,6 @@
                                 label: 'Kit',
                                 rangeURI: 'string',
                                 required: true
-
                             }
                         ]
                     }
@@ -293,7 +284,6 @@
                                 label: 'Tube',
                                 rangeURI: 'string',
                                 required: true
-
                             }
                         ]
                     }

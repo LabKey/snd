@@ -51,7 +51,7 @@ function mergeObject(target, source, optionsArgument) {
 function deepmerge(target, source, optionsArgument) {
     var array = Array.isArray(source);
     var options = optionsArgument || { arrayMerge: defaultArrayMerge };
-    var arrayMerge = options.arrayMerge || defaultArrayMerge
+    var arrayMerge = options.arrayMerge || defaultArrayMerge;
 
     if (array) {
         return Array.isArray(target) ? arrayMerge(target, source, optionsArgument) : cloneIfNecessary(source, optionsArgument)

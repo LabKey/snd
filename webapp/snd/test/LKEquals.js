@@ -33,4 +33,4 @@ LABKEY.equals = function( x, y ) {
         // allows x[ p ] to be set to undefined
     }
     return true;
-}
+};
