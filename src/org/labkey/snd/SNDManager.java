@@ -657,7 +657,7 @@ public class SNDManager
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
         SQLFragment sql = new SQLFragment("SELECT PkgId FROM ");
-        sql.append(SNDSchema.NAME + "." + SNDSchema.SUPERPKGS_TABLE_NAME);
+        sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" WHERE SuperPkgId = ?");
         sql.add(topLevelSuperPkgId);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
@@ -678,7 +678,7 @@ public class SNDManager
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
         SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.PkgId, sp.SortOrder, pkg.PkgId, pkg.Description, pkg.Active, pkg.Narrative, pkg.Repeatable FROM ");
-        sql.append(SNDSchema.NAME + "." + SNDSchema.SUPERPKGS_TABLE_NAME + " sp");
+        sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" JOIN " + SNDSchema.NAME + "." + SNDSchema.PKGS_TABLE_NAME + " pkg");
         sql.append(" ON sp.PkgId = pkg.PkgId");
         sql.append(" WHERE sp.SuperPkgId = ?");
@@ -862,7 +862,7 @@ public class SNDManager
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
         SQLFragment sql = new SQLFragment("SELECT ProjectId FROM ");
-        sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_TABLE_NAME);
+        sql.append(schema.getTable(SNDSchema.PROJECTS_TABLE_NAME), "pr");
         sql.append(" WHERE ProjectId = ? AND RevisionNum > ?");
         sql.add(id).add(rev);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
@@ -875,7 +875,7 @@ public class SNDManager
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
         SQLFragment sql = new SQLFragment("SELECT ProjectId FROM ");
-        sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_TABLE_NAME);
+        sql.append(schema.getTable(SNDSchema.PROJECTS_TABLE_NAME), "pr");
         sql.append(" WHERE ProjectId = ? AND RevisionNum = ?");
         sql.add(id).add(rev);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
@@ -1034,7 +1034,7 @@ public class SNDManager
         Date endDate;
 
         SQLFragment sql = new SQLFragment("SELECT ProjectId, RevisionNum, StartDate, EndDate FROM ");
-        sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_TABLE_NAME);
+        sql.append(schema.getTable(SNDSchema.PROJECTS_TABLE_NAME), "pr");
         sql.append(" WHERE ProjectId = ?");
         sql.add(project.getProjectId());
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
@@ -1158,8 +1158,7 @@ public class SNDManager
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
-        SQLFragment sql = new SQLFragment("UPDATE ");
-        sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_TABLE_NAME);
+        SQLFragment sql = new SQLFragment("UPDATE " + SNDSchema.getInstance().getTableInfoProjects() );
         sql.append(" SET " + field + " = ?");
         sql.append(" WHERE ProjectId = ? AND RevisionNum = ?");
         sql.add(value).add(id).add(rev);
@@ -1181,7 +1180,7 @@ public class SNDManager
             {
                 // First get copy of the project items from the original project
                 SQLFragment sql = new SQLFragment("SELECT SuperPkgId, Active FROM ");
-                sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTITEMS_TABLE_NAME);
+                sql.append(schema.getTable(SNDSchema.PROJECTITEMS_TABLE_NAME), "pi");
                 sql.append(" WHERE ParentObjectId = ?");
                 sql.add(project.getObjectId());
                 SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
@@ -1236,8 +1235,7 @@ public class SNDManager
             UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
             // Erase all project items for this project
-            SQLFragment sql = new SQLFragment("DELETE FROM ");
-            sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTITEMS_TABLE_NAME);
+            SQLFragment sql = new SQLFragment("DELETE FROM " + SNDSchema.getInstance().getTableInfoProjectItems() );
             sql.append(" WHERE ParentObjectId = ?");
             sql.add(project.getObjectId());
 
@@ -1272,7 +1270,7 @@ public class SNDManager
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
         SQLFragment sql = new SQLFragment("SELECT ObjectId FROM ");
-        sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_TABLE_NAME);
+        sql.append(schema.getTable(SNDSchema.PROJECTS_TABLE_NAME), "pr");
         sql.append(" WHERE ProjectId = ? AND RevisionNum = ?");
         sql.add(project.getProjectId()).add(project.getRevisionNum());
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
@@ -1287,8 +1285,9 @@ public class SNDManager
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
         SQLFragment sql = new SQLFragment("SELECT ProjectItemId FROM ");
-        sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTITEMS_TABLE_NAME + " pi");
-        sql.append(" JOIN " + SNDSchema.NAME + "." + SNDSchema.PROJECTS_TABLE_NAME + " pr");
+        sql.append(schema.getTable(SNDSchema.PROJECTITEMS_TABLE_NAME), "pi");
+        sql.append(" JOIN ");
+        sql.append(schema.getTable(SNDSchema.PROJECTS_TABLE_NAME), "pr");
         sql.append(" ON pi.ParentObjectId = pr.ObjectId");
         sql.append(" WHERE ProjectId = ? AND RevisionNum = ?");
         sql.add(projectId).add(revNum);
@@ -1433,7 +1432,7 @@ public class SNDManager
         addExtraFieldsToEventData(c, u, eventData, ts.getMap());
 
         SQLFragment sql = new SQLFragment("SELECT EventDataId, SuperPkgId FROM ");
-        sql.append(SNDSchema.NAME + "." + SNDSchema.EVENTDATA_TABLE_NAME);
+        sql.append(schema.getTable(SNDSchema.EVENTDATA_TABLE_NAME), "ed");
         sql.append(" WHERE ParentEventDataId = ?").add(eventDataId);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
@@ -1481,7 +1480,7 @@ public class SNDManager
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
         SQLFragment sql = new SQLFragment("SELECT SuperPkgId, EventDataId FROM ");
-        sql.append(SNDSchema.NAME + "." + SNDSchema.EVENTDATA_TABLE_NAME);
+        sql.append(schema.getTable(SNDSchema.EVENTDATA_TABLE_NAME), "ed");
         sql.append(" WHERE EventId = ? AND ParentEventDataId IS NULL").add(eventId);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
@@ -1543,7 +1542,7 @@ public class SNDManager
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
         SQLFragment sql = new SQLFragment("SELECT EventId FROM ");
-        sql.append(SNDSchema.NAME + "." + SNDSchema.EVENTS_TABLE_NAME);
+        sql.append(schema.getTable(SNDSchema.EVENTS_TABLE_NAME), "ev");
         sql.append(" WHERE EventId = ?");
         sql.add(eventId);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
@@ -1585,7 +1584,7 @@ public class SNDManager
                     UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
                     SQLFragment sql = new SQLFragment("SELECT ObjectId FROM ");
-                    sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_TABLE_NAME);
+                    sql.append(schema.getTable(SNDSchema.PROJECTS_TABLE_NAME), "pr");
                     sql.append(" WHERE ProjectId = ? AND RevisionNum = ?");
                     sql.add(projectId).add(revisionNum);
                     SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
@@ -1610,7 +1609,7 @@ public class SNDManager
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
         SQLFragment sql = new SQLFragment("SELECT ProjectId, RevisionNum FROM ");
-        sql.append(SNDSchema.NAME + "." + SNDSchema.PROJECTS_TABLE_NAME);
+        sql.append(schema.getTable(SNDSchema.PROJECTS_TABLE_NAME), "pr");
         sql.append(" WHERE ObjectId = ?");
         sql.add(objectId);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
@@ -1636,7 +1635,7 @@ public class SNDManager
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
         SQLFragment sql = new SQLFragment("SELECT EventNoteId FROM ");
-        sql.append(SNDSchema.NAME + "." + SNDSchema.EVENTNOTES_TABLE_NAME);
+        sql.append(schema.getTable(SNDSchema.EVENTNOTES_TABLE_NAME), "en");
         sql.append(" WHERE EventId = ?");
         sql.add(eventId);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
@@ -1723,7 +1722,7 @@ public class SNDManager
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
         SQLFragment sql = new SQLFragment("SELECT PkgId FROM ");
-        sql.append(SNDSchema.NAME + "." + SNDSchema.SUPERPKGS_TABLE_NAME);
+        sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" WHERE SuperPkgId = ?");
         sql.add(superPkgId);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
@@ -1871,7 +1870,7 @@ public class SNDManager
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
         SQLFragment sql = new SQLFragment("SELECT PkgId FROM ");
-        sql.append(SNDSchema.NAME + "." + SNDSchema.SUPERPKGS_TABLE_NAME);
+        sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" WHERE SuperPkgId = ?");
         sql.add(superPkgId);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
@@ -2026,7 +2025,7 @@ public class SNDManager
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
         SQLFragment sql = new SQLFragment("SELECT EventDataId FROM ");
-        sql.append(SNDSchema.NAME + "." + SNDSchema.EVENTDATA_TABLE_NAME);
+        sql.append(schema.getTable(SNDSchema.EVENTDATA_TABLE_NAME), "ed");
         sql.append(" WHERE EventId = ?");
         sql.add(eventId);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
