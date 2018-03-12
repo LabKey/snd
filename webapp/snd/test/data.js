@@ -18,7 +18,12 @@
                                 name: 'amount',
                                 label: 'Amount',
                                 rangeURI: 'int',
-                                required: true
+                                required: true,
+                                validators:[{
+                                    expression:"~gte=1&~lte=10",
+                                    name:"SND Range",
+                                    description:"SND Numeric Range",
+                                    type:"range"}]
                             }, {
                                 name: 'units',
                                 label: 'Units',
