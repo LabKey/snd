@@ -375,7 +375,7 @@
 
         return [
             {
-                name: 'Valid Save Event',
+                name: 'Valid Save Event: Use Property Names',
                 jsonData: {
                     eventId: 1800000,
                     participantId: 1,
@@ -386,13 +386,13 @@
                         {
                             superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
                             attributes: [{
-                                propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['propertyId'],
+                                propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['name'],
                                 value: '10'
                             }, {
-                                propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'units')['propertyId'],
+                                propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'units')['name'],
                                 value: 'mL'
                             }, {
-                                propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['propertyId'],
+                                propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['name'],
                                 value: 'red'
                             }]
                         }
@@ -410,12 +410,15 @@
                             narrative: LABKEY.SND_PKG_CACHE['819']['narrative'],
                             attributes: [{
                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['propertyId'],
+                                propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['name'],
                                 value: '10'
                             }, {
                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'units')['propertyId'],
+                                propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'units')['name'],
                                 value: 'mL'
                             }, {
                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['propertyId'],
+                                propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['name'],
                                 value: 'red'
                             }]
                         }

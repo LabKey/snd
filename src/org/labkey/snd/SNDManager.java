@@ -1419,6 +1419,7 @@ public class SNDManager
         for (GWTPropertyDescriptor gwtPropertyDescriptor : superPackage.getPkg().getAttributes())
         {
             attribute = new AttributeData();
+            attribute.setPropertyName(gwtPropertyDescriptor.getName());
             attribute.setPropertyDescriptor(gwtPropertyDescriptor);
             attribute.setPropertyId(gwtPropertyDescriptor.getPropertyId());
             if (properties.get(gwtPropertyDescriptor.getPropertyURI()) != null)
@@ -1707,10 +1708,24 @@ public class SNDManager
         return new Lsid(Event.SND_EVENT_NAMESPACE, "Folder-" + c.getRowId(), eventObjectId).toString();
     }
 
-    private String insertExpObjectProperties(Container c, EventData eventData) throws ValidationException
+    private Integer getPackageIdForSuperPackage(Container c, User u, int superPkgId)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT PkgId FROM ");
+        sql.append(SNDSchema.NAME + "." + SNDSchema.SUPERPKGS_TABLE_NAME);
+        sql.append(" WHERE SuperPkgId = ?");
+        sql.add(superPkgId);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+
+        return selector.getObject(Integer.class);
+    }
+
+    private String insertExpObjectProperties(Container c, User u, EventData eventData) throws ValidationException
     {
         String eventObjectId = GUID.makeGUID();
         String objectURI = generateLsid(c, eventObjectId);
+        Integer pkgId = getPackageIdForSuperPackage(c, u, eventData.getSuperPkgId());
 
         OntologyManager.ensureObject(c, objectURI);
 
@@ -1722,19 +1737,31 @@ public class SNDManager
         {
             for (AttributeData attributeData : eventData.getAttributes())
             {
-                propertyDescriptor = OntologyManager.getPropertyDescriptor(attributeData.getPropertyId());
-                propertyType = PropertyType.getFromURI(propertyDescriptor.getConceptURI(), propertyDescriptor.getRangeURI());
-                objectProperty = new ObjectProperty(objectURI, c, propertyDescriptor.getPropertyURI(), attributeData.getValue(), propertyType);
-                OntologyManager.insertProperties(c, null, objectProperty);
+                if (attributeData.getPropertyName() != null)
+                {
+                    propertyDescriptor = OntologyManager.getPropertyDescriptor(PackageDomainKind.getDomainURI(
+                            SNDSchema.NAME, PackageDomainKind.getPackageKindName(), c, u) + "-" + pkgId + "#" + attributeData.getPropertyName(), c);
+                }
+                else
+                {
+                    propertyDescriptor = OntologyManager.getPropertyDescriptor(attributeData.getPropertyId());
+                }
+
+                if (propertyDescriptor != null)
+                {
+                    propertyType = PropertyType.getFromURI(propertyDescriptor.getConceptURI(), propertyDescriptor.getRangeURI());
+                    objectProperty = new ObjectProperty(objectURI, c, propertyDescriptor.getPropertyURI(), attributeData.getValue(), propertyType);
+                    OntologyManager.insertProperties(c, null, objectProperty);
+                }
             }
         }
 
         return objectURI;
     }
 
-    private void getEventDataRows(Container c, EventData eventData, int eventId, List<Map<String, Object>> eventDataRows) throws ValidationException
+    private void getEventDataRows(Container c, User u, EventData eventData, int eventId, List<Map<String, Object>> eventDataRows) throws ValidationException
     {
-        String objectURI = insertExpObjectProperties(c, eventData);
+        String objectURI = insertExpObjectProperties(c, u, eventData);
         eventData.setObjectURI(objectURI);
         eventData.setEventId(eventId);
 
@@ -1750,7 +1777,7 @@ public class SNDManager
             for (EventData data : eventData.getSubPackages())
             {
                 data.setParentEventDataId(eventData.getEventDataId());
-                getEventDataRows(c, data, eventId, eventDataRows);
+                getEventDataRows(c, u, data, eventId, eventDataRows);
             }
         }
     }
@@ -1766,7 +1793,7 @@ public class SNDManager
 
         for (EventData eventData : eventDatas)
         {
-            getEventDataRows(c, eventData, eventId, eventDataRows);
+            getEventDataRows(c, u, eventData, eventId, eventDataRows);
         }
 
         try (DbScope.Transaction tx = eventDataTable.getSchema().getScope().ensureTransaction())
@@ -1838,14 +1865,21 @@ public class SNDManager
     private void ensureValidPackage(EventData eventData, Package pkg, BatchValidationException errors)
     {
         List<AttributeData> attributes = eventData.getAttributes();
-        Map<Integer, Boolean> incomingProps = Maps.newHashMap();
+        Map<String, Boolean> incomingProps = Maps.newHashMap();
         boolean found;
 
         if (attributes.size() > 0)
         {
             for (AttributeData attribute : attributes)
             {
-                incomingProps.put(attribute.getPropertyId(), false);
+                if (attribute.getPropertyName() != null)
+                {
+                    incomingProps.put(attribute.getPropertyName(), false);
+                }
+                else
+                {
+                    incomingProps.put(Integer.toString(attribute.getPropertyId()), false);
+                }
             }
 
             // iterate through defined properties for package
@@ -1856,10 +1890,18 @@ public class SNDManager
                 // mark incoming properties that match expected
                 for (AttributeData attribute : attributes)
                 {
-                    if (attribute.getPropertyId() == gwtPropertyDescriptor.getPropertyId())
+                    if ((attribute.getPropertyId() == gwtPropertyDescriptor.getPropertyId()) ||
+                            (gwtPropertyDescriptor.getName().equals(attribute.getPropertyName())))
                     {
                         found = true;
-                        incomingProps.put(attribute.getPropertyId(), true);
+                        if (attribute.getPropertyName() != null)
+                        {
+                            incomingProps.put(attribute.getPropertyName(), true);
+                        }
+                        else
+                        {
+                            incomingProps.put(Integer.toString(attribute.getPropertyId()), true);
+                        }
                         break;
                     }
                 }
@@ -1872,10 +1914,10 @@ public class SNDManager
             }
 
             // Verify all incoming properties were found in package
-            for (Integer propId : incomingProps.keySet())
+            for (String propId : incomingProps.keySet())
             {
                 if (!incomingProps.get(propId))
-                    errors.addRowError(new ValidationException("Field with property id " + propId + " is not part of package " + pkg.getPkgId()));
+                    errors.addRowError(new ValidationException("Property " + propId + " is not part of package " + pkg.getPkgId()));
             }
         }
 

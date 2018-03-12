@@ -857,9 +857,10 @@ public class SNDController extends SpringActionController
                 {
                     JSONObject attributeJson = (JSONObject)attributesDataJson.get(i);
 
-                    if (!attributeJson.has("propertyId") || attributeJson.get("propertyId") == null)
+                    if ((!attributeJson.has("propertyId") || attributeJson.get("propertyId") == null)
+                            && (!attributeJson.has("propertyName") || attributeJson.get("propertyName") == null))
                     {
-                        errors.reject(ERROR_MSG, "Missing required json parameter: propertyId.");
+                        errors.reject(ERROR_MSG, "Missing required json parameter: propertyId or propertyName.");
                     }
                     if (!attributeJson.has("value") || attributeJson.get("value") == null)
                     {
@@ -972,15 +973,32 @@ public class SNDController extends SpringActionController
 
             if ((attributesDataJson != null) && (attributesDataJson.length() > 0))
             {
+                String propertyName = null;
+                int propertyId = -1;
+
                 for (int i = 0; i < attributesDataJson.length(); i++)
                 {
                     JSONObject attributeJson = (JSONObject)attributesDataJson.get(i);
 
-                    int propertyId = attributeJson.getInt("propertyId");
+                    if (attributeJson.has("propertyName"))
+                    {
+                        propertyName = (String) attributeJson.get("propertyName");
+                    }
+                    else
+                    {
+                        propertyId = attributeJson.getInt("propertyId");
+                    }
                     String value = attributeJson.getString("value");
 
                     // propertyDescriptor not used for saving, so make it null
-                    attributesDataList.add(new AttributeData(propertyId, null, value));
+                    if (propertyName != null)
+                    {
+                        attributesDataList.add(new AttributeData(propertyName, null, value));
+                    }
+                    else if (propertyId != -1)
+                    {
+                        attributesDataList.add(new AttributeData(propertyId, null, value));
+                    }
                 }
             }
 
