@@ -20,7 +20,7 @@
                                 rangeURI: 'int',
                                 required: true,
                                 validators:[{
-                                    expression:"~gte=1&~lte=10",
+                                    expression:"~gte=1&~lte=500",
                                     name:"SND Range",
                                     description:"SND Numeric Range",
                                     type:"range"}]
@@ -419,7 +419,7 @@
                             attributes: [{
                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['propertyId'],
                                 propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['name'],
-                                value: '10'
+                                value: 10
                             }, {
                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'units')['propertyId'],
                                 propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'units')['name'],
@@ -463,7 +463,7 @@
                                 attributes: [
                                     {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'amount')['propertyId'],
-                                        value: "200"
+                                        value: 200
                                     }, {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'units')['propertyId'],
                                         value: "l"
@@ -477,7 +477,7 @@
                                 attributes: [
                                     {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['812']['attributes'], 'amount')['propertyId'],
-                                        value: "300"
+                                        value: 300
                                     }, {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['812']['attributes'], 'units')['propertyId'],
                                         value: "ml"
@@ -491,7 +491,7 @@
                                 attributes: [
                                     {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'amount')['propertyId'],
-                                        value: "400"
+                                        value: 400
                                     }, {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'units')['propertyId'],
                                         value: "l"
@@ -578,7 +578,7 @@
     }
 
     var SNDTEST_CLEAN_DATA = {
-        EVENTIDS: [1800000,1800001]
+        EVENTIDS: [1800000,1800001,1800002]
     };
 
      LABKEY.getInitData = function () {return SNDTEST_INIT_DATA};

@@ -1960,7 +1960,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         waitForText("Total tests:", 1, WAIT_FOR_PAGE);
 
         log("Verifying no test failed");
-        assertTextPresent("Failed tests: 0");
+        assertTextPresent("The API test framework has some failures","Failed tests: 0");
     }
 
     private void truncateSndPkg() throws Exception
