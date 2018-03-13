@@ -78,6 +78,13 @@ const ATTRIBUTE_COLUMNS: Array<AttributeColumnProps> = [
     },
     {
         inputComponent: TextInput,
+        label: 'Format',
+        name: 'format',
+        required: false,
+        width: '8vw'
+    },
+    {
+        inputComponent: TextInput,
         label: 'Default',
         name: 'defaultValue',
         required: false,
@@ -136,6 +143,7 @@ class AttributesGridBody extends React.Component<AttributesGridProps, {}> {
 
     render() {
         const { attributes, attributeLookups, readOnly } = this.props;
+        let disabled = readOnly;
         if (attributes && attributes.length) {
             return (
                 <tbody>
@@ -143,11 +151,20 @@ class AttributesGridBody extends React.Component<AttributesGridProps, {}> {
                         return (
                             <tr key={i} data-attributeId={attribute.sortOrder}>
                                 {ATTRIBUTE_COLUMNS.map((col: AttributeColumnProps, j: number) => {
+
+                                    // Only enable format for double
+                                    if (col.name === 'format' && attribute.rangeURI != 'double') {
+                                        disabled = true;
+                                    }
+                                    else {
+                                        disabled = false;
+                                    }
+
                                     const props = {
                                         attribute,
                                         attributeId: i,
                                         attributeLookups,
-                                        disabled: col.disabled || readOnly,
+                                        disabled: col.disabled || disabled,
                                         first: i === 0,
                                         last: i === attributes.length - 1,
                                         name: `attributes_${attribute.sortOrder}_${col.name}`,

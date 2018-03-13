@@ -154,6 +154,7 @@ export interface QueryColumn {
     fieldKey: string;
     fieldKeyArray: Array<string>;
     fieldKeyPath: string;
+    format: string;
     friendlyType: string;
     hidden: boolean;
     inputType: string;
