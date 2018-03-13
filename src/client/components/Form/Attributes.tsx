@@ -157,7 +157,7 @@ class AttributesGridBody extends React.Component<AttributesGridProps, {}> {
                                         disabled = true;
                                     }
                                     else {
-                                        disabled = false;
+                                        disabled = readOnly;
                                     }
 
                                     const props = {
