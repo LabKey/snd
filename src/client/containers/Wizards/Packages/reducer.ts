@@ -147,7 +147,7 @@ export const packages = handleActions({
                     if (min != null && !isNaN(min[1])) {
                         attributeValues.min = min[1];
                     }
-                    if (max != null && !isNaN(max[1]) && max != VALIDATOR_STRING_DEFAULT_MAX) {
+                    if (max != null && !isNaN(max[1]) && max[1] !== VALIDATOR_STRING_DEFAULT_MAX) {
                         attributeValues.max = max[1];
                     }
                 }

@@ -17,7 +17,7 @@ const PKG_PREFIX = 'wizards/packages/';
 
 export const VALIDATOR_LTE = '~lte=';
 export const VALIDATOR_GTE = '~gte=';
-export const VALIDATOR_STRING_DEFAULT_MAX = 4000;
+export const VALIDATOR_STRING_DEFAULT_MAX = "4000";
 
 export const PKG_WIZARD_TYPES = {
     PACKAGE_CHECK_VALID: PKG_PREFIX + 'PACKAGE_CHECK_VALID',
