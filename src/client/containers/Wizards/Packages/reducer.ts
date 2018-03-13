@@ -15,7 +15,7 @@
  */
 import { handleActions } from 'redux-actions';
 
-import {PKG_WIZARD_TYPES, VALIDATOR_LTE, VALIDATOR_GTE} from './constants'
+import {PKG_WIZARD_TYPES, VALIDATOR_LTE, VALIDATOR_GTE, VALIDATOR_STRING_DEFAULT_MAX} from './constants'
 import {PropertyDescriptor} from '../model'
 import {
     PackageModel,
@@ -147,7 +147,7 @@ export const packages = handleActions({
                     if (min != null && !isNaN(min[1])) {
                         attributeValues.min = min[1];
                     }
-                    if (max != null && !isNaN(max[1])) {
+                    if (max != null && !isNaN(max[1]) && max != VALIDATOR_STRING_DEFAULT_MAX) {
                         attributeValues.max = max[1];
                     }
                 }
