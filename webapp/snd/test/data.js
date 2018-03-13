@@ -277,7 +277,12 @@
                                 name: 'amount',
                                 label: 'Amount',
                                 rangeURI: 'int',
-                                required: true
+                                required: true,
+                                validators:[{
+                                    expression:"~gte=1&~lte=300",
+                                    name:"SND Range",
+                                    description:"SND Numeric Range",
+                                    type:"range"}]
                             }, {
                                 name: 'units',
                                 label: 'Units',
@@ -419,7 +424,24 @@
                             attributes: [{
                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['propertyId'],
                                 propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['name'],
-                                value: 10
+                                value: '10'
+                            }, {
+                                propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'units')['propertyId'],
+                                propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'units')['name'],
+                                value: 'mL'
+                            }, {
+                                propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['propertyId'],
+                                propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['name'],
+                                value: 'red'
+                            }]
+                        },
+                        {
+                            superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
+                            narrative: LABKEY.SND_PKG_CACHE['819']['narrative'],
+                            attributes: [{
+                                propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['propertyId'],
+                                propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['name'],
+                                value: '11'
                             }, {
                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'units')['propertyId'],
                                 propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'units')['name'],

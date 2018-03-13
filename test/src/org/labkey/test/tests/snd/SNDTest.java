@@ -1764,6 +1764,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         click(Locator.button("Delete Project"));
         listPage.waitForPageLoad();
         listPage.showNotActive(true);
+        listPage.waitForPageLoad();
         listPage.showDrafts(true);
         assertFalse("Project not deleted.", listPage.isProjectPresent(description));
     }
@@ -1960,7 +1961,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         waitForText("Total tests:", 1, WAIT_FOR_PAGE);
 
         log("Verifying no test failed");
-        assertTextPresent("The API test framework has some failures","Failed tests: 0");
+        assertTextPresent("Complete","Failed tests: 0");
     }
 
     private void truncateSndPkg() throws Exception
