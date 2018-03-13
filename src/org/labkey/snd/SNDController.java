@@ -45,6 +45,7 @@ import org.labkey.api.view.ActionURL;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -86,14 +87,33 @@ public class SNDController extends SpringActionController
         private GWTPropertyDescriptor convertJsonToPropertyDescriptor(JSONObject json, BindException errors)
         {
             String rangeUri = json.getString("rangeURI");
+            String format = json.getString("format");
+
             if (rangeUri.equals(SNDManager.RANGE_PARTICIPANTID))
             {
                 json.put("conceptURI", "http://cpas.labkey.com/Study#" + SNDManager.RANGE_PARTICIPANTID);
                 rangeUri = "string";
             }
-            if (rangeUri.equals("string"))
+            else if (rangeUri.equals("string"))
             {
                 json.put("scale", 4000);
+            }
+
+            // Check valid formatting of decimal values
+            if (rangeUri.equals("double") && format != null)
+            {
+                try
+                {
+                    new DecimalFormat(format);
+                }
+                catch (IllegalArgumentException e)
+                {
+                    errors.reject(ERROR_MSG, "Invalid decimal format: " + format);
+                }
+            }
+            else
+            {
+                json.put("format", "");
             }
 
             json.put("rangeURI", "http://www.w3.org/2001/XMLSchema#" + rangeUri);
