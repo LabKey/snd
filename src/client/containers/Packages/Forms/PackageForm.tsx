@@ -218,7 +218,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         if (model) {
             const { attributes, attributeLookups, hasEvent, hasProject, narrative } = model;
             const isReadOnly = view === VIEW_TYPES.PACKAGE_VIEW ||
-                (view === VIEW_TYPES.PACKAGE_EDIT && (hasEvent || hasProject));
+                (view === VIEW_TYPES.PACKAGE_EDIT && (hasEvent));
             return <Attributes
                 attributes={attributes}
                 attributeLookups={attributeLookups}
@@ -297,7 +297,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
     render() {
         const { handleFieldChange, handleWarning, handleFullNarrative, model, view } = this.props;
         const disabled = view === VIEW_TYPES.PACKAGE_VIEW ||
-            (view === VIEW_TYPES.PACKAGE_EDIT && (model.hasEvent || model.hasProject));
+            (view === VIEW_TYPES.PACKAGE_EDIT && (model.hasEvent));
 
         return (
             <div>

@@ -15,23 +15,28 @@
  */
 package org.labkey.snd;
 
+import org.jetbrains.annotations.NotNull;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.JdbcType;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
+import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.ExprColumn;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.InvalidKeyException;
+import org.labkey.api.query.QueryService;
 import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.QueryUpdateServiceException;
 import org.labkey.api.query.SimpleQueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema;
+import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.SuperPackage;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -138,6 +143,32 @@ public class SuperPackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSche
                 }
             }
 
+            // Delete project items associated with the super package
+            List<Integer> projItemIds = SNDManager.get().getProjectItemIdsForSuperPkgId(container, user, superPkgId);
+            List<Map<String, Object>> projItemRows = new ArrayList<>();
+
+            UserSchema schema = QueryService.get().getUserSchema(user, container, SNDSchema.NAME);
+            TableInfo projItemsTable = getTableInfo(schema, SNDSchema.PROJECTITEMS_TABLE_NAME);
+            QueryUpdateService projItemsQus = getQueryUpdateService(projItemsTable);
+
+            if (projItemIds != null)
+            {
+                for (Integer projItemId : projItemIds)
+                {
+                    Map<String, Object> projItemRow = new HashMap<>();
+                    projItemRow.put("ProjectItemId", projItemId);
+                    projItemRows.add(projItemRow);
+                }
+                try
+                {
+                    projItemsQus.deleteRows(user, container, projItemRows, null, null);
+                }
+                catch (BatchValidationException e)
+                {
+                    throw new QueryUpdateServiceException(e);
+                }
+            }
+
             return super.deleteRow(user, container, oldRowMap);
         }
 
@@ -154,6 +185,24 @@ public class SuperPackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSche
             TableSelector ts = new TableSelector(this.getQueryTable(), cols, new SimpleFilter(FieldKey.fromString("SuperPkgId"), row.get("SuperPkgId")), null);
 
             return row;
+        }
+
+        private TableInfo getTableInfo(@NotNull UserSchema schema, @NotNull String table)
+        {
+            TableInfo tableInfo = schema.getTable(table);
+            if (tableInfo == null)
+                throw new IllegalStateException(table + " TableInfo not found");
+
+            return tableInfo;
+        }
+
+        private QueryUpdateService getQueryUpdateService(@NotNull TableInfo table)
+        {
+            QueryUpdateService qus = table.getUpdateService();
+            if (qus == null)
+                throw new IllegalStateException(table.getName() + " query update service");
+
+            return qus;
         }
 
     }

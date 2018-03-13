@@ -107,11 +107,10 @@ public class PackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
     {
         Set<String> cols = new HashSet<>();
         cols.add("HasEvent");
-        cols.add("HasProject");
         TableSelector ts = new TableSelector(this, cols, new SimpleFilter(FieldKey.fromString("PkgId"), pkgId), null);
         Map<String, Object> ret = ts.getMap();
 
-        return Boolean.parseBoolean((String) ret.get("HasEvent")) | Boolean.parseBoolean((String) ret.get("HasProject"));
+        return Boolean.parseBoolean((String) ret.get("HasEvent"));
     }
 
     @Override
@@ -181,7 +180,7 @@ public class PackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
                 UserSchema schema = QueryService.get().getUserSchema(user, container, SNDSchema.NAME);
                 TableInfo superPkgsTable = getTableInfo(schema, SNDSchema.SUPERPKGS_TABLE_NAME);
                 QueryUpdateService superPkgQus = getQueryUpdateService(superPkgsTable);
-                List<Map<String, Object>> superPkgRows = new ArrayList<Map<String, Object>>();
+                List<Map<String, Object>> superPkgRows = new ArrayList<>();
                 List<Integer> superPkgIds = SNDManager.getSuperPkgIdsForPkg(container, user, pkgId);
                 if (superPkgIds != null)
                 {

@@ -59,7 +59,7 @@ export class PackageRow extends React.Component<PackageRowProps, PackageRowState
         const { isHover } = this.state;
 
         // HasEvent and HasProject are string booleans
-        const canDelete = (HasEvent.value !== 'true' && HasProject.value !== 'true');
+        const canDelete = (HasEvent.value !== 'true');
 
         // todo: URLs should be more resilient
         return (

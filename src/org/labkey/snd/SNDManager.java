@@ -1458,6 +1458,25 @@ public class SNDManager
     }
 
     /**
+     * Returns all super package IDs which correspond to this package ID
+     */
+    @Nullable
+    public static List<Integer> getProjectItemIdsForSuperPkgId(Container c, User u, Integer superPkgId)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT pi.ProjectItemId FROM ");
+        sql.append(schema.getTable(SNDSchema.PROJECTITEMS_TABLE_NAME), "pi");
+        sql.append(" WHERE pi.SuperPkgId = ?").add(superPkgId);
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+
+        if (selector.exists())
+            return selector.getArrayList(Integer.class);
+        else
+            return null;
+    }
+
+    /**
      * Gets a project for GetProject API
      */
     public Project getProject(Container c, User u, int projectId, int revNum)
