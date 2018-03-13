@@ -837,7 +837,7 @@ public class SNDController extends SpringActionController
                         errors.reject(ERROR_MSG, "Missing required json parameter: superPkgId.");
                     }
 
-                    JSONArray eventDataChildrenJson = eventDatumJson.has("eventData") ? eventDatumJson.getJSONArray("eventData") : null;
+                    JSONArray eventDataChildrenJson = eventDatumJson.has("subPackages") ? eventDatumJson.getJSONArray("subPackages") : null;
                     validateEventData(eventDataChildrenJson, errors);
                     JSONArray attributesJson = eventDatumJson.has("attributes") ? eventDatumJson.getJSONArray("attributes") : null;
                     if ((attributesJson == null))
