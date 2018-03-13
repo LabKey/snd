@@ -809,11 +809,13 @@ public class SNDController extends SpringActionController
             }
 
             JSONArray eventDataJson = json.has("eventData") ? json.getJSONArray("eventData") : null;
-            validateEventData(eventDataJson, errors);
+            validateEventData(eventDataJson, false, errors);
         }
 
-        private void validateEventData(JSONArray eventDataJson, Errors errors)
+        private void validateEventData(JSONArray eventDataJson, boolean subPkg, Errors errors)
         {
+            String msgAppend = (subPkg ? " for a subPackage" : " for a top level package");
+
             if (eventDataJson != null)
             {
                 for (int i = 0; i < eventDataJson.length(); i++)
@@ -828,21 +830,21 @@ public class SNDController extends SpringActionController
                         }
                         catch (Exception e)
                         {
-                            errors.reject(ERROR_MSG, "eventDataId is present but not a valid integer.");
+                            errors.reject(ERROR_MSG, "eventDataId is present but not a valid integer" + msgAppend);
                         }
                     }
 
                     if (!eventDatumJson.has("superPkgId") || eventDatumJson.get("superPkgId") == null)
                     {
-                        errors.reject(ERROR_MSG, "Missing required json parameter: superPkgId.");
+                        errors.reject(ERROR_MSG, "Missing required json parameter: superPkgId" + msgAppend);
                     }
 
                     JSONArray eventDataChildrenJson = eventDatumJson.has("subPackages") ? eventDatumJson.getJSONArray("subPackages") : null;
-                    validateEventData(eventDataChildrenJson, errors);
+                    validateEventData(eventDataChildrenJson, true, errors);
                     JSONArray attributesJson = eventDatumJson.has("attributes") ? eventDatumJson.getJSONArray("attributes") : null;
                     if ((attributesJson == null))
                     {
-                        errors.reject(ERROR_MSG, "Missing json parameter: attributes");
+                        errors.reject(ERROR_MSG, "Missing json parameter: attributes" + msgAppend);
                     }
                     validateAttributes(attributesJson, errors);
                 }
