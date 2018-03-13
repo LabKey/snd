@@ -97,7 +97,7 @@ public class SNDServiceImpl implements SNDService
 
                 SNDManager.get().createPackage(u, c, pkg, superPkg, errors);
             }
-            tx.commit();
+//            tx.commit();
         }
         if (errors.hasErrors())
             throw new ApiUsageException(errors);
@@ -175,7 +175,7 @@ public class SNDServiceImpl implements SNDService
                 project.setRevisionNum(0);
                 SNDManager.get().createProject(c, u, project, errors);
             }
-            tx.commit();
+//            tx.commit();
         }
         if (errors.hasErrors())
             throw new ApiUsageException(errors);
@@ -209,7 +209,7 @@ public class SNDServiceImpl implements SNDService
             {
                 SNDManager.get().createEvent(c, u, event, errors);
             }
-            tx.commit();
+//            tx.commit();
         }
 
         if (errors.hasErrors())
