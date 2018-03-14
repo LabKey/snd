@@ -27,6 +27,7 @@ import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.exp.property.Domain;
 import org.labkey.api.exp.property.PropertyService;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
+import org.labkey.api.module.Module;
 import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.query.UserSchema;
@@ -285,8 +286,8 @@ public class SNDServiceImpl implements SNDService
     }
 
     @Override
-    public void registerEventTriggerFactory(EventTriggerFactory factory)
+    public void registerEventTriggerFactory(Module module, EventTriggerFactory factory)
     {
-        SNDManager.get().registerEventTriggerFactory(factory);
+        SNDManager.get().registerEventTriggerFactory(module, factory);
     }
 }

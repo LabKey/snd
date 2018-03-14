@@ -40,6 +40,7 @@ import org.labkey.api.exp.PropertyType;
 import org.labkey.api.exp.property.DomainUtil;
 import org.labkey.api.gwt.client.model.GWTDomain;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
+import org.labkey.api.module.Module;
 import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.DuplicateKeyException;
 import org.labkey.api.query.FieldKey;
@@ -87,7 +88,7 @@ public class SNDManager
 
     private List<TableInfo> _attributeLookups = new ArrayList<>();
 
-    private List<EventTriggerFactory> _eventTriggerFactories = new ArrayList<>();
+    private Map<Module, EventTriggerFactory> _eventTriggerFactories = new HashMap<>();
 
     public static final String RANGE_PARTICIPANTID = "ParticipantId";
 
@@ -2347,8 +2348,8 @@ public class SNDManager
      * Called from SNDService to allow event trigger factories to be registered.  These will be queried for category
      * triggers during
      */
-    public void registerEventTriggerFactory(EventTriggerFactory factory)
+    public void registerEventTriggerFactory(Module module, EventTriggerFactory factory)
     {
-        _eventTriggerFactories.add(factory);
+        _eventTriggerFactories.put(module, factory);
     }
 }

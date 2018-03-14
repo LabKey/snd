@@ -20,6 +20,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.labkey.api.data.Container;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
+import org.labkey.api.module.Module;
 import org.labkey.api.security.User;
 import org.labkey.api.services.ServiceRegistry;
 
@@ -51,6 +52,6 @@ public interface SNDService
     Event getEvent(Container c, User u, int eventId);
     JSONObject convertPropertyDescriptorToJson(Container c, User u, GWTPropertyDescriptor pd, boolean resolveLookupValues);
     JSONArray lookupValuesToJson(Container c, User u, String schema, String query);
-    void registerEventTriggerFactory(EventTriggerFactory factory);
+    void registerEventTriggerFactory(Module module, EventTriggerFactory factory);
     Lock getWriteLock();
 }
