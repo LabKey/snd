@@ -55,6 +55,7 @@ import org.labkey.api.security.User;
 import org.labkey.api.snd.AttributeData;
 import org.labkey.api.snd.Event;
 import org.labkey.api.snd.EventData;
+import org.labkey.api.snd.EventTriggerFactory;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.snd.Project;
@@ -63,8 +64,6 @@ import org.labkey.api.snd.SNDDomainKind;
 import org.labkey.api.snd.SNDSequencer;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.util.DateUtil;
-import org.labkey.api.util.GUID;
-import org.labkey.api.util.ResultSetUtil;
 
 import java.sql.SQLException;
 import java.text.ParseException;
@@ -87,6 +86,8 @@ public class SNDManager
     private final StringKeyCache<Object> _cache;
 
     private List<TableInfo> _attributeLookups = new ArrayList<>();
+
+    private List<EventTriggerFactory> _eventTriggerFactories = new ArrayList<>();
 
     public static final String RANGE_PARTICIPANTID = "ParticipantId";
 
@@ -2340,5 +2341,14 @@ public class SNDManager
                 }
             }
         }
+    }
+
+    /**
+     * Called from SNDService to allow event trigger factories to be registered.  These will be queried for category
+     * triggers during
+     */
+    public void registerEventTriggerFactory(EventTriggerFactory factory)
+    {
+        _eventTriggerFactories.add(factory);
     }
 }
