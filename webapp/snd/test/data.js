@@ -413,7 +413,7 @@
                 },
                 expected: {
                     eventId: 1800000,
-                    subjectId: 1,
+                    subjectId: "1",
                     date: "2018-02-26T17:51:20",
                     note: "This is a test event note.",
                     projectIdRev: '60|0',
@@ -527,7 +527,7 @@
                 },
                 expected : {
                     eventId: 1800001,
-                    subjectId: 2,
+                    subjectId: "2",
                     date: "2018-02-26T17:51:20",
                     note: "Note for event attribute data sample JSON",
                     projectIdRev: '61|0',

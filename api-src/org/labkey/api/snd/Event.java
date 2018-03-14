@@ -24,7 +24,7 @@ import java.util.TreeSet;
 public class Event
 {
     private Integer _eventId;
-    private int _subjectId;  // sometimes also a molecule ID
+    private String _subjectId;
     private Date _date;
     private String _projectIdRev;
     private String _note;
@@ -48,7 +48,7 @@ public class Event
     public static final String SND_EVENT_NAMESPACE = "SND.EventData";
 
 
-    public Event(@Nullable Integer eventId, int subjectId, @Nullable Date date, @NotNull String projectIdRev, @Nullable String note, @Nullable List<EventData> eventData, @NotNull Container c)
+    public Event(@Nullable Integer eventId, String subjectId, @Nullable Date date, @NotNull String projectIdRev, @Nullable String note, @Nullable List<EventData> eventData, @NotNull Container c)
     {
         _eventId = eventId != null ? eventId : SNDSequencer.EVENTID.ensureId(c, null);
         _subjectId = subjectId;
@@ -72,12 +72,12 @@ public class Event
         _eventId = eventId;
     }
 
-    public int getSubjectId()
+    public String getSubjectId()
     {
         return _subjectId;
     }
 
-    public void setSubjectId(int subjectId)
+    public void setSubjectId(String subjectId)
     {
         _subjectId = subjectId;
     }

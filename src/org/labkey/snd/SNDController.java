@@ -897,7 +897,7 @@ public class SNDController extends SpringActionController
         {
             JSONObject json = form.getJsonObject();
             Integer eventId = json.has("eventId") ? json.getInt("eventId") : null;
-            int subjectId = json.getInt("subjectId");
+            String subjectId = json.getString("subjectId");
             String dateString = json.getString("date");
 
             Date date = null;

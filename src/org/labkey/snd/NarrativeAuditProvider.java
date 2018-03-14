@@ -76,7 +76,7 @@ public class NarrativeAuditProvider extends AbstractAuditTypeProvider implements
         return (Class<K>)NarrativeAuditTypeEvent.class;
     }
 
-    public static void addAuditEntry(Container container, User user, Integer eventId, Integer subjectId, Date eventDate, String narrative, String comment)
+    public static void addAuditEntry(Container container, User user, Integer eventId, String subjectId, Date eventDate, String narrative, String comment)
     {
         NarrativeAuditProvider.NarrativeAuditTypeEvent event = new NarrativeAuditProvider.NarrativeAuditTypeEvent(container.getId(), comment);
         event.setNarrative(narrative);
@@ -91,7 +91,7 @@ public class NarrativeAuditProvider extends AbstractAuditTypeProvider implements
     {
         private String _narrative;
         private Integer _eventId;
-        private Integer _subjectId;
+        private String _subjectId;
         private Date _eventDate;
 
         public NarrativeAuditTypeEvent()
@@ -124,12 +124,12 @@ public class NarrativeAuditProvider extends AbstractAuditTypeProvider implements
             _eventId = eventId;
         }
 
-        public Integer getSubjectId()
+        public String getSubjectId()
         {
             return _subjectId;
         }
 
-        public void setSubjectId(Integer subjectId)
+        public void setSubjectId(String subjectId)
         {
             _subjectId = subjectId;
         }
@@ -159,7 +159,7 @@ public class NarrativeAuditProvider extends AbstractAuditTypeProvider implements
             Set<PropertyDescriptor> fields = new LinkedHashSet<>();
             fields.add(createPropertyDescriptor(COLUMN_NAME_NARRATIVE, PropertyType.STRING));
             fields.add(createPropertyDescriptor(COLUMN_NAME_EVENTID, PropertyType.INTEGER));
-            fields.add(createPropertyDescriptor(COLUMN_NAME_SUBJECTID, PropertyType.INTEGER));
+            fields.add(createPropertyDescriptor(COLUMN_NAME_SUBJECTID, PropertyType.STRING));
             fields.add(createPropertyDescriptor(COLUMN_NAME_EVENTDATE, PropertyType.DATE_TIME));
             _fields = Collections.unmodifiableSet(fields);
         }

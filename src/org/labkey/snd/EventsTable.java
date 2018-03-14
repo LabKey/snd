@@ -47,7 +47,7 @@ public class EventsTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
         protected Map<String, Object> deleteRow(User user, Container container, Map<String, Object> oldRowMap) throws QueryUpdateServiceException, SQLException, InvalidKeyException
         {
             int eventId = (Integer) oldRowMap.get("EventId");
-            int subjectId = Integer.parseInt((String) oldRowMap.get("SubjectId"));
+            String subjectId = (String) oldRowMap.get("SubjectId");
             Date eventDate = (Date) oldRowMap.get("Date");
 
             // This needs to be an atomic operation otherwise could get deadlock
