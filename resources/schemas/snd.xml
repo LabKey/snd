@@ -337,4 +337,14 @@
             </column>
         </columns>
     </table>
+    <table tableName="EventsCache" tableDbType="TABLE">
+        <insertUrl></insertUrl>
+        <updateUrl></updateUrl>
+        <importUrl></importUrl>
+        <deleteUrl></deleteUrl>
+        <columns>
+            <column columnName="EventId"/>
+            <column columnName="HtmlNarrative"/>
+        </columns>
+    </table>
 </tables>
