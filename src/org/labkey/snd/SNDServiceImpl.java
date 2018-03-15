@@ -33,7 +33,7 @@ import org.labkey.api.query.QueryService;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.Event;
-import org.labkey.api.snd.EventTriggerFactory;
+import org.labkey.api.snd.EventDataTriggerFactory;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.snd.Project;
@@ -286,7 +286,7 @@ public class SNDServiceImpl implements SNDService
     }
 
     @Override
-    public void registerEventTriggerFactory(Module module, EventTriggerFactory factory)
+    public void registerEventTriggerFactory(Module module, EventDataTriggerFactory factory)
     {
         SNDManager.get().registerEventTriggerFactory(module, factory);
     }

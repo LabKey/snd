@@ -56,7 +56,7 @@ import org.labkey.api.security.User;
 import org.labkey.api.snd.AttributeData;
 import org.labkey.api.snd.Event;
 import org.labkey.api.snd.EventData;
-import org.labkey.api.snd.EventTriggerFactory;
+import org.labkey.api.snd.EventDataTriggerFactory;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.snd.Project;
@@ -71,14 +71,19 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 public class SNDManager
 {
@@ -88,7 +93,7 @@ public class SNDManager
 
     private List<TableInfo> _attributeLookups = new ArrayList<>();
 
-    private Map<Module, EventTriggerFactory> _eventTriggerFactories = new HashMap<>();
+    private Map<Module, EventDataTriggerFactory> _eventTriggerFactories = new HashMap<>();
 
     public static final String RANGE_PARTICIPANTID = "ParticipantId";
 
@@ -1603,30 +1608,42 @@ public class SNDManager
         {
             Integer superPkgId;
             SuperPackage eventDataSuperPkg = null;
-            List<EventData> subEventDatas = new ArrayList<>();
+            Map<Integer, EventData> subEventDatas = new TreeMap<>();  // preserve natural order of sort order keys
+            Integer sortOrder = null;
+            SuperPackage supPkg;
+
+            List<SuperPackage> orderedChildPkgs = superPackage.getChildPackages();
 
             for (Map<String, Object> result : results)
             {
                 superPkgId = (Integer) result.get("SuperPkgId");
-                for (SuperPackage supPkg : superPackage.getChildPackages())
+                for (int i = 0; i < orderedChildPkgs.size(); i++)
                 {
+                    supPkg = orderedChildPkgs.get(i);
                     if (supPkg.getSuperPkgId().equals(superPkgId))
                     {
                         eventDataSuperPkg = supPkg;
+                        sortOrder = supPkg.getSortOrder();
+
+                        // If order not defined, then will order by eventdataid
+                        if (sortOrder == null)
+                        {
+                            sortOrder = i;
+                        }
                         break;
                     }
                 }
 
                 if (eventDataSuperPkg != null)
                 {
-                    subEventDatas.add(getEventData(c, u, (Integer) result.get("EventDataId"), eventDataSuperPkg, errors));
+                    subEventDatas.put(sortOrder, getEventData(c, u, (Integer) result.get("EventDataId"), eventDataSuperPkg, errors));
                 }
                 else
                 {
                     errors.addRowError(new ValidationException("Super package not found for event data."));
                 }
             }
-            eventData.setSubPackages(subEventDatas);
+            eventData.setSubPackages(new ArrayList<>(subEventDatas.values()));
         }
         catch (SQLException e)
         {
@@ -2204,6 +2221,8 @@ public class SNDManager
      */
     public void createEvent(Container c, User u, Event event, BatchValidationException errors)
     {
+//        fireInsertTriggers(c, u, event, errors);
+
         String projectObjectId = getProjectObjectId(c, u, event.getProjectIdRev(), errors);
 
         if (!errors.hasErrors())
@@ -2346,10 +2365,58 @@ public class SNDManager
 
     /**
      * Called from SNDService to allow event trigger factories to be registered.  These will be queried for category
-     * triggers during
+     * triggers during insert and update events
      */
-    public void registerEventTriggerFactory(Module module, EventTriggerFactory factory)
+    public void registerEventTriggerFactory(Module module, EventDataTriggerFactory factory)
     {
         _eventTriggerFactories.put(module, factory);
+    }
+
+
+
+//    private List<TriggerAction> getTriggerActions(Event event)
+//    {
+//        List<TriggerAction> triggerActions = new ArrayList<>();
+//        Queue<EventData> queue = new ConcurrentLinkedQueue<>();
+//
+//
+//        List<EventData> eventDatas = event.getEventData().stream().sorted(EventData::getSuperPkgId())
+//
+//        for (EventData eventData : event.getEventData())
+//        {
+//
+//
+//        }
+//    }
+
+
+    /**
+     * Called from insert event.
+     */
+    private void fireInsertTriggers(Container c, User u, Event event, BatchValidationException errors)
+    {
+        List<EventDataTriggerFactory> factories = new ArrayList<>();
+
+        for (Module module : c.getActiveModules())
+        {
+            factories.add(_eventTriggerFactories.get(module));
+        }
+
+        // Nothing to do
+        if (factories.size() < 1)
+            return;
+
+
+
+//        List<TriggerAction> triggerActions =
+
+    }
+
+    /**
+     * Called from update event.
+     */
+    private void fireUpdateTriggers(Container c, User u, Event event, BatchValidationException errors)
+    {
+
     }
 }
