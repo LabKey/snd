@@ -134,10 +134,10 @@
                         categories: [],
                         subPackages: [{
                             pkgId: 810,
-                            sortOrder: 1
+                            sortOrder: 2
                         }, {
                             pkgId: 811,
-                            sortOrder: 2
+                            sortOrder: 1
                         }, {
                             pkgId: 812,
                             sortOrder: 3
@@ -536,20 +536,6 @@
                             superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
                             attributes : [],
                             subPackages : [{
-                                superPkgId : LABKEY.getSubpackageSuperPkgId(810, LABKEY.SND_PKG_CACHE['814']['subPackages']),
-                                attributes: [
-                                    {
-                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'amount')['propertyId'],
-                                        value: "100"
-                                    }, {
-                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'units')['propertyId'],
-                                        value: "mL"
-                                    }, {
-                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'kit_type')['propertyId'],
-                                        value: "Sodium Colorimetric Detection Kit"
-                                    }]
-
-                            }, {
                                 superPkgId: LABKEY.getSubpackageSuperPkgId(811, LABKEY.SND_PKG_CACHE['814']['subPackages']),
                                 attributes: [
                                     {
@@ -561,6 +547,20 @@
                                     }, {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'kit_type')['propertyId'],
                                         value: "Potassium Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId : LABKEY.getSubpackageSuperPkgId(810, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'amount')['propertyId'],
+                                        value: "100"
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'units')['propertyId'],
+                                        value: "mL"
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'kit_type')['propertyId'],
+                                        value: "Sodium Colorimetric Detection Kit"
                                     }]
 
                             }, {
