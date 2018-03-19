@@ -56,7 +56,6 @@ import org.labkey.api.security.User;
 import org.labkey.api.snd.AttributeData;
 import org.labkey.api.snd.Event;
 import org.labkey.api.snd.EventData;
-import org.labkey.api.snd.EventDataTriggerFactory;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.snd.Project;
@@ -71,19 +70,15 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.stream.Collectors;
 
 public class SNDManager
 {
@@ -92,8 +87,6 @@ public class SNDManager
     private final StringKeyCache<Object> _cache;
 
     private List<TableInfo> _attributeLookups = new ArrayList<>();
-
-    private Map<Module, EventDataTriggerFactory> _eventTriggerFactories = new HashMap<>();
 
     public static final String RANGE_PARTICIPANTID = "ParticipantId";
 
@@ -457,15 +450,32 @@ public class SNDManager
     /**
      * Gets the category ids associated with a given package
      */
-    private List<Integer> getPackageCategories(Container c, User u, int pkgId)
+    private Map<Integer, String> getPackageCategories(Container c, User u, int pkgId)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
-        SQLFragment sql = new SQLFragment("SELECT CategoryId FROM ");
-        sql.append(schema.getTable(SNDSchema.PKGCATEGORYJUNCTION_TABLE_NAME), "c");
+        SQLFragment sql = new SQLFragment("SELECT cj.CategoryId, ca.Description FROM ");
+        sql.append(schema.getTable(SNDSchema.PKGCATEGORYJUNCTION_TABLE_NAME), "cj");
+        sql.append(" JOIN ");
+        sql.append(schema.getTable(SNDSchema.PKGCATEGORIES__TABLE_NAME), "ca");
+        sql.append(" ON cj.CategoryId = ca.CategoryId");
         sql.append(" WHERE PkgId = ?").add(pkgId);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
-        return selector.getArrayList(Integer.class);
+
+        Map<Integer, String> categories = new HashMap<>();
+        try(TableResultSet rs = selector.getResultSet())
+        {
+            for (Map<String, Object> r : rs)
+            {
+                categories.put((Integer) r.get("CategoryId"), (String) r.get("Description"));
+            }
+        }
+        catch (SQLException e)
+        {
+            throw new RuntimeException(e.getMessage());
+        }
+
+        return categories;
     }
 
     /**
@@ -774,6 +784,7 @@ public class SNDManager
             pkg.setAttributes(getPackageAttributes(c, u, superPackage.getPkgId()));
             pkg.setPkgId(superPackage.getPkgId());
             pkg.setDescription(superPackage.getDescription());
+            pkg.setCategories(getPackageCategories(c, u, superPackage.getPkgId()));
             superPackage.setPkg(pkg);
         }
 
@@ -2221,44 +2232,57 @@ public class SNDManager
      */
     public void createEvent(Container c, User u, Event event, BatchValidationException errors)
     {
-//        fireInsertTriggers(c, u, event, errors);
+        List<SuperPackage> topLevelPkgs = new ArrayList<>();
 
-        String projectObjectId = getProjectObjectId(c, u, event.getProjectIdRev(), errors);
+        if (event.getEventData() != null)
+        {
+            for (EventData eventData : event.getEventData())
+            {
+                topLevelPkgs.add(getFullSuperPackage(c, u, eventData.getSuperPkgId(), true));
+            }
+        }
+
+        SNDTriggerManager.get().fireInsertTriggers(c, u, event, topLevelPkgs, errors);
 
         if (!errors.hasErrors())
         {
-            event.setParentObjectId(projectObjectId);
-            ensureSuperPkgsBelongToProject(c, u, event, errors);
+            String projectObjectId = getProjectObjectId(c, u, event.getProjectIdRev(), errors);
 
             if (!errors.hasErrors())
             {
-                ensureValidEventData(c, u, event, errors);
+                event.setParentObjectId(projectObjectId);
+                ensureSuperPkgsBelongToProject(c, u, event, errors);
 
                 if (!errors.hasErrors())
                 {
-                    UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
-                    TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
-                    QueryUpdateService eventQus = getQueryUpdateService(eventTable);
+                    ensureValidEventData(c, u, event, errors);
 
-                    QueryUpdateService eventNotesQus = getNewQueryUpdateService(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
-
-                    List<Map<String, Object>> eventRows = new ArrayList<>();
-                    eventRows.add(event.getEventRow(c));
-
-                    List<Map<String, Object>> eventNotesRows = new ArrayList<>();
-                    eventNotesRows.add(event.getEventNotesRow(c));
-
-                    try (DbScope.Transaction tx = eventTable.getSchema().getScope().ensureTransaction())
+                    if (!errors.hasErrors())
                     {
-                        eventQus.insertRows(u, c, eventRows, errors, null, null);
-                        eventNotesQus.insertRows(u, c, eventNotesRows, errors, null, null);
-                        insertEventDatas(c, u, event.getEventData(), event.getEventId(), errors);
-                        NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(),"Fill in full narrative.", "Create event");
-                        tx.commit();
-                    }
-                    catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException | ValidationException e)
-                    {
-                        errors.addRowError(new ValidationException(e.getMessage()));
+                        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+                        TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
+                        QueryUpdateService eventQus = getQueryUpdateService(eventTable);
+
+                        QueryUpdateService eventNotesQus = getNewQueryUpdateService(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
+
+                        List<Map<String, Object>> eventRows = new ArrayList<>();
+                        eventRows.add(event.getEventRow(c));
+
+                        List<Map<String, Object>> eventNotesRows = new ArrayList<>();
+                        eventNotesRows.add(event.getEventNotesRow(c));
+
+                        try (DbScope.Transaction tx = eventTable.getSchema().getScope().ensureTransaction())
+                        {
+                            eventQus.insertRows(u, c, eventRows, errors, null, null);
+                            eventNotesQus.insertRows(u, c, eventNotesRows, errors, null, null);
+                            insertEventDatas(c, u, event.getEventData(), event.getEventId(), errors);
+                            NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), "Fill in full narrative.", "Create event");
+                            tx.commit();
+                        }
+                        catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException | ValidationException e)
+                        {
+                            errors.addRowError(new ValidationException(e.getMessage()));
+                        }
                     }
                 }
             }
@@ -2322,101 +2346,61 @@ public class SNDManager
      */
     public void updateEvent(Container c, User u, Event event, BatchValidationException errors)
     {
-        String projectObjectId = getProjectObjectId(c, u, event.getProjectIdRev(), errors);
-        event.setParentObjectId(projectObjectId);
+        List<SuperPackage> topLevelPkgs = new ArrayList<>();
 
-        ensureSuperPkgsBelongToProject(c, u, event, errors);
+        if (event.getEventData() != null)
+        {
+            for (EventData eventData : event.getEventData())
+            {
+                topLevelPkgs.add(getFullSuperPackage(c, u, eventData.getSuperPkgId(), true));
+            }
+        }
+
+        SNDTriggerManager.get().fireInsertTriggers(c, u, event, topLevelPkgs, errors);
 
         if (!errors.hasErrors())
         {
-            ensureValidEventData(c, u, event, errors);
+            String projectObjectId = getProjectObjectId(c, u, event.getProjectIdRev(), errors);
+            event.setParentObjectId(projectObjectId);
+
+            ensureSuperPkgsBelongToProject(c, u, event, errors);
 
             if (!errors.hasErrors())
             {
-                UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
-                TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
-                QueryUpdateService eventQus = getQueryUpdateService(eventTable);
+                ensureValidEventData(c, u, event, errors);
 
-                QueryUpdateService eventNotesQus = getNewQueryUpdateService(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
-
-                List<Map<String, Object>> eventRows = new ArrayList<>();
-                eventRows.add(event.getEventRow(c));
-
-                List<Map<String, Object>> eventNotesRows = new ArrayList<>();
-                eventNotesRows.add(event.getEventNotesRow(c));
-
-                try (DbScope.Transaction tx = eventTable.getSchema().getScope().ensureTransaction())
+                if (!errors.hasErrors())
                 {
-                    eventQus.updateRows(u, c, eventRows, null, null, null);
-                    deleteEventNotes(c, u, event.getEventId());
-                    eventNotesQus.insertRows(u, c, eventNotesRows, errors, null, null);
-                    deleteEventDatas(c, u, event.getEventId());
-                    insertEventDatas(c, u, event.getEventData(), event.getEventId(), errors);
-                    NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(),"Fill in full narrative.", "Event update");
-                    tx.commit();
-                }
-                catch (QueryUpdateServiceException | BatchValidationException | SQLException | InvalidKeyException | DuplicateKeyException | ValidationException e)
-                {
-                    errors.addRowError(new ValidationException(e.getMessage()));
+                    UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+                    TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
+                    QueryUpdateService eventQus = getQueryUpdateService(eventTable);
+
+                    QueryUpdateService eventNotesQus = getNewQueryUpdateService(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
+
+                    List<Map<String, Object>> eventRows = new ArrayList<>();
+                    eventRows.add(event.getEventRow(c));
+
+                    List<Map<String, Object>> eventNotesRows = new ArrayList<>();
+                    eventNotesRows.add(event.getEventNotesRow(c));
+
+                    try (DbScope.Transaction tx = eventTable.getSchema().getScope().ensureTransaction())
+                    {
+                        eventQus.updateRows(u, c, eventRows, null, null, null);
+                        deleteEventNotes(c, u, event.getEventId());
+                        eventNotesQus.insertRows(u, c, eventNotesRows, errors, null, null);
+                        deleteEventDatas(c, u, event.getEventId());
+                        insertEventDatas(c, u, event.getEventData(), event.getEventId(), errors);
+                        NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), "Fill in full narrative.", "Event update");
+                        tx.commit();
+                    }
+                    catch (QueryUpdateServiceException | BatchValidationException | SQLException | InvalidKeyException | DuplicateKeyException | ValidationException e)
+                    {
+                        errors.addRowError(new ValidationException(e.getMessage()));
+                    }
                 }
             }
         }
     }
 
-    /**
-     * Called from SNDService to allow event trigger factories to be registered.  These will be queried for category
-     * triggers during insert and update events
-     */
-    public void registerEventTriggerFactory(Module module, EventDataTriggerFactory factory)
-    {
-        _eventTriggerFactories.put(module, factory);
-    }
 
-
-
-//    private List<TriggerAction> getTriggerActions(Event event)
-//    {
-//        List<TriggerAction> triggerActions = new ArrayList<>();
-//        Queue<EventData> queue = new ConcurrentLinkedQueue<>();
-//
-//
-//        List<EventData> eventDatas = event.getEventData().stream().sorted(EventData::getSuperPkgId())
-//
-//        for (EventData eventData : event.getEventData())
-//        {
-//
-//
-//        }
-//    }
-
-
-    /**
-     * Called from insert event.
-     */
-    private void fireInsertTriggers(Container c, User u, Event event, BatchValidationException errors)
-    {
-        List<EventDataTriggerFactory> factories = new ArrayList<>();
-
-        for (Module module : c.getActiveModules())
-        {
-            factories.add(_eventTriggerFactories.get(module));
-        }
-
-        // Nothing to do
-        if (factories.size() < 1)
-            return;
-
-
-
-//        List<TriggerAction> triggerActions =
-
-    }
-
-    /**
-     * Called from update event.
-     */
-    private void fireUpdateTriggers(Container c, User u, Event event, BatchValidationException errors)
-    {
-
-    }
 }

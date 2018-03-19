@@ -46,7 +46,7 @@ public class Package
     private boolean _active;
     private boolean _hasEvent;
     private boolean _hasProject;
-    private List<Integer> _categories = new ArrayList<>();
+    private Map<Integer, String> _categories = new HashMap<>();
     private List<GWTPropertyDescriptor> _attributes = new ArrayList<>();
     private List<SuperPackage> _subpackages = new ArrayList<>();
     private Map<GWTPropertyDescriptor, Object> _extraFields = new HashMap<>();
@@ -143,12 +143,12 @@ public class Package
     }
 
     @NotNull
-    public List<Integer> getCategories()
+    public Map<Integer, String> getCategories()
     {
         return _categories;
     }
 
-    public void setCategories(@NotNull List<Integer> categories)
+    public void setCategories(@NotNull Map<Integer, String> categories)
     {
         this._categories = categories;
     }
@@ -246,7 +246,7 @@ public class Package
         List<Map<String, Object>> rows = new ArrayList<>();
         Map<String, Object> row;
 
-        for (Integer categoryId : getCategories())
+        for (Integer categoryId : getCategories().keySet())
         {
             row = new ArrayListMap<>();
             row.put(PKG_ID, getPkgId());
@@ -289,16 +289,15 @@ public class Package
         json.put(PKG_CONTAINER, c.getId());
 
         JSONArray categories = new JSONArray();
-        if(getCategories() != null)
-        {
-            for (Integer categoryId : getCategories())
-            {
-                categories.put(categoryId);
-            }
-            json.put(PKG_CATEGORIES, categories);
-        }
 
-        if(getAttributes() != null)
+        for (Integer categoryId : getCategories().keySet())
+        {
+            categories.put(categoryId);
+        }
+        json.put(PKG_CATEGORIES, categories);
+
+
+        if (getAttributes() != null)
         {
             json.put(PKG_ATTRIBUTES, attributesToJson(c, u));
         }

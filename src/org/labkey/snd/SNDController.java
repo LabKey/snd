@@ -184,10 +184,10 @@ public class SNDController extends SpringActionController
             JSONArray jsonCategories = json.getJSONArray("categories");
             if (null != jsonCategories)
             {
-                List<Integer> categories = new ArrayList<>();
+                Map<Integer, String> categories = new HashMap<>();
                 for (int j = 0; j < jsonCategories.length(); j++)
                 {
-                    categories.add(jsonCategories.getInt(j));
+                    categories.put(jsonCategories.getInt(j), null);
                 }
                 pkg.setCategories(categories);
             }

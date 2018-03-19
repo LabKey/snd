@@ -8,8 +8,8 @@ import java.util.List;
 
 public interface EventDataTrigger
 {
-    void onInsert(Container c, User u, EventData eventData, Event event, List<Package> pkgs, BatchValidationException errors);
-    void onUpdate(Container c, User u, EventData eventData, Event event, List<Package> pkgs, BatchValidationException errors);
+    void onInsert(Container c, User u, EventData eventData, Event event, List<SuperPackage> superPkgs, BatchValidationException errors);
+    void onUpdate(Container c, User u, EventData eventData, Event event, List<SuperPackage> superPkgs, BatchValidationException errors);
     Integer getOrder();
     void setOrder(Integer order);
 }

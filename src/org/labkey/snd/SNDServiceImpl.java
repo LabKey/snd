@@ -288,6 +288,6 @@ public class SNDServiceImpl implements SNDService
     @Override
     public void registerEventTriggerFactory(Module module, EventDataTriggerFactory factory)
     {
-        SNDManager.get().registerEventTriggerFactory(module, factory);
+        SNDTriggerManager.get().registerEventTriggerFactory(module, factory);
     }
 }
