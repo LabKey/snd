@@ -133,7 +133,13 @@ public class SNDServiceImpl implements SNDService
     @Override
     public Project getProject(Container c, User u, int projectId, int revNum)
     {
-        return SNDManager.get().getProject(c, u, projectId, revNum);
+        BatchValidationException errors = new BatchValidationException();
+
+        Project project = SNDManager.get().getProject(c, u, projectId, revNum, errors);
+        if (errors.hasErrors())
+            throw new ApiUsageException(errors);
+
+        return project;
     }
 
     @Override

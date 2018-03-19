@@ -107,7 +107,6 @@ public class SNDTriggerManager
 
         Pair<EventData, SuperPackage> pair;
 
-
         // iterate through top level packages, perform breadth first search on each top level event data
         for (EventData eventData : event.getEventData())
         {

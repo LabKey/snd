@@ -450,7 +450,7 @@ public class SNDManager
     /**
      * Gets the category ids associated with a given package
      */
-    private Map<Integer, String> getPackageCategories(Container c, User u, int pkgId)
+    private Map<Integer, String> getPackageCategories(Container c, User u, int pkgId, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -472,7 +472,7 @@ public class SNDManager
         }
         catch (SQLException e)
         {
-            throw new RuntimeException(e.getMessage());
+            errors.addRowError(new ValidationException(e.getMessage()));
         }
 
         return categories;
@@ -763,7 +763,7 @@ public class SNDManager
      * otherwise just a list of super package Ids for subpackages.
      */
     @Nullable
-    private SuperPackage getFullSuperPackage(Container c, User u, int superPkgId, boolean fullSubpackages)
+    private SuperPackage getFullSuperPackage(Container c, User u, int superPkgId, boolean fullSubpackages, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -779,12 +779,9 @@ public class SNDManager
 
         if (fullSubpackages)
         {
-            Package pkg;
-            pkg = new Package();
-            pkg.setAttributes(getPackageAttributes(c, u, superPackage.getPkgId()));
-            pkg.setPkgId(superPackage.getPkgId());
-            pkg.setDescription(superPackage.getDescription());
-            pkg.setCategories(getPackageCategories(c, u, superPackage.getPkgId()));
+            List<Integer> pkgIds = new ArrayList<>();
+            pkgIds.add(superPackage.getPkgId());
+            Package pkg = getPackages(c, u, pkgIds, true, true, true, errors).get(0);
             superPackage.setPkg(pkg);
         }
 
@@ -842,13 +839,6 @@ public class SNDManager
         return children;
     }
 
-    private Package addSubPackagesToPackage(Container c, User u, Package pkg, boolean getAllAttributes)
-    {
-        pkg.setSubpackages(getAllChildSuperPkgs(c, u, pkg.getPkgId(), getAllAttributes));
-
-        return pkg;
-    }
-
     /**
      * Adds lookup sets to a package being retrieved in API
      */
@@ -888,7 +878,7 @@ public class SNDManager
      * Given a row from the snd.Pkgs table, this creates the Package object.  Options to include extensible columns, lookup values
      * and attributes of subpackages
      */
-    private Package createPackage(Container c, User u, Map<String, Object> row, boolean includeExtraFields, boolean includeLookups, boolean includeAllAttributes)
+    private Package createPackage(Container c, User u, Map<String, Object> row, boolean includeExtraFields, boolean includeLookups, boolean includeAllAttributes, BatchValidationException errors)
     {
         Package pkg = new Package();
         if (row != null)
@@ -901,14 +891,14 @@ public class SNDManager
             pkg.setQcState((Integer) row.get(Package.PKG_QCSTATE));
             pkg.setHasEvent((boolean) row.get(Package.PKG_HASEVENT));
             pkg.setHasProject((boolean) row.get(Package.PKG_HASPROJECT));
-            pkg.setCategories(getPackageCategories(c, u, pkg.getPkgId()));
+            pkg.setCategories(getPackageCategories(c, u, pkg.getPkgId(), errors));
             pkg.setAttributes(getPackageAttributes(c, u, pkg.getPkgId()));
 
             SuperPackage sPkg = getTopLevelSuperPkgForPkg(c, u, pkg.getPkgId());
             if (sPkg != null)
                 pkg.setTopLevelSuperPkgId(sPkg.getSuperPkgId());
 
-            addSubPackagesToPackage(c, u, pkg, includeAllAttributes);
+            pkg.setSubpackages(getAllChildSuperPkgs(c, u, pkg.getPkgId(), includeAllAttributes));
             if (includeExtraFields)
                 addExtraFieldsToPackage(c, u, pkg, row);
             if (includeLookups)
@@ -954,7 +944,7 @@ public class SNDManager
         {
             for (Map<String, Object> row : rows)
             {
-                packages.add(createPackage(c, u, row, includeExtraFields, includeLookups, includeAllAttributes));
+                packages.add(createPackage(c, u, row, includeExtraFields, includeLookups, includeAllAttributes, errors));
             }
         }
 
@@ -1497,7 +1487,7 @@ public class SNDManager
     /**
      * Gets a project for GetProject API
      */
-    public Project getProject(Container c, User u, int projectId, int revNum)
+    public Project getProject(Container c, User u, int projectId, int revNum, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -1524,7 +1514,7 @@ public class SNDManager
             SuperPackage superPackage;
             for (ProjectItem projectItem : selector.getArrayList(ProjectItem.class))
             {
-                superPackage = getFullSuperPackage(c, u, projectItem.getSuperPkgId(), false);
+                superPackage = getFullSuperPackage(c, u, projectItem.getSuperPkgId(), false, errors);
                 if (superPackage != null)
                 {
                     projectItem.setSuperPackage(superPackage);
@@ -1689,7 +1679,7 @@ public class SNDManager
                 superPkgId = (Integer) result.get("SuperPkgId");
                 if (!topLevelSuperPackages.containsKey(superPkgId))
                 {
-                    topLevelSuperPackages.put(superPkgId, getFullSuperPackage(c, u, superPkgId, true));
+                    topLevelSuperPackages.put(superPkgId, getFullSuperPackage(c, u, superPkgId, true, errors));
                 }
 
                 eventDatas.add(getEventData(c, u, (Integer) result.get("EventDataId"), topLevelSuperPackages.get(superPkgId), errors));
@@ -2238,7 +2228,7 @@ public class SNDManager
         {
             for (EventData eventData : event.getEventData())
             {
-                topLevelPkgs.add(getFullSuperPackage(c, u, eventData.getSuperPkgId(), true));
+                topLevelPkgs.add(getFullSuperPackage(c, u, eventData.getSuperPkgId(), true, errors));
             }
         }
 
@@ -2352,7 +2342,7 @@ public class SNDManager
         {
             for (EventData eventData : event.getEventData())
             {
-                topLevelPkgs.add(getFullSuperPackage(c, u, eventData.getSuperPkgId(), true));
+                topLevelPkgs.add(getFullSuperPackage(c, u, eventData.getSuperPkgId(), true, errors));
             }
         }
 
