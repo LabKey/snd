@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.labkey.snd;
+package org.labkey.snd.query;
 
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
@@ -34,6 +34,8 @@ import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.SNDSequencer;
+import org.labkey.snd.SNDSchema;
+import org.labkey.snd.SNDUserSchema;
 
 import java.sql.SQLException;
 import java.util.Collections;

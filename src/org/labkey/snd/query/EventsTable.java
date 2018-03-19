@@ -1,4 +1,4 @@
-package org.labkey.snd;
+package org.labkey.snd.query;
 
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DbScope;
@@ -11,6 +11,10 @@ import org.labkey.api.query.SimpleQueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.SNDService;
+import org.labkey.snd.NarrativeAuditProvider;
+import org.labkey.snd.SNDManager;
+import org.labkey.snd.SNDSchema;
+import org.labkey.snd.SNDUserSchema;
 
 import java.sql.SQLException;
 import java.util.Date;

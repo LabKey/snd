@@ -26,6 +26,15 @@ import org.labkey.api.data.TableSelector;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.security.User;
+import org.labkey.snd.query.AttributeDataTable;
+import org.labkey.snd.query.CategoriesTable;
+import org.labkey.snd.query.EventDataTable;
+import org.labkey.snd.query.EventNotesTable;
+import org.labkey.snd.query.EventsTable;
+import org.labkey.snd.query.LookupSetTable;
+import org.labkey.snd.query.PackagesTable;
+import org.labkey.snd.query.ProjectsTable;
+import org.labkey.snd.query.SuperPackagesTable;
 
 import java.util.Collections;
 import java.util.Map;

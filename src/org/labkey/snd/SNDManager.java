@@ -63,6 +63,7 @@ import org.labkey.api.snd.SNDDomainKind;
 import org.labkey.api.snd.SNDSequencer;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.util.DateUtil;
+import org.labkey.snd.query.PackagesTable;
 import org.labkey.snd.trigger.SNDTriggerManager;
 
 import java.sql.SQLException;

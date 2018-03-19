@@ -1,4 +1,4 @@
-package org.labkey.snd;
+package org.labkey.snd.query;
 
 import org.jetbrains.annotations.NotNull;
 import org.labkey.api.data.CompareType;
@@ -21,6 +21,9 @@ import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.SNDService;
+import org.labkey.snd.SNDManager;
+import org.labkey.snd.SNDSchema;
+import org.labkey.snd.SNDUserSchema;
 
 import java.sql.SQLException;
 import java.util.HashSet;

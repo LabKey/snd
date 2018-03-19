@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.labkey.snd;
+package org.labkey.snd.query;
 
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;

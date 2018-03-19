@@ -1,8 +1,9 @@
-package org.labkey.snd;
+package org.labkey.snd.query;
 
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema;
+import org.labkey.snd.SNDUserSchema;
 
 public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
 {

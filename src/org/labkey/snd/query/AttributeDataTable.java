@@ -1,4 +1,4 @@
-package org.labkey.snd;
+package org.labkey.snd.query;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,6 +16,8 @@ import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.Permission;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.settings.AppProps;
+import org.labkey.snd.SNDSchema;
+import org.labkey.snd.SNDUserSchema;
 
 /**
  * Exposes all of the event attribute data, one row per attribute/value combination.
