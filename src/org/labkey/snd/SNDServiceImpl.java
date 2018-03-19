@@ -40,6 +40,7 @@ import org.labkey.api.snd.Project;
 import org.labkey.api.snd.SNDSequencer;
 import org.labkey.api.snd.SNDService;
 import org.labkey.api.snd.SuperPackage;
+import org.labkey.snd.trigger.SNDTriggerManager;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -295,5 +296,11 @@ public class SNDServiceImpl implements SNDService
     public void registerEventTriggerFactory(Module module, EventDataTriggerFactory factory)
     {
         SNDTriggerManager.get().registerEventTriggerFactory(module, factory);
+    }
+
+    @Override
+    public void unregisterEventTriggerFactory(Module module)
+    {
+        SNDTriggerManager.get().unregisterEventTriggerFactory(module);
     }
 }

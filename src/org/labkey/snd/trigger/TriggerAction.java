@@ -1,4 +1,4 @@
-package org.labkey.snd;
+package org.labkey.snd.trigger;
 
 import org.jetbrains.annotations.NotNull;
 import org.labkey.api.snd.Event;

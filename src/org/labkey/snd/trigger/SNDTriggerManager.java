@@ -1,4 +1,4 @@
-package org.labkey.snd;
+package org.labkey.snd.trigger;
 
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +39,11 @@ public class SNDTriggerManager
     public void registerEventTriggerFactory(Module module, EventDataTriggerFactory factory)
     {
         _eventTriggerFactories.put(module, factory);
+    }
+
+    public void unregisterEventTriggerFactory(Module module)
+    {
+        _eventTriggerFactories.remove(module);
     }
 
     private List<EventDataTriggerFactory> getTriggerFactories(Container c)
@@ -167,5 +172,10 @@ public class SNDTriggerManager
             return;
 
         List<TriggerAction> triggers = getTriggerActions(event, topLevelPkgs, factories);
+
+        for (TriggerAction trigger : triggers)
+        {
+            trigger.getTrigger().onUpdate(c, u, trigger.getEventData(), event, topLevelPkgs, errors);
+        }
     }
 }

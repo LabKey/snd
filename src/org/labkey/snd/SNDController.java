@@ -27,6 +27,7 @@ import org.labkey.api.action.SpringActionController;
 import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.gwt.client.DefaultValueType;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
+import org.labkey.api.module.Module;
 import org.labkey.api.security.RequiresLogin;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.permissions.AdminPermission;
@@ -42,6 +43,7 @@ import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.util.DateUtil;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ActionURL;
+import org.labkey.snd.trigger.test.SNDTestEventTriggerFactory;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 
@@ -1028,6 +1030,45 @@ public class SNDController extends SpringActionController
                 return attributesDataList;
             else
                 return null;
+        }
+    }
+
+    @RequiresPermission(AdminPermission.class)
+    public class RegisterTestTriggerFactoryAction extends ApiAction<SimpleApiJsonForm>
+    {
+        @Override
+        public Object execute(SimpleApiJsonForm form, BindException errors) throws Exception
+        {
+            JSONObject json = form.getJsonObject();
+            Boolean unregister = (json != null && json.has("unregister") && json.getBoolean("unregister"));
+
+            Module sndModule = null;
+            for (Module module : getViewContext().getContainer().getActiveModules())
+            {
+                if (module.getName().equals("SND"))
+                {
+                    sndModule = module;
+                    break;
+                }
+            }
+
+            if (sndModule != null)
+            {
+                if (unregister)
+                {
+                    SNDService.get().unregisterEventTriggerFactory(sndModule);
+                }
+                else
+                {
+                    SNDService.get().registerEventTriggerFactory(sndModule, new SNDTestEventTriggerFactory());
+                }
+            }
+            else
+            {
+                errors.reject("SND module not enabled");
+            }
+
+            return new ApiSimpleResponse();
         }
     }
 }

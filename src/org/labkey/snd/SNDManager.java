@@ -40,7 +40,6 @@ import org.labkey.api.exp.PropertyType;
 import org.labkey.api.exp.property.DomainUtil;
 import org.labkey.api.gwt.client.model.GWTDomain;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
-import org.labkey.api.module.Module;
 import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.DuplicateKeyException;
 import org.labkey.api.query.FieldKey;
@@ -64,6 +63,7 @@ import org.labkey.api.snd.SNDDomainKind;
 import org.labkey.api.snd.SNDSequencer;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.util.DateUtil;
+import org.labkey.snd.trigger.SNDTriggerManager;
 
 import java.sql.SQLException;
 import java.text.ParseException;
@@ -2346,7 +2346,7 @@ public class SNDManager
             }
         }
 
-        SNDTriggerManager.get().fireInsertTriggers(c, u, event, topLevelPkgs, errors);
+        SNDTriggerManager.get().fireUpdateTriggers(c, u, event, topLevelPkgs, errors);
 
         if (!errors.hasErrors())
         {
