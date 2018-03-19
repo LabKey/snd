@@ -6,9 +6,9 @@
             INIT_CATEGORIES: [
                 {
                     CategoryId: 20,
-                    Description:  'TestTrigger',
+                    Description:  'SNDTestTriggerCategory',
                     Active: true,
-                    Comment: 'This is for testing triggers'
+                    Comment: 'This is for testing triggers in SND module'
                 }
             ],
             INIT_PACKAGES: [

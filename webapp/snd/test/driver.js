@@ -13,7 +13,8 @@
         SAVE_EVENT_URL: LABKEY.ActionURL.buildURL('snd', 'saveEvent.api'),
         SAVE_PKG_URL: LABKEY.ActionURL.buildURL('snd', 'savePackage.api'),
         GET_PKG_URL: LABKEY.ActionURL.buildURL('snd', 'getPackages.api'),
-        SAVE_PROJECT_URL: LABKEY.ActionURL.buildURL('snd', 'saveProject.api')
+        SAVE_PROJECT_URL: LABKEY.ActionURL.buildURL('snd', 'saveProject.api'),
+        REGISTER_TEST_TRIGGER_URL: LABKEY.ActionURL.buildURL('snd', 'registerTestTriggerFactory.api')
     };
 
     var report = {
@@ -132,10 +133,10 @@
 
     function handleFailure(json, msg) {
         var jsonResponse = null;
-        if (json.exception) {
+        if (json && json.exception) {
             jsonResponse = json;
         }
-        else if (json.responseText) {
+        else if (json && json.responseText) {
             jsonResponse = JSON.parse(json.responseText);
         }
         if (jsonResponse && jsonResponse.exception) {
@@ -448,6 +449,31 @@
         cleanTestData(function() {initPackageData(function initProjects() {initProjectData(cb);})});
     }
 
+    function registerTestTriggerFactory(cb) {
+        LABKEY.Ajax.request({
+            url: TEST_URLS.REGISTER_TEST_TRIGGER_URL,
+            scope: this,
+            failure: function (json) {
+                handleFailure(json, 'Failed test trigger initialization.');
+            },
+            success: function() {
+                cb();
+            }
+        });
+    }
+
+    function unregisterTestTriggerFactory(cb) {
+        LABKEY.Ajax.request({
+            url: TEST_URLS.REGISTER_TEST_TRIGGER_URL,
+            jsonData: {'unregister': true},
+            scope: this,
+            failure: function (json) {
+                handleFailure(json, 'Failed test trigger initialization.');
+            },
+            success: cb
+        });
+    }
+
     function deleteProject(projectId, cb) {
         LABKEY.Query.selectRows({
             schemaName: 'snd',
@@ -655,12 +681,17 @@
                 status = 'success';
             }
             log(report.summary(), status);
+            unregisterTestTriggerFactory();
         });
     }
 
     function runAllTests() {
 
-        cleanTestData(runAllCleanTests);
+        registerTestTriggerFactory(
+                function() {
+                    cleanTestData(runAllCleanTests);
+                }
+        );
     }
 
     function runTest(test, context, cb) {
@@ -913,11 +944,16 @@
         return $('.snd-test-clean-test-btn');
     }
 
+    function getUnregisterTestTriggerBtn() {
+        return $('.snd-test-unregister-test-triggers-btn');
+    }
+
     $(function() {
         // bind inputs
         getRunBtn().on('click', runAllTests);
         getCleanInitBtn().on('click', cleanData);
         getCleanTestBtn().on('click', cleanTestData);
+        getUnregisterTestTriggerBtn().on('click', unregisterTestTriggerFactory);
     });
 
     LABKEY.testDriver = function(tests, beforeTests) {
