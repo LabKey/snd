@@ -3,6 +3,14 @@
 
     var SNDTEST_INIT_DATA = {
         BEFORE_ALL_TESTS: {
+            INIT_CATEGORIES: [
+                {
+                    CategoryId: 20,
+                    Description:  'TestTrigger',
+                    Active: true,
+                    Comment: 'This is for testing triggers'
+                }
+            ],
             INIT_PACKAGES: [
                 {
                     jsonData: {
@@ -131,7 +139,7 @@
                         active: true,
                         repeatable: true,
                         narrative: 'Electrolytes',
-                        categories: [],
+                        categories: [20],
                         subPackages: [{
                             pkgId: 810,
                             sortOrder: 2

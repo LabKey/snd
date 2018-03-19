@@ -250,6 +250,75 @@
         $('.snd-test-data-frame').html(html.join(''));
     }
 
+    function saveCategories(cb) {
+
+        var categoryData = LABKEY.getInitData().BEFORE_ALL_TESTS.INIT_CATEGORIES;
+        var categoryIds = [];
+
+        for (var i = 0; i < categoryData.length; i++)
+        {
+            categoryIds.push(categoryData[i].CategoryId);
+        }
+
+        LABKEY.Query.selectRows({
+            schemaName: 'snd',
+            queryName: 'PkgCategories',
+            columns: ['CategoryId'],
+            scope: this,
+            filterArray: [LABKEY.Filter.create('CategoryId', categoryIds.join(';'), LABKEY.Filter.Types.IN)],
+            failure: function (json) {
+                handleFailure(json, 'Failed category initialization');
+            },
+            success: function (results) {
+
+                var existing = [], updateRows = [], insertRows = [];
+                for (var r = 0; r < results.rows.length; r++) {
+                    existing.push(results.rows[r]["CategoryId"]);
+                }
+
+                for (var c = 0; c < categoryData.length; c++) {
+                    if (existing.indexOf(categoryData[c].CategoryId) !== -1) {
+                        updateRows.push(categoryData[c]);
+                    }
+                    else {
+                        insertRows.push(categoryData[c]);
+                    }
+                }
+
+                var command = [];
+
+                if (updateRows.length > 0) {
+                    command.push({
+                        command: 'update',
+                        schemaName: 'snd',
+                        queryName: 'PkgCategories',
+                        rows: updateRows
+                    })
+                } else if (insertRows.length > 0) {
+                    command.push({
+                        command: 'insert',
+                        schemaName: 'snd',
+                        queryName: 'PkgCategories',
+                        rows: insertRows
+                    })
+                }
+
+                if (command.length > 0) {
+                    LABKEY.Query.saveRows({
+                        commands: command,
+                        scope: this,
+                        failure: function (json) {
+                            handleFailure(json, 'Failed category initialization.');
+                        },
+                        success: function (results) {
+                            cb();
+                        }
+                    });
+                }
+            }
+        })
+    }
+
     // Save packages one at a time
     function savePackage(index, cb) {
         var pkgIds = [];
@@ -364,7 +433,7 @@
     function initPackageData(cb) {
         log('Initializing data...', null, true);
 
-        savePackage(0, cb);
+        saveCategories(function () {savePackage(0, cb);});
     }
 
     function initProjectData(cb) {
