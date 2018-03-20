@@ -30,6 +30,7 @@ import org.labkey.snd.query.AttributeDataTable;
 import org.labkey.snd.query.CategoriesTable;
 import org.labkey.snd.query.EventDataTable;
 import org.labkey.snd.query.EventNotesTable;
+import org.labkey.snd.query.EventsCacheTable;
 import org.labkey.snd.query.EventsTable;
 import org.labkey.snd.query.LookupSetTable;
 import org.labkey.snd.query.PackagesTable;
@@ -161,6 +162,14 @@ public class SNDUserSchema extends SimpleUserSchema
                                         schema, SNDSchema.getInstance().getTableInfoLookupSets()).init();
 
                         return table;
+                    }
+                },
+        EventsCache
+                {
+                    @Override
+                    public TableInfo createTable(SNDUserSchema schema)
+                    {
+                        return new EventsCacheTable(schema, SNDSchema.getInstance().getTableInfoEventsCache()).init();
                     }
                 };
 

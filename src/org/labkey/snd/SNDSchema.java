@@ -38,6 +38,7 @@ public class SNDSchema
     public static final String LOOKUPSETS_TABLE_NAME = "LookupSets";
     public static final String SUPERPKGS_FUNCTION_NAME = "fGetSuperPkg";
     public static final String PROJECTS_FUNCTION_NAME = "fGetProjectItems";
+    public static final String EVENTSCACHE_TABLE_NAME = "EventsCache";
 
     public static SNDSchema getInstance()
     {
@@ -114,5 +115,10 @@ public class SNDSchema
     public TableInfo getTableInfoLookupSets()
     {
         return getSchema().getTable(LOOKUPSETS_TABLE_NAME);
+    }
+
+    public TableInfo getTableInfoEventsCache()
+    {
+        return getSchema().getTable(EVENTSCACHE_TABLE_NAME);
     }
 }
