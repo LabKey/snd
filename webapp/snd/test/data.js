@@ -602,7 +602,7 @@
                                 attributes: [
                                     {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'amount')['propertyId'],
-                                        value: "200"  // Unit conversion in trigger script
+                                        value: "112"  // Unit conversion in trigger script
                                     }, {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'units')['propertyId'],
                                         value: "mEq/L"  // Unit conversion in trigger script

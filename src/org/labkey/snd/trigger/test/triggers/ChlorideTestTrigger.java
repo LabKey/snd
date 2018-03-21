@@ -33,7 +33,7 @@ public class ChlorideTestTrigger implements EventDataTrigger
             if (unitsValue.equals("mg/dL"))
             {
                 // convert to mEq/L: mg/dL * g/L * valence / atomic weight
-                newAmountValue = Double.parseDouble(amountValue) * 10 * 2 / 40;
+                newAmountValue = Double.parseDouble(amountValue) * 10 * 1 / 35.5;
                 TriggerHelper.setAttributeValue(eventData, TriggerHelper.getPropertyId("amount", pkg), "amount", Double.toString(newAmountValue));
                 TriggerHelper.setAttributeValue(eventData, TriggerHelper.getPropertyId("units", pkg), "units", "mEq/L");
             }
