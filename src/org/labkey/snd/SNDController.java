@@ -450,7 +450,7 @@ public class SNDController extends SpringActionController
             JSONArray pkgIds = json.getJSONArray("packages");
             boolean includeExtraFields = !json.has("excludeExtraFields") || !json.getBoolean("excludeExtraFields");
             boolean includeLookups = !json.has("excludeLookups") || !json.getBoolean("excludeLookups");
-            boolean includeAllAttributes = json.has("includeAllAttributes") && json.getBoolean("includeAllAttributes");
+            boolean includeFullSubpackages = json.has("includeFullSubpackages") && json.getBoolean("includeFullSubpackages");
             ApiSimpleResponse response = new ApiSimpleResponse();
 
             List<Package> pkgs = new ArrayList<>();
@@ -477,7 +477,7 @@ public class SNDController extends SpringActionController
                 SNDService sndService = SNDService.get();
                 if (ids.size() > 0 && sndService != null)
                     pkgs.addAll(sndService.getPackages(getViewContext().getContainer(), getUser(), ids,
-                            includeExtraFields, includeLookups, includeAllAttributes));
+                            includeExtraFields, includeLookups, includeFullSubpackages));
             }
 
             JSONArray jsonOut = new JSONArray();

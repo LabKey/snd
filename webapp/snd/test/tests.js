@@ -144,7 +144,7 @@
                                                  value: 100
                                              }, {
                                                  propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'units')['propertyId'],
-                                                 value: "mL"
+                                                 value: "mEq/L"
                                              }, {
                                                  propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'kit_type')['propertyId'],
                                                  value: "Sodium Colorimetric Detection Kit"
@@ -158,7 +158,7 @@
                                                  value: "200"
                                              }, {
                                                  propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'units')['propertyId'],
-                                                 value: "l"
+                                                 value: "mEq/L"
                                              }, {
                                                  propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'kit_type')['propertyId'],
                                                  value: "Potassium Detection Kit"
@@ -172,7 +172,7 @@
                                                  value: "400"
                                              }, {
                                                  propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'units')['propertyId'],
-                                                 value: "l"
+                                                 value: "mEq/L"
                                              }, {
                                                  propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'kit_type')['propertyId'],
                                                  value: "Chloride Blood Detection Kit"
@@ -207,7 +207,7 @@
                                         attributes: [
                                              {
                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'units')['propertyId'],
-                                                value: "mL"
+                                                value: "mEq/L"
                                             }, {
                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'kit_type')['propertyId'],
                                                 value: "Sodium Colorimetric Detection Kit"
@@ -221,7 +221,7 @@
                                                 value: "200"
                                             }, {
                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'units')['propertyId'],
-                                                value: "l"
+                                                value: "mEq/L"
                                             }, {
                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'kit_type')['propertyId'],
                                                 value: "Potassium Detection Kit"
@@ -235,7 +235,7 @@
                                                 value: "300"
                                             }, {
                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['812']['attributes'], 'units')['propertyId'],
-                                                value: "ml"
+                                                value: "mEq/L"
                                             }, {
                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['812']['attributes'], 'kit_type')['propertyId'],
                                                 value: "Carbon Dioxide (CO2) Colorimetric Detection Kit"
@@ -249,7 +249,7 @@
                                                 value: "400"
                                             }, {
                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'units')['propertyId'],
-                                                value: "l"
+                                                value: "mEq/L"
                                             }, {
                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'kit_type')['propertyId'],
                                                 value: "Chloride Blood Detection Kit"
@@ -287,7 +287,7 @@
                                                 value: "100"
                                             },{
                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'units')['propertyId'],
-                                                value: "mL"
+                                                value: "mEq/L"
                                             }, {
                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'kit_type')['propertyId'],
                                                 value: "Sodium Colorimetric Detection Kit"
@@ -301,7 +301,7 @@
                                                 value: "200"
                                             }, {
                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'units')['propertyId'],
-                                                value: "l"
+                                                value: "mEq/L"
                                             }, {
                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'kit_type')['propertyId'],
                                                 value: "Potassium Detection Kit"
@@ -315,7 +315,7 @@
                                                 value: "300"
                                             }, {
                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['812']['attributes'], 'units')['propertyId'],
-                                                value: "ml"
+                                                value: "mEq/L"
                                             }, {
                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['812']['attributes'], 'kit_type')['propertyId'],
                                                 value: "Carbon Dioxide (CO2) Colorimetric Detection Kit"
@@ -329,7 +329,7 @@
                                                 value: "400"
                                             }, {
                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'units')['propertyId'],
-                                                value: "l"
+                                                value: "mEq/L"
                                             }, {
                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'kit_type')['propertyId'],
                                                 value: "Chloride Blood Detection Kit"
@@ -375,7 +375,7 @@
                                         value: '20'
                                     }, {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'units')['propertyId'],
-                                        value: 'l'
+                                        value: 'mL'
                                     }, {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['propertyId'],
                                         value: 'black'

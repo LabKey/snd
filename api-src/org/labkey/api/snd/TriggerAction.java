@@ -1,10 +1,7 @@
-package org.labkey.snd.trigger;
+package org.labkey.api.snd;
+
 
 import org.jetbrains.annotations.NotNull;
-import org.labkey.api.snd.Event;
-import org.labkey.api.snd.EventData;
-import org.labkey.api.snd.EventDataTrigger;
-import org.labkey.api.snd.SuperPackage;
 
 import java.util.List;
 
@@ -14,13 +11,16 @@ public class TriggerAction
     Event _event;
     EventData _eventData;
     List<SuperPackage> _topLevelPkgs;
+    SuperPackage _superPackage;
 
-    public TriggerAction(EventDataTrigger trigger, @NotNull Event event, @NotNull EventData eventData, @NotNull List<SuperPackage> topLevelPkgs)
+    public TriggerAction(@NotNull EventDataTrigger trigger, @NotNull Event event, @NotNull EventData eventData,
+                         @NotNull SuperPackage superPackage, @NotNull List<SuperPackage> topLevelPkgs)
     {
         _trigger = trigger;
         _event = event;
         _eventData = eventData;
         _topLevelPkgs = topLevelPkgs;
+        _superPackage = superPackage;
     }
 
     public EventDataTrigger getTrigger()
@@ -33,7 +33,7 @@ public class TriggerAction
         _trigger = trigger;
     }
 
-    public Event getEvent()
+    public Event getIncomingEvent()
     {
         return _event;
     }
@@ -43,7 +43,7 @@ public class TriggerAction
         _event = event;
     }
 
-    public EventData getEventData()
+    public EventData getIncomingEventData()
     {
         return _eventData;
     }
@@ -61,5 +61,15 @@ public class TriggerAction
     public void setTopLevelPkgs(List<SuperPackage> topLevelPkgs)
     {
         _topLevelPkgs = topLevelPkgs;
+    }
+
+    public SuperPackage getSuperPackage()
+    {
+        return _superPackage;
+    }
+
+    public void setSuperPackage(SuperPackage superPackage)
+    {
+        _superPackage = superPackage;
     }
 }

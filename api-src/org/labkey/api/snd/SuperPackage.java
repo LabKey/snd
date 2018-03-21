@@ -39,7 +39,7 @@ public class SuperPackage
     private Integer _superPkgId;
     private List<SuperPackage> _childPackages;
     private Integer _pkgId;
-    private Package _pkg;  // Only used to hold attribute data
+    private Package _pkg;
     private String _superPkgPath;
     private Integer _parentSuperPkgId;
     private String _description; // From referenced package

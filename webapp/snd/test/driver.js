@@ -295,7 +295,9 @@
                         queryName: 'PkgCategories',
                         rows: updateRows
                     })
-                } else if (insertRows.length > 0) {
+                }
+
+                if (insertRows.length > 0) {
                     command.push({
                         command: 'insert',
                         schemaName: 'snd',

@@ -11,6 +11,7 @@ import org.labkey.api.snd.EventData;
 import org.labkey.api.snd.EventDataTrigger;
 import org.labkey.api.snd.EventDataTriggerFactory;
 import org.labkey.api.snd.SuperPackage;
+import org.labkey.api.snd.TriggerAction;
 import org.labkey.api.util.Pair;
 
 import java.util.ArrayList;
@@ -74,7 +75,8 @@ public class SNDTriggerManager
         return null;
     }
 
-    private List<TriggerAction> getCategoryTriggers(@NotNull Event event, @NotNull EventData eventData, SuperPackage superPackage, @NotNull List<SuperPackage> superPackages, List<EventDataTriggerFactory> factories)
+    private List<TriggerAction> getCategoryTriggers(@NotNull Event event, @NotNull EventData eventData, SuperPackage superPackage,
+                                                    @NotNull List<SuperPackage> topLevelSuperPackages, List<EventDataTriggerFactory> factories)
     {
         List<TriggerAction> triggers = new ArrayList<>();
         EventDataTrigger trigger;
@@ -88,7 +90,7 @@ public class SNDTriggerManager
                     trigger = factory.createTrigger(category);
                     if (trigger != null)
                     {
-                        triggers.add(new TriggerAction(trigger, event, eventData, superPackages));
+                        triggers.add(new TriggerAction(trigger, event, eventData, superPackage, topLevelSuperPackages));
                     }
                 }
             }
@@ -152,11 +154,12 @@ public class SNDTriggerManager
         if (factories.size() < 1)
             return;
 
-        List<TriggerAction> triggers = getTriggerActions(event, topLevelPkgs, factories);
+        List<TriggerAction> triggerActions = getTriggerActions(event, topLevelPkgs, factories);
+        Map<String, Object> extraContext = new HashMap<>();
 
-        for (TriggerAction trigger : triggers)
+        for (TriggerAction triggerAction : triggerActions)
         {
-            trigger.getTrigger().onInsert(c, u, trigger.getEventData(), event, topLevelPkgs, errors);
+            triggerAction.getTrigger().onInsert(c, u, triggerAction, errors, extraContext);
         }
     }
 
@@ -172,10 +175,11 @@ public class SNDTriggerManager
             return;
 
         List<TriggerAction> triggers = getTriggerActions(event, topLevelPkgs, factories);
+        Map<String, Object> extraContext = new HashMap<>();
 
         for (TriggerAction trigger : triggers)
         {
-            trigger.getTrigger().onUpdate(c, u, trigger.getEventData(), event, topLevelPkgs, errors);
+            trigger.getTrigger().onUpdate(c, u, trigger, errors, extraContext);
         }
     }
 }

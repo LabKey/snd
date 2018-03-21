@@ -8,23 +8,27 @@ import org.labkey.api.snd.TriggerAction;
 
 import java.util.Map;
 
-public class SNDTestTrigger implements EventDataTrigger
+public class ChlorideBloodTestTrigger implements EventDataTrigger
 {
+    final String name = "Chloride Blood Test Trigger";
+    final String msgPrefix = name + ": ";
+
+
     @Override
     public void onInsert(Container c, User u, TriggerAction triggerAction, BatchValidationException errors, Map<String, Object> extraContext)
     {
-
+        TriggerHelper.ensureTriggerOrder(name, errors, extraContext);
     }
 
     @Override
     public void onUpdate(Container c, User u, TriggerAction triggerAction, BatchValidationException errors, Map<String, Object> extraContext)
     {
-
+        onInsert(c, u, triggerAction, errors, extraContext);
     }
 
     @Override
     public Integer getOrder()
     {
-        return null;
+        return 2;
     }
 }
