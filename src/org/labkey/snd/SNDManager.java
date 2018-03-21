@@ -2220,7 +2220,7 @@ public class SNDManager
     /**
      * Called from SNDService.saveEvent to insert a new event.
      */
-    public void createEvent(Container c, User u, Event event, BatchValidationException errors)
+    public void createEvent(Container c, User u, Event event, boolean validateOnly, BatchValidationException errors)
     {
         List<SuperPackage> topLevelPkgs = new ArrayList<>();
 
@@ -2247,7 +2247,7 @@ public class SNDManager
                 {
                     ensureValidEventData(c, u, event, errors);
 
-                    if (!errors.hasErrors())
+                    if (!errors.hasErrors() && !validateOnly)
                     {
                         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
                         TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
@@ -2334,7 +2334,7 @@ public class SNDManager
     /**
      * Called from SNDService.saveEvent to update an existing event.
      */
-    public void updateEvent(Container c, User u, Event event, BatchValidationException errors)
+    public void updateEvent(Container c, User u, Event event, boolean validateOnly, BatchValidationException errors)
     {
         List<SuperPackage> topLevelPkgs = new ArrayList<>();
 
@@ -2359,7 +2359,7 @@ public class SNDManager
             {
                 ensureValidEventData(c, u, event, errors);
 
-                if (!errors.hasErrors())
+                if (!errors.hasErrors() && !validateOnly)
                 {
                     UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
                     TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);

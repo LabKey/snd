@@ -901,6 +901,12 @@ public class SNDController extends SpringActionController
             Integer eventId = json.has("eventId") ? json.getInt("eventId") : null;
             String subjectId = json.getString("subjectId");
             String dateString = json.getString("date");
+            Boolean validateOnly = (Boolean)json.get("validateOnly");
+
+            if (validateOnly == null)
+            {
+                validateOnly = false;
+            }
 
             Date date = null;
             try
@@ -938,7 +944,7 @@ public class SNDController extends SpringActionController
                     event.setExtraFields(extras);
                 }
 
-                SNDService.get().saveEvent(getContainer(), getUser(), event);
+                SNDService.get().saveEvent(getContainer(), getUser(), event, validateOnly);
             }
             return new ApiSimpleResponse();
         }

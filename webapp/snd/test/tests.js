@@ -431,7 +431,7 @@
             }
 
         },{
-            name:'Save Event:Missing Project ID',
+            name:'Save Event: Missing Project ID',
             run:function(){
                 return{
                     request:{
@@ -464,7 +464,7 @@
             }
 
         },{
-            name:'Save Event:Missing Revision number for project Id',
+            name:'Save Event: Missing Revision number for project Id',
             run:function(){
                 return{
                     request:{
@@ -497,7 +497,7 @@
             }
 
         },{
-            name:'Save Event:Invalid project Id',
+            name:'Save Event: Invalid project Id',
             run:function(){
                 return{
                     request:{
@@ -531,7 +531,7 @@
 
         },
         {
-            name:'Save Event:Invalid date',
+            name:'Save Event: Invalid date',
             run:function(){
                 return{
                     request:{
@@ -641,7 +641,7 @@
 
         },{
 
-            name: 'Save Event: ',
+            name: 'Save Event: Empty event',
             run : function()
             {
                 return{

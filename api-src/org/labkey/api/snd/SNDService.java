@@ -48,7 +48,7 @@ public interface SNDService
     Object getDefaultLookupDisplayValue(User u, Container c, String schema, String table, Object key);
     void saveProject(Container c, User u, Project project, boolean isRevision);
     Project getProject(Container c, User u, int projectId, int revNum);
-    void saveEvent(Container c, User u, Event event);
+    void saveEvent(Container c, User u, Event event, boolean validateOnly);
     Event getEvent(Container c, User u, int eventId);
     JSONObject convertPropertyDescriptorToJson(Container c, User u, GWTPropertyDescriptor pd, boolean resolveLookupValues);
     JSONArray lookupValuesToJson(Container c, User u, String schema, String query);

@@ -208,7 +208,7 @@ public class SNDServiceImpl implements SNDService
     }
 
     @Override
-    public void saveEvent(Container c, User u, Event event)
+    public void saveEvent(Container c, User u, Event event, boolean validateOnly)
     {
         BatchValidationException errors = new BatchValidationException();
 
@@ -216,11 +216,11 @@ public class SNDServiceImpl implements SNDService
         {
             if (event.getEventId() != null && SNDManager.get().eventExists(c, u, event.getEventId()))
             {
-                SNDManager.get().updateEvent(c, u, event, errors);
+                SNDManager.get().updateEvent(c, u, event, validateOnly, errors);
             }
             else
             {
-                SNDManager.get().createEvent(c, u, event, errors);
+                SNDManager.get().createEvent(c, u, event, validateOnly, errors);
             }
 
             if(!tx.isAborted())
