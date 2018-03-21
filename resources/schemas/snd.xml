@@ -241,6 +241,7 @@
             <column columnName="SuperPkgId"/>
             <column columnName="ParentEventDataId"/>
             <column columnName="ObjectURI"/>
+            <column columnName="ObjectId"/>
             <column columnName="Container"/>
             <column columnName="Lsid">
                 <datatype>lsidtype</datatype>

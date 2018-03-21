@@ -19,11 +19,14 @@ import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.labkey.api.data.Container;
+import org.labkey.api.dataiterator.DataIteratorBuilder;
+import org.labkey.api.dataiterator.DataIteratorContext;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.module.Module;
 import org.labkey.api.security.User;
 import org.labkey.api.services.ServiceRegistry;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -55,4 +58,5 @@ public interface SNDService
     void registerEventTriggerFactory(Module module, EventDataTriggerFactory factory);
     void unregisterEventTriggerFactory(Module module);
     Lock getWriteLock();
+    List<Map<String,Object>> getMutableData(DataIteratorBuilder rows, DataIteratorContext dataIteratorContext) throws IOException;
 }

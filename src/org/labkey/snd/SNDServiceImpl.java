@@ -23,6 +23,10 @@ import org.labkey.api.data.Container;
 import org.labkey.api.data.DbScope;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
+import org.labkey.api.dataiterator.DataIterator;
+import org.labkey.api.dataiterator.DataIteratorBuilder;
+import org.labkey.api.dataiterator.DataIteratorContext;
+import org.labkey.api.dataiterator.DataIteratorUtil;
 import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.exp.property.Domain;
 import org.labkey.api.exp.property.PropertyService;
@@ -30,6 +34,7 @@ import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.module.Module;
 import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.QueryService;
+import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.Event;
@@ -42,12 +47,15 @@ import org.labkey.api.snd.SNDService;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.snd.trigger.SNDTriggerManager;
 
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by marty on 8/4/2017.
@@ -302,5 +310,22 @@ public class SNDServiceImpl implements SNDService
     public void unregisterEventTriggerFactory(Module module)
     {
         SNDTriggerManager.get().unregisterEventTriggerFactory(module);
+    }
+
+    public List<Map<String, Object>> getMutableData(DataIteratorBuilder rows, DataIteratorContext context) throws IOException
+    {
+        DataIterator iterator = rows.getDataIterator(context);
+        Stream<Map<String, Object>> stream = DataIteratorUtil.stream(iterator,true);
+        List<Map<String, Object>> mutableData = stream.collect(Collectors.toList());
+        stream.close();
+        try
+        {
+            iterator.close();
+        }
+        catch (IOException e)
+        {
+            throw new IOException(e.getMessage());
+        }
+        return mutableData;
     }
 }

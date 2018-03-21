@@ -1,8 +1,13 @@
 package org.labkey.snd.query;
 
+import org.jetbrains.annotations.NotNull;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema;
+import org.labkey.api.security.UserPrincipal;
+import org.labkey.api.security.permissions.AdminPermission;
+import org.labkey.api.security.permissions.Permission;
+import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.snd.SNDUserSchema;
 
 public class EventNotesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
@@ -20,8 +25,13 @@ public class EventNotesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
     }
 
     @Override
-    public QueryUpdateService getUpdateService()
+    public boolean hasPermission(@NotNull UserPrincipal user, @NotNull Class<? extends Permission> perm)
     {
-        return null;
+        // Allow read access based on standard container permission, but for everything else require admin container access
+        if (perm.equals(ReadPermission.class))
+        {
+            return getContainer().hasPermission(user, perm);
+        }
+        return getContainer().hasPermission(user, AdminPermission.class);
     }
 }

@@ -438,7 +438,7 @@ public class SNDManager
     /**
      * Gets the property descriptors for a given package by getting the full domain for the package
      */
-    private List<GWTPropertyDescriptor> getPackageAttributes(Container c, User u, int pkgId)
+    public List<GWTPropertyDescriptor> getPackageAttributes(Container c, User u, int pkgId)
     {
         String uri = PackageDomainKind.getDomainURI(SNDSchema.NAME, getPackageName(pkgId), c, u);
         GWTDomain<GWTPropertyDescriptor> domain = DomainUtil.getDomainDescriptor(u, uri, c);
@@ -1924,7 +1924,7 @@ public class SNDManager
     /**
      * Create ObjectURI that will link snd.EventData rows with exp.Object rows
      */
-    private String generateLsid(Container c, String eventDataId)
+    public String generateLsid(Container c, String eventDataId)
     {
         return new Lsid(Event.SND_EVENT_NAMESPACE, "Folder-" + c.getRowId(), eventDataId).toString();
     }
@@ -1932,7 +1932,7 @@ public class SNDManager
     /**
      * Gets package Id for a given super package
      */
-    private Integer getPackageIdForSuperPackage(Container c, User u, int superPkgId)
+    public Integer getPackageIdForSuperPackage(Container c, User u, int superPkgId)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
