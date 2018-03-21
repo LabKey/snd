@@ -207,6 +207,9 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
             //columnTitle
             gwtpd.setLabel(ct.getColumnTitle());
 
+            // format for decimals
+            gwtpd.setFormat(ct.getFormatString());
+
             //defaultValue
             gwtpd.setDefaultValue(ct.getDefaultValue());
 
