@@ -41,6 +41,7 @@ import org.labkey.test.TestFileUtils;
 import org.labkey.test.TestTimeoutException;
 import org.labkey.test.WebTestHelper;
 import org.labkey.test.categories.CustomModules;
+import org.labkey.test.categories.EHR;
 import org.labkey.test.components.CustomizeView;
 import org.labkey.test.components.bootstrap.ModalDialog;
 import org.labkey.test.components.snd.AttributeGridRow;
@@ -76,7 +77,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-@Category ({CustomModules.class})
+@Category ({CustomModules.class, EHR.class})
 public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 {
     private static final String PROJECTNAME = "SNDTest Project";
