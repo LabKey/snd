@@ -139,13 +139,13 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
 
         for (PackageType packageType : packageArray)
         {
-            Package pkg = parsePackage(packageType); //convert auto-generated objects/tokens to SND's Package objects
+            Package pkg = parsePackage(packageType, info); //convert auto-generated objects/tokens to SND's Package objects
             sndService.savePackage(info.getContainer(), info.getUser(), pkg); //save to db
             log.info("Saving package: " + packageType.getId() + "-" + packageType.getDescription());
         }
     }
 
-    private Package parsePackage(PackageType packageType)
+    private Package parsePackage(PackageType packageType, @NotNull ViewBackgroundInfo info)
     {
         Package pkg = new Package();
 
@@ -176,12 +176,12 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
         pkg.setNarrative(packageType.getNarrative());
 
         //attributes
-        pkg.setAttributes(getAttributes(packageType));
+        pkg.setAttributes(getAttributes(packageType, info));
 
         return pkg;
     }
 
-    private List<GWTPropertyDescriptor> getAttributes(PackageType packageType)
+    private List<GWTPropertyDescriptor> getAttributes(PackageType packageType, @NotNull ViewBackgroundInfo info)
     {
         AttributesType attributes = packageType.getAttributes();
         ColumnType[] attributeArray = attributes.getAttributeArray();
@@ -210,16 +210,24 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
             // format for decimals
             gwtpd.setFormat(ct.getFormatString());
 
-            //defaultValue
-            gwtpd.setDefaultValue(ct.getDefaultValue());
-
             //fk
-//            ColumnType.Fk fk = ct.getFk();
-//            if (null != fk)
-//            {
-//                gwtpd.setLookupQuery(fk.getFkTable());
-//                gwtpd.setLookupSchema(fk.getFkDbSchema());
-//            }
+            ColumnType.Fk fk = ct.getFk();
+            if (null != fk)
+            {
+                //defaultValue
+                if (ct.getDefaultValue() != null)
+                {
+                    gwtpd.setDefaultValue(SNDService.get().normalizeLookupDefaultValue(info.getUser(), info.getContainer(),
+                            fk.getFkDbSchema(), fk.getFkTable(), ct.getDefaultValue()).toString());
+                }
+                else
+                {
+                    gwtpd.setDefaultValue(ct.getDefaultValue());
+                }
+
+                gwtpd.setLookupQuery(fk.getFkTable());
+                gwtpd.setLookupSchema(fk.getFkDbSchema());
+            }
 
             //scale
             gwtpd.setScale(ct.getScale());

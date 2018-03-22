@@ -301,6 +301,12 @@ public class SNDServiceImpl implements SNDService
     }
 
     @Override
+    public Object normalizeLookupDefaultValue(User u, Container c, String schema, String table, Object display)
+    {
+        return SNDManager.get().normalizeLookupDefaultValue(u, c, schema, table, display);
+    }
+
+    @Override
     public void registerEventTriggerFactory(Module module, EventDataTriggerFactory factory)
     {
         SNDTriggerManager.get().registerEventTriggerFactory(module, factory);

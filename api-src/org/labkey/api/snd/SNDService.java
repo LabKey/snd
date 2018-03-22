@@ -55,6 +55,7 @@ public interface SNDService
     Event getEvent(Container c, User u, int eventId);
     JSONObject convertPropertyDescriptorToJson(Container c, User u, GWTPropertyDescriptor pd, boolean resolveLookupValues);
     JSONArray lookupValuesToJson(Container c, User u, String schema, String query);
+    Object normalizeLookupDefaultValue(User u, Container c, String schema, String table, Object display);
     void registerEventTriggerFactory(Module module, EventDataTriggerFactory factory);
     void unregisterEventTriggerFactory(Module module);
     Lock getWriteLock();

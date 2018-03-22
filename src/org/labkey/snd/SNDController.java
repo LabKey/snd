@@ -128,7 +128,7 @@ public class SNDController extends SpringActionController
                     && (lookupSchema != null && !lookupSchema.isEmpty())
                     && (lookupQuery != null && !lookupQuery.isEmpty()))
             {
-                Object defPk = SNDManager.get().normalizeLookupDefaultValue(getUser(), getContainer(), lookupSchema, lookupQuery, defaultValue);
+                Object defPk = SNDService.get().normalizeLookupDefaultValue(getUser(), getContainer(), lookupSchema, lookupQuery, defaultValue);
                 if (defPk == null)
                 {
                     errors.reject(ERROR_MSG, "Unable to resolve default value " + defaultValue + " for assigned lookup key.");

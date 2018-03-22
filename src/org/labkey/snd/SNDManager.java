@@ -202,7 +202,7 @@ public class SNDManager
     /**
      * Gets key value of a default lookup value. Used when converting json to property descriptor.
      */
-    public Object normalizeLookupDefaultValue(User u, Container c, String schema, String table, String display)
+    public Object normalizeLookupDefaultValue(User u, Container c, String schema, String table, Object display)
     {
         UserSchema userSchema = QueryService.get().getUserSchema(u, c, schema);
 
