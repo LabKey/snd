@@ -22,6 +22,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.cache.CacheManager;
 import org.labkey.api.cache.StringKeyCache;
+import org.labkey.api.collections.CaseInsensitiveHashMap;
+import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DbScope;
@@ -61,11 +63,13 @@ import org.labkey.api.snd.Project;
 import org.labkey.api.snd.ProjectItem;
 import org.labkey.api.snd.SNDDomainKind;
 import org.labkey.api.snd.SNDSequencer;
+import org.labkey.api.snd.SNDService;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.util.DateUtil;
 import org.labkey.snd.query.PackagesTable;
 import org.labkey.snd.trigger.SNDTriggerManager;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -2392,5 +2396,47 @@ public class SNDManager
         }
     }
 
+    /**
+     * Called from SNDController.RefreshNarrativeCacheAction to truncate and repopulate the event narrative cache.
+     */
+    public boolean refreshNarrativeCache(Container c, User u) throws BatchValidationException, SQLException, QueryUpdateServiceException, DuplicateKeyException
+    {
+        BatchValidationException errors = new BatchValidationException();
 
+        UserSchema sndSchema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        QueryUpdateService eventsCacheQus = getNewQueryUpdateService(sndSchema, SNDSchema.EVENTSCACHE_TABLE_NAME);
+
+        eventsCacheQus.truncateRows(u, c, null, null);
+
+        TableInfo eventsTableInfo = sndSchema.getTable(SNDSchema.EVENTS_TABLE_NAME);
+        ColumnInfo eventIdColumnInfo = eventsTableInfo.getColumn("EventId");
+
+        List<Integer> eventIds = new ArrayList<>();
+
+        try (ResultSet rs = QueryService.get().select(eventsTableInfo, Collections.singletonList(eventIdColumnInfo), null, null))
+        {
+            while (rs.next())
+            {
+                eventIds.add(rs.getInt("eventId"));
+            }
+        }
+
+        SNDService sndService = SNDService.get();
+        List<Map<String, Object>> rows = new ArrayList<>();
+
+        for (int eventId : eventIds)
+        {
+            boolean redacted = false;
+            String eventNarrative = "<br> test " + eventId;  // TODO: just for testing, real implementation below should be used later
+            //String eventNarrative = sndService.generateFullEventNarrative(c, u, eventId, redacted, errors);
+            Map<String, Object> row = new CaseInsensitiveHashMap<>();
+            row.put("EventId", eventId);
+            row.put("HtmlNarrative", eventNarrative);
+            rows.add(row);
+        }
+
+        eventsCacheQus.insertRows(u, c, rows, errors, null, null);
+
+        return !errors.hasErrors();
+    }
 }
