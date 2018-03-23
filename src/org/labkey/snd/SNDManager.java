@@ -2432,6 +2432,7 @@ public class SNDManager
             Map<String, Object> row = new CaseInsensitiveHashMap<>();
             row.put("EventId", eventId);
             row.put("HtmlNarrative", eventNarrative);
+            row.put("Container", c);
             rows.add(row);
         }
 

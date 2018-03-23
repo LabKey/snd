@@ -51,7 +51,7 @@ public class SNDModule extends SpringModule
     @Override
     public double getVersion()
     {
-        return 18.14;
+        return 18.15;
     }
 
     @Override
