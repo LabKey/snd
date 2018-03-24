@@ -209,9 +209,22 @@ public class SNDManager
     public Object normalizeLookupDefaultValue(User u, Container c, String schema, String table, Object display)
     {
         UserSchema userSchema = QueryService.get().getUserSchema(u, c, schema);
+        if (userSchema == null)
+            return null;
 
-        TableInfo tableInfo = getTableInfo(userSchema, table);
-        String pk = tableInfo.getPkColumnNames().get(0);  // Only handling single value pks
+        TableInfo tableInfo = userSchema.getTable(table);
+        if (table == null)
+            return null;
+
+        String pk;
+        if (tableInfo.getPkColumnNames() != null)
+        {
+            pk = tableInfo.getPkColumnNames().get(0); // Only handling single value pks
+        }
+        else
+        {
+            return null;
+        }
 
         SQLFragment sql = new SQLFragment("SELECT " + pk + " FROM ");
         sql.append(tableInfo, "l");

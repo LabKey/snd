@@ -217,8 +217,12 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
                 //defaultValue
                 if (ct.getDefaultValue() != null)
                 {
-                    gwtpd.setDefaultValue(SNDService.get().normalizeLookupDefaultValue(info.getUser(), info.getContainer(),
-                            fk.getFkDbSchema(), fk.getFkTable(), ct.getDefaultValue()).toString());
+                    Object defaultValue = SNDService.get().normalizeLookupDefaultValue(info.getUser(), info.getContainer(),
+                            fk.getFkDbSchema(), fk.getFkTable(), ct.getDefaultValue());
+                    if (defaultValue != null)
+                    {
+                        gwtpd.setDefaultValue(defaultValue.toString());
+                    }
                 }
                 else
                 {

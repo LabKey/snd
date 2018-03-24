@@ -38,7 +38,6 @@ public class Event
     public static final String EVENT_DATE = "date";
     public static final String EVENT_PROJECT_ID_REV = "projectIdRev";
     public static final String EVENT_NOTE = "note";
-    public static final String EVENT_NOTE_ID = "EventNoteId";
     public static final String EVENT_DATA = "eventData";
     public static final String EVENT_PARENT_OBJECTID = "parentObjectId";
     public static final String EVENT_CONTAINER = "Container";
@@ -188,7 +187,6 @@ public class Event
             eventValues.put(EVENT_ID, getEventId());
 
         eventValues.put(EVENT_NOTE, getNote());
-        eventValues.put(EVENT_NOTE_ID, getNoteId());
         eventValues.put("Container", c);
 
         return eventValues;
