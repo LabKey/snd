@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.data.TableSelector;
 import org.labkey.api.dataiterator.DataIteratorBuilder;
 import org.labkey.api.dataiterator.DataIteratorContext;
 import org.labkey.api.dataiterator.ListofMapsDataIterator;
@@ -18,6 +19,7 @@ import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.SNDService;
 import org.labkey.snd.SNDManager;
+import org.labkey.snd.SNDSchema;
 import org.labkey.snd.SNDUserSchema;
 
 import java.io.IOException;
@@ -98,9 +100,13 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             }
             _logger.info("End updating exp.Object table. Updated total of " + count + " rows.");
 
-            //TODO : data.get(0) -- NPE
-            DataIteratorBuilder rowsWithObjectURI = new ListofMapsDataIterator.Builder(data.get(0).keySet(), data);
-            return _importRowsUsingDIB(user, container, rowsWithObjectURI, null, dataIteratorContext, extraScriptContext);
+            if(null != data && data.size() > 0 && null != data.get(0))
+            {
+                DataIteratorBuilder rowsWithObjectURI = new ListofMapsDataIterator.Builder(data.get(0).keySet(), data);
+                return _importRowsUsingDIB(user, container, rowsWithObjectURI, null, dataIteratorContext, extraScriptContext);
+            }
+
+            return 0; //there aren't any rows to merge
         }
 
         @Override
@@ -115,6 +121,7 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             }
             catch (IOException e)
             {
+                _logger.error(e.getMessage(), e);
                 return 0;
             }
 
@@ -148,7 +155,24 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
                                                     @Nullable Map<Enum, Object> configParameters, @Nullable Map<String, Object> extraScriptContext)
                 throws InvalidKeyException, BatchValidationException, QueryUpdateServiceException, SQLException
         {
+            deleteFromExpTables(oldRows, container);
+            return super.deleteRows(user, container, oldRows, configParameters, extraScriptContext);
+        }
 
+        @Override
+        public int truncateRows(User user, Container container, @Nullable Map<Enum, Object> configParameters, @Nullable Map<String, Object> extraScriptContext)
+                throws BatchValidationException, QueryUpdateServiceException, SQLException
+        {
+            //get rows from snd.eventData
+            TableSelector ts = new TableSelector(SNDSchema.getInstance().getTableInfoEventData());
+            List<Map<String, Object>> oldRows = (List<Map<String, Object>>) ts.getMapCollection();
+            deleteFromExpTables(oldRows, container);
+
+            return super.truncateRows(user, container, configParameters, extraScriptContext);
+        }
+
+        private void deleteFromExpTables(List<Map<String, Object>> oldRows, Container container)
+        {
             _logger.info("Begin deleting from exp.ObjectProperty and exp.Object.");
             int count = 0;
 
@@ -159,20 +183,19 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
                 OntologyObject obj = OntologyManager.getOntologyObject(container, objectURI);
 
                 //delete row from exp.ObjectProperty
-                OntologyManager.deleteProperties(container, obj.getObjectId());
+                if(null != obj)
+                    OntologyManager.deleteProperties(container, obj.getObjectId());
 
                 //delete row from exp.Object
                 OntologyManager.deleteOntologyObjects(container, objectURI);
 
                 count++;
                 //TODO: Count in exp.Object is not going to be the same as in snd.EventData - need to figure out how to get the count to log
-                if (count % 10 == 0)
+                if (count % 1000 == 0)
                     _logger.info("Deleted " + count + " rows from exp.ObjectProperty and exp.Object.");
             }
 
             _logger.info("End deleting from exp.ObjectProperty and exp.Object. Deleted total of " + count + " rows.");
-
-            return super.deleteRows(user, container, oldRows, configParameters, extraScriptContext);
         }
     }
 }
