@@ -37,6 +37,7 @@ import org.labkey.api.security.permissions.Permission;
 import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.settings.AppProps;
 import org.labkey.api.snd.SNDService;
+import org.labkey.api.util.UnexpectedException;
 import org.labkey.snd.SNDManager;
 import org.labkey.snd.SNDSchema;
 import org.labkey.snd.SNDUserSchema;
@@ -188,7 +189,7 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
         }
 
         private List<Map<String, Object>> updateObjectProperty(User user, Container container, List<Map<String, Object>> data,
-                                         boolean isInsertOnly, boolean isUpdate) throws ValidationException
+                                         boolean isInsertOnly, boolean isUpdate)
         {
             _logger.info("Begin updating exp.ObjectProperty.");
 
@@ -239,15 +240,23 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
 
                         if (isUpdate || isInsertOnly)
                         {
-                            OntologyManager.insertProperties(container, objectURI, oprop);
-                            inserted++;
+                            try
+                            {
+                                OntologyManager.insertProperties(container, objectURI, oprop);
+                                inserted++;
+                            }
+                            catch (ValidationException e)
+                            {
+                                _logger.error(e.getMessage() + " PkgId " + pkgId, e);
+                                throw new UnexpectedException(e, e.getMessage() + "For PkgId: " + pkgId + ".\n");
+                            }
                         }
 
                         break;
                     }
                 }
             }
-            _logger.info("End updating exp.ObjectProperty. Deleted " + deleted + " rows. Inserted " + inserted + " rows.");
+            _logger.info("End updating exp.ObjectProperty. Deleted " + deleted + " rows. Inserted/Updated " + inserted + " rows.");
 
             return data;
         }
@@ -256,32 +265,16 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
         public int mergeRows(User user, Container container, DataIteratorBuilder rows, BatchValidationException errors,
                              @Nullable Map<Enum, Object> configParameters, Map<String, Object> extraScriptContext) throws SQLException
         {
-            try
-            {
-                List<Map<String, Object>> data = getMutableData(rows, getDataIteratorContext(errors, InsertOption.MERGE, configParameters));
-                return updateObjectProperty(user, container, data, false, true).size();
-            }
-            catch (ValidationException e)
-            {
-                _logger.error(e.getMessage(), e);
-                throw new IllegalStateException(e);
-            }
+            List<Map<String, Object>> data = getMutableData(rows, getDataIteratorContext(errors, InsertOption.MERGE, configParameters));
+            return updateObjectProperty(user, container, data, false, true).size();
         }
 
         @Override
         public int importRows(User user, Container container, DataIteratorBuilder rows, BatchValidationException errors,
                               @Nullable Map<Enum,Object> configParameters, Map<String, Object> extraScriptContext) throws SQLException
         {
-            try
-            {
-                List<Map<String, Object>> data = getMutableData(rows, getDataIteratorContext(errors, InsertOption.IMPORT, configParameters));
-                return updateObjectProperty(user, container, data, true, false).size();
-            }
-            catch (ValidationException e)
-            {
-                _logger.error(e.getMessage(), e);
-                throw new IllegalStateException(e);
-            }
+            List<Map<String, Object>> data = getMutableData(rows, getDataIteratorContext(errors, InsertOption.IMPORT, configParameters));
+            return updateObjectProperty(user, container, data, true, false).size();
         }
 
         @Override
