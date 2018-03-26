@@ -1737,6 +1737,10 @@ public class SNDManager
             event.setProjectIdRev(getProjectIdRev(c, u, event.getParentObjectId(), errors));
             event.setEventData(getEventDatas(c, u, eventId, errors));
             addExtraFieldsToEvent(c, u, event, eventTs.getMap());
+            // TODO: Add full event narratives to event if any of the formats are requested. Will need to add full event
+            // narratives to the Event class and its toJSON function.  If requesting non-redacted, html version get from
+            // cache.  Otherwise generated it from the event.
+            //  String test = generateEventNarrative(event, getTopLevelSuperPkgs(c, u, event, errors), false, false);
         }
 
         return event;
@@ -2239,15 +2243,7 @@ public class SNDManager
      */
     public void createEvent(Container c, User u, Event event, boolean validateOnly, BatchValidationException errors)
     {
-        List<SuperPackage> topLevelPkgs = new ArrayList<>();
-
-        if (event.getEventData() != null)
-        {
-            for (EventData eventData : event.getEventData())
-            {
-                topLevelPkgs.add(getFullSuperPackage(c, u, eventData.getSuperPkgId(), true, errors));
-            }
-        }
+        List<SuperPackage> topLevelPkgs = getTopLevelSuperPkgs(c, u, event, errors);
 
         SNDTriggerManager.get().fireInsertTriggers(c, u, event, topLevelPkgs, errors);
 
@@ -2283,6 +2279,9 @@ public class SNDManager
                             eventQus.insertRows(u, c, eventRows, errors, null, null);
                             eventNotesQus.insertRows(u, c, eventNotesRows, errors, null, null);
                             insertEventDatas(c, u, event.getEventData(), event.getEventId(), errors);
+                            // TODO: Cache new html event narrative here. Not redacted.
+                            // String test = generateEventNarrative(event, getTopLevelSuperPkgs(c, u, event, errors), true, false);
+                            // TODO: Add plain text, non-redacted narrative to audit provider below
                             NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), "Fill in full narrative.", "Create event");
                             tx.commit();
                         }
@@ -2353,15 +2352,7 @@ public class SNDManager
      */
     public void updateEvent(Container c, User u, Event event, boolean validateOnly, BatchValidationException errors)
     {
-        List<SuperPackage> topLevelPkgs = new ArrayList<>();
-
-        if (event.getEventData() != null)
-        {
-            for (EventData eventData : event.getEventData())
-            {
-                topLevelPkgs.add(getFullSuperPackage(c, u, eventData.getSuperPkgId(), true, errors));
-            }
-        }
+        List<SuperPackage> topLevelPkgs = getTopLevelSuperPkgs(c, u, event, errors);
 
         SNDTriggerManager.get().fireUpdateTriggers(c, u, event, topLevelPkgs, errors);
 
@@ -2397,6 +2388,9 @@ public class SNDManager
                         eventNotesQus.insertRows(u, c, eventNotesRows, errors, null, null);
                         deleteEventDatas(c, u, event.getEventId());
                         insertEventDatas(c, u, event.getEventData(), event.getEventId(), errors);
+                        // TODO: Update cached event narrative with new html, non-redacted event narrative here.
+                        // String test = generateEventNarrative(event, getTopLevelSuperPkgs(c, u, event, errors), true, false);
+                        // TODO: Add plain text, non-redacted narrative to audit provider below
                         NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), "Fill in full narrative.", "Event update");
                         tx.commit();
                     }
@@ -2452,5 +2446,179 @@ public class SNDManager
         eventsCacheQus.insertRows(u, c, rows, errors, null, null);
 
         return !errors.hasErrors();
+    }
+
+    /**
+     * Returns a list of full top level super packages for the passed in event
+     */
+    private List<SuperPackage> getTopLevelSuperPkgs(Container c, User u, Event event, BatchValidationException errors)
+    {
+        List<SuperPackage> topLevelPkgs = new ArrayList<>();
+
+        if (event.getEventData() != null)
+        {
+            for (EventData eventData : event.getEventData())
+            {
+                topLevelPkgs.add(getFullSuperPackage(c, u, eventData.getSuperPkgId(), true, errors));
+            }
+        }
+
+        return topLevelPkgs;
+    }
+
+    /**
+     * Finds super package with matching superPkgId
+     */
+    public SuperPackage getSuperPackage(int superPkgId, List<SuperPackage> superPkgs)
+    {
+        for (SuperPackage superPkg : superPkgs)
+        {
+            if (superPkg.getSuperPkgId() == superPkgId)
+            {
+                return superPkg;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Recursive function building up the narrative.  Iterates through the event datas filling in the tokens in the template
+     * with real values.  Formats based on html or plain text and creates redacted or non-redacted version. Called from
+     * generateEventNarrative.
+     */
+    private String generateEventDataNarrative(EventData eventData, SuperPackage superPackage, int tabIndex, boolean genHtml, boolean genRedacted)
+    {
+        String eventDataNarrative = superPackage.getNarrative();
+        if (eventDataNarrative == null)
+        {
+            eventDataNarrative = "";
+        }
+
+        if (genHtml)
+        {
+            eventDataNarrative = "<div class='" + EventData.EVENT_DATA_CSS_CLASS + "'>" + eventDataNarrative;
+        }
+        else
+        {
+            // plain test indenting
+            String tabs = "\n";
+            for (int t = 0; t<tabIndex; t++)
+            {
+                tabs += "\t";
+            }
+
+            eventDataNarrative = tabs + eventDataNarrative;
+        }
+
+        if (superPackage.getPkg() != null)
+        {
+            List<GWTPropertyDescriptor> properties = superPackage.getPkg().getAttributes();
+            Map<String, GWTPropertyDescriptor> propsByName = new HashMap<>();
+            Map<Integer, GWTPropertyDescriptor> propsById = new HashMap<>();
+            for (GWTPropertyDescriptor p : properties)
+            {
+                propsByName.put(p.getName(), p);
+                propsById.put(p.getPropertyId(), p);
+            }
+
+            GWTPropertyDescriptor pd;
+            String value;
+            for (AttributeData attributeData : eventData.getAttributes())
+            {
+                pd = propsByName.get(attributeData.getPropertyName());
+                value = null;
+
+                if (pd == null)
+                {
+                    pd = propsById.get(attributeData.getPropertyId());
+                }
+
+                if (pd == null)
+                    continue;
+
+                if (genRedacted)
+                {
+                    value = pd.getRedactedText();
+                }
+
+                if (value == null)
+                {
+                    value = attributeData.getValue();
+                }
+
+                if (value != null)
+                {
+                    if (genHtml)
+                        value = "<span class='" + AttributeData.ATTRIBUTE_DATA_CSS_CLASS + "'>" + value + "</span>";
+
+                    eventDataNarrative = eventDataNarrative.replace("{" + pd.getName() + "}", value);
+                }
+            }
+
+            if (eventData.getSubPackages() != null)
+            {
+                tabIndex++;
+                for (EventData data : eventData.getSubPackages())
+                {
+                    eventDataNarrative += generateEventDataNarrative(data, getSuperPackage(data.getSuperPkgId(), superPackage.getChildPackages()), tabIndex, genHtml, genRedacted);
+                }
+            }
+        }
+
+        if (genHtml)
+        {
+            eventDataNarrative += "</div>\n";
+        }
+
+        return eventDataNarrative;
+    }
+
+    /**
+     * Call this function to generate the event narrative.  Options to generate in html or plain text and redacted or
+     * non-redacted version.
+     */
+    private String generateEventNarrative(Event event, List<SuperPackage> superPkgs, boolean genHtml, boolean genRedacted)
+    {
+        String narrative = "";
+        if (event.getDate() != null)
+        {
+            if (genHtml)
+            {
+                narrative += "<div class='" + Event.SND_EVENT_DATE_CSS_CLASS + "'>" + event.getDate().toString() + "</div>\n";
+            }
+            else
+            {
+                narrative += event.getDate().toString() + "\n";
+            }
+        }
+
+        if (event.getSubjectId() != null)
+        {
+            if (genHtml)
+            {
+                narrative += "<div class='" + Event.SND_EVENT_SUBJECT_CSS_CLASS + "'>Subject Id: " + event.getSubjectId() + "</div>\n";
+            }
+            else
+            {
+                narrative += "Subject Id: " + event.getSubjectId() + "\n";
+            }
+        }
+
+        if (genHtml)
+        {
+            narrative += "<br>";
+        }
+
+        if (event.getEventData() != null)
+        {
+            for (EventData eventData : event.getEventData())
+            {
+                narrative += generateEventDataNarrative(eventData, getSuperPackage(eventData.getSuperPkgId(), superPkgs), 0, genHtml, genRedacted);
+
+            }
+        }
+
+        return narrative;
     }
 }

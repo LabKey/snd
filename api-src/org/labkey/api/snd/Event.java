@@ -46,6 +46,9 @@ public class Event
 
     public static final String SND_EVENT_NAMESPACE = "SND.EventData";
 
+    public static final String SND_EVENT_DATE_CSS_CLASS = "snd-event-date";
+    public static final String SND_EVENT_SUBJECT_CSS_CLASS = "snd-event-subject";
+
 
     public Event(@Nullable Integer eventId, String subjectId, @Nullable Date date, @NotNull String projectIdRev, @Nullable String note, @Nullable List<EventData> eventData, @NotNull Container c)
     {

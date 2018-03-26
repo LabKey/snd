@@ -42,6 +42,8 @@ public class EventData
     public static final String EVENT_DATA_PARENT_EVENTDATAID = "parentEventDataId";
     public static final String EVENT_DATA_CONTAINER = "Container";
 
+    public static final String EVENT_DATA_CSS_CLASS = "snd-event-data";
+
 
     public EventData(@Nullable Integer eventDataId, int superPkgId, @Nullable String narrative, @Nullable List<EventData> subPackages, @NotNull List<AttributeData> attributes)
     {

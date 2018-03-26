@@ -13,6 +13,7 @@ import org.labkey.api.snd.EventDataTriggerFactory;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.snd.TriggerAction;
 import org.labkey.api.util.Pair;
+import org.labkey.snd.SNDManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -62,18 +63,7 @@ public class SNDTriggerManager
         return factories;
     }
 
-    private SuperPackage getSuperPackage(int superPkgId, List<SuperPackage> superPkgs)
-    {
-        for (SuperPackage superPkg : superPkgs)
-        {
-            if (superPkg.getSuperPkgId() == superPkgId)
-            {
-                return superPkg;
-            }
-        }
 
-        return null;
-    }
 
     private List<TriggerAction> getCategoryTriggers(@NotNull Event event, @NotNull EventData eventData, SuperPackage superPackage,
                                                     @NotNull List<SuperPackage> topLevelSuperPackages, List<EventDataTriggerFactory> factories)
@@ -118,7 +108,7 @@ public class SNDTriggerManager
         for (EventData eventData : event.getEventData())
         {
             pkgTriggers = new ArrayList<>();
-            SuperPackage superPackage = getSuperPackage(eventData.getSuperPkgId(), superPackages);
+            SuperPackage superPackage = SNDManager.get().getSuperPackage(eventData.getSuperPkgId(), superPackages);
             queue.add(new Pair<>(eventData, superPackage));
 
             while (!queue.isEmpty())
@@ -130,7 +120,7 @@ public class SNDTriggerManager
                 {
                     for (EventData data : pair.first.getSubPackages())
                     {
-                        queue.add(new Pair<>(data, getSuperPackage(data.getSuperPkgId(), pair.second.getChildPackages())));
+                        queue.add(new Pair<>(data, SNDManager.get().getSuperPackage(data.getSuperPkgId(), pair.second.getChildPackages())));
                     }
                 }
             }

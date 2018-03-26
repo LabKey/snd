@@ -25,6 +25,8 @@ public class AttributeData
     public static final String ATTRIBUTE_DATA_PROPERTY_DESCRIPTOR = "propertyDescriptor";
     public static final String ATTRIBUTE_DATA_VALUE = "value";
 
+    public static final String ATTRIBUTE_DATA_CSS_CLASS = "snd-attribute-data";
+
     public AttributeData(int propertyId, @Nullable GWTPropertyDescriptor propertyDescriptor, @Nullable String value)
     {
         _propertyId = propertyId;

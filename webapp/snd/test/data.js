@@ -313,6 +313,7 @@
                                 name: 'tube',
                                 label: 'Tube',
                                 rangeURI: 'string',
+                                redactedText: 'Redacted Value',
                                 required: true
                             }
                         ]
