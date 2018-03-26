@@ -29,6 +29,7 @@ import org.labkey.api.services.ServiceRegistry;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 /**
@@ -52,7 +53,7 @@ public interface SNDService
     void saveProject(Container c, User u, Project project, boolean isRevision);
     Project getProject(Container c, User u, int projectId, int revNum);
     void saveEvent(Container c, User u, Event event, boolean validateOnly);
-    Event getEvent(Container c, User u, int eventId);
+    Event getEvent(Container c, User u, int eventId, @Nullable Set<EventNarrativeOption> narrativeOptions);
     JSONObject convertPropertyDescriptorToJson(Container c, User u, GWTPropertyDescriptor pd, boolean resolveLookupValues);
     JSONArray lookupValuesToJson(Container c, User u, String schema, String query);
     Object normalizeLookupDefaultValue(User u, Container c, String schema, String table, Object display);

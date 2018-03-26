@@ -34,6 +34,7 @@ import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.snd.AttributeData;
 import org.labkey.api.snd.Event;
 import org.labkey.api.snd.EventData;
+import org.labkey.api.snd.EventNarrativeOption;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.Project;
 import org.labkey.api.snd.ProjectItem;
@@ -53,9 +54,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class SNDController extends SpringActionController
 {
@@ -776,6 +779,21 @@ public class SNDController extends SpringActionController
             JSONObject json = form.getJsonObject();
 
             int eventId = json.getInt("eventId");
+            boolean getTextNarrative = json.optBoolean("getTextNarrative");
+            boolean getRedactedTextNarrative = json.optBoolean("getRedactedTextNarrative");
+            boolean getHtmlNarrative = json.optBoolean("getHtmlNarrative");
+            boolean getRedactedHtmlNarrative = json.optBoolean("getRedactedHtmlNarrative");
+
+            Set<EventNarrativeOption> narrativeOptions = new HashSet<>();
+            if (getTextNarrative)
+                narrativeOptions.add(EventNarrativeOption.TEXT_NARRATIVE);
+            if (getRedactedTextNarrative)
+                narrativeOptions.add(EventNarrativeOption.REDACTED_TEXT_NARRATIVE);
+            if (getHtmlNarrative)
+                narrativeOptions.add(EventNarrativeOption.HTML_NARRATIVE);
+            if (getRedactedHtmlNarrative)
+                narrativeOptions.add(EventNarrativeOption.REDACTED_HTML_NARRATIVE);
+
             Event event;
 
             // Query on new form to get form metadata
@@ -785,7 +803,7 @@ public class SNDController extends SpringActionController
             }
             else
             {
-                event = SNDService.get().getEvent(getContainer(), getUser(), json.getInt("eventId"));
+                event = SNDService.get().getEvent(getContainer(), getUser(), json.getInt("eventId"), narrativeOptions);
             }
             if (event != null)
             {

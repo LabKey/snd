@@ -34,11 +34,11 @@ import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.module.Module;
 import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.QueryService;
-import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.Event;
 import org.labkey.api.snd.EventDataTriggerFactory;
+import org.labkey.api.snd.EventNarrativeOption;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.snd.Project;
@@ -52,6 +52,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -203,11 +204,11 @@ public class SNDServiceImpl implements SNDService
     }
 
     @Override
-    public Event getEvent(Container c, User u, int eventId)
+    public Event getEvent(Container c, User u, int eventId, Set<EventNarrativeOption> narrativeOptions)
     {
         BatchValidationException errors = new BatchValidationException();
 
-        Event event = SNDManager.get().getEvent(c, u, eventId, errors);
+        Event event = SNDManager.get().getEvent(c, u, eventId, narrativeOptions, errors);
 
         if (errors.hasErrors())
             throw new ApiUsageException(errors);

@@ -31,6 +31,7 @@ public class Event
     private Integer _noteId;
     private List<EventData> _eventData;
     private String _parentObjectId;
+    private Map<EventNarrativeOption, String> narratives;
     private Map<GWTPropertyDescriptor, Object> _extraFields = new HashMap<>();
 
     public static final String EVENT_ID = "eventId";
@@ -161,6 +162,16 @@ public class Event
         _extraFields = extraFields;
     }
 
+    public Map<EventNarrativeOption, String> getNarratives()
+    {
+        return narratives;
+    }
+
+    public void setNarratives(Map<EventNarrativeOption, String> narratives)
+    {
+        this.narratives = narratives;
+    }
+
     @NotNull
     public Map<String, Object> getEventRow(Container c)
     {
@@ -220,7 +231,7 @@ public class Event
 
         JSONArray extras = new JSONArray();
         Map<GWTPropertyDescriptor, Object> extraFields = getExtraFields();
-        if(extraFields != null)
+        if (extraFields != null)
         {
             JSONObject jsonExtra;
             Set<GWTPropertyDescriptor> keys = new TreeSet<>(
@@ -236,6 +247,22 @@ public class Event
 
             json.put("extraFields", extras);
         }
+
+        Map<EventNarrativeOption, String> narratives = getNarratives();
+
+        String textNarrative = narratives.get(EventNarrativeOption.TEXT_NARRATIVE);
+        String redactedTextNarrative = narratives.get(EventNarrativeOption.REDACTED_TEXT_NARRATIVE);
+        String htmlNarrative = narratives.get(EventNarrativeOption.HTML_NARRATIVE);
+        String redactedHtmlNarrative = narratives.get(EventNarrativeOption.REDACTED_HTML_NARRATIVE);
+
+        if (textNarrative != null)
+            json.put(EventNarrativeOption.TEXT_NARRATIVE.getKey(), textNarrative);
+        if (redactedTextNarrative != null)
+            json.put(EventNarrativeOption.REDACTED_TEXT_NARRATIVE.getKey(), redactedTextNarrative);
+        if (htmlNarrative != null)
+            json.put(EventNarrativeOption.HTML_NARRATIVE.getKey(), htmlNarrative);
+        if (redactedHtmlNarrative != null)
+            json.put(EventNarrativeOption.REDACTED_HTML_NARRATIVE.getKey(), redactedHtmlNarrative);
 
         return json;
     }

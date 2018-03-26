@@ -57,6 +57,7 @@ public class EventsTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             // This needs to be an atomic operation otherwise could get deadlock
             try (DbScope.Transaction tx = SNDSchema.getInstance().getSchema().getScope().ensureTransaction(SNDService.get().getWriteLock()))
             {
+                SNDManager.get().deleteEventsCache(container, user, eventId);
                 SNDManager.get().deleteEventDatas(container, user, eventId);
                 SNDManager.get().deleteEventNotes(container, user, eventId);
                 tx.commit();

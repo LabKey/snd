@@ -15,12 +15,17 @@ public class PlainTextNarrativeDisplayColumn extends DataColumn
     public String getFormattedValue(RenderContext ctx)
     {
         String htmlNarrative = (String)ctx.get(getColumnInfo().getFieldKey());
-        String textNarrative;
-        if (htmlNarrative != null && !htmlNarrative.isEmpty())
-            textNarrative = htmlNarrative.replaceAll("\\<.*?\\>", "");  // crudely remove all HTML tags, or things that look like them
-        else
-            textNarrative = "";
-
-        return textNarrative;
+        return removeHtmlTagsFromNarrative(htmlNarrative);
     }
+
+   public static String removeHtmlTagsFromNarrative(String htmlNarrative)
+   {
+       String textNarrative;
+       if (htmlNarrative != null && !htmlNarrative.isEmpty())
+           textNarrative = htmlNarrative.replaceAll("\\<.*?\\>", "");  // crudely remove all HTML tags, or things that look like them
+       else
+           textNarrative = "";
+
+       return textNarrative;
+   }
 }

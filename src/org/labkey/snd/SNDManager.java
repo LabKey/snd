@@ -27,6 +27,7 @@ import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DbScope;
+import org.labkey.api.data.Results;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.SqlExecutor;
@@ -57,6 +58,7 @@ import org.labkey.api.security.User;
 import org.labkey.api.snd.AttributeData;
 import org.labkey.api.snd.Event;
 import org.labkey.api.snd.EventData;
+import org.labkey.api.snd.EventNarrativeOption;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.snd.Project;
@@ -67,6 +69,7 @@ import org.labkey.api.snd.SNDService;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.util.DateUtil;
 import org.labkey.snd.query.PackagesTable;
+import org.labkey.snd.table.PlainTextNarrativeDisplayColumn;
 import org.labkey.snd.trigger.SNDTriggerManager;
 
 import java.sql.ResultSet;
@@ -1712,7 +1715,7 @@ public class SNDManager
     /**
      * Gets event for a given event Id.  Call from SNDService.getEvent
      */
-    public Event getEvent(Container c, User u, int eventId, BatchValidationException errors)
+    public Event getEvent(Container c, User u, int eventId, Set<EventNarrativeOption> narrativeOptions, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -1728,15 +1731,64 @@ public class SNDManager
             TableInfo eventNotesTable = getTableInfo(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
 
             // Get from eventNotes table
-            SimpleFilter eventNotesFilter = new SimpleFilter(FieldKey.fromParts("EventId"), eventId, CompareType.EQUAL);
             Set<String> cols = new HashSet<>();
             cols.add("Note");
-            TableSelector eventNoteTs = new TableSelector(eventNotesTable, cols, eventNotesFilter, null);
+            TableSelector eventNoteTs = new TableSelector(eventNotesTable, cols, eventFilter, null);
 
             event.setNote(eventNoteTs.getObject(String.class));
             event.setProjectIdRev(getProjectIdRev(c, u, event.getParentObjectId(), errors));
             event.setEventData(getEventDatas(c, u, eventId, errors));
             addExtraFieldsToEvent(c, u, event, eventTs.getMap());
+
+            // Get narrative from eventsCache table
+
+            TableInfo eventsCacheTable = getTableInfo(schema, SNDSchema.EVENTSCACHE_TABLE_NAME);
+            TableSelector eventsCacheTs = new TableSelector(eventsCacheTable, eventFilter, null);
+
+            if (eventsCacheTs.exists())
+            {
+                try (Results eventsCacheResults = eventsCacheTs.getResults())
+                {
+                    eventsCacheResults.next();
+
+                    String htmlNarrative = eventsCacheResults.getString(FieldKey.fromParts("htmlNarrative"));
+                    String textNarrative = PlainTextNarrativeDisplayColumn.removeHtmlTagsFromNarrative(htmlNarrative);
+
+                    Map<EventNarrativeOption, String> narratives = new HashMap<>();
+
+                    if (narrativeOptions != null)
+                    {
+                        for (EventNarrativeOption narrativeOption : narrativeOptions)
+                        {
+                            switch (narrativeOption)
+                            {
+                                case TEXT_NARRATIVE:
+                                    narratives.put(EventNarrativeOption.TEXT_NARRATIVE, textNarrative);
+                                    break;
+                                case REDACTED_TEXT_NARRATIVE:
+                                    // TODO: redact htmlNarrative in here, then convert to text (see PlainTextNarrativeDisplayColumn), then add that to narratives instead
+                                    narratives.put(EventNarrativeOption.REDACTED_TEXT_NARRATIVE, "redacted text event narrative test");
+                                    break;
+                                case HTML_NARRATIVE:
+                                    narratives.put(EventNarrativeOption.HTML_NARRATIVE, htmlNarrative);
+                                    break;
+                                case REDACTED_HTML_NARRATIVE:
+                                    // TODO: redact htmlNarrative in here, then add that to narratives instead
+                                    narratives.put(EventNarrativeOption.REDACTED_HTML_NARRATIVE, "redacted HTML event narrative test");
+                                    break;
+                            }
+                        }
+                    }
+
+                    event.setNarratives(narratives);
+                }
+                catch (SQLException e)
+                {
+                    errors.addRowError(new ValidationException(e.getMessage()));
+                }
+            }
+            else
+                errors.addRowError(new ValidationException("Event ID " + eventId + " exists but narrative not found in EventsCache."));
             // TODO: Add full event narratives to event if any of the formats are requested. Will need to add full event
             // narratives to the Event class and its toJSON function.  If requesting non-redacted, html version get from
             // cache.  Otherwise generated it from the event.
@@ -2293,6 +2345,21 @@ public class SNDManager
                 }
             }
         }
+    }
+
+    /**
+     * Deletes cached narrative for a given event
+     */
+    public void deleteEventsCache(Container c, User u, int eventId) throws SQLException, QueryUpdateServiceException, BatchValidationException, InvalidKeyException
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+
+        QueryUpdateService eventsCacheQus = getNewQueryUpdateService(schema, SNDSchema.EVENTSCACHE_TABLE_NAME);
+
+        Map<String, Object> row = new HashMap<>();
+        row.put("EventId", eventId);
+
+        eventsCacheQus.deleteRows(u, c, Collections.singletonList(row), null, null);
     }
 
     /**

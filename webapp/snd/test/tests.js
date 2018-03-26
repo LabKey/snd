@@ -641,7 +641,7 @@
 
         },{
 
-            name: 'Save Event: Empty event',
+            name: 'Get Event: Empty event',
             run : function()
             {
                 return{
