@@ -563,46 +563,48 @@
                 }
             }
 
-        },{
-            name: 'Save Event: Creating auto generated event ID ',
-            run: function(){
-                return{
-                    request: {
-                        url: LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
-                        jsonData: {
-                            subjectId: 1,
-                            date: "2018-02-26T17:51:20",
-                            note: "Note for auto generated event ID",
-                            projectIdRev: '60|0',
-                            eventData: [
-                                {
-                                    superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
-                                    attributes: [{
-                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['propertyId'],
-                                        value: '10'
-                                    }, {
-                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'units')['propertyId'],
-                                        value: 'mL'
-                                    }, {
-                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['propertyId'],
-                                        value: 'red'
-                                    }]
-                                }
-                            ]
-                        }
-
-                    },
-                    response: function(response){
-                        if (response.status === 200) {
-                            return true;
-                        }
-
-                        LABKEY.handleFailure(response, name + " - Stack Trace");
-                        return false;
-                    }
-                }
-            }
-        },{
+        }
+        // ,{
+        //     name: 'Save Event: Creating auto generated event ID ',
+        //     run: function(){
+        //         return{
+        //             request: {
+        //                 url: LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
+        //                 jsonData: {
+        //                     subjectId: 1,
+        //                     date: "2018-02-26T17:51:20",
+        //                     note: "Note for auto generated event ID",
+        //                     projectIdRev: '60|0',
+        //                     eventData: [
+        //                         {
+        //                             superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
+        //                             attributes: [{
+        //                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['propertyId'],
+        //                                 value: '10'
+        //                             }, {
+        //                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'units')['propertyId'],
+        //                                 value: 'mL'
+        //                             }, {
+        //                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['propertyId'],
+        //                                 value: 'red'
+        //                             }]
+        //                         }
+        //                     ]
+        //                 }
+        //
+        //             },
+        //             response: function(response){
+        //                 if (response.status === 200) {
+        //                     return true;
+        //                 }
+        //
+        //                 LABKEY.handleFailure(response, name + " - Stack Trace");
+        //                 return false;
+        //             }
+        //         }
+        //     }
+        // }
+        ,{
 
             name: 'Get Event: Invalid eventID - Alphanumeric character',
             run : function()

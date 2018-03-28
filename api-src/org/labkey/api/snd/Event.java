@@ -43,7 +43,7 @@ public class Event
     public static final String EVENT_PARENT_OBJECTID = "parentObjectId";
     public static final String EVENT_CONTAINER = "Container";
 
-    public static final String DATE_FORMAT = "yyyy-MM-dd'T'kk:mm:ss";  // ISO8601 w/24-hour time and 'T' character
+    public static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'kk:mm:ss";  // ISO8601 w/24-hour time and 'T' character
 
     public static final String SND_EVENT_NAMESPACE = "SND.EventData";
 
@@ -214,7 +214,7 @@ public class Event
         json.put(EVENT_SUBJECT_ID, getSubjectId());
 
         if (getDate() != null)
-            json.put(EVENT_DATE, DateUtil.formatDateTime(getDate(), DATE_FORMAT));
+            json.put(EVENT_DATE, DateUtil.formatDateTime(getDate(), DATE_TIME_FORMAT));
 
         json.put(EVENT_PROJECT_ID_REV, getProjectIdRev());
         json.put(EVENT_NOTE, getNote());

@@ -289,7 +289,7 @@
                         description: 'Blood Draw',
                         active: true,
                         repeatable: true,
-                        narrative: '{amount} {units} of blood drawn in {tube} tube.',
+                        narrative: '{amount} {units} of blood drawn in {tube} tube. Regeneration date {regenDate}.',
                         categories: [],
                         subPackages: [],
                         attributes: [
@@ -315,6 +315,11 @@
                                 rangeURI: 'string',
                                 redactedText: 'Redacted Value',
                                 required: true
+                            }, {
+                                name: 'regenDate',
+                                label: 'Regeneration Date',
+                                rangeURI: 'date',
+                                required: false
                             }
                         ]
                     }
@@ -415,6 +420,9 @@
                             }, {
                                 propertyName: 'tube',
                                 value: 'red'
+                            }, {
+                                propertyName: 'regenDate',
+                                value: "2018-03-26"
                             }]
                         },
                         {
@@ -428,6 +436,9 @@
                             }, {
                                 propertyName: 'tube',
                                 value: 'red'
+                            }, {
+                                propertyName: 'regenDate',
+                                value: "2018-03-25"
                             }]
                         }
                     ]
@@ -454,6 +465,10 @@
                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['propertyId'],
                                 propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['name'],
                                 value: 'red'
+                            }, {
+                                propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'regenDate')['propertyId'],
+                                propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'regenDate')['name'],
+                                value: "2018-03-26"
                             }]
                         },
                         {
@@ -471,6 +486,10 @@
                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['propertyId'],
                                 propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['name'],
                                 value: 'red'
+                            }, {
+                                propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'regenDate')['propertyId'],
+                                propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'regenDate')['name'],
+                                value: "2018-03-25"
                             }]
                         }
                     ]

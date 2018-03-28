@@ -55,6 +55,7 @@ import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
+import org.labkey.api.settings.LookAndFeelProperties;
 import org.labkey.api.snd.AttributeData;
 import org.labkey.api.snd.Event;
 import org.labkey.api.snd.EventData;
@@ -802,8 +803,11 @@ public class SNDManager
         {
             List<Integer> pkgIds = new ArrayList<>();
             pkgIds.add(superPackage.getPkgId());
-            Package pkg = getPackages(c, u, pkgIds, true, true, true, errors).get(0);
-            superPackage.setPkg(pkg);
+            List<Package> pkgs = getPackages(c, u, pkgIds, true, true, true, errors);
+            if (pkgs.size() > 0)
+            {
+                superPackage.setPkg(pkgs.get(0));
+            }
         }
 
         if (superPackage != null)
@@ -1604,6 +1608,7 @@ public class SNDManager
 
         List<AttributeData> attributeDatas = new ArrayList<>();
         AttributeData attribute;
+        Object propValue;
         for (GWTPropertyDescriptor gwtPropertyDescriptor : superPackage.getPkg().getAttributes())
         {
             attribute = new AttributeData();
@@ -1611,7 +1616,18 @@ public class SNDManager
             attribute.setPropertyDescriptor(gwtPropertyDescriptor);
             attribute.setPropertyId(gwtPropertyDescriptor.getPropertyId());
             if (properties.get(gwtPropertyDescriptor.getPropertyURI()) != null)
-                attribute.setValue(properties.get(gwtPropertyDescriptor.getPropertyURI()).value().toString());
+            {
+                propValue = properties.get(gwtPropertyDescriptor.getPropertyURI()).value();
+
+                // Convert dates to ISO8601 format
+                if (PropertyType.getFromURI(null, gwtPropertyDescriptor.getRangeURI()).equals(PropertyType.DATE)
+                        || PropertyType.getFromURI(null, gwtPropertyDescriptor.getRangeURI()).equals(PropertyType.DATE_TIME))
+                {
+                    propValue = DateUtil.formatDateTime((Date)propValue, AttributeData.DATE_TIME_FORMAT);
+                }
+
+                attribute.setValue(propValue.toString());
+            }
 
             attributeDatas.add(attribute);
         }
@@ -1739,6 +1755,7 @@ public class SNDManager
             event.setProjectIdRev(getProjectIdRev(c, u, event.getParentObjectId(), errors));
             event.setEventData(getEventDatas(c, u, eventId, errors));
             addExtraFieldsToEvent(c, u, event, eventTs.getMap());
+//            String test = generateEventNarrative(c, event, getTopLevelSuperPkgs(c, u, event, errors), false, false, errors);
 
             // Get narrative from eventsCache table
 
@@ -1792,7 +1809,7 @@ public class SNDManager
             // TODO: Add full event narratives to event if any of the formats are requested. Will need to add full event
             // narratives to the Event class and its toJSON function.  If requesting non-redacted, html version get from
             // cache.  Otherwise generated it from the event.
-            //  String test = generateEventNarrative(event, getTopLevelSuperPkgs(c, u, event, errors), false, false);
+            //  String test = generateEventNarrative(c, event, getTopLevelSuperPkgs(c, u, event, errors), false, false, errors);
         }
 
         return event;
@@ -2332,7 +2349,7 @@ public class SNDManager
                             eventNotesQus.insertRows(u, c, eventNotesRows, errors, null, null);
                             insertEventDatas(c, u, event.getEventData(), event.getEventId(), errors);
                             // TODO: Cache new html event narrative here. Not redacted.
-                            // String test = generateEventNarrative(event, getTopLevelSuperPkgs(c, u, event, errors), true, false);
+//                             String test = generateEventNarrative(c, event, getTopLevelSuperPkgs(c, u, event, errors), true, false, errors);
                             // TODO: Add plain text, non-redacted narrative to audit provider below
                             NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), "Fill in full narrative.", "Create event");
                             tx.commit();
@@ -2456,7 +2473,7 @@ public class SNDManager
                         deleteEventDatas(c, u, event.getEventId());
                         insertEventDatas(c, u, event.getEventData(), event.getEventId(), errors);
                         // TODO: Update cached event narrative with new html, non-redacted event narrative here.
-                        // String test = generateEventNarrative(event, getTopLevelSuperPkgs(c, u, event, errors), true, false);
+//                         String test = generateEventNarrative(c, event, getTopLevelSuperPkgs(c, u, event, errors), true, false, errors);
                         // TODO: Add plain text, non-redacted narrative to audit provider below
                         NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), "Fill in full narrative.", "Event update");
                         tx.commit();
@@ -2549,12 +2566,40 @@ public class SNDManager
         return null;
     }
 
+    private String handleNarrativeDate(Container c, String name, String value, String format, boolean dateTime, BatchValidationException errors)
+    {
+        String result = "Undefined Date";
+        Date date = null;
+        try
+        {
+            date = DateUtil.parseDateTime(value, format);
+        }
+        catch (ParseException e)
+        {
+            errors.addRowError(new ValidationException(name + ": " + e.getMessage()));
+        }
+
+        if (date != null)
+        {
+            if (dateTime)
+            {
+                result = DateUtil.formatDateTime(date, LookAndFeelProperties.getInstance(c).getDefaultDateTimeFormat());
+            }
+            else
+            {
+                result = DateUtil.formatDateTime(date, LookAndFeelProperties.getInstance(c).getDefaultDateFormat());
+            }
+        }
+
+        return result;
+    }
+
     /**
      * Recursive function building up the narrative.  Iterates through the event datas filling in the tokens in the template
      * with real values.  Formats based on html or plain text and creates redacted or non-redacted version. Called from
      * generateEventNarrative.
      */
-    private String generateEventDataNarrative(EventData eventData, SuperPackage superPackage, int tabIndex, boolean genHtml, boolean genRedacted)
+    private String generateEventDataNarrative(Container c, EventData eventData, SuperPackage superPackage, int tabIndex, boolean genHtml, boolean genRedacted, BatchValidationException errors)
     {
         String eventDataNarrative = superPackage.getNarrative();
         if (eventDataNarrative == null)
@@ -2614,6 +2659,16 @@ public class SNDManager
                     value = attributeData.getValue();
                 }
 
+                if (PropertyType.getFromURI(null, pd.getRangeURI()) == PropertyType.DATE_TIME)
+                {
+                    value = handleNarrativeDate(c, attributeData.getPropertyName(), value, AttributeData.DATE_TIME_FORMAT, true, errors);
+                }
+
+                if (PropertyType.getFromURI(null, pd.getRangeURI()) == PropertyType.DATE)
+                {
+                    value = handleNarrativeDate(c, attributeData.getPropertyName(), value, AttributeData.DATE_FORMAT, false, errors);
+                }
+
                 if (value != null)
                 {
                     if (genHtml)
@@ -2628,7 +2683,7 @@ public class SNDManager
                 tabIndex++;
                 for (EventData data : eventData.getSubPackages())
                 {
-                    eventDataNarrative += generateEventDataNarrative(data, getSuperPackage(data.getSuperPkgId(), superPackage.getChildPackages()), tabIndex, genHtml, genRedacted);
+                    eventDataNarrative += generateEventDataNarrative(c, data, getSuperPackage(data.getSuperPkgId(), superPackage.getChildPackages()), tabIndex, genHtml, genRedacted, errors);
                 }
             }
         }
@@ -2645,18 +2700,20 @@ public class SNDManager
      * Call this function to generate the event narrative.  Options to generate in html or plain text and redacted or
      * non-redacted version.
      */
-    private String generateEventNarrative(Event event, List<SuperPackage> superPkgs, boolean genHtml, boolean genRedacted)
+    private String generateEventNarrative(Container c, Event event, List<SuperPackage> superPkgs, boolean genHtml, boolean genRedacted, BatchValidationException errors)
     {
         String narrative = "";
         if (event.getDate() != null)
         {
+            String dateValue = DateUtil.formatDateTime(event.getDate(), LookAndFeelProperties.getInstance(c).getDefaultDateTimeFormat());
+
             if (genHtml)
             {
-                narrative += "<div class='" + Event.SND_EVENT_DATE_CSS_CLASS + "'>" + event.getDate().toString() + "</div>\n";
+                narrative += "<div class='" + Event.SND_EVENT_DATE_CSS_CLASS + "'>" + dateValue + "</div>\n";
             }
             else
             {
-                narrative += event.getDate().toString() + "\n";
+                narrative += dateValue + "\n";
             }
         }
 
@@ -2681,7 +2738,7 @@ public class SNDManager
         {
             for (EventData eventData : event.getEventData())
             {
-                narrative += generateEventDataNarrative(eventData, getSuperPackage(eventData.getSuperPkgId(), superPkgs), 0, genHtml, genRedacted);
+                narrative += generateEventDataNarrative(c, eventData, getSuperPackage(eventData.getSuperPkgId(), superPkgs), 0, genHtml, genRedacted, errors);
 
             }
         }

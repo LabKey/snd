@@ -929,7 +929,7 @@ public class SNDController extends SpringActionController
             Date date = null;
             try
             {
-                date = (dateString == null ? new Date() : DateUtil.parseDateTime(dateString, Event.DATE_FORMAT));
+                date = (dateString == null ? new Date() : DateUtil.parseDateTime(dateString, Event.DATE_TIME_FORMAT));
             }
             catch (ParseException e)
             {
