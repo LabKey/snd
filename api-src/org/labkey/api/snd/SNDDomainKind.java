@@ -59,6 +59,12 @@ public class SNDDomainKind extends ExtendedTableDomainKind
     }
 
     @Override
+    public boolean ensurePropertyLookup()
+    {
+        return true;
+    }
+
+    @Override
     public Set<String> getReservedPropertyNames(Domain domain)
     {
         Set<String> result = new HashSet<>();
