@@ -1755,7 +1755,6 @@ public class SNDManager
             event.setProjectIdRev(getProjectIdRev(c, u, event.getParentObjectId(), errors));
             event.setEventData(getEventDatas(c, u, eventId, errors));
             addExtraFieldsToEvent(c, u, event, eventTs.getMap());
-//            String test = generateEventNarrative(c, event, getTopLevelSuperPkgs(c, u, event, errors), false, false, errors);
 
             // Get narrative from eventsCache table
 
@@ -1783,15 +1782,17 @@ public class SNDManager
                                     narratives.put(EventNarrativeOption.TEXT_NARRATIVE, textNarrative);
                                     break;
                                 case REDACTED_TEXT_NARRATIVE:
-                                    // TODO: redact htmlNarrative in here, then convert to text (see PlainTextNarrativeDisplayColumn), then add that to narratives instead
-                                    narratives.put(EventNarrativeOption.REDACTED_TEXT_NARRATIVE, "redacted text event narrative test");
+                                    // Redacting means we have to generate on the fly, not from cache
+                                    String redactedTextNarrative = generateEventNarrative(c, event, getTopLevelSuperPkgs(c, u, event, errors), false, true, errors);
+                                    narratives.put(EventNarrativeOption.REDACTED_TEXT_NARRATIVE, redactedTextNarrative);
                                     break;
                                 case HTML_NARRATIVE:
                                     narratives.put(EventNarrativeOption.HTML_NARRATIVE, htmlNarrative);
                                     break;
                                 case REDACTED_HTML_NARRATIVE:
-                                    // TODO: redact htmlNarrative in here, then add that to narratives instead
-                                    narratives.put(EventNarrativeOption.REDACTED_HTML_NARRATIVE, "redacted HTML event narrative test");
+                                    // Redacting means we have to generate on the fly, not from cache
+                                    String redactedHtmlNarrative = generateEventNarrative(c, event, getTopLevelSuperPkgs(c, u, event, errors), true, true, errors);
+                                    narratives.put(EventNarrativeOption.REDACTED_HTML_NARRATIVE, redactedHtmlNarrative);
                                     break;
                             }
                         }
@@ -1806,10 +1807,6 @@ public class SNDManager
             }
             else
                 errors.addRowError(new ValidationException("Event ID " + eventId + " exists but narrative not found in EventsCache."));
-            // TODO: Add full event narratives to event if any of the formats are requested. Will need to add full event
-            // narratives to the Event class and its toJSON function.  If requesting non-redacted, html version get from
-            // cache.  Otherwise generated it from the event.
-            //  String test = generateEventNarrative(c, event, getTopLevelSuperPkgs(c, u, event, errors), false, false, errors);
         }
 
         return event;
@@ -2334,24 +2331,24 @@ public class SNDManager
                         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
                         TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
                         QueryUpdateService eventQus = getQueryUpdateService(eventTable);
-
                         QueryUpdateService eventNotesQus = getNewQueryUpdateService(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
+                        QueryUpdateService eventsCacheQus = getNewQueryUpdateService(schema, SNDSchema.EVENTSCACHE_TABLE_NAME);
 
-                        List<Map<String, Object>> eventRows = new ArrayList<>();
-                        eventRows.add(event.getEventRow(c));
-
-                        List<Map<String, Object>> eventNotesRows = new ArrayList<>();
-                        eventNotesRows.add(event.getEventNotesRow(c));
+                        String htmlEventNarrative = generateEventNarrative(c, event, getTopLevelSuperPkgs(c, u, event, errors), true, false, errors);
+                        Map<String, Object> eventsCacheRow = new CaseInsensitiveHashMap<>();
+                        eventsCacheRow.put("EventId", event.getEventId());
+                        eventsCacheRow.put("HtmlNarrative", generateEventNarrative(c, event, getTopLevelSuperPkgs(c, u, event, errors), true, false, errors));
+                        eventsCacheRow.put("Container", c);
+                        String textEventNarrative = PlainTextNarrativeDisplayColumn.removeHtmlTagsFromNarrative(htmlEventNarrative);
 
                         try (DbScope.Transaction tx = eventTable.getSchema().getScope().ensureTransaction())
                         {
-                            eventQus.insertRows(u, c, eventRows, errors, null, null);
-                            eventNotesQus.insertRows(u, c, eventNotesRows, errors, null, null);
+                            eventQus.insertRows(u, c, Collections.singletonList(event.getEventRow(c)), errors, null, null);
+                            eventNotesQus.insertRows(u, c, Collections.singletonList(event.getEventNotesRow(c)), errors, null, null);
                             insertEventDatas(c, u, event.getEventData(), event.getEventId(), errors);
-                            // TODO: Cache new html event narrative here. Not redacted.
-//                             String test = generateEventNarrative(c, event, getTopLevelSuperPkgs(c, u, event, errors), true, false, errors);
-                            // TODO: Add plain text, non-redacted narrative to audit provider below
-                            NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), "Fill in full narrative.", "Create event");
+                            eventsCacheQus.insertRows(u, c, Collections.singletonList(eventsCacheRow), errors, null, null);
+                            generateEventNarrative(c, event, getTopLevelSuperPkgs(c, u, event, errors), true, false, errors);
+                            NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), textEventNarrative, "Create event");
                             tx.commit();
                         }
                         catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException | ValidationException e)
@@ -2456,26 +2453,25 @@ public class SNDManager
                     UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
                     TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
                     QueryUpdateService eventQus = getQueryUpdateService(eventTable);
-
                     QueryUpdateService eventNotesQus = getNewQueryUpdateService(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
+                    QueryUpdateService eventsCacheQus = getNewQueryUpdateService(schema, SNDSchema.EVENTSCACHE_TABLE_NAME);
 
-                    List<Map<String, Object>> eventRows = new ArrayList<>();
-                    eventRows.add(event.getEventRow(c));
-
-                    List<Map<String, Object>> eventNotesRows = new ArrayList<>();
-                    eventNotesRows.add(event.getEventNotesRow(c));
+                    String htmlEventNarrative = generateEventNarrative(c, event, getTopLevelSuperPkgs(c, u, event, errors), true, false, errors);
+                    Map<String, Object> eventsCacheRow = new CaseInsensitiveHashMap<>();
+                    eventsCacheRow.put("EventId", event.getEventId());
+                    eventsCacheRow.put("HtmlNarrative", generateEventNarrative(c, event, getTopLevelSuperPkgs(c, u, event, errors), true, false, errors));
+                    eventsCacheRow.put("Container", c);
+                    String textEventNarrative = PlainTextNarrativeDisplayColumn.removeHtmlTagsFromNarrative(htmlEventNarrative);
 
                     try (DbScope.Transaction tx = eventTable.getSchema().getScope().ensureTransaction())
                     {
-                        eventQus.updateRows(u, c, eventRows, null, null, null);
+                        eventQus.updateRows(u, c, Collections.singletonList(event.getEventRow(c)), null, null, null);
                         deleteEventNotes(c, u, event.getEventId());
-                        eventNotesQus.insertRows(u, c, eventNotesRows, errors, null, null);
+                        eventNotesQus.insertRows(u, c, Collections.singletonList(event.getEventNotesRow(c)), errors, null, null);
                         deleteEventDatas(c, u, event.getEventId());
                         insertEventDatas(c, u, event.getEventData(), event.getEventId(), errors);
-                        // TODO: Update cached event narrative with new html, non-redacted event narrative here.
-//                         String test = generateEventNarrative(c, event, getTopLevelSuperPkgs(c, u, event, errors), true, false, errors);
-                        // TODO: Add plain text, non-redacted narrative to audit provider below
-                        NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), "Fill in full narrative.", "Event update");
+                        eventsCacheQus.updateRows(u, c, Collections.singletonList(eventsCacheRow), null, null, null);
+                        NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), textEventNarrative, "Event update");
                         tx.commit();
                     }
                     catch (QueryUpdateServiceException | BatchValidationException | SQLException | InvalidKeyException | DuplicateKeyException | ValidationException e)
@@ -2512,14 +2508,12 @@ public class SNDManager
             }
         }
 
-        SNDService sndService = SNDService.get();
         List<Map<String, Object>> rows = new ArrayList<>();
 
         for (int eventId : eventIds)
         {
-            boolean redacted = false;
-            String eventNarrative = "<br> test " + eventId;  // TODO: just for testing, real implementation below should be used later
-            //String eventNarrative = sndService.generateFullEventNarrative(c, u, eventId, redacted, errors);
+            Event event = getEvent(c, u, eventId, null, errors);  // narrativeOptions is useless here because it would get entries from cache, which we're re-populating
+            String eventNarrative = generateEventNarrative(c, event, getTopLevelSuperPkgs(c, u, event, errors), true, false, errors);
             Map<String, Object> row = new CaseInsensitiveHashMap<>();
             row.put("EventId", eventId);
             row.put("HtmlNarrative", eventNarrative);
