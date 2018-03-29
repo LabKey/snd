@@ -21,8 +21,16 @@ public class PlainTextNarrativeDisplayColumn extends DataColumn
    public static String removeHtmlTagsFromNarrative(String htmlNarrative)
    {
        String textNarrative;
+
        if (htmlNarrative != null && !htmlNarrative.isEmpty())
-           textNarrative = htmlNarrative.replaceAll("\\<.*?\\>", "");  // crudely remove all HTML tags, or things that look like them
+       {
+           // first crudely change these three tags to newlines
+           textNarrative = htmlNarrative.replace("<br>", "\n");
+           textNarrative = textNarrative.replace("<div class='snd-event-data'>", "\n");
+           textNarrative = textNarrative.replace("<div class='snd-event-subject'>", "\n");
+           // then crudely remove all other HTML open/close tags, or things that look like them
+           textNarrative = textNarrative.replaceAll("\\<.*?\\>", "");
+       }
        else
            textNarrative = "";
 

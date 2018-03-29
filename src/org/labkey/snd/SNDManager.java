@@ -1763,55 +1763,54 @@ public class SNDManager
 
             if (isPopulatingNarratives)
             {
-                TableInfo eventsCacheTable = getTableInfo(schema, SNDSchema.EVENTSCACHE_TABLE_NAME);
-                TableSelector eventsCacheTs = new TableSelector(eventsCacheTable, eventFilter, null);
+                Map<EventNarrativeOption, String> narratives = new HashMap<>();
 
-                if (eventsCacheTs.exists())
+                if (narrativeOptions != null)
                 {
-                    try (Results eventsCacheResults = eventsCacheTs.getResults())
+                    for (EventNarrativeOption narrativeOption : narrativeOptions)
                     {
-                        eventsCacheResults.next();
-
-                        String htmlNarrative = eventsCacheResults.getString(FieldKey.fromParts("htmlNarrative"));
-                        String textNarrative = PlainTextNarrativeDisplayColumn.removeHtmlTagsFromNarrative(htmlNarrative);
-
-                        Map<EventNarrativeOption, String> narratives = new HashMap<>();
-
-                        if (narrativeOptions != null)
+                        switch (narrativeOption)
                         {
-                            for (EventNarrativeOption narrativeOption : narrativeOptions)
-                            {
-                                switch (narrativeOption)
+                            case TEXT_NARRATIVE:
+                                // Get text version from generateEventNarrative for better formatting (as opposed to using cache and PlainTextNarrativeDisplayColumn)
+                                String textNarrative = generateEventNarrative(c, event, getTopLevelSuperPkgs(c, u, event, errors), false, false, errors);
+                                narratives.put(EventNarrativeOption.TEXT_NARRATIVE, textNarrative);
+                                break;
+                            case REDACTED_TEXT_NARRATIVE:
+                                // Redacting means we have to generate on the fly, not from cache
+                                String redactedTextNarrative = generateEventNarrative(c, event, getTopLevelSuperPkgs(c, u, event, errors), false, true, errors);
+                                narratives.put(EventNarrativeOption.REDACTED_TEXT_NARRATIVE, redactedTextNarrative);
+                                break;
+                            case HTML_NARRATIVE:
+                                TableInfo eventsCacheTable = getTableInfo(schema, SNDSchema.EVENTSCACHE_TABLE_NAME);
+                                TableSelector eventsCacheTs = new TableSelector(eventsCacheTable, eventFilter, null);
+                                if (eventsCacheTs.exists())
                                 {
-                                    case TEXT_NARRATIVE:
-                                        narratives.put(EventNarrativeOption.TEXT_NARRATIVE, textNarrative);
-                                        break;
-                                    case REDACTED_TEXT_NARRATIVE:
-                                        // Redacting means we have to generate on the fly, not from cache
-                                        String redactedTextNarrative = generateEventNarrative(c, event, getTopLevelSuperPkgs(c, u, event, errors), false, true, errors);
-                                        narratives.put(EventNarrativeOption.REDACTED_TEXT_NARRATIVE, redactedTextNarrative);
-                                        break;
-                                    case HTML_NARRATIVE:
+                                    try (Results eventsCacheResults = eventsCacheTs.getResults())
+                                    {
+                                        eventsCacheResults.next();
+                                        String htmlNarrative = eventsCacheResults.getString(FieldKey.fromParts("htmlNarrative"));
                                         narratives.put(EventNarrativeOption.HTML_NARRATIVE, htmlNarrative);
-                                        break;
-                                    case REDACTED_HTML_NARRATIVE:
-                                        // Redacting means we have to generate on the fly, not from cache
-                                        String redactedHtmlNarrative = generateEventNarrative(c, event, getTopLevelSuperPkgs(c, u, event, errors), true, true, errors);
-                                        narratives.put(EventNarrativeOption.REDACTED_HTML_NARRATIVE, redactedHtmlNarrative);
-                                        break;
+                                    }
+                                    catch (SQLException e)
+                                    {
+                                        errors.addRowError(new ValidationException(e.getMessage()));
+                                    }
                                 }
-                            }
-                        }
+                                else
+                                    errors.addRowError(new ValidationException("Event ID " + eventId + " exists but narrative unexpectedly not found in EventsCache."));
 
-                        event.setNarratives(narratives);
-                    }
-                    catch (SQLException e)
-                    {
-                        errors.addRowError(new ValidationException(e.getMessage()));
+                                break;
+                            case REDACTED_HTML_NARRATIVE:
+                                // Redacting means we have to generate on the fly, not from cache
+                                String redactedHtmlNarrative = generateEventNarrative(c, event, getTopLevelSuperPkgs(c, u, event, errors), true, true, errors);
+                                narratives.put(EventNarrativeOption.REDACTED_HTML_NARRATIVE, redactedHtmlNarrative);
+                                break;
+                        }
                     }
                 }
-                else
-                    errors.addRowError(new ValidationException("Event ID " + eventId + " exists but narrative unexpectedly not found in EventsCache."));
+
+                event.setNarratives(narratives);
             }
         }
 
