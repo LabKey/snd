@@ -2556,7 +2556,7 @@ public class SNDManager
     {
         for (SuperPackage superPkg : superPkgs)
         {
-            if (superPkg.getSuperPkgId() == superPkgId)
+            if (superPkg.getSuperPkgId() != null && superPkg.getSuperPkgId() == superPkgId)
             {
                 return superPkg;
             }
@@ -2600,26 +2600,26 @@ public class SNDManager
      */
     private String generateEventDataNarrative(Container c, EventData eventData, SuperPackage superPackage, int tabIndex, boolean genHtml, boolean genRedacted, BatchValidationException errors)
     {
-        String eventDataNarrative = superPackage.getNarrative();
-        if (eventDataNarrative == null)
+        StringBuilder eventDataNarrative = new StringBuilder();
+        if (superPackage.getNarrative() != null)
         {
-            eventDataNarrative = "";
+            eventDataNarrative.append(superPackage.getNarrative());
         }
 
         if (genHtml)
         {
-            eventDataNarrative = "<div class='" + EventData.EVENT_DATA_CSS_CLASS + "'>" + eventDataNarrative;
+            eventDataNarrative.insert(0, "<div class='" + EventData.EVENT_DATA_CSS_CLASS + "'>");
         }
         else
         {
-            // plain test indenting
-            String tabs = "\n";
+            // plain text indenting
+            StringBuilder tabs = new StringBuilder("\n");
             for (int t = 0; t<tabIndex; t++)
             {
-                tabs += "\t";
+                tabs.append("\t");
             }
 
-            eventDataNarrative = tabs + eventDataNarrative;
+            eventDataNarrative.insert(0, tabs);
         }
 
         if (superPackage.getPkg() != null)
@@ -2673,7 +2673,7 @@ public class SNDManager
                     if (genHtml)
                         value = "<span class='" + AttributeData.ATTRIBUTE_DATA_CSS_CLASS + "'>" + value + "</span>";
 
-                    eventDataNarrative = eventDataNarrative.replace("{" + pd.getName() + "}", value);
+                    eventDataNarrative = new StringBuilder(eventDataNarrative.toString().replace("{" + pd.getName() + "}", value));
                 }
             }
 
@@ -2682,17 +2682,17 @@ public class SNDManager
                 tabIndex++;
                 for (EventData data : eventData.getSubPackages())
                 {
-                    eventDataNarrative += generateEventDataNarrative(c, data, getSuperPackage(data.getSuperPkgId(), superPackage.getChildPackages()), tabIndex, genHtml, genRedacted, errors);
+                    eventDataNarrative.append(generateEventDataNarrative(c, data, getSuperPackage(data.getSuperPkgId(), superPackage.getChildPackages()), tabIndex, genHtml, genRedacted, errors));
                 }
             }
         }
 
         if (genHtml)
         {
-            eventDataNarrative += "</div>\n";
+            eventDataNarrative.append("</div>\n");
         }
 
-        return eventDataNarrative;
+        return eventDataNarrative.toString();
     }
 
     /**
@@ -2701,18 +2701,18 @@ public class SNDManager
      */
     private String generateEventNarrative(Container c, Event event, List<SuperPackage> superPkgs, boolean genHtml, boolean genRedacted, BatchValidationException errors)
     {
-        String narrative = "";
+        StringBuilder narrative = new StringBuilder();
         if (event.getDate() != null)
         {
             String dateValue = DateUtil.formatDateTime(event.getDate(), LookAndFeelProperties.getInstance(c).getDefaultDateTimeFormat());
 
             if (genHtml)
             {
-                narrative += "<div class='" + Event.SND_EVENT_DATE_CSS_CLASS + "'>" + dateValue + "</div>\n";
+                narrative.append("<div class='" + Event.SND_EVENT_DATE_CSS_CLASS + "'>").append(dateValue).append("</div>\n");
             }
             else
             {
-                narrative += dateValue + "\n";
+                narrative.append(dateValue).append("\n");
             }
         }
 
@@ -2720,28 +2720,28 @@ public class SNDManager
         {
             if (genHtml)
             {
-                narrative += "<div class='" + Event.SND_EVENT_SUBJECT_CSS_CLASS + "'>Subject Id: " + event.getSubjectId() + "</div>\n";
+                narrative.append("<div class='" + Event.SND_EVENT_SUBJECT_CSS_CLASS + "'>Subject Id: ").append(event.getSubjectId()).append("</div>\n");
             }
             else
             {
-                narrative += "Subject Id: " + event.getSubjectId() + "\n";
+                narrative.append("Subject Id: ").append(event.getSubjectId()).append("\n");
             }
         }
 
         if (genHtml)
         {
-            narrative += "<br>";
+            narrative.append("<br>");
         }
 
         if (event.getEventData() != null)
         {
             for (EventData eventData : event.getEventData())
             {
-                narrative += generateEventDataNarrative(c, eventData, getSuperPackage(eventData.getSuperPkgId(), superPkgs), 0, genHtml, genRedacted, errors);
+                narrative.append(generateEventDataNarrative(c, eventData, getSuperPackage(eventData.getSuperPkgId(), superPkgs), 0, genHtml, genRedacted, errors));
 
             }
         }
 
-        return narrative;
+        return narrative.toString();
     }
 }
