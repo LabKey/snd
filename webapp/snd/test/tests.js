@@ -367,6 +367,9 @@
                                     }, {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['propertyId'],
                                         value: 'red'
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'regenDate')['propertyId'],
+                                        value: '2018-03-14'
                                     }]
                                 },{
                                     superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
@@ -379,6 +382,9 @@
                                     }, {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'tube')['propertyId'],
                                         value: 'black'
+                                    }, {
+                                        propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'regenDate')['propertyId'],
+                                        value: '2018-03-18'
                                     }]
                                 }
                             ]
