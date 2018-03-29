@@ -468,7 +468,7 @@
                             }, {
                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'regenDate')['propertyId'],
                                 propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'regenDate')['name'],
-                                value: "2018-03-26T24:00:00"  // TODO: timestamp is probably wrong, need to fix
+                                value: "2018-03-26"
                             }]
                         },
                         {
@@ -489,7 +489,7 @@
                             }, {
                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'regenDate')['propertyId'],
                                 propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'regenDate')['name'],
-                                value: "2018-03-25T24:00:00"  // TODO: timestamp is probably wrong, need to fix
+                                value: "2018-03-25"
                             }]
                         }
                     ]

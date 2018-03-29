@@ -1620,8 +1620,11 @@ public class SNDManager
                 propValue = properties.get(gwtPropertyDescriptor.getPropertyURI()).value();
 
                 // Convert dates to ISO8601 format
-                if (PropertyType.getFromURI(null, gwtPropertyDescriptor.getRangeURI()).equals(PropertyType.DATE)
-                        || PropertyType.getFromURI(null, gwtPropertyDescriptor.getRangeURI()).equals(PropertyType.DATE_TIME))
+                if (PropertyType.getFromURI(null, gwtPropertyDescriptor.getRangeURI()).equals(PropertyType.DATE))
+                {
+                    propValue = DateUtil.formatDateTime((Date)propValue, AttributeData.DATE_FORMAT);
+                }
+                else if (PropertyType.getFromURI(null, gwtPropertyDescriptor.getRangeURI()).equals(PropertyType.DATE_TIME))
                 {
                     propValue = DateUtil.formatDateTime((Date)propValue, AttributeData.DATE_TIME_FORMAT);
                 }
