@@ -3,6 +3,8 @@ package org.labkey.snd.table;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.DataColumn;
 import org.labkey.api.data.RenderContext;
+import org.labkey.api.snd.Event;
+import org.labkey.api.snd.EventData;
 
 public class PlainTextNarrativeDisplayColumn extends DataColumn
 {
@@ -26,8 +28,8 @@ public class PlainTextNarrativeDisplayColumn extends DataColumn
        {
            // first crudely change these three tags to newlines
            textNarrative = htmlNarrative.replace("<br>", "\n");
-           textNarrative = textNarrative.replace("<div class='snd-event-data'>", "\n");
-           textNarrative = textNarrative.replace("<div class='snd-event-subject'>", "\n");
+           textNarrative = textNarrative.replace("<div class='" + EventData.EVENT_DATA_CSS_CLASS +  "'>", "\n");
+           textNarrative = textNarrative.replace("<div class='" + Event.SND_EVENT_SUBJECT_CSS_CLASS + "'>", "\n");
            // then crudely remove all other HTML open/close tags, or things that look like them
            textNarrative = textNarrative.replaceAll("\\<.*?\\>", "");
        }

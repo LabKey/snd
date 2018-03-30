@@ -18,6 +18,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import static org.labkey.api.snd.EventNarrativeOption.HTML_NARRATIVE;
+import static org.labkey.api.snd.EventNarrativeOption.REDACTED_HTML_NARRATIVE;
+import static org.labkey.api.snd.EventNarrativeOption.REDACTED_TEXT_NARRATIVE;
+import static org.labkey.api.snd.EventNarrativeOption.TEXT_NARRATIVE;
+
 /**
  * Class for event data and related methods. Used when saving, updating, deleting and getting an event
  */
@@ -182,7 +187,7 @@ public class Event
         eventValues.put(EVENT_SUBJECT_ID, getSubjectId());
         eventValues.put(EVENT_DATE, getDate());
         eventValues.put(EVENT_PARENT_OBJECTID, getParentObjectId());
-        eventValues.put(EVENT_CONTAINER, c);
+        eventValues.put(EVENT_CONTAINER, c.getId());
 
         Map<GWTPropertyDescriptor, Object> extras = getExtraFields();
         for (GWTPropertyDescriptor gpd : extras.keySet())
@@ -201,7 +206,7 @@ public class Event
             eventValues.put(EVENT_ID, getEventId());
 
         eventValues.put(EVENT_NOTE, getNote());
-        eventValues.put("Container", c);
+        eventValues.put(EVENT_CONTAINER, c.getId());
 
         return eventValues;
     }
@@ -250,19 +255,25 @@ public class Event
 
         Map<EventNarrativeOption, String> narratives = getNarratives();
 
-        String textNarrative = narratives.get(EventNarrativeOption.TEXT_NARRATIVE);
-        String redactedTextNarrative = narratives.get(EventNarrativeOption.REDACTED_TEXT_NARRATIVE);
-        String htmlNarrative = narratives.get(EventNarrativeOption.HTML_NARRATIVE);
-        String redactedHtmlNarrative = narratives.get(EventNarrativeOption.REDACTED_HTML_NARRATIVE);
-
-        if (textNarrative != null)
-            json.put(EventNarrativeOption.TEXT_NARRATIVE.getKey(), textNarrative);
-        if (redactedTextNarrative != null)
-            json.put(EventNarrativeOption.REDACTED_TEXT_NARRATIVE.getKey(), redactedTextNarrative);
-        if (htmlNarrative != null)
-            json.put(EventNarrativeOption.HTML_NARRATIVE.getKey(), htmlNarrative);
-        if (redactedHtmlNarrative != null)
-            json.put(EventNarrativeOption.REDACTED_HTML_NARRATIVE.getKey(), redactedHtmlNarrative);
+        for(EventNarrativeOption narrativeOption : narratives.keySet())
+        {
+            String narrative = narratives.get(narrativeOption);
+            switch (narrativeOption)
+            {
+                case TEXT_NARRATIVE:
+                    json.put(TEXT_NARRATIVE.getKey(), narrative);
+                    break;
+                case REDACTED_TEXT_NARRATIVE:
+                    json.put(REDACTED_TEXT_NARRATIVE.getKey(), narrative);
+                    break;
+                case HTML_NARRATIVE:
+                    json.put(HTML_NARRATIVE.getKey(), narrative);
+                    break;
+                case REDACTED_HTML_NARRATIVE:
+                    json.put(REDACTED_HTML_NARRATIVE.getKey(), narrative);
+                    break;
+            }
+        }
 
         return json;
     }

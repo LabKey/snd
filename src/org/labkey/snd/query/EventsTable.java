@@ -67,7 +67,7 @@ public class EventsTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
                 throw new QueryUpdateServiceException(e.getMessage());
             }
 
-            NarrativeAuditProvider.addAuditEntry(container, user, eventId, subjectId, eventDate,"Fill in full narrative.", "Delete event");
+            NarrativeAuditProvider.addAuditEntry(container, user, eventId, subjectId, eventDate, null, "Delete event");
 
             // now delete package row
             return super.deleteRow(user, container, oldRowMap);
