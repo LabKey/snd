@@ -476,7 +476,7 @@
                     request:{
                         url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
                         jsonData:{
-                            eventId : 180002,
+                            eventId : 1800002,
                             subjectId : 1,
                             date : "2018-03-03T17:21:22",
                             projectIdRev : "61",
@@ -509,7 +509,7 @@
                     request:{
                         url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
                         jsonData:{
-                            eventId : 180002,
+                            eventId : 1800002,
                             subjectId : 1,
                             date : "2018-03-03T17:21:22",
                             projectIdRev : "64|0",
@@ -543,7 +543,7 @@
                     request: {
                         url: LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
                         jsonData: {
-                            eventId: 170007,
+                            eventId: 1700007,
                             date: "xx",
                             subjectId: 1,
                             projectIdRev: "60|0",
@@ -686,12 +686,16 @@
             }
 
             test.run = getRun(saveRequest, saveResponse);
+            var getEventJson = {'eventId': eventId};
+            if (testData.getEventParams) {
+                getEventJson = Object.assign(getEventJson, testData.getEventParams)
+            }
 
             // Set up get event request
             var getRequest = {
                 request: {
                     url: LABKEY.SND_TEST_URLS.GET_EVENT_URL,
-                    jsonData: {'eventId': eventId}
+                    jsonData: getEventJson
                 }
             };
 

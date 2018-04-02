@@ -443,6 +443,9 @@
                         }
                     ]
                 },
+                getEventParams: {
+                    getTextNarrative: true
+                },
                 expected: {
                     eventId: 1800000,
                     subjectId: "1",
