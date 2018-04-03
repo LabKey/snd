@@ -32,7 +32,8 @@ import org.labkey.snd.query.EventDataTable;
 import org.labkey.snd.query.EventNotesTable;
 import org.labkey.snd.query.EventsCacheTable;
 import org.labkey.snd.query.EventsTable;
-import org.labkey.snd.query.LookupSetTable;
+import org.labkey.snd.query.LookupSetsTable;
+import org.labkey.snd.query.LookupsTable;
 import org.labkey.snd.query.PackagesTable;
 import org.labkey.snd.query.ProjectsTable;
 import org.labkey.snd.query.SuperPackagesTable;
@@ -145,11 +146,7 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema)
                     {
-                        SimpleUserSchema.SimpleTable<SNDUserSchema> table =
-                                new SimpleUserSchema.SimpleTable<>(
-                                        schema, SNDSchema.getInstance().getTableInfoLookups()).init();
-
-                        return table;
+                        return new LookupsTable(schema, SNDSchema.getInstance().getTableInfoLookups()).init();
                     }
                 },
         LookupSets
@@ -203,7 +200,7 @@ public class SNDUserSchema extends SimpleUserSchema
                 if (nameMap.containsKey(name))
                 {
                     TableInfo table = SNDSchema.getInstance().getTableInfoLookups();
-                    return new LookupSetTable(this, table, name, nameMap.get(name)).init();
+                    return new LookupSetsTable(this, table, name, nameMap.get(name)).init();
                 }
             }
         }
@@ -212,7 +209,7 @@ public class SNDUserSchema extends SimpleUserSchema
 
     public Map<String, Map<String, Object>> getLookupSets()
     {
-        Map<String, Map<String, Object>> nameMap = (Map<String, Map<String, Object>>) SNDManager.get().getCache().get(LookupSetTable.getCacheKey(getContainer()));
+        Map<String, Map<String, Object>> nameMap = (Map<String, Map<String, Object>>) SNDManager.get().getCache().get(LookupSetsTable.getCacheKey(getContainer()));
         if (nameMap != null)
             return nameMap;
 
@@ -232,7 +229,7 @@ public class SNDUserSchema extends SimpleUserSchema
         }
 
         nameMap = Collections.unmodifiableMap(nameMap);
-        SNDManager.get().getCache().put(LookupSetTable.getCacheKey(getContainer()), nameMap);
+        SNDManager.get().getCache().put(LookupSetsTable.getCacheKey(getContainer()), nameMap);
 
         return nameMap;
     }
