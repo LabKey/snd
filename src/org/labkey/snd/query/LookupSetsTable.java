@@ -15,20 +15,31 @@
  */
 package org.labkey.snd.query;
 
+import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.dataiterator.DataIteratorBuilder;
+import org.labkey.api.query.BatchValidationException;
+import org.labkey.api.query.InvalidKeyException;
+import org.labkey.api.query.QueryUpdateService;
+import org.labkey.api.query.QueryUpdateServiceException;
+import org.labkey.api.query.SimpleQueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.query.UserSchema;
+import org.labkey.api.security.User;
+import org.labkey.snd.SNDManager;
 
+import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Created by marty on 9/17/2017.
  */
-public class LookupSetTable extends SimpleUserSchema.SimpleTable
+public class LookupSetsTable extends SimpleUserSchema.SimpleTable
 {
-    private static final String CACHE_KEY = LookupSetTable.class.getName() + "||values";
+    private static final String CACHE_KEY = LookupSetsTable.class.getName() + "||values";
     private static final String SETNAME_COL = "SetName";
     private static final String LABEL_COL = "Label";
     private static final String DESCRIPTION_COL = "Description";
@@ -36,7 +47,7 @@ public class LookupSetTable extends SimpleUserSchema.SimpleTable
     private Integer _lookupSetId;
 
 
-    public LookupSetTable(UserSchema schema, TableInfo table, String setName, Map<String, Object> map)
+    public LookupSetsTable(UserSchema schema, TableInfo table, String setName, Map<String, Object> map)
     {
         super(schema, table);
 
@@ -55,7 +66,7 @@ public class LookupSetTable extends SimpleUserSchema.SimpleTable
         return CACHE_KEY + "||" + c.getId();
     }
 
-    public LookupSetTable init()
+    public LookupSetsTable init()
     {
         super.init();
 

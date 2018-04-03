@@ -44,10 +44,13 @@ import org.labkey.snd.SNDUserSchema;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Exposes all of the event attribute data, one row per attribute/value combination.
@@ -168,7 +171,7 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
 
         private List<Map<String, Object>> getMutableData(DataIteratorBuilder rows, DataIteratorContext context)
         {
-            List<Map<String, Object>> data = null;
+            List<Map<String, Object>> data;
             try
             {
                 data = _sndService.getMutableData(rows, context);
@@ -188,13 +191,44 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
             return null;
         }
 
-        private List<Map<String, Object>> updateObjectProperty(User user, Container container, List<Map<String, Object>> data,
-                                         boolean isInsertOnly, boolean isUpdate)
+        private int insertObject(Container c, String uri, List<ObjectProperty> props, Integer pkgId, int inserted, Logger logger)
         {
-            _logger.info("Begin updating exp.ObjectProperty.");
+            try
+            {
+                ObjectProperty[] properties = new ObjectProperty[props.size()];
+                properties = props.toArray(properties);
+                OntologyManager.insertProperties(c, uri, true, properties);
+                inserted += props.size();
+                if (inserted % 10000 < props.size())
+                    logger.info("Inserted/updated " + inserted + " rows.");
+            }
+            catch (ValidationException e)
+            {
+                logger.error(e.getMessage() + " PkgId " + pkgId, e);
+                throw new UnexpectedException(e, e.getMessage() + "For PkgId: " + pkgId + ".\n");
+            }
+
+            return inserted;
+        }
+
+        private List<Map<String, Object>> updateObjectProperty(User user, Container container, List<Map<String, Object>> data,
+                                         boolean isInsertOnly, boolean isUpdate, Logger logger)
+        {
+            logger.info("Begin updating exp.ObjectProperty.");
+            final int OBJCACHE_MAX = 100;
+            LinkedHashMap<String, OntologyObject> objectCache = new LinkedHashMap<String, OntologyObject>(OBJCACHE_MAX)
+            {
+                protected boolean removeEldestEntry(Map.Entry eldest) {
+                    return size() >= OBJCACHE_MAX;
+                }
+            };
 
             int deleted = 0;
             int inserted = 0;
+
+            String prevUri = null;
+            List<ObjectProperty> prevObjProps = new ArrayList<>();
+            Integer pkgId = null;
 
             for(Map<String, Object> row : data)
             {
@@ -208,55 +242,75 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
                 String key = (String) row.get("_Key");
 
                 String objectURI = getObjectURI((Integer) row.get("EventDataId"), container);
-                Integer pkgId = (Integer) row.get("PkgId");
+                if (prevUri == null)
+                    prevUri = objectURI;
+
+                pkgId = (Integer) row.get("PkgId");
 
                 List<GWTPropertyDescriptor> packageAttributes = getPackageAttributes(pkgId);
-
-                for (GWTPropertyDescriptor pd : packageAttributes)
+                if (packageAttributes == null)
                 {
-                    if (null != pd && pd.getName().equals(key))
+                    packageAttributes = getPackageAttributes(pkgId);
+                }
+
+                if (packageAttributes != null)
+                {
+                    for (GWTPropertyDescriptor pd : packageAttributes)
                     {
-                        Object value = null;
-                        if(floatValue != null)
-                            value = floatValue;
-                        else if(stringValue != null)
-                            value = stringValue;
-                        else if(dateTimeValue != null)
-                            value = dateTimeValue;
-
-                        ObjectProperty oprop = new ObjectProperty(objectURI, container, pd.getPropertyURI(), value);
-                        oprop.setTypeTag(typeTag);
-                        oprop.setPropertyId(pd.getPropertyId());
-                        OntologyObject ontologyObject = OntologyManager.getOntologyObject(container, objectURI);
-
-                        if (null != ontologyObject)
+                        if (null != pd && pd.getName().equals(key))
                         {
-                            if (isUpdate)
-                            {
-                                OntologyManager.deleteProperty(objectURI, pd.getPropertyURI(), container, container);
-                                deleted++;
-                            }
-                        }
+                            Object value = null;
+                            if (floatValue != null)
+                                value = floatValue;
+                            else if (stringValue != null)
+                                value = stringValue;
+                            else if (dateTimeValue != null)
+                                value = dateTimeValue;
 
-                        if (isUpdate || isInsertOnly)
-                        {
-                            try
-                            {
-                                OntologyManager.insertProperties(container, objectURI, oprop);
-                                inserted++;
-                            }
-                            catch (ValidationException e)
-                            {
-                                _logger.error(e.getMessage() + " PkgId " + pkgId, e);
-                                throw new UnexpectedException(e, e.getMessage() + "For PkgId: " + pkgId + ".\n");
-                            }
-                        }
+                            ObjectProperty oprop = new ObjectProperty(objectURI, container, pd.getPropertyURI(), value);
+                            oprop.setTypeTag(typeTag);
+                            oprop.setPropertyId(pd.getPropertyId());
 
-                        break;
+                            // Check in cache before querying db for object
+                            OntologyObject ontologyObject = objectCache.get(objectURI);
+                            if (ontologyObject == null)
+                            {
+                                ontologyObject = OntologyManager.getOntologyObject(container, objectURI);
+                                objectCache.put(objectURI, ontologyObject);
+                            }
+
+                            if (null != ontologyObject)
+                            {
+                                if (isUpdate)
+                                {
+                                    OntologyManager.deleteProperty(objectURI, pd.getPropertyURI(), container, container);
+                                    deleted++;
+                                }
+                            }
+
+                            if (isUpdate || isInsertOnly)
+                            {
+                                if (!prevUri.equals(objectURI))
+                                {
+                                    inserted = insertObject(container, prevUri, prevObjProps, pkgId, inserted, logger);
+                                    prevUri = objectURI;
+                                    prevObjProps = new ArrayList<>();
+                                }
+                                prevObjProps.add(oprop);
+                            }
+
+                            break;
+                        }
                     }
                 }
             }
-            _logger.info("End updating exp.ObjectProperty. Deleted " + deleted + " rows. Inserted/Updated " + inserted + " rows.");
+
+            if (prevObjProps.size() > 0 && pkgId != null)
+            {
+                inserted = insertObject(container, prevUri, prevObjProps, pkgId, inserted, logger);
+            }
+
+            logger.info("End updating exp.ObjectProperty. Deleted " + deleted + " rows. Inserted/Updated " + inserted + " rows.");
 
             return data;
         }
@@ -266,7 +320,7 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
                              @Nullable Map<Enum, Object> configParameters, Map<String, Object> extraScriptContext) throws SQLException
         {
             List<Map<String, Object>> data = getMutableData(rows, getDataIteratorContext(errors, InsertOption.MERGE, configParameters));
-            return updateObjectProperty(user, container, data, false, true).size();
+            return updateObjectProperty(user, container, data, false, true, ((Logger)configParameters.get(QueryUpdateService.ConfigParameters.Logger))).size();
         }
 
         @Override
@@ -274,14 +328,25 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
                               @Nullable Map<Enum,Object> configParameters, Map<String, Object> extraScriptContext) throws SQLException
         {
             List<Map<String, Object>> data = getMutableData(rows, getDataIteratorContext(errors, InsertOption.IMPORT, configParameters));
-            return updateObjectProperty(user, container, data, true, false).size();
+            return updateObjectProperty(user, container, data, true, false, ((Logger)configParameters.get(QueryUpdateService.ConfigParameters.Logger))).size();
         }
 
         @Override
         public int truncateRows(User user, Container container, @Nullable Map<Enum, Object> configParameters, @Nullable Map<String, Object> extraScriptContext)
                 throws BatchValidationException, QueryUpdateServiceException, SQLException
         {
-            int numDeletedRows = 0;
+            Logger log = null;
+            if (configParameters != null)
+            {
+                log = ((Logger) configParameters.get(QueryUpdateService.ConfigParameters.Logger));
+            }
+
+            if (log == null)
+            {
+                log = _logger;
+            }
+
+            int numDeletedRows;
             String defaultLsidAuthority = AppProps.getInstance().getDefaultLsidAuthority();
 
             //exp.ObjectProperty has other data besides for snd - so deleting only snd relevant rows
@@ -298,7 +363,7 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
             }
             catch (Exception e)
             {
-                _logger.error(e.getMessage(), e);
+                log.error(e.getMessage(), e);
                 throw new IllegalStateException(e);
             }
             return numDeletedRows;
@@ -309,6 +374,17 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
                                                     @Nullable Map<Enum, Object> configParameters, @Nullable Map<String, Object> extraScriptContext)
                 throws InvalidKeyException, BatchValidationException, QueryUpdateServiceException, SQLException
         {
+            Logger log = null;
+            if (configParameters != null)
+            {
+                log = ((Logger) configParameters.get(QueryUpdateService.ConfigParameters.Logger));
+            }
+
+            if (log == null)
+            {
+                log = _logger;
+            }
+
             try (DbScope.Transaction tx = _expSchema.getScope().ensureTransaction())
             {
                 for (Map<String, Object> row : oldRows)
@@ -323,13 +399,13 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
                     deleteObjProp.append("and propertyId = ?");
                     deleteObjProp.add(propertyId);
                     executor.execute(deleteObjProp);
-                    _logger.info("Deleting a row in exp.ObjectProperty with objectId = " + objectId + ", and propertyId = " + propertyId);
+                    log.info("Deleting a row in exp.ObjectProperty with objectId = " + objectId + ", and propertyId = " + propertyId);
                 }
                 tx.commit();
             }
             catch (Exception e)
             {
-                _logger.error(e.getMessage(), e);
+                log.error(e.getMessage(), e);
                 throw new IllegalStateException(e);
             }
             return oldRows;

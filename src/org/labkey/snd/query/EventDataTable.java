@@ -67,8 +67,19 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
         public int mergeRows(User user, Container container, DataIteratorBuilder rows, BatchValidationException errors,
                              @Nullable Map<Enum, Object> configParameters, Map<String, Object> extraScriptContext) throws SQLException
         {
-            List<Map<String, Object>> data = null;
+            List<Map<String, Object>> data;
             DataIteratorContext dataIteratorContext = getDataIteratorContext(errors, InsertOption.MERGE, configParameters);
+            Logger log = null;
+            if (configParameters != null)
+            {
+                log = ((Logger) configParameters.get(QueryUpdateService.ConfigParameters.Logger));
+            }
+
+            if (log == null)
+            {
+                log = _logger;
+            }
+
             try
             {
                 data = _sndService.getMutableData(rows, dataIteratorContext);
@@ -78,7 +89,7 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
                 return 0;
             }
 
-            _logger.info("Begin updating exp.Object table.");
+            log.info("Begin updating exp.Object table.");
             int count = 0;
             for(Map<String, Object> map : data)
             {
@@ -96,11 +107,11 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
                 count++;
                 //TODO: Count in exp.Object is not going to be the same as in snd.EventData - need to figure out how to get the count to log
                 if(count % 1000 == 0)
-                    _logger.info("Updated " + count + " rows in exp.Object table.");
+                    log.info("Updated " + count + " rows in exp.Object table.");
             }
-            _logger.info("End updating exp.Object table. Updated total of " + count + " rows.");
+            log.info("End updating exp.Object table. Updated total of " + count + " rows.");
 
-            if(null != data && data.size() > 0 && null != data.get(0))
+            if(data.size() > 0 && null != data.get(0))
             {
                 DataIteratorBuilder rowsWithObjectURI = new ListofMapsDataIterator.Builder(data.get(0).keySet(), data);
                 return _importRowsUsingDIB(user, container, rowsWithObjectURI, null, dataIteratorContext, extraScriptContext);
@@ -113,7 +124,17 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
         public int importRows(User user, Container container, DataIteratorBuilder rows, BatchValidationException errors,
                               @Nullable Map<Enum,Object> configParameters, Map<String, Object> extraScriptContext) throws SQLException
         {
-            List<Map<String, Object>> data = null;
+            List<Map<String, Object>> data;
+            Logger log = null;
+            if (configParameters != null)
+            {
+                log = ((Logger) configParameters.get(QueryUpdateService.ConfigParameters.Logger));
+            }
+
+            if (log == null)
+            {
+                log = _logger;
+            }
 
             try
             {
@@ -121,11 +142,11 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             }
             catch (IOException e)
             {
-                _logger.error(e.getMessage(), e);
+                log.error(e.getMessage(), e);
                 return 0;
             }
 
-            _logger.info("Begin inserting into exp.Object.");
+            log.info("Begin inserting into exp.Object.");
             int count = 0;
             for(Map<String, Object> map : data)
             {
@@ -140,9 +161,9 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
                 count++;
                 //TODO: Count in exp.Object is not going to be the same as in snd.EventData - need to figure out how to get the count to log
                 if(count % 1000 == 0)
-                    _logger.info("Inserted " + count + " rows in exp.Object table.");
+                    log.info("Inserted " + count + " rows in exp.Object table.");
             }
-            _logger.info("End inserting into exp.Object. Inserted total of " + count + " rows.");
+            log.info("End inserting into exp.Object. Inserted total of " + count + " rows.");
 
             DataIteratorBuilder rowsWithObjectURI = new ListofMapsDataIterator.Builder(data.get(0).keySet(), data);
 
@@ -155,7 +176,18 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
                                                     @Nullable Map<Enum, Object> configParameters, @Nullable Map<String, Object> extraScriptContext)
                 throws InvalidKeyException, BatchValidationException, QueryUpdateServiceException, SQLException
         {
-            deleteFromExpTables(oldRows, container);
+            Logger log = null;
+            if (configParameters != null)
+            {
+                log = ((Logger) configParameters.get(QueryUpdateService.ConfigParameters.Logger));
+            }
+
+            if (log == null)
+            {
+                log = _logger;
+            }
+
+            deleteFromExpTables(oldRows, container, log);
             return super.deleteRows(user, container, oldRows, configParameters, extraScriptContext);
         }
 
@@ -163,17 +195,28 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
         public int truncateRows(User user, Container container, @Nullable Map<Enum, Object> configParameters, @Nullable Map<String, Object> extraScriptContext)
                 throws BatchValidationException, QueryUpdateServiceException, SQLException
         {
+            Logger log = null;
+            if (configParameters != null)
+            {
+                log = ((Logger) configParameters.get(QueryUpdateService.ConfigParameters.Logger));
+            }
+
+            if (log == null)
+            {
+                log = _logger;
+            }
+
             //get rows from snd.eventData
             TableSelector ts = new TableSelector(SNDSchema.getInstance().getTableInfoEventData());
             List<Map<String, Object>> oldRows = (List<Map<String, Object>>) ts.getMapCollection();
-            deleteFromExpTables(oldRows, container);
+            deleteFromExpTables(oldRows, container, log);
 
             return super.truncateRows(user, container, configParameters, extraScriptContext);
         }
 
-        private void deleteFromExpTables(List<Map<String, Object>> oldRows, Container container)
+        private void deleteFromExpTables(List<Map<String, Object>> oldRows, Container container, Logger log)
         {
-            _logger.info("Begin deleting from exp.ObjectProperty and exp.Object.");
+            log.info("Begin deleting from exp.ObjectProperty and exp.Object.");
             int count = 0;
 
             //This will be a cascading delete across exp.ObjectProperty, exp.Object, and snd.EventData
@@ -192,10 +235,10 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
                 count++;
                 //TODO: Count in exp.Object is not going to be the same as in snd.EventData - need to figure out how to get the count to log
                 if (count % 1000 == 0)
-                    _logger.info("Deleted " + count + " rows from exp.ObjectProperty and exp.Object.");
+                    log.info("Deleted " + count + " rows from exp.ObjectProperty and exp.Object.");
             }
 
-            _logger.info("End deleting from exp.ObjectProperty and exp.Object. Deleted total of " + count + " rows.");
+            log.info("End deleting from exp.ObjectProperty and exp.Object. Deleted total of " + count + " rows.");
         }
     }
 }
