@@ -27,7 +27,7 @@ public class EventData
     private int _superPkgId;
     private int _eventId;
     private Integer _parentEventDataId;
-    private String _narrative;
+    private String _narrativeTemplate;
     private String _objectURI;
     private List<EventData> _subPackages;
     private List<AttributeData> _attributes = new ArrayList<>();
@@ -36,7 +36,7 @@ public class EventData
 
     public static final String EVENT_DATA_ID = "eventDataId";
     public static final String EVENT_DATA_SUPER_PACKAGE_ID = "superPkgId";
-    public static final String EVENT_DATA_NARRATIVE = "narrative";
+    public static final String EVENT_DATA_NARRATIVE_TEMPLATE = "narrativeTemplate";
     public static final String EVENT_DATA_SUB_PACKAGES = "subPackages";
     public static final String EVENT_DATA_ATTRIBUTES = "attributes";
     public static final String EVENT_DATA_OBJECTURI = "objectURI";
@@ -51,7 +51,7 @@ public class EventData
     {
         _eventDataId = eventDataId;
         _superPkgId = superPkgId;
-        _narrative = narrative;
+        _narrativeTemplate = narrative;
         _subPackages = subPackages;
 
         if (attributes != null)
@@ -93,14 +93,14 @@ public class EventData
     }
 
     @Nullable
-    public String getNarrative()
+    public String getNarrativeTemplate()
     {
-        return _narrative;
+        return _narrativeTemplate;
     }
 
-    public void setNarrative(String narrative)
+    public void setNarrativeTemplate(String narrative)
     {
-        _narrative = narrative;
+        _narrativeTemplate = narrative;
     }
 
     @Nullable
@@ -194,7 +194,7 @@ public class EventData
         JSONObject json = new JSONObject();
         json.put(EVENT_DATA_ID, getEventDataId());
         json.put(EVENT_DATA_SUPER_PACKAGE_ID, getSuperPkgId());
-        json.put(EVENT_DATA_NARRATIVE, getNarrative());
+        json.put(EVENT_DATA_NARRATIVE_TEMPLATE, getNarrativeTemplate());
 
         JSONArray subPackagesJson = new JSONArray();
         if (getSubPackages() != null)

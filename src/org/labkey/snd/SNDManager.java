@@ -1643,7 +1643,7 @@ public class SNDManager
         }
 
         eventData.setAttributes(attributeDatas);
-        eventData.setNarrative(superPackage.getNarrative());
+        eventData.setNarrativeTemplate(superPackage.getNarrative());
         addExtraFieldsToEventData(c, u, eventData, ts.getMap());
 
         SQLFragment sql = new SQLFragment("SELECT EventDataId, SuperPkgId FROM ");

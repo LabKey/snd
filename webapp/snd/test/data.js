@@ -454,7 +454,7 @@
                     eventData: [
                         {
                             superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
-                            narrative: LABKEY.SND_PKG_CACHE['819']['narrative'],
+                            narrativeTemplate: LABKEY.SND_PKG_CACHE['819']['narrative'],
                             attributes: [{
                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['propertyId'],
                                 propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['name'],
@@ -475,7 +475,7 @@
                         },
                         {
                             superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
-                            narrative: LABKEY.SND_PKG_CACHE['819']['narrative'],
+                            narrativeTemplate: LABKEY.SND_PKG_CACHE['819']['narrative'],
                             attributes: [{
                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['propertyId'],
                                 propertyName: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['819']['attributes'], 'amount')['name'],
