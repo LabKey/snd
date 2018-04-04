@@ -15,21 +15,26 @@ LABKEY.equals = function( x, y ) {
         if ( ! x.hasOwnProperty( p ) ) continue;
         // other properties were tested using x.constructor === y.constructor
 
-        if ( ! y.hasOwnProperty( p ) ) return false;
+        if ( ! y.hasOwnProperty( p ) )
+            return p;
         // allows to compare x[ p ] and y[ p ] when set to undefined
 
         if ( x[ p ] === y[ p ] ) continue;
         // if they have the same strict value or identity then they are equal
 
-        if ( typeof( x[ p ] ) !== "object" ) return false;
+        if ( typeof( x[ p ] ) !== "object" )
+            return p;
         // Numbers, Strings, Functions, Booleans must be strictly equal
 
-        if ( ! LABKEY.equals( x[ p ],  y[ p ] ) ) return false;
+        var result = LABKEY.equals( x[ p ],  y[ p ] );
+        if ( result !== true  )
+            return result;
         // Objects and Arrays must be tested recursively
     }
 
     for ( p in y ) {
-        if ( y.hasOwnProperty( p ) && ! x.hasOwnProperty( p ) ) return false;
+        if ( y.hasOwnProperty( p ) && ! x.hasOwnProperty( p ) )
+            return p;
         // allows x[ p ] to be set to undefined
     }
     return true;

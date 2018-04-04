@@ -9,7 +9,7 @@ import java.util.Map;
 
 public interface EventDataTrigger
 {
-    void onInsert(Container c, User u, TriggerAction triggerAction, BatchValidationException errors, Map<String, Object> extraContext);
-    void onUpdate(Container c, User u, TriggerAction triggerAction, BatchValidationException errors, Map<String, Object> extraContext);
+    void onInsert(Container c, User u, TriggerAction triggerAction, Map<String, Object> extraContext);
+    void onUpdate(Container c, User u, TriggerAction triggerAction, Map<String, Object> extraContext);
     Integer getOrder();
 }

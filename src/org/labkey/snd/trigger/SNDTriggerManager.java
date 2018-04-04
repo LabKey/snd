@@ -136,7 +136,7 @@ public class SNDTriggerManager
     /**
      * Called from insert event.
      */
-    public void fireInsertTriggers(Container c, User u, Event event, List<SuperPackage> topLevelPkgs, BatchValidationException errors)
+    public void fireInsertTriggers(Container c, User u, Event event, List<SuperPackage> topLevelPkgs)
     {
         List<EventDataTriggerFactory> factories = getTriggerFactories(c);
 
@@ -149,14 +149,14 @@ public class SNDTriggerManager
 
         for (TriggerAction triggerAction : triggerActions)
         {
-            triggerAction.getTrigger().onInsert(c, u, triggerAction, errors, extraContext);
+            triggerAction.getTrigger().onInsert(c, u, triggerAction, extraContext);
         }
     }
 
     /**
      * Called from update event.
      */
-    public void fireUpdateTriggers(Container c, User u, Event event, List<SuperPackage> topLevelPkgs, BatchValidationException errors)
+    public void fireUpdateTriggers(Container c, User u, Event event, List<SuperPackage> topLevelPkgs)
     {
         List<EventDataTriggerFactory> factories = getTriggerFactories(c);
 
@@ -169,7 +169,7 @@ public class SNDTriggerManager
 
         for (TriggerAction trigger : triggers)
         {
-            trigger.getTrigger().onUpdate(c, u, trigger, errors, extraContext);
+            trigger.getTrigger().onUpdate(c, u, trigger, extraContext);
         }
     }
 }

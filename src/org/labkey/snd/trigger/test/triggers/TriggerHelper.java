@@ -2,9 +2,9 @@ package org.labkey.snd.trigger.test.triggers;
 
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
-import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.ValidationException;
 import org.labkey.api.snd.AttributeData;
+import org.labkey.api.snd.Event;
 import org.labkey.api.snd.EventData;
 import org.labkey.api.snd.Package;
 
@@ -40,22 +40,22 @@ public class TriggerHelper
         return propertyId;
     }
 
-    public static String getAttributeValue(String name, EventData eventData, Package pkg, String msgPrefix, BatchValidationException errors)
+    public static AttributeData getAttribute(String name, EventData eventData, Package pkg)
     {
         Integer attributePropId = getPropertyId(name, pkg);
 
-        String attributeValue = null;
+        AttributeData attribute = null;
 
         for (AttributeData attributeData : eventData.getAttributes())
         {
             if ((attributeData.getPropertyName() != null && attributeData.getPropertyName().equals(name))
                     || (attributePropId != null && attributeData.getPropertyId() == attributePropId))
             {
-                attributeValue = attributeData.getValue();
+                attribute = attributeData;
             }
         }
 
-        return attributeValue;
+        return attribute;
     }
 
     public static void setAttributeValue(EventData eventData, @Nullable Integer propertyId, @Nullable String propertyName, String value)
@@ -89,11 +89,11 @@ public class TriggerHelper
         }
     }
 
-    public static void ensureTriggerOrder(String name, BatchValidationException errors, Map<String, Object> extraContext)
+    public static void ensureTriggerOrder(Event event, String name, Map<String, Object> extraContext)
     {
         if (ELECTROLYTES_TRIGGER_ORDER.get(name) == null)
         {
-            errors.addRowError(new ValidationException(name + ": Did not find trigger order defined in TriggerHelper.TRIGGER_ORDER"));
+            event.setEventException(new ValidationException(name + ": Did not find trigger order defined in TriggerHelper.TRIGGER_ORDER", ValidationException.SEVERITY.ERROR));
         }
 
         Integer orderFound = (Integer) extraContext.get(TriggerHelper.orderPropName);
@@ -105,14 +105,14 @@ public class TriggerHelper
             }
             else
             {
-                errors.addRowError(new ValidationException(name + ": Executing out of order. Expected order " + ELECTROLYTES_TRIGGER_ORDER.get(name) + " but was 0"));
+                event.setEventException(new ValidationException(name + ": Executing out of order. Expected order " + ELECTROLYTES_TRIGGER_ORDER.get(name) + " but was 0", ValidationException.SEVERITY.ERROR));
             }
         }
         else
         {
             if (orderFound != ELECTROLYTES_TRIGGER_ORDER.get(name) - 1)
             {
-                errors.addRowError(new ValidationException(name + ": Executing out of order. Expected order " + (ELECTROLYTES_TRIGGER_ORDER.get(name) - 1) + " but was " + orderFound));
+                event.setEventException(new ValidationException(name + ": Executing out of order. Expected order " + (ELECTROLYTES_TRIGGER_ORDER.get(name) - 1) + " but was " + orderFound, ValidationException.SEVERITY.ERROR));
             }
             else
             {

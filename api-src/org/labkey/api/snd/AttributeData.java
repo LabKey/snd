@@ -3,12 +3,10 @@ package org.labkey.api.snd;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONObject;
-import org.labkey.api.collections.ArrayListMap;
 import org.labkey.api.data.Container;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
+import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
-
-import java.util.Map;
 
 /**
  * Class for attribute data and related methods. Used in EventData class
@@ -19,6 +17,7 @@ public class AttributeData
     private String _propertyName;
     private GWTPropertyDescriptor _propertyDescriptor;
     private String _value;
+    private ValidationException _exception;
 
     public static final String ATTRIBUTE_DATA_PROPERTY_ID = "propertyId";
     public static final String ATTRIBUTE_DATA_PROPERTY_NAME = "propertyName";
@@ -67,6 +66,17 @@ public class AttributeData
         _propertyName = propertyName;
     }
 
+    public ValidationException getException()
+    {
+        return _exception;
+    }
+
+    public void setException(Event event, ValidationException exception)
+    {
+        _exception = exception;
+        event.updateExceptionCount(exception);
+    }
+
     @Nullable
     public GWTPropertyDescriptor getPropertyDescriptor()
     {
@@ -93,10 +103,23 @@ public class AttributeData
     public JSONObject toJSON(Container c, User u)
     {
         JSONObject json = new JSONObject();
-        json.put(ATTRIBUTE_DATA_PROPERTY_ID, getPropertyId());
-        json.put(ATTRIBUTE_DATA_PROPERTY_NAME, getPropertyName());
-        json.put(ATTRIBUTE_DATA_PROPERTY_DESCRIPTOR, SNDService.get().convertPropertyDescriptorToJson(c, u, getPropertyDescriptor(), true));
+        if (getPropertyId() != 0)
+            json.put(ATTRIBUTE_DATA_PROPERTY_ID, getPropertyId());
+
+        if (getPropertyName() != null)
+            json.put(ATTRIBUTE_DATA_PROPERTY_NAME, getPropertyName());
+
+        if (getPropertyDescriptor() != null)
+            json.put(ATTRIBUTE_DATA_PROPERTY_DESCRIPTOR, SNDService.get().convertPropertyDescriptorToJson(c, u, getPropertyDescriptor(), true));
+
         json.put(ATTRIBUTE_DATA_VALUE, getValue());
+        if (_exception != null)
+        {
+            JSONObject jsonException = new JSONObject();
+            jsonException.put(Event.SND_EXCEPTION_MSG_JSON, _exception.getMessage());
+            jsonException.put(Event.SND_EXCEPTION_SEVERITY_JSON, _exception.getSeverity());
+            json.put(Event.SND_EXCEPTION_JSON, jsonException);
+        }
 
         return json;
     }

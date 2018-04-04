@@ -15,15 +15,15 @@ public class ChlorideBloodTestTrigger implements EventDataTrigger
 
 
     @Override
-    public void onInsert(Container c, User u, TriggerAction triggerAction, BatchValidationException errors, Map<String, Object> extraContext)
+    public void onInsert(Container c, User u, TriggerAction triggerAction, Map<String, Object> extraContext)
     {
-        TriggerHelper.ensureTriggerOrder(name, errors, extraContext);
+        TriggerHelper.ensureTriggerOrder(triggerAction.getIncomingEvent(), name, extraContext);
     }
 
     @Override
-    public void onUpdate(Container c, User u, TriggerAction triggerAction, BatchValidationException errors, Map<String, Object> extraContext)
+    public void onUpdate(Container c, User u, TriggerAction triggerAction, Map<String, Object> extraContext)
     {
-        onInsert(c, u, triggerAction, errors, extraContext);
+        onInsert(c, u, triggerAction, extraContext);
     }
 
     @Override

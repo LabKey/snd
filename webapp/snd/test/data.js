@@ -497,7 +497,7 @@
                     ]
                 }
             }, {
-                name: 'Valid Save Event with super package',
+                name: 'Valid Save Event with super package and trigger unit type conversion',
                 jsonData: {
                     eventId: 1800001,
                     subjectId: 2,
@@ -637,6 +637,155 @@
                     ]
                 }
             }, {
+                name: 'Save Event: Out of range attribute exception',
+                jsonData: {
+                    eventId: 1800002,
+                    subjectId: 2,
+                    date: "2018-02-26T17:51:20",
+                    note: "Note for Save Event: Out of range attribute",
+                    projectIdRev: '61|0',
+                    eventData: [
+                        {
+                            superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
+                            attributes: [],
+                            subPackages: [{
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(810, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: 200
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "mEq/L"
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Sodium Colorimetric Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(811, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: 200
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "mEq/L"
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Potassium Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(812, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: 300
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "mEq/L"
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Carbon Dioxide (CO2) Colorimetric Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(813, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: 112
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "L"
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Chloride Blood Detection Kit"
+                                    }]
+                            }]
+                        }
+                    ]
+                },
+                expectedFailure: '1 error found',
+                expected: {
+                    eventId: 1800002,
+                    subjectId: "2",
+                    date: "2018-02-26T17:51:20",
+                    note: "Note for Save Event: Out of range attribute",
+                    projectIdRev: '61|0',
+                    exception: {
+                        severity:"Error",
+                        message:"1 error found"
+                    },
+                    eventData: [
+                        {
+                            superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
+                            attributes: [],
+                            subPackages: [{
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(810, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: "200"
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "mEq/L"
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Sodium Colorimetric Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(811, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: "200"
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "mEq/L"
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Potassium Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(812, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: "300"
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "mEq/L"
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Carbon Dioxide (CO2) Colorimetric Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(813, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: "112"
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "L",
+                                        exception: {
+                                            severity: "Error",
+                                            message: 'units: Chloride Test Trigger: Invalid units (L). mEq/L or mg/dL required.'
+                                        }
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Chloride Blood Detection Kit"
+                                    }]
+                            }]
+                        }
+                    ]
+                }
+            },{
                 name: 'Valid Save Event with Narrative generation',
                 getEventParams: {
                     getTextNarrative: true,
@@ -813,7 +962,6 @@
                     ]
                 }
             }
-
         ];
     }
 

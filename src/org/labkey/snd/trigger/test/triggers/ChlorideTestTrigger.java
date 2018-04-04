@@ -1,9 +1,10 @@
 package org.labkey.snd.trigger.test.triggers;
 
 import org.labkey.api.data.Container;
-import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
+import org.labkey.api.snd.AttributeData;
+import org.labkey.api.snd.Event;
 import org.labkey.api.snd.EventData;
 import org.labkey.api.snd.EventDataTrigger;
 import org.labkey.api.snd.TriggerAction;
@@ -17,17 +18,20 @@ public class ChlorideTestTrigger implements EventDataTrigger
     final String name = "Chloride Test Trigger";
     final String msgPrefix = name + ": ";
 
-    private void ensureAmountForUnits(EventData eventData, Package pkg, BatchValidationException errors)
+    private void ensureAmountForUnits(Event event, EventData eventData, Package pkg)
     {
-        String amountValue = TriggerHelper.getAttributeValue("amount", eventData, pkg, msgPrefix, errors);
-        String unitsValue = TriggerHelper.getAttributeValue("units", eventData, pkg, msgPrefix, errors);
+        AttributeData amountAttribute = TriggerHelper.getAttribute("amount", eventData, pkg);
+        AttributeData unitsAttribute = TriggerHelper.getAttribute("units", eventData, pkg);
+        String amountValue = amountAttribute.getValue();
+        String unitsValue = unitsAttribute.getValue();
         Double newAmountValue;
 
-        if (!errors.hasErrors() && unitsValue != null && amountValue != null)
+        if (unitsValue != null && amountValue != null)
         {
             if (!unitsValue.equals("mEq/L") && !unitsValue.equals("mg/dL"))
             {
-                errors.addRowError(new ValidationException(msgPrefix + "Invalid units (" + unitsValue + "). mEq/L or mg/dL required."));
+                unitsAttribute.setException(event, new ValidationException(msgPrefix + "Invalid units (" + unitsValue + "). mEq/L or mg/dL required.",
+                        (unitsAttribute.getPropertyName() != null ? unitsAttribute.getPropertyName() : Integer.toString(unitsAttribute.getPropertyId()))));
             }
 
             if (unitsValue.equals("mg/dL"))
@@ -41,16 +45,16 @@ public class ChlorideTestTrigger implements EventDataTrigger
     }
 
     @Override
-    public void onInsert(Container c, User u, TriggerAction triggerAction, BatchValidationException errors, Map<String, Object> extraContext)
+    public void onInsert(Container c, User u, TriggerAction triggerAction, Map<String, Object> extraContext)
     {
-        ensureAmountForUnits(triggerAction.getIncomingEventData(), triggerAction.getSuperPackage().getPkg(), errors);
-        TriggerHelper.ensureTriggerOrder(name, errors, extraContext);
+        ensureAmountForUnits(triggerAction.getIncomingEvent(), triggerAction.getIncomingEventData(), triggerAction.getSuperPackage().getPkg());
+        TriggerHelper.ensureTriggerOrder(triggerAction.getIncomingEvent(), name, extraContext);
     }
 
     @Override
-    public void onUpdate(Container c, User u, TriggerAction triggerAction, BatchValidationException errors, Map<String, Object> extraContext)
+    public void onUpdate(Container c, User u, TriggerAction triggerAction, Map<String, Object> extraContext)
     {
-        onInsert(c, u, triggerAction, errors, extraContext);
+        onInsert(c, u, triggerAction, extraContext);
     }
 
     @Override

@@ -7,6 +7,7 @@ import org.json.JSONObject;
 import org.labkey.api.collections.ArrayListMap;
 import org.labkey.api.data.Container;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
+import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
 
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ public class EventData
     private List<EventData> _subPackages;
     private List<AttributeData> _attributes = new ArrayList<>();
     private Map<GWTPropertyDescriptor, Object> _extraFields = new HashMap<>();
+    private ValidationException _exception;
 
     public static final String EVENT_DATA_ID = "eventDataId";
     public static final String EVENT_DATA_SUPER_PACKAGE_ID = "superPkgId";
@@ -120,6 +122,17 @@ public class EventData
     public void setEventId(int eventId)
     {
         _eventId = eventId;
+    }
+
+    public ValidationException getException()
+    {
+        return _exception;
+    }
+
+    public void setException(Event event, ValidationException exception)
+    {
+        _exception = exception;
+        event.updateExceptionCount(exception);
     }
 
     @Nullable
@@ -220,6 +233,14 @@ public class EventData
             }
 
             json.put("extraFields", extras);
+        }
+
+        if (_exception != null)
+        {
+            JSONObject jsonException = new JSONObject();
+            jsonException.put(Event.SND_EXCEPTION_MSG_JSON, _exception.getMessage());
+            jsonException.put(Event.SND_EXCEPTION_SEVERITY_JSON, _exception.getSeverity());
+            json.put(Event.SND_EXCEPTION_JSON, jsonException);
         }
 
         return json;

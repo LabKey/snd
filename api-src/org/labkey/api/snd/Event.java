@@ -7,6 +7,8 @@ import org.json.JSONObject;
 import org.labkey.api.collections.ArrayListMap;
 import org.labkey.api.data.Container;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
+import org.labkey.api.query.BatchValidationException;
+import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
 import org.labkey.api.util.DateUtil;
 
@@ -39,6 +41,10 @@ public class Event
     private Map<EventNarrativeOption, String> narratives;
     private Map<GWTPropertyDescriptor, Object> _extraFields = new HashMap<>();
 
+    // This will store a count of the different severity of exceptions
+    private Map<ValidationException.SEVERITY, Integer> _exceptionCount = new HashMap<>();
+    private ValidationException _eventException = null;
+
     public static final String EVENT_ID = "eventId";
     public static final String EVENT_SUBJECT_ID = "subjectId";
     public static final String EVENT_DATE = "date";
@@ -55,6 +61,9 @@ public class Event
     public static final String SND_EVENT_DATE_CSS_CLASS = "snd-event-date";
     public static final String SND_EVENT_SUBJECT_CSS_CLASS = "snd-event-subject";
 
+    public static final String SND_EXCEPTION_MSG_JSON = "message";
+    public static final String SND_EXCEPTION_SEVERITY_JSON = "severity";
+    public static final String SND_EXCEPTION_JSON = "exception";
 
     public Event(@Nullable Integer eventId, String subjectId, @Nullable Date date, @NotNull String projectIdRev, @Nullable String note, @Nullable List<EventData> eventData, @NotNull Container c)
     {
@@ -177,6 +186,61 @@ public class Event
         this.narratives = narratives;
     }
 
+    public ValidationException getEventException()
+    {
+        return _eventException;
+    }
+
+    public void setEventException(ValidationException eventException)
+    {
+        _eventException = eventException;
+    }
+
+    public Map<ValidationException.SEVERITY, Integer> getExceptionCountMap()
+    {
+        return _exceptionCount;
+    }
+
+    public void updateExceptionCount(ValidationException e)
+    {
+        Integer count = _exceptionCount.get(e.getSeverity());
+        if (count != null)
+        {
+            count++;
+        }
+        else
+        {
+            count = 1;
+        }
+
+        _exceptionCount.put(e.getSeverity(), count);
+    }
+
+    public Integer getErrorCount()
+    {
+        Integer count = _exceptionCount.get(ValidationException.SEVERITY.ERROR);
+        return count == null ? 0 : count;
+    }
+
+    public void addBatchValidationExceptions(BatchValidationException bve)
+    {
+        for (ValidationException ve : bve.getRowErrors())
+        {
+            _exceptionCount.put(ve.getSeverity(), _exceptionCount.get(ve.getSeverity()) + 1);
+            if (ve.getSeverity() == ValidationException.SEVERITY.ERROR)
+                _eventException = ve;
+        }
+    }
+
+    public boolean hasErrors()
+    {
+        Integer count = _exceptionCount.get(ValidationException.SEVERITY.ERROR);
+        if (count != null && count > 0)
+            return true;
+
+        return (_eventException != null && _eventException.getSeverity() == ValidationException.SEVERITY.ERROR);
+    }
+
     @NotNull
     public Map<String, Object> getEventRow(Container c)
     {
@@ -253,25 +317,68 @@ public class Event
             json.put("extraFields", extras);
         }
 
-        Map<EventNarrativeOption, String> narratives = getNarratives();
-
-        for(EventNarrativeOption narrativeOption : narratives.keySet())
+        if (_eventException != null)
         {
-            String narrative = narratives.get(narrativeOption);
-            switch (narrativeOption)
+            JSONObject jsonException = new JSONObject();
+            jsonException.put(Event.SND_EXCEPTION_MSG_JSON, _eventException.getMessage());
+            jsonException.put(Event.SND_EXCEPTION_SEVERITY_JSON, _eventException.getMessage());
+            json.put(Event.SND_EXCEPTION_JSON, jsonException);
+        }
+        else
+        {
+            StringBuilder msg = new StringBuilder();
+            Integer count = _exceptionCount.get(ValidationException.SEVERITY.ERROR);
+            if (count != null && count > 0)
             {
-                case TEXT_NARRATIVE:
-                    json.put(TEXT_NARRATIVE.getKey(), narrative);
-                    break;
-                case REDACTED_TEXT_NARRATIVE:
-                    json.put(REDACTED_TEXT_NARRATIVE.getKey(), narrative);
-                    break;
-                case HTML_NARRATIVE:
-                    json.put(HTML_NARRATIVE.getKey(), narrative);
-                    break;
-                case REDACTED_HTML_NARRATIVE:
-                    json.put(REDACTED_HTML_NARRATIVE.getKey(), narrative);
-                    break;
+                msg.append(count + " error");
+                if (count > 1)
+                    msg.append("s");
+            }
+
+            count = _exceptionCount.get(ValidationException.SEVERITY.WARN);
+            if (count != null && count > 0)
+            {
+                if (msg.length() > 0)
+                    msg.append(", ");
+
+                msg.append(count + " warning");
+                if (count > 1)
+                    msg.append("s");
+            }
+
+            if (msg.length() > 0)
+            {
+                msg.append(" found");
+
+                JSONObject jsonException = new JSONObject();
+                jsonException.put(Event.SND_EXCEPTION_MSG_JSON, msg.toString());
+                jsonException.put(Event.SND_EXCEPTION_SEVERITY_JSON,
+                        _exceptionCount.get(ValidationException.SEVERITY.ERROR) != null && _exceptionCount.get(ValidationException.SEVERITY.ERROR) > 0
+                                ? ValidationException.SEVERITY.ERROR : ValidationException.SEVERITY.WARN);
+                json.put(Event.SND_EXCEPTION_JSON, jsonException);
+            }
+        }
+        Map<EventNarrativeOption, String> narratives = getNarratives();
+        if (narratives != null)
+        {
+            for (EventNarrativeOption narrativeOption : narratives.keySet())
+            {
+                String narrative = narratives.get(narrativeOption);
+                switch (narrativeOption)
+                {
+                    case TEXT_NARRATIVE:
+                        json.put(TEXT_NARRATIVE.getKey(), narrative);
+                        break;
+                    case REDACTED_TEXT_NARRATIVE:
+                        json.put(REDACTED_TEXT_NARRATIVE.getKey(), narrative);
+                        break;
+                    case HTML_NARRATIVE:
+                        json.put(HTML_NARRATIVE.getKey(), narrative);
+                        break;
+                    case REDACTED_HTML_NARRATIVE:
+                        json.put(REDACTED_HTML_NARRATIVE.getKey(), narrative);
+                        break;
+                }
             }
         }
 

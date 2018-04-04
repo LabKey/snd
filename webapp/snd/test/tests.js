@@ -120,71 +120,72 @@
                     expectedFailure:"Missing json parameter: attributes for a top level package"
                 }
             }
-        }, {
-            name: 'Save Event : Missing one of the package in subpackages',
-            run : function() {
-                return {
-                    request: {
-                        url: LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
-                        jsonData :{
-                                     eventId: 1800001,
-                                     subjectId: 2,
-                                     date: "2018-02-26T17:51:20",
-                                     note: "Note for event attribute data sample JSON",
-                                     projectIdRev: '61|0',
-                                     eventData: [
-                                 {
-                                     superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
-                                     attributes : [],
-                                     subPackages : [{
-                                         superPkgId : LABKEY.getSubpackageSuperPkgId(810, LABKEY.SND_PKG_CACHE['814']['subPackages']),
-                                         attributes: [
-                                             {
-                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'amount')['propertyId'],
-                                                 value: 100
-                                             }, {
-                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'units')['propertyId'],
-                                                 value: "mEq/L"
-                                             }, {
-                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'kit_type')['propertyId'],
-                                                 value: "Sodium Colorimetric Detection Kit"
-                                             }]
-
-                                     }, {
-                                         superPkgId: LABKEY.getSubpackageSuperPkgId(811, LABKEY.SND_PKG_CACHE['814']['subPackages']),
-                                         attributes: [
-                                             {
-                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'amount')['propertyId'],
-                                                 value: "200"
-                                             }, {
-                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'units')['propertyId'],
-                                                 value: "mEq/L"
-                                             }, {
-                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'kit_type')['propertyId'],
-                                                 value: "Potassium Detection Kit"
-                                             }]
-
-                                     },{
-                                         superPkgId: LABKEY.getSubpackageSuperPkgId(813, LABKEY.SND_PKG_CACHE['814']['subPackages']),
-                                         attributes: [
-                                             {
-                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'amount')['propertyId'],
-                                                 value: "400"
-                                             }, {
-                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'units')['propertyId'],
-                                                 value: "mEq/L"
-                                             }, {
-                                                 propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'kit_type')['propertyId'],
-                                                 value: "Chloride Blood Detection Kit"
-                                             }]
-                                     }]
-                                 }
-                             ]
-                         }
-                    },
-                    expectedFailure: "Missing data for subpackage 812 which contains required fields"
-                }
-            }
+            // TODO: Comment this in when we implement the required subpackages feature
+        // }, {
+        //     name: 'Save Event : Missing one of the package in subpackages',
+        //     run : function() {
+        //         return {
+        //             request: {
+        //                 url: LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
+        //                 jsonData :{
+        //                              eventId: 1800001,
+        //                              subjectId: 2,
+        //                              date: "2018-02-26T17:51:20",
+        //                              note: "Note for event attribute data sample JSON",
+        //                              projectIdRev: '61|0',
+        //                              eventData: [
+        //                          {
+        //                              superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
+        //                              attributes : [],
+        //                              subPackages : [{
+        //                                  superPkgId : LABKEY.getSubpackageSuperPkgId(810, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+        //                                  attributes: [
+        //                                      {
+        //                                          propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'amount')['propertyId'],
+        //                                          value: 100
+        //                                      }, {
+        //                                          propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'units')['propertyId'],
+        //                                          value: "mEq/L"
+        //                                      }, {
+        //                                          propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'kit_type')['propertyId'],
+        //                                          value: "Sodium Colorimetric Detection Kit"
+        //                                      }]
+        //
+        //                              }, {
+        //                                  superPkgId: LABKEY.getSubpackageSuperPkgId(811, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+        //                                  attributes: [
+        //                                      {
+        //                                          propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'amount')['propertyId'],
+        //                                          value: "200"
+        //                                      }, {
+        //                                          propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'units')['propertyId'],
+        //                                          value: "mEq/L"
+        //                                      }, {
+        //                                          propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'kit_type')['propertyId'],
+        //                                          value: "Potassium Detection Kit"
+        //                                      }]
+        //
+        //                              },{
+        //                                  superPkgId: LABKEY.getSubpackageSuperPkgId(813, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+        //                                  attributes: [
+        //                                      {
+        //                                          propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'amount')['propertyId'],
+        //                                          value: "400"
+        //                                      }, {
+        //                                          propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'units')['propertyId'],
+        //                                          value: "mEq/L"
+        //                                      }, {
+        //                                          propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'kit_type')['propertyId'],
+        //                                          value: "Chloride Blood Detection Kit"
+        //                                      }]
+        //                              }]
+        //                          }
+        //                      ]
+        //                  }
+        //             },
+        //             expectedFailure: "Missing data for subpackage 812 which contains required fields"
+        //         }
+        //     }
 
         }, {
             name: 'Save Event : Missing one of the attribute information in subpackages',
@@ -259,7 +260,7 @@
                             ]
                         }
                     },
-                    expectedFailure: "Required field amount in package 810 not found."
+                    expectedFailure: "1 error found"
                 }
             }
 
@@ -498,7 +499,7 @@
                             ]
                         }
                     },
-                   expectedFailure :"Project Id|Rev not formatted correctly\nProject is not found."
+                   expectedFailure :"Project Id|Rev not formatted correctly"
                 }
             }
 
@@ -531,7 +532,7 @@
                             ]
                         }
                     },
-                    expectedFailure : "Project|revision not found: 64|0\nProject is not found."
+                    expectedFailure : "Project|revision not found: 64|0"
                 }
             }
 
@@ -644,12 +645,19 @@
 
     function handleExpectedResponse(test, expected, response, data) {
         if (response && response.status === 200) {
+            var json;
             if (data && data.json) {
-                if (matchExpected(expected, data.json)) {
+                json = data.json;
+            } else if (data && data.event) {
+                json = data.event;
+            }
+            if (json) {
+                var match = matchExpected(expected, json);
+                if (match === true) {
                     return true;
                 }
-                LABKEY.showMismatchData(test, "Actual: " + JSON.stringify(data.json));
-                return 'Expected data does not match actual data'
+                LABKEY.showMismatchData(test, "Actual: " + JSON.stringify(json));
+                return 'Expected data does not match actual data for property "' + match + '"';
             }
             return 'Shape of response data is not expected.'
         }
@@ -672,6 +680,9 @@
             
             if (testData['expectedFailure']) {
                 saveResponse = {expectedFailure: testData['expectedFailure']};
+                if (testData['expected']) {
+                    saveResponse = Object.assign({}, saveResponse, {expected: testData['expected']})
+                }
             } else {
                 saveResponse = {
                     response: function (response) {
@@ -732,6 +743,7 @@
     }
 
     LABKEY.sndAddEventTests = sndAddEventTests;
+    LABKEY.handleExpectedResponse = handleExpectedResponse;
     LABKEY.sndTestDriver = function() {
         new LABKEY.testDriver(TESTS);
     }

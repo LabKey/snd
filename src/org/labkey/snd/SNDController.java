@@ -921,6 +921,8 @@ public class SNDController extends SpringActionController
             String dateString = json.getString("date");
             Boolean validateOnly = (Boolean)json.get("validateOnly");
 
+            ApiSimpleResponse response = new ApiSimpleResponse();
+
             if (validateOnly == null)
             {
                 validateOnly = false;
@@ -962,9 +964,19 @@ public class SNDController extends SpringActionController
                     event.setExtraFields(extras);
                 }
 
-                SNDService.get().saveEvent(getContainer(), getUser(), event, validateOnly);
+                Event savedEvent = SNDService.get().saveEvent(getContainer(), getUser(), event, validateOnly);
+                response.put("event", savedEvent.toJSON(getContainer(), getUser()));
+
+                if (savedEvent.hasErrors())
+                {
+                    response.put("success", false);
+                }
+                else
+                {
+                    response.put("success", true);
+                }
             }
-            return new ApiSimpleResponse();
+            return response;
         }
 
         private List<EventData> parseEventData(JSONArray eventDataJson)

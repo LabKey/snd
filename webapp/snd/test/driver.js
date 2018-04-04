@@ -592,38 +592,27 @@
 
     function cachePkgs(cb) {
         LABKEY.SND_PKG_CACHE = {};
+        var pkgs = LABKEY.getInitData().BEFORE_ALL_TESTS.INIT_PACKAGES;
+        var pkgIds = [];
+        for (var p = 0; p < pkgs.length; p++) {
+            pkgIds.push(pkgs[p]["jsonData"]["id"])
+        }
 
-        LABKEY.Query.selectRows({
-            schemaName: 'snd',
-            queryName: 'Pkgs',
-            columns: ['PkgId'],
+        LABKEY.Ajax.request({
+            url: TEST_URLS.GET_PKG_URL,
+            jsonData: {packages: pkgIds},
             scope: this,
             failure: function (json) {
                 handleFailure(json, 'Failed package caching');
             },
-            success: function (results) {
-                var pkgIds = [];
-                for (var i = 0; i < results.rows.length; i++) {
-                    pkgIds.push(results.rows[i]['PkgId']);
+            success: function (json) {
+                var responseJson = JSON.parse(json.response).json;
+                for (var j = 0; j < responseJson.length; j++) {
+                    LABKEY.SND_PKG_CACHE[responseJson[j].pkgId] = responseJson[j];
                 }
+                LABKEY.SND_PKG_CACHE['loaded'] = true;
 
-                LABKEY.Ajax.request({
-                    url: TEST_URLS.GET_PKG_URL,
-                    jsonData: {packages: pkgIds},
-                    scope: this,
-                    failure: function (json) {
-                        handleFailure(json, 'Failed package caching');
-                    },
-                    success: function (json) {
-                        var responseJson = JSON.parse(json.response).json;
-                        for (var j = 0; j < responseJson.length; j++) {
-                            LABKEY.SND_PKG_CACHE[responseJson[j].pkgId] = responseJson[j];
-                        }
-                        LABKEY.SND_PKG_CACHE['loaded'] = true;
-
-                        cb();
-                    }
-                });
+                cb();
             }
         });
     }
@@ -715,6 +704,62 @@
             });
         };
 
+        var handleExpectedFailure = function(name, error) {
+
+            var json;
+
+            try {
+                json = JSON.parse(error.responseText);
+            }
+            catch (e) {
+                // could have responded html...
+                finish('Test "' + test.name + '" unexpectedly failed. Response not JSON.');
+                handleFailure(json, 'Test "' + test.name + '" stack trace.');
+                return;
+            }
+
+            if ($.isFunction(testRun.expectedFailure)) {
+                var result = testRun.expectedFailure(error, json);
+                if (result === true) {
+                    finish();
+                }
+                else if (LABKEY.Utils.isString(result)) {
+                    finish('Test "' + test.name + '" failed. ' + result);
+                    handleFailure(json, 'Test "' + test.name + '" stack trace.');
+                }
+                else {
+                    finish('Test "' + test.name + '" failed. Test should specify a reason for failure or return true.');
+                    handleFailure(json, 'Test "' + test.name + '" stack trace.');
+                }
+            }
+            else {
+                var exception = json.exception;
+                if (!exception) {
+                    exception = json.event.exception.message;
+                }
+                exception = exception.trim();
+
+                if (exception === testRun.expectedFailure) {
+                    if (testRun.expected) {
+                        var result = LABKEY.handleExpectedResponse(name, testRun.expected, error, json);
+                        if (result !== true) {
+                            finish(result);
+                        }
+                        else {
+                            finish();
+                        }
+                    }
+                    else {
+                        finish();
+                    }
+                }
+                else {
+                    finish('Test "' + test.name + '" failed.<br>Expected: \"' + testRun.expectedFailure + '\"<br>Actual: \"' + exception + '\"');
+                    handleFailure(json, 'Test "' + test.name + '" stack trace.');
+                }
+            }
+        };
+
         var compareResponse = function(actualJson, expectedObject) {
             var actualResponse = JSON.stringify(actualJson);
             var expectedResponse = JSON.stringify(expectedObject);
@@ -767,49 +812,26 @@
                 }
 
                 if (testRun.expectedFailure) {
-                    testRequest.success = function() {
-                        finish('Test "' + test.name + '" unexpectedly succeeded.');
-                    };
-                    testRequest.failure = function(error) {
-
-                        var json;
+                    testRequest.success = function(response) {
+                        var successJson;
 
                         try {
-                            json = JSON.parse(error.responseText);
+                            successJson = JSON.parse(response.responseText);
                         }
                         catch (e) {
-                            // could have responded html...
-                            finish('Test "' + test.name + '" unexpectedly failed. Response not JSON.');
-                            handleFailure(json, 'Test "' + test.name + '" stack trace.');
-                            return;
+                            successJson = null;
                         }
 
-                        if ($.isFunction(testRun.expectedFailure)) {
-                            var result = testRun.expectedFailure(error, json);
-                            if (result === true) {
-                                finish();
-                            }
-                            else if (LABKEY.Utils.isString(result)) {
-                                finish('Test "' + test.name + '" failed. ' + result);
-                                handleFailure(json, 'Test "' + test.name + '" stack trace.');
-                            }
-                            else {
-                                finish('Test "' + test.name + '" failed. Test should specify a reason for failure or return true.');
-                                handleFailure(json, 'Test "' + test.name + '" stack trace.');
+                        if (successJson != null) {
+                            if (successJson['success'] === false) {
+                                handleExpectedFailure(test.name, response);
                             }
                         }
                         else {
-                                json.exception = json.exception.trim();
-
-                            if (json.exception === testRun.expectedFailure) {
-                                finish();
-                            }
-                            else {
-                                finish('Test "' + test.name + '" failed.<br>Expected: \"' + testRun.expectedFailure + '\"<br>Actual: \"' + json.exception + '\"');
-                                handleFailure(json, 'Test "' + test.name + '" stack trace.');
-                            }
+                            finish('Test "' + test.name + '" unexpectedly succeeded.');
                         }
-                    }
+                    };
+                    testRequest.failure = function(response) { handleExpectedFailure.call(this, test.name, response) };
                 }
                 else {
                     testRequest.success = function(response) {

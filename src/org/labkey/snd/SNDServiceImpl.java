@@ -217,27 +217,24 @@ public class SNDServiceImpl implements SNDService
     }
 
     @Override
-    public void saveEvent(Container c, User u, Event event, boolean validateOnly)
+    public Event saveEvent(Container c, User u, Event event, boolean validateOnly)
     {
-        BatchValidationException errors = new BatchValidationException();
-
         try (DbScope.Transaction tx = SNDSchema.getInstance().getSchema().getScope().ensureTransaction(lock))
         {
             if (event.getEventId() != null && SNDManager.get().eventExists(c, u, event.getEventId()))
             {
-                SNDManager.get().updateEvent(c, u, event, validateOnly, errors);
+                event = SNDManager.get().updateEvent(c, u, event, validateOnly);
             }
             else
             {
-                SNDManager.get().createEvent(c, u, event, validateOnly, errors);
+                event = SNDManager.get().createEvent(c, u, event, validateOnly);
             }
 
             if(!tx.isAborted())
                 tx.commit();
         }
 
-        if (errors.hasErrors())
-            throw new ApiUsageException(errors);
+        return event;
     }
 
     public JSONObject convertPropertyDescriptorToJson(Container c, User u, GWTPropertyDescriptor pd, boolean resolveLookupValues)
