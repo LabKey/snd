@@ -46,6 +46,7 @@ public class SuperPackage
     private String _narrative; // From referenced package
     private Integer _sortOrder;
     private Boolean _repeatable;
+    private Boolean _required;
     // NOTE: if you add a variable here, add it to the copy constructor, getSuperPackageRow(), and toJson() too!
 
     public static final String SUPERPKG_ID = "superPkgId";
@@ -56,6 +57,7 @@ public class SuperPackage
     public static final String SUPERPKG_ORDER = "sortOrder";
     public static final String SUPERPKG_REPEATABLE = "repeatable";
     public static final String SUPERPKG_PATH = "superPkgPath";
+    public static final String SUPERPKG_REQUIRED = "required";
 
     public SuperPackage()
     {
@@ -80,6 +82,7 @@ public class SuperPackage
         this._narrative = _superPackage.getNarrative();
         this._sortOrder = _superPackage.getSortOrder();
         this._repeatable = _superPackage.getRepeatable();
+        this._required = _superPackage.getRequired();
     }
 
     @Nullable
@@ -187,6 +190,17 @@ public class SuperPackage
     }
 
     @NotNull
+    public Boolean getRequired()
+    {
+        return _required;
+    }
+
+    public void setRequired(Boolean required)
+    {
+        _required = required;
+    }
+
+    @NotNull
     public Map<String, Object> getSuperPackageRow(Container c)
     {
         Map<String, Object> superPkgValues = new ArrayListMap<>();
@@ -197,6 +211,7 @@ public class SuperPackage
         superPkgValues.put(SUPERPKG_REPEATABLE, getRepeatable());
         superPkgValues.put("container", c);
         superPkgValues.put(SUPERPKG_PATH, getSuperPkgPath());
+        superPkgValues.put(SUPERPKG_REQUIRED, getRequired());
 
         return superPkgValues;
     }
@@ -211,6 +226,7 @@ public class SuperPackage
         json.put(SUPERPKG_NARRATIVE, getNarrative());
         json.put(SUPERPKG_ORDER, getSortOrder());
         json.put(SUPERPKG_REPEATABLE, getRepeatable());
+        json.put(SUPERPKG_REQUIRED, getRequired());
         if (getPkg() != null)
         {
             json.put(PKG_ATTRIBUTES, getPkg().attributesToJson(c, u));

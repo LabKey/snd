@@ -148,23 +148,27 @@
                 }, {
                     jsonData: {
                         id: 814,
-                        description: 'Elecrolyte Tests',
+                        description: 'Electrolyte Tests',
                         active: true,
                         repeatable: true,
                         narrative: 'Electrolytes',
                         categories: [22],
                         subPackages: [{
                             pkgId: 810,
-                            sortOrder: 2
+                            sortOrder: 2,
+                            required: false
                         }, {
                             pkgId: 811,
-                            sortOrder: 1
+                            sortOrder: 1,
+                            required: false
                         }, {
                             pkgId: 812,
-                            sortOrder: 3
+                            sortOrder: 3,
+                            required: true
                         }, {
                             pkgId: 813,
-                            sortOrder: 4
+                            sortOrder: 4,
+                            required: false
                         }],
                         attributes: []
                     }
@@ -335,22 +339,28 @@
                         categories: [],
                         subPackages: [{
                             pkgId: 814,
-                            sortOrder: 1
+                            sortOrder: 1,
+                            required: false
                         }, {
                             pkgId: 815,
-                            sortOrder: 2
+                            sortOrder: 2,
+                            required: false
                         }, {
                             pkgId: 816,
-                            sortOrder: 3
+                            sortOrder: 3,
+                            required: false
                         }, {
                             pkgId: 817,
-                            sortOrder: 4
+                            sortOrder: 4,
+                            required: false
                         }, {
                             pkgId: 818,
-                            sortOrder: 5
+                            sortOrder: 5,
+                            required: false
                         }, {
                             pkgId: 819,
-                            sortOrder: 6
+                            sortOrder: 6,
+                            required: false
                         }],
                         attributes: []
                     }

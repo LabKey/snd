@@ -61,6 +61,7 @@
             <column columnName="PkgId"/>
             <column columnName="SuperPkgPath"/>
             <column columnName="SortOrder"/>
+            <column columnName="Required"/>
             <column columnName="Container"/>
             <column columnName="CreatedBy"/>
             <column columnName="Created"/>

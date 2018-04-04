@@ -590,7 +590,7 @@ public class SNDManager
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
-        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SuperPkgPath, sp.SortOrder FROM ");
+        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SuperPkgPath, sp.SortOrder, sp.Required FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" WHERE sp.PkgId = ?").add(packageId);
         sql.append(" AND sp.ParentSuperPkgId IS NULL");
@@ -610,7 +610,7 @@ public class SNDManager
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
-        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SuperPkgPath, sp.SortOrder FROM ");
+        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SuperPkgPath, sp.SortOrder, sp.Required FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" WHERE sp.SuperPkgId IN (");
         addSubPkgParameters(sql, superPackageIds.iterator());
@@ -631,7 +631,7 @@ public class SNDManager
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
-        SQLFragment sql = new SQLFragment("SELECT DISTINCT sp2.SuperPkgId, sp2.ParentSuperPkgId, sp2.PkgId, sp2.SuperPkgPath, sp2.SortOrder FROM ");
+        SQLFragment sql = new SQLFragment("SELECT DISTINCT sp2.SuperPkgId, sp2.ParentSuperPkgId, sp2.PkgId, sp2.SuperPkgPath, sp2.SortOrder, sp.Required FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" JOIN ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp2");
@@ -659,7 +659,7 @@ public class SNDManager
 
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
-        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SuperPkgPath, sp.SortOrder FROM ");
+        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SuperPkgPath, sp.SortOrder, sp.Required FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" WHERE sp.SuperPkgId IN (");
         addSubPkgParameters(sql, superPackageIds.iterator());
@@ -680,7 +680,7 @@ public class SNDManager
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
-        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SuperPkgPath, sp.SortOrder FROM ");
+        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SuperPkgPath, sp.SortOrder, sp.Required FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" WHERE sp.ParentSuperPkgId = ?").add(parentSuperPackageId);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
@@ -702,7 +702,7 @@ public class SNDManager
 
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
-        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SuperPkgPath, sp.SortOrder FROM ");
+        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SuperPkgPath, sp.SortOrder, sp.Required FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" WHERE sp.SuperPkgId IN (");
         addSubPkgParameters(sql, superPackageIds.iterator());
@@ -796,7 +796,7 @@ public class SNDManager
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
-        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.PkgId, sp.SortOrder, pkg.PkgId, pkg.Description, pkg.Active, pkg.Narrative, pkg.Repeatable FROM ");
+        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.PkgId, sp.SortOrder, sp.Required, pkg.PkgId, pkg.Description, pkg.Active, pkg.Narrative, pkg.Repeatable FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" JOIN " + SNDSchema.NAME + "." + SNDSchema.PKGS_TABLE_NAME + " pkg");
         sql.append(" ON sp.PkgId = pkg.PkgId");

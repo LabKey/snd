@@ -222,7 +222,7 @@ public class SNDController extends SpringActionController
             {
                 // Get super packages
                 JSONArray jsonSubPackages = json.getJSONArray("subPackages");  // only first-level children (as super package IDs) should be here
-                Map<Integer, LinkedList<Integer>> superPkgIdToSortOrdersMap = new HashMap<>();  // uses lists because top-level super package IDs might show up multiple times
+                Map<Integer, LinkedList<SuperPackageInfo>> superPkgIdToExtraInfoMap = new HashMap<>();  // uses lists because top-level super package IDs might show up multiple times
                 List<Integer> uiSubSuperPkgIds = new ArrayList<>();
 
                 // create super package for root, if needed
@@ -245,6 +245,7 @@ public class SNDController extends SpringActionController
                     }
                     superPackage.setSuperPkgId(rootSuperPackageId);
                     superPackage.setSuperPkgPath(Integer.toString(rootSuperPackageId));
+                    // don't bother setting "Required" field on superPackage, since root will always be false (and the db default will set this)
                 }
                 else
                 {
@@ -265,17 +266,24 @@ public class SNDController extends SpringActionController
                         }
 
                         uiSubSuperPkgIds.add(superPkgId);
-                        LinkedList<Integer> sortOrders = superPkgIdToSortOrdersMap.get(superPkgId);
-                        if (sortOrders == null)
+                        LinkedList<SuperPackageInfo> superPackageInfos = superPkgIdToExtraInfoMap.get(superPkgId);
+                        SuperPackageInfo superPackageInfo = new SuperPackageInfo();
+                        if (superPackageInfos == null)
                         {
-                            sortOrders = new LinkedList<>();
-                            sortOrders.add(jsonSubPackage.getInt("sortOrder"));
-                            superPkgIdToSortOrdersMap.put(superPkgId, sortOrders);
+                            superPackageInfos = new LinkedList<>();
+                            superPkgIdToExtraInfoMap.put(superPkgId, superPackageInfos);
                         }
-                        else
+
+                        superPackageInfo.setSortOrder(jsonSubPackage.getInt("sortOrder"));
+                        Object required = jsonSubPackage.get("required");
+                        if(required == null)
                         {
-                            sortOrders.add(jsonSubPackage.getInt("sortOrder"));
+                            Object errorPkgId = jsonSubPackage.get("pkgId");
+                            errors.reject(ERROR_MSG, "Parameter 'required' is missing for subPackage with package ID " + errorPkgId + ".");
+                            break;
                         }
+                        superPackageInfo.setRequired((Boolean)required);
+                        superPackageInfos.add(superPackageInfo);
                     }
 
                     List<SuperPackage> topLevelSuperPkgs;
@@ -311,12 +319,9 @@ public class SNDController extends SpringActionController
                                     {
                                         if (superPkgIdToPkgIdMap.get(uiSubSuperPkgId).equals(topLevelSuperPkg.getPkgId()))
                                         {
-                                            // pick a sort order from the UI for this super package ID
-                                            LinkedList<Integer> sortOrders = superPkgIdToSortOrdersMap.get(uiSubSuperPkgId);
-                                            // set it in the top-level super package
-                                            topLevelSuperPkg.setSortOrder(sortOrders.getFirst());
-                                            // remove this sort order so we don't use it again (only really useful when there are multiples)
-                                            sortOrders.removeFirst();
+                                            // set additional info on top-level super package
+                                            setAdditionalSuperPackageInfo(superPkgIdToExtraInfoMap.get(uiSubSuperPkgId), topLevelSuperPkg);
+
                                             // use copy constructor to copy this top-level super package into a new child super package
                                             // NOTE: this does not create new grandchild super packages! even in the clone case, this is actually the desired behavior
                                             topLevelChildSuperPackages.add(new SuperPackage(topLevelSuperPkg));
@@ -343,12 +348,9 @@ public class SNDController extends SpringActionController
                                     {
                                         if (uiSuperPkgId.equals(topLevelSuperPkg.getSuperPkgId()))
                                         {
-                                            // pick a sort order from the UI for this super package ID
-                                            LinkedList<Integer> sortOrders = superPkgIdToSortOrdersMap.get(uiSuperPkgId);
-                                            // set it in the top-level super package
-                                            topLevelSuperPkg.setSortOrder(sortOrders.getFirst());
-                                            // remove this sort order so we don't use it again (only really useful when there are multiples)
-                                            sortOrders.removeFirst();
+                                            // set additional info on top-level super package
+                                            setAdditionalSuperPackageInfo(superPkgIdToExtraInfoMap.get(uiSuperPkgId), topLevelSuperPkg);
+
                                             // use copy constructor to copy this top-level super package into a new child super package
                                             // NOTE: this does not create new grandchild super packages! even in the clone case, this is actually the desired behavior
                                             topLevelChildSuperPackages.add(new SuperPackage(topLevelSuperPkg));
@@ -388,10 +390,8 @@ public class SNDController extends SpringActionController
                             {
                                 for (SuperPackage childSuperPackage : regularChildSuperPackages)
                                 {
-                                    // pick a sort order from the UI for this super package ID (there should only be one here in this case)
-                                    LinkedList<Integer> sortOrders = superPkgIdToSortOrdersMap.get(childSuperPackage.getSuperPkgId());
-                                    childSuperPackage.setSortOrder(sortOrders.getFirst());
-                                    // don't bother deleting a sort order from sortOrders after using it (like we did above), since repeats should not be possible
+                                    // set additional info on child super package (should only be one set in this case)
+                                    setAdditionalSuperPackageInfo(superPkgIdToExtraInfoMap.get(childSuperPackage.getSuperPkgId()), childSuperPackage);
                                 }
                             }
                         }
@@ -409,6 +409,47 @@ public class SNDController extends SpringActionController
             }
 
             return new ApiSimpleResponse();
+        }
+
+        private class SuperPackageInfo
+        {
+            int _sortOrder;
+            boolean _required;
+
+            SuperPackageInfo(){}
+
+            public int getSortOrder()
+            {
+                return _sortOrder;
+            }
+
+            public void setSortOrder(int sortOrder)
+            {
+                _sortOrder = sortOrder;
+            }
+
+            public boolean getRequired()
+            {
+                return _required;
+            }
+
+            public void setRequired(boolean required)
+            {
+                _required = required;
+            }
+        }
+
+        private void setAdditionalSuperPackageInfo (LinkedList<SuperPackageInfo> superPackageInfos, SuperPackage superPackage)
+        {
+            // pick one of the additional infos for this super package ID
+            SuperPackageInfo superPackageInfo = superPackageInfos.getFirst();
+
+            // set it in the super package
+            superPackage.setSortOrder(superPackageInfo.getSortOrder());
+            superPackage.setRequired(superPackageInfo.getRequired());
+
+            // remove this additional info so we don't use it again (only really useful when there are multiples)
+            superPackageInfos.removeFirst();
         }
     }
 
