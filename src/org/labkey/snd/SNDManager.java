@@ -2303,19 +2303,18 @@ public class SNDManager
         // Validate subpackages
         for (SuperPackage superPackage : pkg.getSubpackages())
         {
-//            found = false;
+            found = false;
             for (EventData data : eventData.getSubPackages())
             {
                 if (data.getSuperPkgId() == superPackage.getSuperPkgId())
                 {
-//                    found = true;
+                    found = true;
                     ensureValidPackage(event, data, superPackage.getPkg());
                 }
             }
 
-            //TODO: Change this to ensure all required subpackages are found. Use eventData.setException if required pkgs missing.
-//            if (!found && pkgContainsRequiredFields(superPackage.getPkg()))
-//                errors.addRowError(new ValidationException("Missing data for subpackage " + superPackage.getPkgId() + " which contains required fields"));
+            if (!found && pkgContainsRequiredFields(superPackage.getPkg()))
+                eventData.setException(event, new ValidationException("Missing data for subpackage " + superPackage.getPkgId() + " which contains required fields"));
         }
     }
 
