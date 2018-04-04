@@ -50,7 +50,7 @@ public class PackageDomainKind extends ExtendedTableDomainKind
     {
         try
         {
-            XarContext xc = getXarContext(schemaName, tableName, getDomainContainer(c), u);
+            XarContext xc = getXarContext(schemaName, tableName, c.getContainerFor(Container.DataType.domainDefinitions), u);
             return LsidUtils.resolveLsidFromTemplate(SimpleModule.DOMAIN_LSID_TEMPLATE, xc, DOMAIN_NAMESPACE_PREFIX_TEMPLATE);
         }
         catch (XarFormatException xfe)
