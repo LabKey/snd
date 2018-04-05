@@ -2313,24 +2313,9 @@ public class SNDManager
                 }
             }
 
-            if (!found && pkgContainsRequiredFields(superPackage.getPkg()))
-                eventData.setException(event, new ValidationException("Missing data for subpackage " + superPackage.getPkgId() + " which contains required fields"));
+            if (!found && superPackage.getRequired())
+                eventData.setException(event, new ValidationException("Missing data for subpackage " + superPackage.getPkgId() + " which is a required subpackage."));
         }
-    }
-
-    /**
-     * Helper function to check if a package contains required fields.  Used to determine if missing packages in event
-     * data has required fields.
-     */
-    private boolean pkgContainsRequiredFields(Package pkg)
-    {
-        for (GWTPropertyDescriptor gwtPropertyDescriptor : pkg.getAttributes())
-        {
-            if (gwtPropertyDescriptor.isRequired())
-                return true;
-        }
-
-        return false;
     }
 
     /**
