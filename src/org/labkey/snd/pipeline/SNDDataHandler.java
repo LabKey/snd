@@ -298,6 +298,7 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
         SuperPackage superPackage = new SuperPackage();
         superPackage.setSuperPkgId(superPackageType.getSuperPkgId());
         superPackage.setPkgId(superPackageType.getPkgId());
+        superPackage.setRequired(false);
 
         List<SuperPackage> children = new ArrayList<>();
         SuperPackage child;
@@ -309,6 +310,7 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
             child.setParentSuperPkgId(superPackage.getSuperPkgId());
             child.setSuperPkgId(childType.getSuperPkgId());
             child.setSortOrder(order++);
+            child.setRequired(false);
             children.add(child);
         }
         superPackage.setChildPackages(children);
