@@ -245,7 +245,6 @@ public class SNDController extends SpringActionController
                     }
                     superPackage.setSuperPkgId(rootSuperPackageId);
                     superPackage.setSuperPkgPath(Integer.toString(rootSuperPackageId));
-                    // don't bother setting "Required" field on superPackage, since root will always be false (and the db default will set this)
                 }
                 else
                 {

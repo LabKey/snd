@@ -298,7 +298,7 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
         SuperPackage superPackage = new SuperPackage();
         superPackage.setSuperPkgId(superPackageType.getSuperPkgId());
         superPackage.setPkgId(superPackageType.getPkgId());
-        superPackage.setRequired(false);
+        superPackage.setRequired(false);  // xml pathway does not currently ever include this field
 
         List<SuperPackage> children = new ArrayList<>();
         SuperPackage child;
@@ -310,7 +310,7 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
             child.setParentSuperPkgId(superPackage.getSuperPkgId());
             child.setSuperPkgId(childType.getSuperPkgId());
             child.setSortOrder(order++);
-            child.setRequired(false);
+            child.setRequired(false);  // xml pathway does not currently ever include this field
             children.add(child);
         }
         superPackage.setChildPackages(children);
