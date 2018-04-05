@@ -252,6 +252,8 @@ public class SNDController extends SpringActionController
                     rootSuperPackageId = superPackage.getSuperPkgId();
                 }
 
+                superPackage.setRequired(false); // Top level super packages required is always false
+
                 if (null != jsonSubPackages && jsonSubPackages.length() > 0)
                 {
                     for (int i = 0; i < jsonSubPackages.length(); i++)
