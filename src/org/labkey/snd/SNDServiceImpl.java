@@ -37,7 +37,7 @@ import org.labkey.api.query.QueryService;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.Event;
-import org.labkey.api.snd.EventDataTriggerFactory;
+import org.labkey.api.snd.EventTriggerFactory;
 import org.labkey.api.snd.EventNarrativeOption;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.PackageDomainKind;
@@ -252,7 +252,13 @@ public class SNDServiceImpl implements SNDService
         }
 
         // Not passing in full range URI also need to handle participantid
-        String type = pd.getRangeURI().split("#")[1];
+        String type = null;
+        if (pd.getRangeURI() != null)
+        {
+            String[] split = pd.getRangeURI().split("#");
+            if (split.length > 1)
+                type = pd.getRangeURI().split("#")[1];
+        }
         String conceptUri = pd.getConceptURI();
         if (conceptUri != null && conceptUri.contains(SNDManager.RANGE_PARTICIPANTID))
         {
@@ -305,7 +311,7 @@ public class SNDServiceImpl implements SNDService
     }
 
     @Override
-    public void registerEventTriggerFactory(Module module, EventDataTriggerFactory factory)
+    public void registerEventTriggerFactory(Module module, EventTriggerFactory factory)
     {
         SNDTriggerManager.get().registerEventTriggerFactory(module, factory);
     }

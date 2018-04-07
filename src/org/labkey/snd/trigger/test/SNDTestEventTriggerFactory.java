@@ -1,13 +1,13 @@
 package org.labkey.snd.trigger.test;
 
 import org.labkey.api.snd.EventDataTrigger;
-import org.labkey.api.snd.EventDataTriggerFactory;
+import org.labkey.api.snd.EventTriggerFactory;
 import org.labkey.snd.trigger.test.triggers.ChlorideBloodTestTrigger;
 import org.labkey.snd.trigger.test.triggers.ChlorideTestTrigger;
 import org.labkey.snd.trigger.test.triggers.ElectrolytesTestTrigger;
 import org.labkey.snd.trigger.test.triggers.SNDTestTrigger;
 
-public class SNDTestEventTriggerFactory implements EventDataTriggerFactory
+public class SNDTestEventTriggerFactory implements EventTriggerFactory
 {
 
     @Override

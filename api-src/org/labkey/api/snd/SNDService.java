@@ -57,7 +57,7 @@ public interface SNDService
     JSONObject convertPropertyDescriptorToJson(Container c, User u, GWTPropertyDescriptor pd, boolean resolveLookupValues);
     JSONArray lookupValuesToJson(Container c, User u, String schema, String query);
     Object normalizeLookupDefaultValue(User u, Container c, String schema, String table, Object display);
-    void registerEventTriggerFactory(Module module, EventDataTriggerFactory factory);
+    void registerEventTriggerFactory(Module module, EventTriggerFactory factory);
     void unregisterEventTriggerFactory(Module module);
     Lock getWriteLock();
     List<Map<String,Object>> getMutableData(DataIteratorBuilder rows, DataIteratorContext dataIteratorContext) throws IOException;

@@ -4,12 +4,11 @@ import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.labkey.api.data.Container;
 import org.labkey.api.module.Module;
-import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.Event;
 import org.labkey.api.snd.EventData;
 import org.labkey.api.snd.EventDataTrigger;
-import org.labkey.api.snd.EventDataTriggerFactory;
+import org.labkey.api.snd.EventTriggerFactory;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.snd.TriggerAction;
 import org.labkey.api.util.Pair;
@@ -32,13 +31,13 @@ public class SNDTriggerManager
         return _instance;
     }
 
-    private Map<Module, EventDataTriggerFactory> _eventTriggerFactories = new HashMap<>();
+    private Map<Module, EventTriggerFactory> _eventTriggerFactories = new HashMap<>();
 
     /**
      * Called from SNDService to allow event trigger factories to be registered.  These will be queried for category
      * triggers during insert and update events
      */
-    public void registerEventTriggerFactory(Module module, EventDataTriggerFactory factory)
+    public void registerEventTriggerFactory(Module module, EventTriggerFactory factory)
     {
         _eventTriggerFactories.put(module, factory);
     }
@@ -48,9 +47,9 @@ public class SNDTriggerManager
         _eventTriggerFactories.remove(module);
     }
 
-    private List<EventDataTriggerFactory> getTriggerFactories(Container c)
+    private List<EventTriggerFactory> getTriggerFactories(Container c)
     {
-        List<EventDataTriggerFactory> factories = new ArrayList<>();
+        List<EventTriggerFactory> factories = new ArrayList<>();
 
         for (Module module : _eventTriggerFactories.keySet())
         {
@@ -66,7 +65,7 @@ public class SNDTriggerManager
 
 
     private List<TriggerAction> getCategoryTriggers(@NotNull Event event, @NotNull EventData eventData, SuperPackage superPackage,
-                                                    @NotNull List<SuperPackage> topLevelSuperPackages, List<EventDataTriggerFactory> factories)
+                                                    @NotNull List<SuperPackage> topLevelSuperPackages, List<EventTriggerFactory> factories)
     {
         List<TriggerAction> triggers = new ArrayList<>();
         EventDataTrigger trigger;
@@ -75,7 +74,7 @@ public class SNDTriggerManager
         {
             for (String category : superPackage.getPkg().getCategories().values())
             {
-                for (EventDataTriggerFactory factory : factories)
+                for (EventTriggerFactory factory : factories)
                 {
                     trigger = factory.createTrigger(category);
                     if (trigger != null)
@@ -96,7 +95,7 @@ public class SNDTriggerManager
         }).collect(Collectors.toList());
     }
 
-    private List<TriggerAction> getTriggerActions(Event event, List<SuperPackage> superPackages, List<EventDataTriggerFactory> factories)
+    private List<TriggerAction> getTriggerActions(Event event, List<SuperPackage> superPackages, List<EventTriggerFactory> factories)
     {
         List<TriggerAction> triggerActions = new ArrayList<>();
         List<TriggerAction> pkgTriggers;
@@ -138,7 +137,7 @@ public class SNDTriggerManager
      */
     public void fireInsertTriggers(Container c, User u, Event event, List<SuperPackage> topLevelPkgs)
     {
-        List<EventDataTriggerFactory> factories = getTriggerFactories(c);
+        List<EventTriggerFactory> factories = getTriggerFactories(c);
 
         // Nothing to do
         if (factories.size() < 1)
@@ -158,7 +157,7 @@ public class SNDTriggerManager
      */
     public void fireUpdateTriggers(Container c, User u, Event event, List<SuperPackage> topLevelPkgs)
     {
-        List<EventDataTriggerFactory> factories = getTriggerFactories(c);
+        List<EventTriggerFactory> factories = getTriggerFactories(c);
 
         // Nothing to do
         if (factories.size() < 1)
