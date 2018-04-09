@@ -823,12 +823,15 @@
                         }
 
                         if (successJson != null) {
-                            if (successJson['success'] === false) {
+                            if (successJson.event["exception"]) {
                                 handleExpectedFailure(test.name, response);
+                            }
+                            else {
+                                finish('Test "' + test.name + '" unexpectedly succeeded.');
                             }
                         }
                         else {
-                            finish('Test "' + test.name + '" unexpectedly succeeded.');
+                            finish('Test "' + test.name + '" is missing json response');
                         }
                     };
                     testRequest.failure = function(response) { handleExpectedFailure.call(this, test.name, response) };

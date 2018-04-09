@@ -20,6 +20,12 @@
                     Description: 'ElectrolytesTestTrigger',
                     Active: true,
                     Comment: 'This is electrolytes test trigger validation.'
+                },
+                {
+                    CategoryId: 23,
+                    Description: 'CalciumTestTrigger',
+                    Active: true,
+                    Comment: 'This is electrolytes test trigger validation.'
                 }
             ],
             INIT_PACKAGES: [
@@ -208,7 +214,7 @@
                         active: true,
                         repeatable: true,
                         narrative: 'Calcium: {amount} {units} measured using {kit_type} test',
-                        categories: [],
+                        categories: [23],
                         subPackages: [],
                         attributes: [
                             {
@@ -396,6 +402,9 @@
                         startDate: "2018-01-27",
                         projectItems: [{
                             pkgId: 814,
+                            active: true
+                        },{
+                            pkgId: 816,
                             active: true
                         }
                         ]
@@ -647,156 +656,7 @@
                     ]
                 }
             }, {
-                name: 'Save Event: Out of range attribute exception',
-                jsonData: {
-                    eventId: 1800002,
-                    subjectId: 2,
-                    date: "2018-02-26T17:51:20",
-                    note: "Note for Save Event: Out of range attribute",
-                    projectIdRev: '61|0',
-                    eventData: [
-                        {
-                            superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
-                            attributes: [],
-                            subPackages: [{
-                                superPkgId: LABKEY.getSubpackageSuperPkgId(810, LABKEY.SND_PKG_CACHE['814']['subPackages']),
-                                attributes: [
-                                    {
-                                        propertyName: 'amount',
-                                        value: 200
-                                    }, {
-                                        propertyName: 'units',
-                                        value: "mEq/L"
-                                    }, {
-                                        propertyName: 'kit_type',
-                                        value: "Sodium Colorimetric Detection Kit"
-                                    }]
-
-                            }, {
-                                superPkgId: LABKEY.getSubpackageSuperPkgId(811, LABKEY.SND_PKG_CACHE['814']['subPackages']),
-                                attributes: [
-                                    {
-                                        propertyName: 'amount',
-                                        value: 200
-                                    }, {
-                                        propertyName: 'units',
-                                        value: "mEq/L"
-                                    }, {
-                                        propertyName: 'kit_type',
-                                        value: "Potassium Detection Kit"
-                                    }]
-
-                            }, {
-                                superPkgId: LABKEY.getSubpackageSuperPkgId(812, LABKEY.SND_PKG_CACHE['814']['subPackages']),
-                                attributes: [
-                                    {
-                                        propertyName: 'amount',
-                                        value: 300
-                                    }, {
-                                        propertyName: 'units',
-                                        value: "mEq/L"
-                                    }, {
-                                        propertyName: 'kit_type',
-                                        value: "Carbon Dioxide (CO2) Colorimetric Detection Kit"
-                                    }]
-
-                            }, {
-                                superPkgId: LABKEY.getSubpackageSuperPkgId(813, LABKEY.SND_PKG_CACHE['814']['subPackages']),
-                                attributes: [
-                                    {
-                                        propertyName: 'amount',
-                                        value: 112
-                                    }, {
-                                        propertyName: 'units',
-                                        value: "L"
-                                    }, {
-                                        propertyName: 'kit_type',
-                                        value: "Chloride Blood Detection Kit"
-                                    }]
-                            }]
-                        }
-                    ]
-                },
-                expectedFailure: '1 error found',
-                expected: {
-                    eventId: 1800002,
-                    subjectId: "2",
-                    date: "2018-02-26T17:51:20",
-                    note: "Note for Save Event: Out of range attribute",
-                    projectIdRev: '61|0',
-                    exception: {
-                        severity:"Error",
-                        message:"1 error found"
-                    },
-                    eventData: [
-                        {
-                            superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
-                            attributes: [],
-                            subPackages: [{
-                                superPkgId: LABKEY.getSubpackageSuperPkgId(810, LABKEY.SND_PKG_CACHE['814']['subPackages']),
-                                attributes: [
-                                    {
-                                        propertyName: 'amount',
-                                        value: "200"
-                                    }, {
-                                        propertyName: 'units',
-                                        value: "mEq/L"
-                                    }, {
-                                        propertyName: 'kit_type',
-                                        value: "Sodium Colorimetric Detection Kit"
-                                    }]
-
-                            }, {
-                                superPkgId: LABKEY.getSubpackageSuperPkgId(811, LABKEY.SND_PKG_CACHE['814']['subPackages']),
-                                attributes: [
-                                    {
-                                        propertyName: 'amount',
-                                        value: "200"
-                                    }, {
-                                        propertyName: 'units',
-                                        value: "mEq/L"
-                                    }, {
-                                        propertyName: 'kit_type',
-                                        value: "Potassium Detection Kit"
-                                    }]
-
-                            }, {
-                                superPkgId: LABKEY.getSubpackageSuperPkgId(812, LABKEY.SND_PKG_CACHE['814']['subPackages']),
-                                attributes: [
-                                    {
-                                        propertyName: 'amount',
-                                        value: "300"
-                                    }, {
-                                        propertyName: 'units',
-                                        value: "mEq/L"
-                                    }, {
-                                        propertyName: 'kit_type',
-                                        value: "Carbon Dioxide (CO2) Colorimetric Detection Kit"
-                                    }]
-
-                            }, {
-                                superPkgId: LABKEY.getSubpackageSuperPkgId(813, LABKEY.SND_PKG_CACHE['814']['subPackages']),
-                                attributes: [
-                                    {
-                                        propertyName: 'amount',
-                                        value: "112"
-                                    }, {
-                                        propertyName: 'units',
-                                        value: "L",
-                                        exception: {
-                                            severity: "Error",
-                                            message: 'units: Chloride Test Trigger: Invalid units (L). mEq/L or mg/dL required.'
-                                        }
-                                    }, {
-                                        propertyName: 'kit_type',
-                                        value: "Chloride Blood Detection Kit"
-                                    }]
-                            }]
-                        }
-                    ]
-                }
-            },{
-                name: 'Valid Save Event with Narrative generation',
+                name: 'Valid Save Event with Narrative generation and trigger order check',
                 getEventParams: {
                     getTextNarrative: true,
                     getHtmlNarrative: true,
@@ -971,12 +831,368 @@
                         }
                     ]
                 }
+            }, {
+                name: 'Failed Save Event: Trigger error on unit check',
+                jsonData: {
+                    eventId: 1800002,
+                    subjectId: 2,
+                    date: "2018-02-26T17:51:20",
+                    note: "Note for Save Event: Out of range attribute",
+                    projectIdRev: '61|0',
+                    eventData: [
+                        {
+                            superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
+                            attributes: [],
+                            subPackages: [{
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(810, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: 200
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "mEq/L"
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Sodium Colorimetric Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(811, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: 200
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "mEq/L"
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Potassium Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(812, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: 300
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "mEq/L"
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Carbon Dioxide (CO2) Colorimetric Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(813, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: 112
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "L"
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Chloride Blood Detection Kit"
+                                    }]
+                            }]
+                        }
+                    ]
+                },
+                expectedFailure: '1 error found',
+                expected: {
+                    eventId: 1800002,
+                    subjectId: "2",
+                    date: "2018-02-26T17:51:20",
+                    note: "Note for Save Event: Out of range attribute",
+                    projectIdRev: '61|0',
+                    exception: {
+                        severity: "Error",
+                        message: "1 error found"
+                    },
+                    eventData: [
+                        {
+                            superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
+                            attributes: [],
+                            subPackages: [{
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(810, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: "200"
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "mEq/L"
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Sodium Colorimetric Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(811, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: "200"
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "mEq/L"
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Potassium Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(812, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: "300"
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "mEq/L"
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Carbon Dioxide (CO2) Colorimetric Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(813, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: "112"
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "L",
+                                        exception: {
+                                            severity: "Error",
+                                            message: 'units: Chloride Test Trigger: Invalid units (L). mEq/L or mg/dL required.'
+                                        }
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Chloride Blood Detection Kit"
+                                    }]
+                            }]
+                        }
+                    ]
+                }
+            }, {
+                name: 'Failed Save Event: Out of range value',
+                jsonData: {
+                    eventId: 1800004,
+                    subjectId: 25,
+                    date: "2017-05-25T17:51:20",
+                    note: "Note for Save Event: Out of range attribute",
+                    projectIdRev: '61|0',
+                    eventData: [
+                        {
+                            superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
+                            attributes: [],
+                            subPackages: [{
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(810, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: 600
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "mEq/L"
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Sodium Colorimetric Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(811, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: 200
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "mEq/L"
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Potassium Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(812, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: 300
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "mEq/L"
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Carbon Dioxide (CO2) Colorimetric Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(813, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: 112
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "mEq/L"
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Chloride Blood Detection Kit"
+                                    }]
+                            }]
+                        }
+                    ]
+                },
+                expectedFailure: '1 error found',
+                expected: {
+                    eventId: 1800004,
+                    subjectId: "25",
+                    date: "2017-05-25T17:51:20",
+                    note: "Note for Save Event: Out of range attribute",
+                    projectIdRev: '61|0',
+                    exception: {
+                        severity:"Error",
+                        message:"1 error found"
+                    },
+                    eventData: [
+                        {
+                            superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
+                            attributes: [],
+                            subPackages: [{
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(810, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: "600",
+                                        exception: {
+                                            severity: "Error",
+                                            message: "Value '600.0' for field 'Amount' is invalid. "
+                                        }
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "mEq/L"
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Sodium Colorimetric Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(811, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: "200"
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "mEq/L"
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Potassium Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(812, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: "300"
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "mEq/L"
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Carbon Dioxide (CO2) Colorimetric Detection Kit"
+                                    }]
+
+                            }, {
+                                superPkgId: LABKEY.getSubpackageSuperPkgId(813, LABKEY.SND_PKG_CACHE['814']['subPackages']),
+                                attributes: [
+                                    {
+                                        propertyName: 'amount',
+                                        value: "112"
+                                    }, {
+                                        propertyName: 'units',
+                                        value: "mEq/L"
+                                    }, {
+                                        propertyName: 'kit_type',
+                                        value: "Chloride Blood Detection Kit"
+                                    }]
+                            }]
+                        }
+                    ]
+                }
+            }, {
+                name: 'Failed Save Event: Trigger warning',
+                jsonData: {
+                    eventId: 1800005,
+                    subjectId: 25,
+                    date: "2017-05-25T17:51:20",
+                    note: "Note for Save Event: Trigger warning",
+                    projectIdRev: '61|0',
+                    eventData: [
+                        {
+                            superPkgId: LABKEY.SND_PKG_CACHE['816']['superPkgId'],
+                            attributes: [{
+                                propertyName: 'amount',
+                                value: 401
+
+                            }, {
+                                propertyName: 'units',
+                                value: "mEq/L"
+                            }, {
+                                propertyName: 'kit_type',
+                                value: "Calcium Detection Kit"
+                            }],
+                            subPackages: []
+                        }
+                    ]
+                },
+                expectedFailure: '1 warning found',
+                expected: {
+                    eventId: 1800005,
+                    subjectId: "25",
+                    date: "2017-05-25T17:51:20",
+                    note: "Note for Save Event: Trigger warning",
+                    projectIdRev: '61|0',
+                    exception: {
+                        severity:"Warning",
+                        message:"1 warning found"
+                    },
+                    eventData: [
+                        {
+                            superPkgId: LABKEY.SND_PKG_CACHE['816']['superPkgId'],
+                            attributes: [{
+                                propertyName: 'amount',
+                                value: '401',
+                                exception: {
+                                    severity: "Warning",
+                                    message: "amount: Calcium amount over 400 mEq/L"
+                                }
+                            }, {
+                                propertyName: 'units',
+                                value: "mEq/L"
+                            }, {
+                                propertyName: 'kit_type',
+                                value: "Calcium Detection Kit"
+                            }],
+                            subPackages: []
+                        }
+                    ]
+                }
             }
         ];
     }
 
     var SNDTEST_CLEAN_DATA = {
-        EVENTIDS: [1800000, 1800001, 1800002, 1800003]
+        EVENTIDS: [1800000, 1800001, 1800002, 1800003, 1800004, 1800005]
     };
 
     LABKEY.getInitData = function () {

@@ -23,7 +23,7 @@ public class CalciumTestTrigger implements EventDataTrigger
         AttributeData unitsAttribute = TriggerHelper.getAttribute("units", eventData, pkg);
         String amountValue = amountAttribute.getValue();
         String unitsValue = unitsAttribute.getValue();
-        Double newAmountValue;
+        Double newAmountValue = Double.parseDouble(amountValue);
 
         if (unitsValue != null && amountValue != null)
         {
@@ -41,13 +41,18 @@ public class CalciumTestTrigger implements EventDataTrigger
                 TriggerHelper.setAttributeValue(eventData, TriggerHelper.getPropertyId("units", pkg), "units", "mEq/L");
             }
         }
+
+        if (newAmountValue > 400)
+        {
+            amountAttribute.setException(event, new ValidationException("Calcium amount over 400 mEq/L", "amount", ValidationException.SEVERITY.WARN));
+        }
+
     }
 
     @Override
     public void onInsert(Container c, User u, TriggerAction triggerAction, Map<String, Object> extraContext)
     {
         ensureAmountForUnits(triggerAction.getIncomingEvent(), triggerAction.getIncomingEventData(), triggerAction.getSuperPackage().getPkg());
-        TriggerHelper.ensureTriggerOrder(triggerAction.getIncomingEvent(), name, extraContext);
     }
 
     @Override
