@@ -14,6 +14,7 @@ const superPkgRequiredColumns = [
     'PkgId',
     'SuperPkgPath',
     'SortOrder',
+    'Required',
     'HasEvent',
     'HasProject',
     'IsPrimitive',

@@ -119,7 +119,7 @@ export const projects = handleActions({
         if (json.projectItems && Array.isArray(json.projectItems)) {
             subPackages = json.projectItems.map(function (item) {
                 return new AssignedPackageModel(item.superPkg.pkgId, item.superPkg.description, item.superPkg.narrative,
-                    item.superPkg.repeatable, item.superPkg.superPkgId, item.active, true, item.superPkg.sortOrder,
+                    item.superPkg.repeatable, item.superPkg.superPkgId, item.active, true, false, item.superPkg.sortOrder,
                     item.superPkg.subPackages);
             });
         }
@@ -256,7 +256,7 @@ export const projects = handleActions({
         const subPackages = projectWizardModel.data.subPackages.map(function(subPkg) {
             if (subpackage.superPkgId === subPkg.superPkgId) {
                 return new AssignedPackageModel(subPkg.pkgId, subPkg.description, subPkg.narrative, subPkg.repeatable,
-                    subPkg.superPkgId, !subpackage.active, subPkg.showActive, subPkg.sortOrder, subPkg.subPackages);
+                    subPkg.superPkgId, !subpackage.active, subPkg.showActive, false, subPkg.sortOrder, subPkg.subPackages);
             }
             else {
                 return subPkg;

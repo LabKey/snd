@@ -140,7 +140,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps, ProjectFo
         }
 
         // create a new AssignedPackageModel object as the SuperPkgId needs to be undefined as it will be set on save/submit
-        let newAssignedSuperPackage = new AssignedPackageModel(pkgId, description, narrative, repeatable, superPkgId, true, true,
+        let newAssignedSuperPackage = new AssignedPackageModel(pkgId, description, narrative, repeatable, superPkgId, true, true, false,
             model.subPackages.length);
         newAssignedSuperPackage.loadingSubpackages = true;
 
@@ -315,9 +315,11 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps, ProjectFo
                         handleWarning={handleWarning}
                         handleAssignedPackageAdd={this.handleAssignedPackageAdd}
                         handleAssignedPackageRemove={this.handleAssignedPackageRemove}
+                        handleAssignedPackageRequired={null}
                         handleAssignedPackageReorder={null}
                         handleFullNarrative={handleFullNarrative}
                         showActive={true}
+                        showRequired={false}
                     />
 
                     <div className="row clearfix">

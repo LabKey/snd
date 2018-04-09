@@ -26,6 +26,7 @@ interface SuperPackageRowProps {
     handleRowClick?: (model: AssignedPackageModel) => any
     menuActionName?: string
     handleMenuAction?: (model: AssignedPackageModel) => any
+    handleAssignedPackageRequired?: (model: AssignedPackageModel) => any
     handleFullNarrative?: (model: AssignedPackageModel) => void
     handleToggleActiveAction?: (subpackage: AssignedPackageModel) => void
     treeLevel?: number
@@ -33,6 +34,8 @@ interface SuperPackageRowProps {
     treeArrLength?: number
     treeCollapsed?: boolean
     showActive?: boolean
+    showRequired?: boolean
+    isReadOnly?: boolean
     parentActive?: boolean
     view?: VIEW_TYPES
 }
@@ -85,19 +88,19 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
 
     render() {
         const {
-            model, selected, treeLevel, treeArrIndex, treeArrLength, treeCollapsed, showActive, handleToggleActiveAction,
-            menuActionName, handleMenuAction, handleMenuReorderAction, handleFullNarrative, view, parentActive
+            model, selected, treeLevel, treeArrIndex, treeArrLength, treeCollapsed, showActive, handleToggleActiveAction, isReadOnly,
+            menuActionName, handleMenuAction, handleMenuReorderAction, handleFullNarrative, handleAssignedPackageRequired, parentActive, showRequired
         } = this.props;
         const { isHover, isDropup } = this.state;
-        const isReadyOnly = view == VIEW_TYPES.PACKAGE_VIEW;
         const treeLevelVal = treeLevel == undefined ? -1 : treeLevel;
         const treeCollapsedVal = treeCollapsed != undefined && treeCollapsed;
         const indentPx = treeLevel == undefined ? 0 : treeLevelVal * 15;
 
         // boolean to indicate if the reorder up/down menu items should be shown
-        const showMoveUp = !isReadyOnly && handleMenuReorderAction && treeArrIndex != undefined && treeArrIndex > 0;
-        const showMoveDown = !isReadyOnly && handleMenuReorderAction && treeArrIndex != undefined && treeArrLength != undefined && treeArrIndex < (treeArrLength - 1);
-        const showActiveToggle = !isReadyOnly && handleToggleActiveAction && treeLevelVal === 0 && showActive;
+        const showMoveUp = !isReadOnly && handleMenuReorderAction && treeArrIndex != undefined && treeArrIndex > 0;
+        const showMoveDown = !isReadOnly && handleMenuReorderAction && treeArrIndex != undefined && treeArrLength != undefined && treeArrIndex < (treeArrLength - 1);
+        const showActiveToggle = !isReadOnly && handleToggleActiveAction && treeLevelVal === 0 && showActive;
+        const showRequiredToggle = !isReadOnly && handleAssignedPackageRequired && treeLevelVal === 0 && showRequired;
 
         let notActiveDivStyle = {
             textDecoration: 'line-through'
@@ -122,9 +125,10 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
                                     : <i className="icon-tree-toggle fa fa-caret-right">&nbsp;</i>
                         : null
                     }
-                    {/*Display package id and name. If in project view, cross out inactive packages and their descendants*/}
-                    <span style={(showActiveToggle && !model.active) || (showActive && !parentActive)
-                        ? notActiveDivStyle : null}>{[model.pkgId, model.description].join(' - ')}&nbsp;</span>
+                    {/*Display package id and name. If in project view, cross out inactive subpackages and their descendants. If in package
+                    view, bold the subpackages that are required.*/}
+                    <span style={(showActiveToggle && !model.active) || (showActive && !parentActive) ? notActiveDivStyle :
+                        (showRequired && model.required) ? {fontWeight:'bold'} : null}>{[model.pkgId, model.description].join(' - ')}&nbsp;</span>
                 </div>
                 <div className="superpackage-row-dropdown" style={{display: isHover ? 'inline-block' : 'none'}}>
                     <DropdownButton id="superpackage-actions" title="" pullRight dropup={isDropup}
@@ -133,8 +137,12 @@ export class SuperPackageRow extends React.Component<SuperPackageRowProps, Super
                             ? <MenuItem onClick={() => handleToggleActiveAction(model)}>{model.active?'Deactivate':'Activate'}</MenuItem>
                             : null
                         }
-                        {!isReadyOnly && menuActionName
+                        {!isReadOnly && menuActionName
                             ? <MenuItem onClick={() => handleMenuAction(model)}>{menuActionName}</MenuItem>
+                            : null
+                        }
+                        {showRequiredToggle
+                            ? <MenuItem onClick={() => handleAssignedPackageRequired(model)}>{model.required?'Make Optional':'Make Required'}</MenuItem>
                             : null
                         }
                         {showMoveUp

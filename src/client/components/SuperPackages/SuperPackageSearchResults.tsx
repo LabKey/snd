@@ -72,7 +72,8 @@ export class SuperPackageSearchResults extends React.Component<SuperPackageSearc
                                 data[d].Repeatable.value,
                                 data[d].SuperPkgId.value,
                                 true,
-                                true
+                                true,
+                                false
                             );
 
                             return (

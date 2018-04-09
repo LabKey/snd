@@ -145,7 +145,6 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
 
     handleFieldChange(name, value) {
         const { dispatch, model } = this.props;
-
         dispatch(model.saveField(name, value));
     }
 

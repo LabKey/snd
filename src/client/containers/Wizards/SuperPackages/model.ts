@@ -4,12 +4,14 @@ interface SubPackageSubmissionModelProps {
     active: boolean;
     superPkgId: number;
     sortOrder: number;
+    required: boolean;
 }
 
 export class SubPackageSubmissionModel implements SubPackageSubmissionModelProps {
     active: boolean = undefined;
     superPkgId: number = undefined;
     sortOrder: number = undefined;
+    required: boolean = undefined;
 
     constructor(props: Partial<SubPackageSubmissionModel>) {
         if (props) {

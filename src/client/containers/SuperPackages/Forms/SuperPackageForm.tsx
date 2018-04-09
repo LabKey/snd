@@ -18,11 +18,13 @@ interface SuperPackageFormOwnProps {
     handleFieldChange?: (name: string, value: any) => void
     handleAssignedPackageAdd: (assignedPackage: AssignedPackageModel) => void
     handleAssignedPackageRemove: (assignedPackage: AssignedPackageModel) => any
+    handleAssignedPackageRequired: (assignedPackage: AssignedPackageModel) => any
     handleAssignedPackageReorder: (assignedPackage: AssignedPackageModel, moveUp: boolean) => any
     handleFullNarrative?: (model: AssignedPackageModel, shouldQuery: boolean) => void
     handleWarning?: (warning?: string) => void
     model?: ProjectModel | PackageModel
     showActive: boolean
+    showRequired: boolean
     view?: VIEW_TYPES
 }
 
@@ -74,7 +76,7 @@ export class SuperPackageFormImpl extends React.Component<SuperPackageFormProps,
     render()
     {
         const {model, view, handleAssignedPackageAdd, handleAssignedPackageRemove, handleAssignedPackageReorder,
-            handleFullNarrative, showActive} = this.props;
+            handleFullNarrative, handleAssignedPackageRequired, showActive, showRequired} = this.props;
         const {selectedSubPackage} = this.state;
         const isReadyOnly = (view === VIEW_TYPES.PROJECT_VIEW || view === VIEW_TYPES.PACKAGE_VIEW
             || (view === VIEW_TYPES.PACKAGE_EDIT && model.hasEvent));
@@ -111,8 +113,11 @@ export class SuperPackageFormImpl extends React.Component<SuperPackageFormProps,
                             handleAssignedPackageReorder={handleAssignedPackageReorder}
                             handleRowClick={this.handleAssignedPackageClick}
                             handleToggleActiveAction={this.handleToggleActiveAction}
+                            handleAssignedPackageRequired={handleAssignedPackageRequired}
                             handleFullNarrative={handleFullNarrative}
                             showActive={showActive}
+                            showRequired={showRequired}
+                            isReadOnly={isReadyOnly}
                             view={view}/>
                     </div>
                     <div className="row clearfix col-xs-12 margin-top">

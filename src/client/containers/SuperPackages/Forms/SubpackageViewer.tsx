@@ -27,11 +27,14 @@ interface SubpackageViewerOwnProps {
     subPackages: Array<AssignedPackageModel>
     selectedSubPackage: AssignedPackageModel
     handleAssignedPackageRemove: (assignedPackage: AssignedPackageModel) => any
+    handleAssignedPackageRequired: (assignedPackage: AssignedPackageModel) => any
     handleAssignedPackageReorder: (assignedPackage: AssignedPackageModel, moveUp: boolean) => any
     handleToggleActiveAction: (assignedPackage: AssignedPackageModel) => any
     handleRowClick: (assignedPackage: AssignedPackageModel) => any
     handleFullNarrative: (model: AssignedPackageModel, shouldQuery: boolean) => void
     showActive: boolean
+    showRequired: boolean
+    isReadOnly: boolean
     view?: VIEW_TYPES
 }
 
@@ -89,8 +92,8 @@ export class SubpackageViewerImpl extends React.Component<SubpackageViewerProps,
     }
 
     renderAssignedPackageRow(assignedPackage: AssignedPackageModel, key: string, treeLevel: number, arrIndex: number, arrLength: number, parentActive: boolean) {
-        const { selectedSubPackage, handleAssignedPackageRemove, handleAssignedPackageReorder, handleRowClick,
-            handleToggleActiveAction, view, showActive } = this.props;
+        const { selectedSubPackage, handleAssignedPackageRemove, handleAssignedPackageReorder, handleRowClick, handleAssignedPackageRequired,
+            handleToggleActiveAction, view, showActive, showRequired, isReadOnly } = this.props;
         const { collapsed } = this.state;
         const idProp = selectedSubPackage != undefined && selectedSubPackage.superPkgId ? 'superPkgId' : 'altId';
         const treeCollapsed = collapsed[this.getModelId(assignedPackage)] || false;
@@ -103,6 +106,7 @@ export class SubpackageViewerImpl extends React.Component<SubpackageViewerProps,
                     selected={selectedSubPackage != undefined && assignedPackage[idProp] == selectedSubPackage[idProp]}
                     menuActionName={isTopLevelSubpackage ? "Remove" : null}
                     handleMenuAction={isTopLevelSubpackage ? handleAssignedPackageRemove : null}
+                    handleAssignedPackageRequired={isTopLevelSubpackage ? handleAssignedPackageRequired : null}
                     handleMenuReorderAction={isTopLevelSubpackage ? handleAssignedPackageReorder : null}
                     handleIconClick={this.handleIconClick}
                     handleRowClick={handleRowClick}
@@ -115,6 +119,8 @@ export class SubpackageViewerImpl extends React.Component<SubpackageViewerProps,
                     view={view}
                     parentActive={parentActive}
                     showActive={showActive}
+                    showRequired={showRequired}
+                    isReadOnly={isReadOnly}
                 />
 
                 {!treeCollapsed && Array.isArray(assignedPackage.subPackages) && assignedPackage.subPackages.length > 0

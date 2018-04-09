@@ -97,6 +97,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         this.handleNarrativeChange = this.handleNarrativeChange.bind(this);
         this.handleAssignedPackageAdd = this.handleAssignedPackageAdd.bind(this);
         this.handleAssignedPackageRemove = this.handleAssignedPackageRemove.bind(this);
+        this.handleAssignedPackageRequired = this.handleAssignedPackageRequired.bind(this);
         this.handleAssignedPackageReorder = this.handleAssignedPackageReorder.bind(this);
         this.submit = this.submit.bind(this);
     }
@@ -161,7 +162,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         }
 
         // create a new AssignedPackageModel object as the SuperPkgId needs to be undefined as it will be set on save/submit
-        let newAssignedPackage = new AssignedPackageModel(pkgId, description, narrative, repeatable, superPkgId, false, false, model.subPackages.length);
+        let newAssignedPackage = new AssignedPackageModel(pkgId, description, narrative, repeatable, superPkgId, false, false, false, model.subPackages.length);
         newAssignedPackage.loadingSubpackages = true;
 
         handleFieldChange('subPackages', model.subPackages.concat([newAssignedPackage]));
@@ -172,6 +173,11 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
     handleAssignedPackageRemove(assignedPackage: AssignedPackageModel) {
         const { handleFieldChange } = this.props;
         handleFieldChange('subPackages', this.getNonmatchingSubpackages(assignedPackage));
+    }
+
+    handleAssignedPackageRequired(assignedPackage: AssignedPackageModel) {
+        const { handleFieldChange } = this.props;
+        handleFieldChange('subPackages', this.getUpdatedRequiredSubpackages(assignedPackage));
     }
 
     handleAssignedPackageReorder(assignedPackage: AssignedPackageModel, moveUp: boolean) {
@@ -187,6 +193,24 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         newSubPackageArr.splice(index, 0, assignedPackage);
 
         handleFieldChange('subPackages', newSubPackageArr);
+    }
+
+    getUpdatedRequiredSubpackages(assignedPackage: AssignedPackageModel) {
+        const { model } = this.props;
+        let updatedSubpackages = [];
+
+        model.subPackages.map((subPackage) => {
+            let newSubPackage = new AssignedPackageModel(subPackage.pkgId, subPackage.description, subPackage.narrative,
+                subPackage.repeatable, subPackage.superPkgId, subPackage.active, subPackage.showActive, subPackage.required,
+                subPackage.sortOrder, subPackage.subPackages);
+            if (subPackage.superPkgId === assignedPackage.superPkgId) {
+                newSubPackage.required = !newSubPackage.required;
+            }
+            updatedSubpackages.push(newSubPackage);
+            return subPackage;
+        });
+
+        return updatedSubpackages;
     }
 
     getSubpackageIndexOf(assignedPackage: AssignedPackageModel) {
@@ -384,8 +408,10 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                         handleAssignedPackageAdd={this.handleAssignedPackageAdd}
                         handleAssignedPackageRemove={this.handleAssignedPackageRemove}
                         handleAssignedPackageReorder={this.handleAssignedPackageReorder}
+                        handleAssignedPackageRequired={this.handleAssignedPackageRequired}
                         handleFullNarrative={handleFullNarrative}
                         showActive={false}
+                        showRequired={true}
                     />
 
                     <div className="row clearfix">

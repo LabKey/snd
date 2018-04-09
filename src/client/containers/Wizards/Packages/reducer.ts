@@ -439,7 +439,7 @@ function isFormValid(data: PackageModel, initialData: PackageModel, view: VIEW_T
             data.attributes.some((attribute, i) => {
                 return Object.keys(attribute).findIndex((a) => {
                     if (initialData.attributes[i]) {
-                        if (attribute[a] || initialData.attributes[i][a]) {
+                        if (attribute[a] != 'undefined' || initialData.attributes[i][a] != 'undefined') {
                             return attribute[a] !== initialData.attributes[i][a];
                         }
                         return false;
@@ -448,7 +448,18 @@ function isFormValid(data: PackageModel, initialData: PackageModel, view: VIEW_T
                 }) !== -1;
             }) || // check list of initial and current subpackages, if changed, form is valid to save
             data.subPackages.map(p => p.pkgId).sort().join('') !==
-            initialData.subPackages.map(p => p.pkgId).sort().join('')
+            initialData.subPackages.map(p => p.pkgId).sort().join('') ||
+            data.subPackages.some((subpackage, i) => {
+                return Object.keys(subpackage).findIndex((a) => {
+                    if (initialData.subPackages[i]) {
+                        if (subpackage[a] != 'undefined' || initialData.subPackages[i][a] != 'undefined') {
+                            return subpackage[a] !== initialData.subPackages[i][a];
+                        }
+                        return false;
+                    }
+                    return false;
+                }) !== -1;
+            })
         )
     }
 

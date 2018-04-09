@@ -27,6 +27,7 @@ export function queryPackageFullNarrative(id: number, model: PackageWizardModel 
                 undefined,
                 true,
                 true,
+                false,
                 undefined,
                 packageModel.subPackages
             );
@@ -50,6 +51,7 @@ export function formatSubPackages(subPackages: Array<AssignedPackageModel>): Arr
             return new SubPackageSubmissionModel({
                 sortOrder: i,
                 active: s.active,
+                required: s.required,
                 superPkgId: s.superPkgId
             });
         });

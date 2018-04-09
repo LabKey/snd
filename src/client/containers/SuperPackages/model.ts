@@ -6,6 +6,7 @@ interface AssignedPackageModelProps {
     pkgId: number
     repeatable: boolean
     sortOrder: number
+    required: boolean
     subPackages: Array<AssignedPackageModel>
     superPkgId: number
     active: boolean
@@ -20,6 +21,7 @@ export class AssignedPackageModel implements AssignedPackageModelProps {
     pkgId: number = undefined;
     repeatable: boolean = undefined;
     sortOrder: number = undefined;
+    required: boolean;
     subPackages: Array<AssignedPackageModel> = [];
     superPkgId: number = undefined;
     active: boolean;
@@ -32,7 +34,7 @@ export class AssignedPackageModel implements AssignedPackageModelProps {
     loadingSubpackages: boolean = undefined;
 
     constructor(pkgId: number, description: string, narrative: string, repeatable: boolean, superPkgId: number,
-                active: boolean, showActive: boolean, sortOrder?: number, subPackages?: Array<AssignedPackageModel>)
+                active: boolean, showActive: boolean, required: boolean, sortOrder?: number, subPackages?: Array<AssignedPackageModel>)
     {
         this.pkgId = pkgId;
         this.description = description;
@@ -42,6 +44,7 @@ export class AssignedPackageModel implements AssignedPackageModelProps {
         this.superPkgId = superPkgId;
         this.active = active;
         this.showActive = showActive;
+        this.required = required;
         if (Array.isArray(subPackages))
             this.subPackages = subPackages;
     }
