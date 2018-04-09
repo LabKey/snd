@@ -406,6 +406,9 @@
                         },{
                             pkgId: 816,
                             active: true
+                        },{
+                            pkgId: 818,
+                            active: true
                         }
                         ]
                     }
@@ -1184,6 +1187,57 @@
                                 value: "Calcium Detection Kit"
                             }],
                             subPackages: []
+                        }
+                    ]
+                }
+            }, {
+                name: 'Failed Save Event: Missing attribute. EventData error',
+                jsonData: {
+                    eventId: 1800006,
+                    subjectId: 25,
+                    date: "2017-05-25T17:51:20",
+                    note: "Note for Save Event: Missing attribute. EventData warning",
+                    projectIdRev: '61|0',
+                    eventData: [
+                        {
+                            superPkgId: LABKEY.SND_PKG_CACHE['818']['superPkgId'],
+                            attributes: [{
+                                propertyName: 'units',
+                                value: "mEq/L"
+                            }, {
+                                propertyName: 'kit_type',
+                                value: "Creatinine Detection Kit"
+                            }],
+                            subPackages: []
+                        }
+                    ]
+                },
+                expectedFailure: '1 error found',
+                expected: {
+                    eventId: 1800006,
+                    subjectId: "25",
+                    date: "2017-05-25T17:51:20",
+                    note: "Note for Save Event: Missing attribute. EventData warning",
+                    projectIdRev: '61|0',
+                    exception: {
+                        severity:"Error",
+                        message:"1 error found"
+                    },
+                    eventData: [
+                        {
+                            superPkgId: LABKEY.SND_PKG_CACHE['818']['superPkgId'],
+                            attributes: [{
+                                propertyName: 'units',
+                                value: "mEq/L"
+                            }, {
+                                propertyName: 'kit_type',
+                                value: "Creatinine Detection Kit"
+                            }],
+                            subPackages: [],
+                            exception: {
+                                severity: "Error",
+                                message: "amount: Required field 'amount' in package 818 not found."
+                            }
                         }
                     ]
                 }
