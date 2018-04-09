@@ -1241,12 +1241,70 @@
                         }
                     ]
                 }
+            }, {
+                name: 'Failed Save Event: Trigger info',
+                jsonData: {
+                    eventId: 1800007,
+                    subjectId: 25,
+                    date: "2017-05-25T17:51:20",
+                    note: "Note for Save Event: Trigger info",
+                    projectIdRev: '61|0',
+                    eventData: [
+                        {
+                            superPkgId: LABKEY.SND_PKG_CACHE['816']['superPkgId'],
+                            attributes: [{
+                                propertyName: 'amount',
+                                value: 99
+
+                            }, {
+                                propertyName: 'units',
+                                value: "mEq/L"
+                            }, {
+                                propertyName: 'kit_type',
+                                value: "Calcium Detection Kit"
+                            }],
+                            subPackages: []
+                        }
+                    ]
+                },
+                expectedFailure: '1 info found',
+                expected: {
+                    eventId: 1800007,
+                    subjectId: "25",
+                    date: "2017-05-25T17:51:20",
+                    note: "Note for Save Event: Trigger info",
+                    projectIdRev: '61|0',
+                    exception: {
+                        severity:"Info",
+                        message:"1 info found"
+                    },
+                    eventData: [
+                        {
+                            superPkgId: LABKEY.SND_PKG_CACHE['816']['superPkgId'],
+                            attributes: [{
+                                propertyName: 'amount',
+                                value: '99',
+                                exception: {
+                                    severity: "Info",
+                                    message: "amount: Calcium amount less than 100 mEq/L. Verify kit."
+                                }
+                            }, {
+                                propertyName: 'units',
+                                value: "mEq/L"
+                            }, {
+                                propertyName: 'kit_type',
+                                value: "Calcium Detection Kit"
+                            }],
+                            subPackages: []
+                        }
+                    ]
+                }
             }
         ];
     }
 
     var SNDTEST_CLEAN_DATA = {
-        EVENTIDS: [1800000, 1800001, 1800002, 1800003, 1800004, 1800005]
+        EVENTIDS: [1800000, 1800001, 1800002, 1800003, 1800004, 1800005, 1800006, 1800007]
     };
 
     LABKEY.getInitData = function () {

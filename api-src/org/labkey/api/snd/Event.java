@@ -328,8 +328,10 @@ public class Event
         {
             StringBuilder msg = new StringBuilder();
             Integer count = _exceptionCount.get(ValidationException.SEVERITY.ERROR);
+            ValidationException.SEVERITY severity = null;
             if (count != null && count > 0)
             {
+                severity = ValidationException.SEVERITY.ERROR;
                 msg.append(count + " error");
                 if (count > 1)
                     msg.append("s");
@@ -338,10 +340,27 @@ public class Event
             count = _exceptionCount.get(ValidationException.SEVERITY.WARN);
             if (count != null && count > 0)
             {
+                if (severity == null)
+                    severity = ValidationException.SEVERITY.WARN;
+
                 if (msg.length() > 0)
                     msg.append(", ");
 
                 msg.append(count + " warning");
+                if (count > 1)
+                    msg.append("s");
+            }
+
+            count = _exceptionCount.get(ValidationException.SEVERITY.INFO);
+            if (count != null && count > 0)
+            {
+                if (severity == null)
+                    severity = ValidationException.SEVERITY.INFO;
+
+                if (msg.length() > 0)
+                    msg.append(", ");
+
+                msg.append(count + " info");
                 if (count > 1)
                     msg.append("s");
             }
@@ -352,9 +371,7 @@ public class Event
 
                 JSONObject jsonException = new JSONObject();
                 jsonException.put(Event.SND_EXCEPTION_MSG_JSON, msg.toString());
-                jsonException.put(Event.SND_EXCEPTION_SEVERITY_JSON,
-                        _exceptionCount.get(ValidationException.SEVERITY.ERROR) != null && _exceptionCount.get(ValidationException.SEVERITY.ERROR) > 0
-                                ? ValidationException.SEVERITY.ERROR : ValidationException.SEVERITY.WARN);
+                jsonException.put(Event.SND_EXCEPTION_SEVERITY_JSON, severity);
                 json.put(Event.SND_EXCEPTION_JSON, jsonException);
             }
         }

@@ -47,6 +47,11 @@ public class CalciumTestTrigger implements EventDataTrigger
             amountAttribute.setException(event, new ValidationException("Calcium amount over 400 mEq/L", "amount", ValidationException.SEVERITY.WARN));
         }
 
+        if (newAmountValue < 100)
+        {
+            amountAttribute.setException(event, new ValidationException("Calcium amount less than 100 mEq/L. Verify kit.", "amount", ValidationException.SEVERITY.INFO));
+        }
+
     }
 
     @Override
