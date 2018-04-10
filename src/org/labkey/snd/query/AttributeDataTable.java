@@ -215,20 +215,13 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
                                          boolean isInsertOnly, boolean isUpdate, Logger logger)
         {
             logger.info("Begin updating exp.ObjectProperty.");
-            final int OBJCACHE_MAX = 100;
-            LinkedHashMap<String, OntologyObject> objectCache = new LinkedHashMap<String, OntologyObject>(OBJCACHE_MAX)
-            {
-                protected boolean removeEldestEntry(Map.Entry eldest) {
-                    return size() >= OBJCACHE_MAX;
-                }
-            };
 
-            int deleted = 0;
             int inserted = 0;
 
             String prevUri = null;
             List<ObjectProperty> prevObjProps = new ArrayList<>();
             Integer pkgId = null;
+            boolean found = false;
 
             for(Map<String, Object> row : data)
             {
@@ -257,8 +250,10 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
                 {
                     for (GWTPropertyDescriptor pd : packageAttributes)
                     {
+                        found = false;
                         if (null != pd && pd.getName().equals(key))
                         {
+                            found = true;
                             Object value = null;
                             if (floatValue != null)
                                 value = floatValue;
@@ -271,20 +266,12 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
                             oprop.setTypeTag(typeTag);
                             oprop.setPropertyId(pd.getPropertyId());
 
-                            // Check in cache before querying db for object
-                            OntologyObject ontologyObject = objectCache.get(objectURI);
-                            if (ontologyObject == null)
-                            {
-                                ontologyObject = OntologyManager.getOntologyObject(container, objectURI);
-                                objectCache.put(objectURI, ontologyObject);
-                            }
-
+                            OntologyObject ontologyObject = OntologyManager.getOntologyObject(container, objectURI);
                             if (null != ontologyObject)
                             {
                                 if (isUpdate)
                                 {
-                                    OntologyManager.deleteProperty(objectURI, pd.getPropertyURI(), container, container);
-                                    deleted++;
+                                    OntologyManager.deleteProperty(ontologyObject, OntologyManager.getPropertyDescriptor(pd.getPropertyURI(), container), false);
                                 }
                             }
 
@@ -302,6 +289,14 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
                             break;
                         }
                     }
+                    if (!found)
+                    {
+                        logger.info("Attribute metadata not found for key: '" + key + "' in package: " + pkgId);
+                    }
+                }
+                else
+                {
+                    logger.info("Package metadata not found for package id: " + pkgId);
                 }
             }
 
@@ -310,7 +305,8 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
                 inserted = insertObject(container, prevUri, prevObjProps, pkgId, inserted, logger);
             }
 
-            logger.info("End updating exp.ObjectProperty. Deleted " + deleted + " rows. Inserted/Updated " + inserted + " rows.");
+            OntologyManager.clearPropertyCache();
+            logger.info("End updating exp.ObjectProperty. Inserted/Updated " + inserted + " rows.");
 
             return data;
         }
