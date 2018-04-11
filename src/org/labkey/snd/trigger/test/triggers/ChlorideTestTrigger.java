@@ -6,14 +6,14 @@ import org.labkey.api.security.User;
 import org.labkey.api.snd.AttributeData;
 import org.labkey.api.snd.Event;
 import org.labkey.api.snd.EventData;
-import org.labkey.api.snd.EventDataTrigger;
+import org.labkey.api.snd.EventTrigger;
 import org.labkey.api.snd.TriggerAction;
 import org.labkey.api.snd.Package;
 
 import java.util.Map;
 
 
-public class ChlorideTestTrigger implements EventDataTrigger
+public class ChlorideTestTrigger implements EventTrigger
 {
     final String name = "Chloride Test Trigger";
     final String msgPrefix = name + ": ";
@@ -47,8 +47,8 @@ public class ChlorideTestTrigger implements EventDataTrigger
     @Override
     public void onInsert(Container c, User u, TriggerAction triggerAction, Map<String, Object> extraContext)
     {
-        ensureAmountForUnits(triggerAction.getIncomingEvent(), triggerAction.getIncomingEventData(), triggerAction.getSuperPackage().getPkg());
-        TriggerHelper.ensureTriggerOrder(triggerAction.getIncomingEvent(), name, extraContext);
+        ensureAmountForUnits(triggerAction.getEvent(), triggerAction.getEventData(), triggerAction.getSuperPackage().getPkg());
+        TriggerHelper.ensureTriggerOrder(triggerAction.getEvent(), name, extraContext);
     }
 
     @Override

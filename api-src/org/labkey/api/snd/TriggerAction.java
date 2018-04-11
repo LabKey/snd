@@ -7,13 +7,13 @@ import java.util.List;
 
 public class TriggerAction
 {
-    EventDataTrigger _trigger;
+    EventTrigger _trigger;
     Event _event;
     EventData _eventData;
     List<SuperPackage> _topLevelPkgs;
     SuperPackage _superPackage;
 
-    public TriggerAction(@NotNull EventDataTrigger trigger, @NotNull Event event, @NotNull EventData eventData,
+    public TriggerAction(@NotNull EventTrigger trigger, @NotNull Event event, @NotNull EventData eventData,
                          @NotNull SuperPackage superPackage, @NotNull List<SuperPackage> topLevelPkgs)
     {
         _trigger = trigger;
@@ -23,17 +23,17 @@ public class TriggerAction
         _superPackage = superPackage;
     }
 
-    public EventDataTrigger getTrigger()
+    public EventTrigger getTrigger()
     {
         return _trigger;
     }
 
-    public void setTrigger(EventDataTrigger trigger)
+    public void setTrigger(EventTrigger trigger)
     {
         _trigger = trigger;
     }
 
-    public Event getIncomingEvent()
+    public Event getEvent()
     {
         return _event;
     }
@@ -43,7 +43,7 @@ public class TriggerAction
         _event = event;
     }
 
-    public EventData getIncomingEventData()
+    public EventData getEventData()
     {
         return _eventData;
     }

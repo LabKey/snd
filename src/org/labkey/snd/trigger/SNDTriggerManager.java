@@ -7,7 +7,7 @@ import org.labkey.api.module.Module;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.Event;
 import org.labkey.api.snd.EventData;
-import org.labkey.api.snd.EventDataTrigger;
+import org.labkey.api.snd.EventTrigger;
 import org.labkey.api.snd.EventTriggerFactory;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.snd.TriggerAction;
@@ -68,7 +68,7 @@ public class SNDTriggerManager
                                                     @NotNull List<SuperPackage> topLevelSuperPackages, List<EventTriggerFactory> factories)
     {
         List<TriggerAction> triggers = new ArrayList<>();
-        EventDataTrigger trigger;
+        EventTrigger trigger;
 
         if (superPackage.getPkg() != null)
         {

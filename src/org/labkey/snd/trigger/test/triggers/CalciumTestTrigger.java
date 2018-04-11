@@ -6,13 +6,13 @@ import org.labkey.api.security.User;
 import org.labkey.api.snd.AttributeData;
 import org.labkey.api.snd.Event;
 import org.labkey.api.snd.EventData;
-import org.labkey.api.snd.EventDataTrigger;
+import org.labkey.api.snd.EventTrigger;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.TriggerAction;
 
 import java.util.Map;
 
-public class CalciumTestTrigger implements EventDataTrigger
+public class CalciumTestTrigger implements EventTrigger
 {
     final String name = "Calcium Test Trigger";
     final String msgPrefix = name + ": ";
@@ -57,7 +57,7 @@ public class CalciumTestTrigger implements EventDataTrigger
     @Override
     public void onInsert(Container c, User u, TriggerAction triggerAction, Map<String, Object> extraContext)
     {
-        ensureAmountForUnits(triggerAction.getIncomingEvent(), triggerAction.getIncomingEventData(), triggerAction.getSuperPackage().getPkg());
+        ensureAmountForUnits(triggerAction.getEvent(), triggerAction.getEventData(), triggerAction.getSuperPackage().getPkg());
     }
 
     @Override

@@ -2,12 +2,12 @@ package org.labkey.snd.trigger.test.triggers;
 
 import org.labkey.api.data.Container;
 import org.labkey.api.security.User;
-import org.labkey.api.snd.EventDataTrigger;
+import org.labkey.api.snd.EventTrigger;
 import org.labkey.api.snd.TriggerAction;
 
 import java.util.Map;
 
-public class ElectrolytesTestTrigger implements EventDataTrigger
+public class ElectrolytesTestTrigger implements EventTrigger
 {
     final String name = "Electrolytes Test Trigger";
     final String msgPrefix = name + ": ";
@@ -15,7 +15,7 @@ public class ElectrolytesTestTrigger implements EventDataTrigger
     @Override
     public void onInsert(Container c, User u, TriggerAction triggerAction, Map<String, Object> extraContext)
     {
-        TriggerHelper.ensureTriggerOrder(triggerAction.getIncomingEvent(), name, extraContext);
+        TriggerHelper.ensureTriggerOrder(triggerAction.getEvent(), name, extraContext);
     }
 
     @Override

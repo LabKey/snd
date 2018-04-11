@@ -4,5 +4,5 @@ import org.jetbrains.annotations.Nullable;
 
 public interface EventTriggerFactory
 {
-    @Nullable EventDataTrigger createTrigger(String category);
+    @Nullable EventTrigger createTrigger(String category);
 }

@@ -1,6 +1,6 @@
 package org.labkey.snd.trigger.test;
 
-import org.labkey.api.snd.EventDataTrigger;
+import org.labkey.api.snd.EventTrigger;
 import org.labkey.api.snd.EventTriggerFactory;
 import org.labkey.snd.trigger.test.triggers.CalciumTestTrigger;
 import org.labkey.snd.trigger.test.triggers.ChlorideBloodTestTrigger;
@@ -12,9 +12,9 @@ public class SNDTestEventTriggerFactory implements EventTriggerFactory
 {
 
     @Override
-    public EventDataTrigger createTrigger(String category)
+    public EventTrigger createTrigger(String category)
     {
-        EventDataTrigger trigger;
+        EventTrigger trigger;
 
         switch (category)
         {

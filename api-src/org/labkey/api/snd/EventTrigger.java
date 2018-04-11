@@ -7,7 +7,7 @@ import org.labkey.api.security.User;
 import java.util.List;
 import java.util.Map;
 
-public interface EventDataTrigger
+public interface EventTrigger
 {
     void onInsert(Container c, User u, TriggerAction triggerAction, Map<String, Object> extraContext);
     void onUpdate(Container c, User u, TriggerAction triggerAction, Map<String, Object> extraContext);
