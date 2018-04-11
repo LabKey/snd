@@ -86,12 +86,24 @@ public class SNDTriggerManager
         }
 
         return triggers.stream().sorted((t1, t2) -> {
-            if (t1.getTrigger().getOrder() != null && t1.getTrigger().getOrder() != null)
+            // Anything with a sort order goes first
+            if (t1.getTrigger().getOrder() != null && t2.getTrigger().getOrder() == null)
+            {
+                return 1;
+            }
+            else if (t1.getTrigger().getOrder() == null && t2.getTrigger().getOrder() != null)
+            {
+                return -1;
+            }
+            // If both contain sort order compare sort orders
+            else if (t1.getTrigger().getOrder() != null && t2.getTrigger().getOrder() != null)
             {
                 return t2.getTrigger().getOrder() - t1.getTrigger().getOrder();
             }
-
-            return 1;
+            else
+            {
+                return t2.getTrigger().getClass().getSimpleName().compareTo(t1.getTrigger().getClass().getSimpleName());
+            }
         }).collect(Collectors.toList());
     }
 

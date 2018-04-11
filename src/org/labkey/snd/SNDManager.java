@@ -1657,7 +1657,7 @@ public class SNDManager
             SuperPackage eventDataSuperPkg = null;
             Map<Integer, EventData> subEventDatas = new TreeMap<>();  // preserve natural order of sort order keys
             Integer sortOrder = null;
-            SuperPackage supPkg;
+            SuperPackage possibleSuperPkg;
 
             List<SuperPackage> orderedChildPkgs = superPackage.getChildPackages();
 
@@ -1666,16 +1666,16 @@ public class SNDManager
                 superPkgId = (Integer) result.get("SuperPkgId");
                 for (int i = 0; i < orderedChildPkgs.size(); i++)
                 {
-                    supPkg = orderedChildPkgs.get(i);
-                    if (supPkg.getSuperPkgId().equals(superPkgId))
+                    possibleSuperPkg = orderedChildPkgs.get(i);
+                    if (possibleSuperPkg.getSuperPkgId().equals(superPkgId))
                     {
-                        eventDataSuperPkg = supPkg;
-                        sortOrder = supPkg.getSortOrder();
+                        eventDataSuperPkg = possibleSuperPkg;
+                        sortOrder = possibleSuperPkg.getSortOrder();
 
-                        // If order not defined, then will order by eventdataid
+                        // If order not defined, then will order by superPkgId. This will only be top level super packages
                         if (sortOrder == null)
                         {
-                            sortOrder = i;
+                            sortOrder = superPkgId;
                         }
                         break;
                     }
