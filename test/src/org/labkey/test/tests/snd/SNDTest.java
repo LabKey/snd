@@ -218,16 +218,20 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         "           'categories': ['" + TEST_CATEGORY_ID3 + "', '" + TEST_CATEGORY_ID4 + "'],\n" +
         "			'subPackages': [{                                           \n" +
         "				'superPkgId': 5150,                                     \n" +
-        "				'sortOrder': 2                                          \n" +
+        "				'sortOrder': 2,                                         \n" +
+        "				'required': false                                       \n" +
         "			},{                                                         \n" +
         "				'superPkgId': 5200,                                     \n" +
-        "				'sortOrder': 1                                          \n" +
+        "				'sortOrder': 1,                                         \n" +
+        "				'required': false                                       \n" +
         "			},{                                                         \n" +
         "				'superPkgId': 5250,                                     \n" +
-        "				'sortOrder': 3                                          \n" +
+        "				'sortOrder': 3,                                         \n" +
+        "				'required': false                                       \n" +
         "			},{                                                         \n" +
         "				'superPkgId': 5150,                                     \n" +
-        "				'sortOrder': 4                                          \n" +
+        "				'sortOrder': 4,                                         \n" +
+        "				'required': false                                       \n" +
         "			}],                                                         \n" +
         "			'extraFields': [{name:'UsdaCode', value:'B', rangeURI:'string'}],\n" +
         "			'attributes': [{                                            \n" +
@@ -284,22 +288,28 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         "           'categories': ['" + TEST_CATEGORY_ID3 + "', '" + TEST_CATEGORY_ID4 + "'],\n" +
         "			'subPackages': [{                                           \n" +
         "				'superPkgId': '" + (TEST_SUPER_PKG_START_ID1 + 2) + "', \n" +
-        "				'sortOrder': 1                                          \n" +
+        "				'sortOrder': 1,                                         \n" +
+        "				'required': false                                       \n" +
         "			},{                                                         \n" +
         "				'superPkgId': '" + (TEST_SUPER_PKG_START_ID1 + 4) + "', \n" +
-        "				'sortOrder': 2                                          \n" +
+        "				'sortOrder': 2,                                         \n" +
+        "				'required': false                                       \n" +
         "			},{                                                         \n" +
         "				'superPkgId': 5150,                                     \n" +
-        "				'sortOrder': 4                                          \n" +
+        "				'sortOrder': 4,                                         \n" +
+        "				'required': false                                       \n" +
         "			},{                                                         \n" +
         "				'superPkgId': 5150,                                     \n" +
-        "				'sortOrder': 6                                          \n" +
+        "				'sortOrder': 6,                                         \n" +
+        "				'required': false                                       \n" +
         "			},{                                                         \n" +
         "				'superPkgId': 5300,                                     \n" +
-        "				'sortOrder': 3                                          \n" +
+        "				'sortOrder': 3,                                         \n" +
+        "				'required': false                                       \n" +
         "			},{                                                         \n" +
         "				'superPkgId': 5350,                                     \n" +
-        "				'sortOrder': 5                                          \n" +
+        "				'sortOrder': 5,                                         \n" +
+        "				'required': false                                       \n" +
         "			}                                                           \n" +
         "			],                                                          \n" +
         "			'extraFields': [{name:'UsdaCode', value:'B', rangeURI:'string'}],\n" +
@@ -358,22 +368,28 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
             "           'categories': ['" + TEST_CATEGORY_ID3 + "', '" + TEST_CATEGORY_ID4 + "'],\n" +
             "			'subPackages': [{                                           \n" +
             "				'superPkgId': '" + (TEST_SUPER_PKG_START_ID1 + 2) + "', \n" +
-            "				'sortOrder': 1                                          \n" +
+            "				'sortOrder': 1,                                         \n" +
+            "				'required': false                                       \n" +
             "			},{                                                         \n" +
             "				'superPkgId': '" + (TEST_SUPER_PKG_START_ID1 + 4) + "', \n" +
-            "				'sortOrder': 2                                          \n" +
+            "				'sortOrder': 2,                                         \n" +
+            "				'required': false                                       \n" +
             "			},{                                                         \n" +
             "				'superPkgId': 5150,                                     \n" +
-            "				'sortOrder': 4                                          \n" +
+            "				'sortOrder': 4,                                         \n" +
+            "				'required': false                                       \n" +
             "			},{                                                         \n" +
             "				'superPkgId': 5150,                                     \n" +
-            "				'sortOrder': 6                                          \n" +
+            "				'sortOrder': 6,                                         \n" +
+            "				'required': false                                       \n" +
             "			},{                                                         \n" +
             "				'superPkgId': 5300,                                     \n" +
-            "				'sortOrder': 5                                          \n" +
+            "				'sortOrder': 5,                                         \n" +
+            "				'required': false                                       \n" +
             "			},{                                                         \n" +
             "				'superPkgId': 5400,                                     \n" +
-            "				'sortOrder': 3                                          \n" +
+            "				'sortOrder': 3,                                         \n" +
+            "				'required': false                                       \n" +
             "			}                                                           \n" +
             "			],                                                          \n" +
             "			'extraFields': [{name:'UsdaCode', value:'B', rangeURI:'string'}],\n" +
