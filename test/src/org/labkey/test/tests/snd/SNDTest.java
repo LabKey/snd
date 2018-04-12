@@ -1835,6 +1835,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         editPage.setStartDate(startDate);
         editPage.setEndDate(endDate);
 
+        editPage.filterAvailablePackage(UITEST_PROJECT_SUBPKG3);
         editPage.getAvailablePackage(UITEST_PROJECT_SUBPKG3)
                 .clickMenuItem("Add");
         editPage.getAssignedPackage(UITEST_PROJECT_SUBPKG1)

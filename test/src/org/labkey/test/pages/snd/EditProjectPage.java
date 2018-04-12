@@ -50,9 +50,15 @@ public class EditProjectPage extends LabKeyPage<EditProjectPage.ElementCache>
     {
         if (!isHtml5InputTypeSupported("date"))
         {
-            throw new RuntimeException("SND requires HTML5 date inputs. Please rerun test in Chrome");
+            // Bit of a hack to get the text field that older browsers revert to for date input to fill in the data
+            // then signal an event to the ReactJS framework
+            setFormElementJS(input, date);
+            input.sendKeys(" ");
         }
-        setFormElement(input, date);
+        else
+        {
+            setFormElement(input, date);
+        }
     }
 
     public EditProjectPage setDescription(String description)
@@ -101,7 +107,7 @@ public class EditProjectPage extends LabKeyPage<EditProjectPage.ElementCache>
 
     public EditProjectPage setEndDateRevised(String date)
     {
-        setFormElement(elementCache().endDateRevisedTextBox,date);
+        setDate(elementCache().endDateRevisedTextBox,date);
         return this;
     }
 
@@ -119,6 +125,16 @@ public class EditProjectPage extends LabKeyPage<EditProjectPage.ElementCache>
     public EditProjectPage setRevisionCopyPkgsCheckBox(boolean set)
     {
         new Checkbox(elementCache().copyRevisedPkgsChkBox).set(set);
+        return this;
+    }
+
+    public EditProjectPage filterAvailablePackage(String filter)
+    {
+        setFormElement(elementCache().packageSearchFilterInput, filter);
+
+        // block until all rows in the searchContainer contain the filter expression
+        waitForText(filter);
+
         return this;
     }
 
@@ -205,6 +221,9 @@ public class EditProjectPage extends LabKeyPage<EditProjectPage.ElementCache>
         WebElement querySearchContainer = Locator.tagWithClass("div", "query-search--container")
                 .withDescendant(Locator.tagWithClassContaining("span", "data-search__container"))
                 .findWhenNeeded(getDriver()).withTimeout(4000);
+
+        WebElement packageSearchFilterInput = Locator.input("packageSearch")
+                .findWhenNeeded(querySearchContainer).withTimeout(4000);
 
         WebElement projectListCrumb = Locator.tag("a")
                 .withAttribute("href","#/projects")
