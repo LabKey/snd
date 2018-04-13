@@ -16,6 +16,7 @@
 package org.labkey.api.snd;
 
 import org.labkey.api.data.Container;
+import org.labkey.api.data.ContainerType;
 import org.labkey.api.exp.XarContext;
 import org.labkey.api.exp.XarFormatException;
 import org.labkey.api.exp.xar.LsidUtils;
@@ -50,7 +51,7 @@ public class PackageDomainKind extends ExtendedTableDomainKind
     {
         try
         {
-            XarContext xc = getXarContext(schemaName, tableName, c.getContainerFor(Container.DataType.domainDefinitions), u);
+            XarContext xc = getXarContext(schemaName, tableName, c.getContainerFor(ContainerType.DataType.domainDefinitions), u);
             return LsidUtils.resolveLsidFromTemplate(SimpleModule.DOMAIN_LSID_TEMPLATE, xc, DOMAIN_NAMESPACE_PREFIX_TEMPLATE);
         }
         catch (XarFormatException xfe)
