@@ -313,7 +313,7 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
 
         @Override
         public int mergeRows(User user, Container container, DataIteratorBuilder rows, BatchValidationException errors,
-                             @Nullable Map<Enum, Object> configParameters, Map<String, Object> extraScriptContext) throws SQLException
+                             @Nullable Map<Enum, Object> configParameters, Map<String, Object> extraScriptContext)
         {
             List<Map<String, Object>> data = getMutableData(rows, getDataIteratorContext(errors, InsertOption.MERGE, configParameters));
             return updateObjectProperty(user, container, data, false, true, ((Logger)configParameters.get(QueryUpdateService.ConfigParameters.Logger))).size();
@@ -321,7 +321,7 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
 
         @Override
         public int importRows(User user, Container container, DataIteratorBuilder rows, BatchValidationException errors,
-                              @Nullable Map<Enum,Object> configParameters, Map<String, Object> extraScriptContext) throws SQLException
+                              @Nullable Map<Enum,Object> configParameters, Map<String, Object> extraScriptContext)
         {
             List<Map<String, Object>> data = getMutableData(rows, getDataIteratorContext(errors, InsertOption.IMPORT, configParameters));
             return updateObjectProperty(user, container, data, true, false, ((Logger)configParameters.get(QueryUpdateService.ConfigParameters.Logger))).size();
@@ -329,7 +329,6 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
 
         @Override
         public int truncateRows(User user, Container container, @Nullable Map<Enum, Object> configParameters, @Nullable Map<String, Object> extraScriptContext)
-                throws BatchValidationException, QueryUpdateServiceException, SQLException
         {
             Logger log = null;
             if (configParameters != null)

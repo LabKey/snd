@@ -73,5 +73,4 @@ public class EventsTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             return super.deleteRow(user, container, oldRowMap);
         }
     }
-
 }

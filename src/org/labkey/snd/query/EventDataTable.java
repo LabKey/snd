@@ -65,7 +65,7 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
 
         @Override
         public int mergeRows(User user, Container container, DataIteratorBuilder rows, BatchValidationException errors,
-                             @Nullable Map<Enum, Object> configParameters, Map<String, Object> extraScriptContext) throws SQLException
+                             @Nullable Map<Enum, Object> configParameters, Map<String, Object> extraScriptContext)
         {
             List<Map<String, Object>> data;
             DataIteratorContext dataIteratorContext = getDataIteratorContext(errors, InsertOption.MERGE, configParameters);
@@ -122,7 +122,7 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
 
         @Override
         public int importRows(User user, Container container, DataIteratorBuilder rows, BatchValidationException errors,
-                              @Nullable Map<Enum,Object> configParameters, Map<String, Object> extraScriptContext) throws SQLException
+                              @Nullable Map<Enum,Object> configParameters, Map<String, Object> extraScriptContext)
         {
             List<Map<String, Object>> data;
             Logger log = null;

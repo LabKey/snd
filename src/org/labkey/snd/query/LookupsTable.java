@@ -47,7 +47,7 @@ public class LookupsTable extends SimpleUserSchema.SimpleTable
 
         @Override
         public int mergeRows(User user, Container container, DataIteratorBuilder rows, BatchValidationException errors,
-                             @Nullable Map<Enum, Object> configParameters, Map<String, Object> extraScriptContext) throws SQLException
+                             @Nullable Map<Enum, Object> configParameters, Map<String, Object> extraScriptContext)
         {
             int result = super.mergeRows(user, container, rows, errors, configParameters, extraScriptContext);
             SNDManager.get().getCache().clear();
@@ -56,7 +56,7 @@ public class LookupsTable extends SimpleUserSchema.SimpleTable
 
         @Override
         public int importRows(User user, Container container, DataIteratorBuilder rows, BatchValidationException errors,
-                              @Nullable Map<Enum, Object> configParameters, Map<String, Object> extraScriptContext) throws SQLException
+                              @Nullable Map<Enum, Object> configParameters, Map<String, Object> extraScriptContext)
         {
             int result = super.importRows(user, container, rows, errors, configParameters, extraScriptContext);
             SNDManager.get().getCache().clear();
