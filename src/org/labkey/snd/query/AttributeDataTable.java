@@ -145,21 +145,24 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
         private final Logger _logger = Logger.getLogger(AttributeDataTable.class);
         private final DbSchema _expSchema = OntologyManager.getExpSchema();
 
-        private Map<Integer, Object> packageMap = new HashMap();
+        private Map<Integer, Object> packageMap = null;
 
         public UpdateService(SimpleUserSchema.SimpleTable ti)
         {
             super(ti, ti.getRealTable());
+        }
 
+        private void loadPropertyDescriptorCache(User user)
+        {
             //cache property descriptors
-//            List<Package> packages = new TableSelector(SNDSchema.getInstance().getTableInfoPkgs()).getArrayList(Package.class);
+            packageMap = new HashMap<>();
             SQLFragment pkgs = new SQLFragment("select * from snd.Pkgs");
             List<Map<String, Object>> packages = (List<Map<String, Object>>) new SqlSelector(getSchema(), pkgs).getMapCollection();
 
             for (Map<String, Object> pkg : packages)
             {
                 Integer pkgId = (Integer) pkg.get("PkgId");
-                List<GWTPropertyDescriptor> packageAttributes = _sndManager.getPackageAttributes(getContainer(), ti.getUserSchema().getUser(), pkgId);
+                List<GWTPropertyDescriptor> packageAttributes = _sndManager.getPackageAttributes(getContainer(), user, pkgId);
                 packageMap.put(pkgId, packageAttributes);
             }
         }
@@ -183,8 +186,13 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
             return data;
         }
 
-        private List<GWTPropertyDescriptor> getPackageAttributes(Integer pkgId)
+        private List<GWTPropertyDescriptor> getPackageAttributes(User user, Integer pkgId)
         {
+            if (packageMap == null)
+            {
+                loadPropertyDescriptorCache(user);
+            }
+
             if(packageMap.containsKey(pkgId))
                 return (List<GWTPropertyDescriptor>) packageMap.get(pkgId);
 
@@ -240,11 +248,7 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
 
                 pkgId = (Integer) row.get("PkgId");
 
-                List<GWTPropertyDescriptor> packageAttributes = getPackageAttributes(pkgId);
-                if (packageAttributes == null)
-                {
-                    packageAttributes = getPackageAttributes(pkgId);
-                }
+                List<GWTPropertyDescriptor> packageAttributes = getPackageAttributes(user, pkgId);
 
                 if (packageAttributes != null)
                 {
