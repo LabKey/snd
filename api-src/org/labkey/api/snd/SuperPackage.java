@@ -46,7 +46,7 @@ public class SuperPackage
     private String _narrative; // From referenced package
     private Integer _sortOrder;
     private Boolean _repeatable;
-    private Boolean _required;
+    private boolean _required;
     // NOTE: if you add a variable here, add it to the copy constructor, getSuperPackageRow(), and toJson() too!
 
     public static final String SUPERPKG_ID = "superPkgId";
@@ -189,13 +189,12 @@ public class SuperPackage
         _pkg = pkg;
     }
 
-    @NotNull
-    public Boolean getRequired()
+    public boolean getRequired()
     {
         return _required;
     }
 
-    public void setRequired(Boolean required)
+    public void setRequired(boolean required)
     {
         _required = required;
     }
