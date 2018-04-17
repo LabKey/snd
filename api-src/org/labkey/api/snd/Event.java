@@ -321,7 +321,7 @@ public class Event
         {
             JSONObject jsonException = new JSONObject();
             jsonException.put(Event.SND_EXCEPTION_MSG_JSON, _eventException.getMessage());
-            jsonException.put(Event.SND_EXCEPTION_SEVERITY_JSON, _eventException.getMessage());
+            jsonException.put(Event.SND_EXCEPTION_SEVERITY_JSON, _eventException.getSeverity());
             json.put(Event.SND_EXCEPTION_JSON, jsonException);
         }
         else
