@@ -73,7 +73,9 @@ public class ProjectViewerResult extends WebDriverComponent<ProjectViewerResult.
     public ProjectListPage clickDelete()
     {
         elementCache().deleteLink.click();
-        return new ProjectListPage(getDriver());
+        ProjectListPage page = new ProjectListPage(getDriver());
+        page.waitForDeleteSuccess();
+        return page;
     }
 
     protected ElementCache newElementCache()

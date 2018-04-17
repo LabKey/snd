@@ -80,6 +80,7 @@ export class SuperPackageFormImpl extends React.Component<SuperPackageFormProps,
         const {selectedSubPackage} = this.state;
         const isReadyOnly = (view === VIEW_TYPES.PROJECT_VIEW || view === VIEW_TYPES.PACKAGE_VIEW
             || (view === VIEW_TYPES.PACKAGE_EDIT && model.hasEvent));
+        const isPackageView = (view === VIEW_TYPES.PACKAGE_VIEW || view === VIEW_TYPES.PACKAGE_NEW || view === VIEW_TYPES.PACKAGE_EDIT || view === VIEW_TYPES.PACKAGE_CLONE);
 
         return (
             <div className="row clearfix">
@@ -104,8 +105,9 @@ export class SuperPackageFormImpl extends React.Component<SuperPackageFormProps,
                     : null
                 }
                 <div className={isReadyOnly ? "col-sm-12" : "col-sm-6"}>
-                    <div className="row clearfix col-xs-12 margin-top">
-                        <ControlLabel>Assigned Packages</ControlLabel>
+                    <div className="row clearfix col-xs-12 margin-top"><div className="col-sm-8" style={{paddingLeft:0}}>Assigned Packages</div>
+                        <div className="col-sm-4 text-right">{isPackageView ?<span style={{fontSize:10}}>(Bold packages are required)</span>: null}</div></div>
+                    <div className="row clearfix col-xs-12 assigned_packages">
                         <SubpackageViewer
                             subPackages={model.subPackages}
                             selectedSubPackage={selectedSubPackage}
@@ -120,7 +122,7 @@ export class SuperPackageFormImpl extends React.Component<SuperPackageFormProps,
                             isReadOnly={isReadyOnly}
                             view={view}/>
                     </div>
-                    <div className="row clearfix col-xs-12 margin-top">
+                    <div className="row clearfix col-xs-12 margin-top assigned_package_narrative">
                         <ListGroupItem className="data-search__container" style={{height: '90px', overflowY: 'auto'}}>
                             <div className="data-search__row">
                                 {selectedSubPackage != undefined

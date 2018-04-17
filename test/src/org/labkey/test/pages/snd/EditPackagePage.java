@@ -245,11 +245,10 @@ public class EditPackagePage extends LabKeyPage<EditPackagePage.ElementCache>
         WebElement primitivesOnlyCheckBox = Locator.tagWithAttribute("input", "type", "checkbox")
                 .findWhenNeeded(querySearchContainer).withTimeout(4000);
         // TODO: Assigned Packages summary  (remove package)
-        WebElement assignedPackageContainer = Locator.tagWithClassContaining("div", "row")
-                .withChild(Locator.tagWithClass("label", "control-label").withText("Assigned Packages"))
+        WebElement assignedPackageContainer = Locator.tagWithClassContaining("div", "assigned_packages")
                 .findWhenNeeded(getDriver()).withTimeout(4000);
-        WebElement selectedPackageNarrativeViewPane = Locator.tagWithClassContaining("div", "row")
-                .withChild(Locator.tagWithClass("label", "control-label").withText("Assigned Packages")).followingSibling("div")
+
+        WebElement selectedPackageNarrativeViewPane = Locator.tagWithClassContaining("div", "assigned_package_narrative")
                 .findWhenNeeded(getDriver()).withTimeout(4000);
 
         WebElement cancelButton = Locator.tagWithId("button", "cancelButton").findWhenNeeded(getDriver());

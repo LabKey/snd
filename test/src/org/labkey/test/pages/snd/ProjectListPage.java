@@ -57,6 +57,9 @@ public class ProjectListPage extends LabKeyPage<ProjectListPage.ElementCache>
                 .timeout(WAIT_FOR_JAVASCRIPT)
                 .findWhenNeeded(elementCache().container)
                 .set(set);
+
+        if (set)
+            waitForDraftsLoad();
         return this;
     }
 
@@ -66,6 +69,10 @@ public class ProjectListPage extends LabKeyPage<ProjectListPage.ElementCache>
                 .timeout(WAIT_FOR_JAVASCRIPT)
                 .findWhenNeeded(elementCache().container)
                 .set(set);
+
+        if (set)
+            waitForNotActiveLoad();
+
         return this;
     }
 
@@ -78,6 +85,21 @@ public class ProjectListPage extends LabKeyPage<ProjectListPage.ElementCache>
     public void waitForPageLoad()
     {
         waitForElement(elementCache().activeTitle);
+    }
+
+    public void waitForDraftsLoad()
+    {
+        waitForElement(elementCache().draftsTitle);
+    }
+
+    public void waitForNotActiveLoad()
+    {
+        waitForElement(elementCache().notActiveTitle);
+    }
+
+    public void waitForDeleteSuccess()
+    {
+        waitForTextToDisappear("successfully removed");
     }
 
     public ProjectViewerResult getProject(String partialText)
@@ -115,6 +137,12 @@ public class ProjectListPage extends LabKeyPage<ProjectListPage.ElementCache>
         Locator activeTitle = Locator.tagWithClassContaining("div", "project_viewer__results--active")
                 .child("h4")
                 .withText("Active");
+        Locator draftsTitle = Locator.tagWithClassContaining("div", "project_viewer__results--drafts")
+                .child("h4")
+                .withText("Drafts");
+        Locator notActiveTitle = Locator.tagWithClassContaining("div", "project_viewer__results--drafts")
+                .child("h4")
+                .withText("Not Active");
         Input searchFilter = Input.Input(Locator.input("projectSearch"), getDriver())
                 .timeout(WAIT_FOR_JAVASCRIPT)
                 .findWhenNeeded(container);

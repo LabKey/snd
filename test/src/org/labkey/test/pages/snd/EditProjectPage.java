@@ -134,6 +134,7 @@ public class EditProjectPage extends LabKeyPage<EditProjectPage.ElementCache>
 
         // block until all rows in the searchContainer contain the filter expression
         waitForText(filter);
+        sleep(500);
 
         return this;
     }
@@ -277,12 +278,11 @@ public class EditProjectPage extends LabKeyPage<EditProjectPage.ElementCache>
         WebElement primitivesOnlyCheckBox = Locator.tagWithAttribute("input", "type", "checkbox")
                 .findWhenNeeded(querySearchContainer).withTimeout(4000);
 
-        WebElement assignedPackageContainer = Locator.tagWithClassContaining("div", "row")
-                .withChild(Locator.tagWithClass("label", "control-label").withText("Assigned Packages"))
+        WebElement assignedPackageContainer = Locator.tagWithClassContaining("div", "assigned_packages")
                 .findWhenNeeded(getDriver()).withTimeout(4000);
-        WebElement selectedPackageNarrativeViewPane = Locator.tagWithClassContaining("div", "row")
-                .withChild(Locator.tagWithClass("label", "control-label").withText("Assigned Packages")).followingSibling("div")
-                .findWhenNeeded(getDriver()).withTimeout(4000);
+
+        WebElement selectedPackageNarrativeViewPane = Locator.tagWithClassContaining("div", "assigned_package_narrative")
+            .findWhenNeeded(getDriver()).withTimeout(4000);
 
         WebElement cancelButton = Locator.tagWithId("button", "cancelButton").findWhenNeeded(getDriver());
         WebElement saveButton = Locator.tagWithId("button", "save").findWhenNeeded(getDriver());
