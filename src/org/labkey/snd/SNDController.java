@@ -1164,4 +1164,16 @@ public class SNDController extends SpringActionController
             return new ApiSimpleResponse();
         }
     }
+
+    @RequiresPermission(AdminPermission.class)
+    public class PopulateQCStatesAction extends ApiAction<SimpleApiJsonForm>
+    {
+        @Override
+        public Object execute(SimpleApiJsonForm form, BindException errors) throws Exception
+        {
+            SNDManager.get().populateQCStates(getContainer(), getUser());
+
+            return new ApiSimpleResponse();
+        }
+    }
 }

@@ -26,12 +26,14 @@ import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.DbScope;
 import org.labkey.api.data.Results;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.SqlExecutor;
 import org.labkey.api.data.SqlSelector;
+import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableResultSet;
 import org.labkey.api.data.TableSelector;
@@ -2835,5 +2837,42 @@ public class SNDManager
         }
 
         return narrative.toString();
+    }
+
+    public void populateQCStates(Container c, User u)
+    {
+        UserSchema coreSchema = QueryService.get().getUserSchema(u, c, "core");
+        DbSchema coreDbSchema = coreSchema.getDbSchema();
+        TableInfo qcStateTi = coreDbSchema.getTable("QCState");
+//        TableInfo qcStateTi = getTableInfo(coreDbSchema, "QCState")
+
+        Object[][] states = new Object[][]{
+                {"Completed", "Record has been completed and is public", true},
+                {"In Progress", "Draft Record, not public", false},
+                {"Review Required", "Review is required prior to public release", false},
+        };
+
+        try (DbScope.Transaction transaction = coreSchema.getDbSchema().getScope().ensureTransaction())
+        {
+            // check if QCStates exist, if not insert them
+            for (Object[] qc : states)
+            {
+                SimpleFilter filter = new SimpleFilter(FieldKey.fromString("Label"), qc[0]);
+                TableSelector ts = new TableSelector(qcStateTi, Collections.singleton("RowId"), filter, null);
+                Integer[] rowIds = ts.getArray(Integer.class);
+
+                if (rowIds.length < 1)
+                {
+                    Map<String, Object> row = new CaseInsensitiveHashMap<>();
+                    row.put("Container", c.getId());
+                    row.put("Label", qc[0]);
+                    row.put("Description", qc[1]);
+                    row.put("PublicData", qc[2]);
+                    Table.insert(u, qcStateTi, row);
+                }
+            }
+
+            transaction.commit();
+        }
     }
 }
