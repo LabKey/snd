@@ -1778,6 +1778,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         mouseOver(projectViewerResult.getComponentElement());
         projectViewerResult.clickDelete();
         click(Locator.button("Delete Project"));
+        listPage.waitForDeleteSuccess();
         listPage.waitForPageLoad();
         listPage.showNotActive(true);
         listPage.waitForPageLoad();
