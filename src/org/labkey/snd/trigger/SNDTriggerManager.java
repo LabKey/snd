@@ -65,7 +65,7 @@ public class SNDTriggerManager
 
 
     private List<TriggerAction> getCategoryTriggers(@NotNull Event event, @NotNull EventData eventData, SuperPackage superPackage,
-                                                    @NotNull List<SuperPackage> topLevelSuperPackages, List<EventTriggerFactory> factories)
+                                                    @NotNull Map<Integer, SuperPackage> topLevelEventDataSuperPackages, List<EventTriggerFactory> factories)
     {
         List<TriggerAction> triggers = new ArrayList<>();
         EventTrigger trigger;
@@ -79,7 +79,7 @@ public class SNDTriggerManager
                     trigger = factory.createTrigger(category);
                     if (trigger != null)
                     {
-                        triggers.add(new TriggerAction(trigger, event, eventData, superPackage, topLevelSuperPackages));
+                        triggers.add(new TriggerAction(trigger, event, eventData, superPackage, topLevelEventDataSuperPackages));
                     }
                 }
             }
@@ -107,7 +107,7 @@ public class SNDTriggerManager
         }).collect(Collectors.toList());
     }
 
-    private List<TriggerAction> getTriggerActions(Event event, List<SuperPackage> superPackages, List<EventTriggerFactory> factories)
+    private List<TriggerAction> getTriggerActions(Event event, Map<Integer, SuperPackage> topLevelEventDataSuperPackages, List<EventTriggerFactory> factories)
     {
         List<TriggerAction> triggerActions = new ArrayList<>();
         List<TriggerAction> pkgTriggers;
@@ -119,13 +119,13 @@ public class SNDTriggerManager
         for (EventData eventData : event.getEventData())
         {
             pkgTriggers = new ArrayList<>();
-            SuperPackage superPackage = SNDManager.get().getSuperPackage(eventData.getSuperPkgId(), superPackages);
+            SuperPackage superPackage = topLevelEventDataSuperPackages.get(eventData.getEventDataId());
             queue.add(new Pair<>(eventData, superPackage));
 
             while (!queue.isEmpty())
             {
                 pair = queue.poll();
-                pkgTriggers.addAll(getCategoryTriggers(event, pair.first, pair.second, superPackages, factories));
+                pkgTriggers.addAll(getCategoryTriggers(event, pair.first, pair.second, topLevelEventDataSuperPackages, factories));
 
                 if (pair.first.getSubPackages() != null)
                 {
@@ -147,7 +147,7 @@ public class SNDTriggerManager
     /**
      * Called from insert event.
      */
-    public void fireInsertTriggers(Container c, User u, Event event, List<SuperPackage> topLevelPkgs)
+    public void fireInsertTriggers(Container c, User u, Event event, Map<Integer, SuperPackage> topLevelEventDataPkgs)
     {
         List<EventTriggerFactory> factories = getTriggerFactories(c);
 
@@ -155,7 +155,7 @@ public class SNDTriggerManager
         if (factories.size() < 1)
             return;
 
-        List<TriggerAction> triggerActions = getTriggerActions(event, topLevelPkgs, factories);
+        List<TriggerAction> triggerActions = getTriggerActions(event, topLevelEventDataPkgs, factories);
         Map<String, Object> extraContext = new HashMap<>();
 
         for (TriggerAction triggerAction : triggerActions)
@@ -167,7 +167,7 @@ public class SNDTriggerManager
     /**
      * Called from update event.
      */
-    public void fireUpdateTriggers(Container c, User u, Event event, List<SuperPackage> topLevelPkgs)
+    public void fireUpdateTriggers(Container c, User u, Event event, Map<Integer, SuperPackage> topLevelEventDataSuperPkgs)
     {
         List<EventTriggerFactory> factories = getTriggerFactories(c);
 
@@ -175,7 +175,7 @@ public class SNDTriggerManager
         if (factories.size() < 1)
             return;
 
-        List<TriggerAction> triggers = getTriggerActions(event, topLevelPkgs, factories);
+        List<TriggerAction> triggers = getTriggerActions(event, topLevelEventDataSuperPkgs, factories);
         Map<String, Object> extraContext = new HashMap<>();
 
         for (TriggerAction trigger : triggers)

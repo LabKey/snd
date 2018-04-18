@@ -3,23 +3,23 @@ package org.labkey.api.snd;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import java.util.Map;
 
 public class TriggerAction
 {
     EventTrigger _trigger;
     Event _event;
     EventData _eventData;
-    List<SuperPackage> _topLevelPkgs;
+    Map<Integer, SuperPackage> _topLevelEventDataSuperPkgs;  // Maps EventDataId to SuperPackage
     SuperPackage _superPackage;
 
     public TriggerAction(@NotNull EventTrigger trigger, @NotNull Event event, @NotNull EventData eventData,
-                         @NotNull SuperPackage superPackage, @NotNull List<SuperPackage> topLevelPkgs)
+                         @NotNull SuperPackage superPackage, @NotNull Map<Integer, SuperPackage> topLevelPkgs)
     {
         _trigger = trigger;
         _event = event;
         _eventData = eventData;
-        _topLevelPkgs = topLevelPkgs;
+        _topLevelEventDataSuperPkgs = topLevelPkgs;
         _superPackage = superPackage;
     }
 
@@ -53,14 +53,14 @@ public class TriggerAction
         _eventData = eventData;
     }
 
-    public List<SuperPackage> getTopLevelPkgs()
+    public Map<Integer, SuperPackage> getTopLevelEventDataSuperPkgs()
     {
-        return _topLevelPkgs;
+        return _topLevelEventDataSuperPkgs;
     }
 
-    public void setTopLevelPkgs(List<SuperPackage> topLevelPkgs)
+    public void setTopLevelEventDataSuperPkgs(Map<Integer, SuperPackage> topLevelEventDataSuperPkgsPkgs)
     {
-        _topLevelPkgs = topLevelPkgs;
+        _topLevelEventDataSuperPkgs = topLevelEventDataSuperPkgsPkgs;
     }
 
     public SuperPackage getSuperPackage()
