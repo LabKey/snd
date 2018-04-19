@@ -23,6 +23,7 @@ import org.labkey.api.action.ApiResponse;
 import org.labkey.api.action.ApiSimpleResponse;
 import org.labkey.api.action.RedirectAction;
 import org.labkey.api.action.SimpleApiJsonForm;
+import org.labkey.api.action.SimpleViewAction;
 import org.labkey.api.action.SpringActionController;
 import org.labkey.api.exp.api.ExperimentService;
 import org.labkey.api.gwt.client.DefaultValueType;
@@ -44,9 +45,12 @@ import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.util.DateUtil;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ActionURL;
+import org.labkey.api.view.JspView;
+import org.labkey.api.view.NavTree;
 import org.labkey.snd.trigger.test.SNDTestEventTriggerFactory;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -1174,6 +1178,23 @@ public class SNDController extends SpringActionController
             SNDManager.get().populateQCStates(getContainer(), getUser());
 
             return new ApiSimpleResponse();
+        }
+    }
+
+    @RequiresPermission(AdminPermission.class)
+    public class SecurityAction extends SimpleViewAction
+    {
+
+        @Override
+        public ModelAndView getView(Object o, BindException errors) throws Exception
+        {
+            return new JspView<>("/org/labkey/snd/security/view/categorySecurity.jsp");
+        }
+
+        @Override
+        public NavTree appendNavTrail(NavTree root)
+        {
+            return null;
         }
     }
 }

@@ -1,9 +1,10 @@
-package org.labkey.snd.security;
+package org.labkey.snd.security.roles;
 
 import org.labkey.api.security.SecurableResource;
 import org.labkey.api.security.SecurityPolicy;
 import org.labkey.api.security.roles.AbstractModuleScopedRole;
 import org.labkey.snd.SNDModule;
+import org.labkey.snd.security.permissions.SNDCompletedReadPermission;
 
 public class SNDReaderRole extends AbstractModuleScopedRole
 {

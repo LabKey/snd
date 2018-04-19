@@ -1,4 +1,4 @@
-package org.labkey.snd.security;
+package org.labkey.snd.security.permissions;
 
 import org.labkey.api.security.permissions.AbstractPermission;
 
