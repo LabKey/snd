@@ -1,6 +1,7 @@
 package org.labkey.snd.query;
 
 import org.apache.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.TableInfo;
@@ -17,6 +18,9 @@ import org.labkey.api.query.QueryUpdateServiceException;
 import org.labkey.api.query.SimpleQueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.security.User;
+import org.labkey.api.security.UserPrincipal;
+import org.labkey.api.security.permissions.AdminPermission;
+import org.labkey.api.security.permissions.Permission;
 import org.labkey.api.snd.SNDService;
 import org.labkey.snd.SNDManager;
 import org.labkey.snd.SNDSchema;
@@ -39,6 +43,12 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
     public EventDataTable(SNDUserSchema schema, TableInfo table)
     {
         super(schema, table);
+    }
+
+    @Override
+    public boolean hasPermission(@NotNull UserPrincipal user, @NotNull Class<? extends Permission> perm)
+    {
+        return getContainer().hasPermission(user, AdminPermission.class);
     }
 
     @Override

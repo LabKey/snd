@@ -122,11 +122,6 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
     @Override
     public boolean hasPermission(@NotNull UserPrincipal user, @NotNull Class<? extends Permission> perm)
     {
-        // Allow read access based on standard container permission, but for everything else require admin container access
-        if (perm.equals(ReadPermission.class))
-        {
-            return getContainer().hasPermission(user, perm);
-        }
         return getContainer().hasPermission(user, AdminPermission.class);
     }
 
