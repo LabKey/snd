@@ -21,6 +21,7 @@ import org.json.JSONObject;
 import org.labkey.api.action.ApiAction;
 import org.labkey.api.action.ApiResponse;
 import org.labkey.api.action.ApiSimpleResponse;
+import org.labkey.api.action.FormHandlerAction;
 import org.labkey.api.action.RedirectAction;
 import org.labkey.api.action.SimpleApiJsonForm;
 import org.labkey.api.action.SimpleViewAction;
@@ -1194,7 +1195,57 @@ public class SNDController extends SpringActionController
         @Override
         public NavTree appendNavTrail(NavTree root)
         {
+            ActionURL url = new ActionURL(true);
+            url.setPath("snd-admin.view");
+            url.setContainer(getContainer());
+            root.addChild("Admin Settings", url);
+            root.addChild("Security");
+            return root;
+        }
+    }
+
+    @RequiresPermission(AdminPermission.class)
+    public class CategorySecurityAction extends FormHandlerAction
+    {
+
+        @Override
+        public void validateCommand(Object target, Errors errors)
+        {
+
+        }
+
+        @Override
+        public boolean handlePost(Object o, BindException errors) throws Exception
+        {
+            return false;
+        }
+
+        @Override
+        public URLHelper getSuccessURL(Object o)
+        {
             return null;
+        }
+    }
+
+    @RequiresPermission(AdminPermission.class)
+    public class AdminAction extends SimpleViewAction
+    {
+
+        @Override
+        public ModelAndView getView(Object o, BindException errors) throws Exception
+        {
+            return new JspView<>("/org/labkey/snd/view/sndAdmin.jsp");
+        }
+
+        @Override
+        public NavTree appendNavTrail(NavTree root)
+        {
+            ActionURL url = new ActionURL(true);
+            url.setPath("snd-app.view");
+            url.setContainer(getContainer());
+            root.addChild("SND Home Page", url);
+            root.addChild("SND Admin Settings and Controls");
+            return root;
         }
     }
 }
