@@ -338,4 +338,24 @@ public class SNDServiceImpl implements SNDService
         }
         return mutableData;
     }
+
+    public void fillInNarrativeCache(Container c, User u)
+    {
+        BatchValidationException errors = new BatchValidationException();
+
+        SNDManager.get().fillInNarrativeCache(c, u, errors);
+
+        if (errors.hasErrors())
+            throw new ApiUsageException(errors);
+    }
+
+    public void clearNarrativeCache(Container c, User u)
+    {
+        BatchValidationException errors = new BatchValidationException();
+
+        SNDManager.get().clearNarrativeCache(c, u, errors);
+
+        if (errors.hasErrors())
+            throw new ApiUsageException(errors);
+    }
 }

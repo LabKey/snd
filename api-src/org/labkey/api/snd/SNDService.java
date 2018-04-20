@@ -61,4 +61,6 @@ public interface SNDService
     void unregisterEventTriggerFactory(Module module);
     Lock getWriteLock();
     List<Map<String,Object>> getMutableData(DataIteratorBuilder rows, DataIteratorContext dataIteratorContext) throws IOException;
+    void fillInNarrativeCache(Container c, User u);
+    void clearNarrativeCache(Container c, User u);
 }

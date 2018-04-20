@@ -1156,16 +1156,23 @@ public class SNDController extends SpringActionController
     }
 
     @RequiresPermission(AdminPermission.class)
-    public class RefreshNarrativeCacheAction extends ApiAction<SimpleApiJsonForm>
+    public class ClearNarrativeCacheAction extends ApiAction<SimpleApiJsonForm>
     {
         @Override
         public Object execute(SimpleApiJsonForm form, BindException errors) throws Exception
         {
-            boolean success = SNDManager.get().refreshNarrativeCache(getContainer(), getUser());
+            SNDService.get().clearNarrativeCache(getContainer(), getUser());
+            return new ApiSimpleResponse();
+        }
+    }
 
-            if (!success)
-                errors.reject("Error refreshing narrative cache");
-
+    @RequiresPermission(AdminPermission.class)
+    public class FillInNarrativeCacheAction extends ApiAction<SimpleApiJsonForm>
+    {
+        @Override
+        public Object execute(SimpleApiJsonForm form, BindException errors) throws Exception
+        {
+            SNDService.get().fillInNarrativeCache(getContainer(), getUser());
             return new ApiSimpleResponse();
         }
     }

@@ -2531,30 +2531,38 @@ public class SNDManager
         return event;
     }
 
-    /**
-     * Called from SNDController.RefreshNarrativeCacheAction to truncate and repopulate the event narrative cache.
-     */
-    public boolean refreshNarrativeCache(Container c, User u) throws BatchValidationException, SQLException, QueryUpdateServiceException, DuplicateKeyException
+    public void clearNarrativeCache(Container c, User u, BatchValidationException errors)
     {
-        BatchValidationException errors = new BatchValidationException();
-
         UserSchema sndSchema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
         QueryUpdateService eventsCacheQus = getNewQueryUpdateService(sndSchema, SNDSchema.EVENTSCACHE_TABLE_NAME);
 
-        eventsCacheQus.truncateRows(u, c, null, null);
-
-        TableInfo eventsTableInfo = sndSchema.getTable(SNDSchema.EVENTS_TABLE_NAME);
-        ColumnInfo eventIdColumnInfo = eventsTableInfo.getColumn("EventId");
-
-        List<Integer> eventIds = new ArrayList<>();
-
-        try (ResultSet rs = QueryService.get().select(eventsTableInfo, Collections.singletonList(eventIdColumnInfo), null, null))
+        try (DbScope.Transaction tx = sndSchema.getDbSchema().getScope().ensureTransaction())
         {
-            while (rs.next())
-            {
-                eventIds.add(rs.getInt("eventId"));
-            }
+            eventsCacheQus.truncateRows(u, c, null, null);
+            tx.commit();
         }
+        catch (QueryUpdateServiceException | BatchValidationException | SQLException e)
+        {
+            errors.addRowError(new ValidationException(e.getMessage()));
+        }
+    }
+
+    /**
+     * Called from SNDController.RefreshNarrativeCacheAction to truncate and repopulate the event narrative cache.
+     */
+    public void fillInNarrativeCache(Container c, User u, BatchValidationException errors)
+    {
+        UserSchema sndSchema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        QueryUpdateService eventsCacheQus = getNewQueryUpdateService(sndSchema, SNDSchema.EVENTSCACHE_TABLE_NAME);
+
+        SQLFragment eventSql = new SQLFragment("SELECT EventId FROM ");
+        eventSql.append(sndSchema.getTable(SNDSchema.EVENTS_TABLE_NAME), "ev");
+        eventSql.append(" LEFT JOIN ");
+        eventSql.append(sndSchema.getTable(SNDSchema.EVENTSCACHE_TABLE_NAME), "ec");
+        eventSql.append(" WHERE ec.HtmlNarrative IS NULL");
+        SqlSelector selector = new SqlSelector(sndSchema.getDbSchema(), eventSql);
+
+        List<Integer> eventIds = selector.getArrayList(Integer.class);
 
         List<Map<String, Object>> rows = new ArrayList<>();
         Map<Integer, SuperPackage> eventDataTopLevelSuperPkgs;
@@ -2571,9 +2579,15 @@ public class SNDManager
             rows.add(row);
         }
 
-        eventsCacheQus.insertRows(u, c, rows, errors, null, null);
-
-        return !errors.hasErrors();
+        try (DbScope.Transaction tx = sndSchema.getDbSchema().getScope().ensureTransaction())
+        {
+            eventsCacheQus.insertRows(u, c, rows, errors, null, null);
+            tx.commit();
+        }
+        catch (QueryUpdateServiceException | BatchValidationException | SQLException | DuplicateKeyException e)
+        {
+            errors.addRowError(new ValidationException(e.getMessage()));
+        }
     }
 
     /**
