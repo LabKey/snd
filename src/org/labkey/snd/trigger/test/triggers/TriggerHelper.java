@@ -93,7 +93,7 @@ public class TriggerHelper
     {
         if (ELECTROLYTES_TRIGGER_ORDER.get(name) == null)
         {
-            event.setEventException(new ValidationException(name + ": Did not find trigger order defined in TriggerHelper.TRIGGER_ORDER", ValidationException.SEVERITY.ERROR));
+            event.setException(new ValidationException(name + ": Did not find trigger order defined in TriggerHelper.TRIGGER_ORDER", ValidationException.SEVERITY.ERROR));
         }
 
         Integer orderFound = (Integer) extraContext.get(TriggerHelper.orderPropName);
@@ -105,14 +105,14 @@ public class TriggerHelper
             }
             else
             {
-                event.setEventException(new ValidationException(name + ": Executing out of order. Expected order " + ELECTROLYTES_TRIGGER_ORDER.get(name) + " but was 0", ValidationException.SEVERITY.ERROR));
+                event.setException(new ValidationException(name + ": Executing out of order. Expected order " + ELECTROLYTES_TRIGGER_ORDER.get(name) + " but was 0", ValidationException.SEVERITY.ERROR));
             }
         }
         else
         {
             if (orderFound != ELECTROLYTES_TRIGGER_ORDER.get(name) - 1)
             {
-                event.setEventException(new ValidationException(name + ": Executing out of order. Expected order " + (ELECTROLYTES_TRIGGER_ORDER.get(name) - 1) + " but was " + orderFound, ValidationException.SEVERITY.ERROR));
+                event.setException(new ValidationException(name + ": Executing out of order. Expected order " + (ELECTROLYTES_TRIGGER_ORDER.get(name) - 1) + " but was " + orderFound, ValidationException.SEVERITY.ERROR));
             }
             else
             {

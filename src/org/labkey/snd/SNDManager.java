@@ -1805,7 +1805,7 @@ public class SNDManager
                         else
                         {
                             // Info message about cache miss
-                            errors.addRowError(new ValidationException("Event ID " + event.getEventId() + " exists but narrative unexpectedly not found in EventsCache.", ValidationException.SEVERITY.INFO));
+                            event.setException(new ValidationException("Event ID " + event.getEventId() + " exists but narrative unexpectedly not found in EventsCache.", ValidationException.SEVERITY.INFO));
 
                             htmlNarrative = generateEventNarrative(c, u, event, topLevelEventDataSuperPkgs, true, true);
 
@@ -1870,7 +1870,7 @@ public class SNDManager
     {
         if (event.getProjectIdRev() == null)
         {
-            event.setEventException(new ValidationException("Invalid project id|rev."));
+            event.setException(new ValidationException("Invalid project id|rev."));
         }
         else
         {
@@ -1879,7 +1879,7 @@ public class SNDManager
 
             if (idRevParts.length != 2)
             {
-                event.setEventException(new ValidationException("Project Id|Rev not formatted correctly"));
+                event.setException(new ValidationException("Project Id|Rev not formatted correctly"));
             }
             else
             {
@@ -1892,7 +1892,7 @@ public class SNDManager
                 }
                 catch (NumberFormatException e)
                 {
-                    event.setEventException(new ValidationException("Number Format Exception on projectIdRev: " + e.getMessage()));
+                    event.setException(new ValidationException("Number Format Exception on projectIdRev: " + e.getMessage()));
                 }
 
                 if (!event.hasErrors() && projectId != null && revisionNum != null)
@@ -1908,7 +1908,7 @@ public class SNDManager
                     List<String> results = selector.getArrayList(String.class);
                     if (results.size() < 1)
                     {
-                        event.setEventException(new ValidationException("Project|revision not found: " + event.getProjectIdRev()));
+                        event.setException(new ValidationException("Project|revision not found: " + event.getProjectIdRev()));
                     }
 
                     return results.size() > 0 ? results.get(0) : null;
@@ -2090,7 +2090,7 @@ public class SNDManager
 //        String eventObjectId = GUID.makeGUID();
         if (eventData == null || eventData.getEventDataId() == null)
         {
-            event.setEventException(new ValidationException("Cannot enter exp object for null event data."));
+            event.setException(new ValidationException("Cannot enter exp object for null event data."));
         }
 
         String objectURI = generateLsid(c, Integer.toString(eventData.getEventDataId()));
@@ -2197,7 +2197,7 @@ public class SNDManager
     {
         if (event.getParentObjectId() == null)
         {
-            event.setEventException(new ValidationException("Project is not found."));
+            event.setException(new ValidationException("Project is not found."));
         }
 
         if (!event.hasErrors() && event.getEventData() != null && event.getEventData().size() > 0)
@@ -2230,13 +2230,13 @@ public class SNDManager
                     }
                     if (!found)
                     {
-                        event.setEventException(new ValidationException("Super package " + eventData.getSuperPkgId() + " is not allowed for this project revision."));
+                        event.setException(new ValidationException("Super package " + eventData.getSuperPkgId() + " is not allowed for this project revision."));
                     }
                 }
             }
             catch (SQLException e)
             {
-                event.setEventException(new ValidationException(e.getMessage()));
+                event.setException(new ValidationException(e.getMessage()));
             }
         }
     }
@@ -2399,7 +2399,7 @@ public class SNDManager
                             }
                             catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException | ValidationException e)
                             {
-                                event.setEventException(new ValidationException(e.getMessage(), ValidationException.SEVERITY.ERROR));
+                                event.setException(new ValidationException(e.getMessage(), ValidationException.SEVERITY.ERROR));
                             }
                             finally
                             {
@@ -2543,7 +2543,7 @@ public class SNDManager
                             }
                             catch (QueryUpdateServiceException | BatchValidationException | SQLException | InvalidKeyException | DuplicateKeyException | ValidationException e)
                             {
-                                event.setEventException(new ValidationException(e.getMessage(), ValidationException.SEVERITY.ERROR));
+                                event.setException(new ValidationException(e.getMessage(), ValidationException.SEVERITY.ERROR));
                             }
                             finally
                             {

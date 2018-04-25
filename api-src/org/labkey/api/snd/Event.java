@@ -186,12 +186,12 @@ public class Event
         this.narratives = narratives;
     }
 
-    public ValidationException getEventException()
+    public ValidationException getException()
     {
         return _eventException;
     }
 
-    public void setEventException(ValidationException eventException)
+    public void setException(ValidationException eventException)
     {
         _eventException = eventException;
     }
