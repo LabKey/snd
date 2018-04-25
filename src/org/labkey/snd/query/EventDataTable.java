@@ -4,8 +4,11 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.DbSchema;
+import org.labkey.api.data.DbScope;
+import org.labkey.api.data.SQLFragment;
+import org.labkey.api.data.SqlExecutor;
 import org.labkey.api.data.TableInfo;
-import org.labkey.api.data.TableSelector;
 import org.labkey.api.dataiterator.DataIteratorBuilder;
 import org.labkey.api.dataiterator.DataIteratorContext;
 import org.labkey.api.dataiterator.ListofMapsDataIterator;
@@ -21,15 +24,19 @@ import org.labkey.api.security.User;
 import org.labkey.api.security.UserPrincipal;
 import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.Permission;
+import org.labkey.api.settings.AppProps;
 import org.labkey.api.snd.SNDService;
 import org.labkey.snd.SNDManager;
-import org.labkey.snd.SNDSchema;
 import org.labkey.snd.SNDUserSchema;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
 {
@@ -62,6 +69,7 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
         private final SNDManager _sndManager = SNDManager.get();
         private final SNDService _sndService = SNDService.get();
         private final Logger _logger = Logger.getLogger(EventDataTable.class);
+        private final DbSchema _expSchema = OntologyManager.getExpSchema();
 
         public UpdateService(SimpleUserSchema.SimpleTable ti)
         {
@@ -73,6 +81,35 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             return _sndManager.generateLsid(c, String.valueOf(eventDataId));
         }
 
+        private void updateNarrativeCache(Container container, User user, Set<Integer> cacheData, Logger log)
+        {
+            if (cacheData.size() > 0)
+            {
+                log.info("Deleting affected narrative cache rows.");
+                List<Map<String, Object>> rows = new ArrayList<>();
+                Map<String, Object> row;
+
+                for (Integer cacheDatum : cacheData)
+                {
+                    row = new HashMap<>();
+                    row.put("EventId", cacheDatum);
+                    rows.add(row);
+                }
+
+                _sndService.deleteNarrativeCacheRows(container, user, rows);
+
+                if (cacheData.size() > 10000)
+                {
+                    log.info("Greater than 10,000 rows so not automatically populating narrative cache. Ensure to refresh manually.");
+                }
+                else
+                {
+                    log.info("Repopulate affected rows in narrative cache.");
+                    _sndService.populateNarrativeCache(container, user, rows, log);
+                }
+            }
+        }
+
         @Override
         public int mergeRows(User user, Container container, DataIteratorBuilder rows, BatchValidationException errors,
                              @Nullable Map<Enum, Object> configParameters, Map<String, Object> extraScriptContext)
@@ -80,6 +117,8 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             List<Map<String, Object>> data;
             DataIteratorContext dataIteratorContext = getDataIteratorContext(errors, InsertOption.MERGE, configParameters);
             Logger log = null;
+            Set<Integer> eventIds = new HashSet<>();
+
             if (configParameters != null)
             {
                 log = ((Logger) configParameters.get(QueryUpdateService.ConfigParameters.Logger));
@@ -114,6 +153,9 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
                 //add updated row to exp.Object
                 OntologyManager.ensureObject(container, objectURI);
 
+                //add to list of cached narrative rows to delete
+                eventIds.add((Integer) map.get("EventId"));
+
                 count++;
                 //TODO: Count in exp.Object is not going to be the same as in snd.EventData - need to figure out how to get the count to log
                 if(count % 1000 == 0)
@@ -121,13 +163,16 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             }
             log.info("End updating exp.Object table. Updated total of " + count + " rows.");
 
+            int rowCount = 0;
             if(data.size() > 0 && null != data.get(0))
             {
                 DataIteratorBuilder rowsWithObjectURI = new ListofMapsDataIterator.Builder(data.get(0).keySet(), data);
-                return _importRowsUsingDIB(user, container, rowsWithObjectURI, null, dataIteratorContext, extraScriptContext);
+                rowCount = _importRowsUsingDIB(user, container, rowsWithObjectURI, null, dataIteratorContext, extraScriptContext);
             }
 
-            return 0; //there aren't any rows to merge
+            updateNarrativeCache(container, user, eventIds, log);
+
+            return rowCount; //there aren't any rows to merge
         }
 
         @Override
@@ -135,6 +180,8 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
                               @Nullable Map<Enum,Object> configParameters, Map<String, Object> extraScriptContext)
         {
             List<Map<String, Object>> data;
+            Set<Integer> cacheData = new HashSet<>();
+
             Logger log = null;
             if (configParameters != null)
             {
@@ -168,6 +215,9 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
                 //add new row to exp.Object
                 OntologyManager.ensureObject(container, objectURI);
 
+                //add to list of cached narrative rows to delete
+                cacheData.add((Integer) map.get("EventId"));
+
                 count++;
                 //TODO: Count in exp.Object is not going to be the same as in snd.EventData - need to figure out how to get the count to log
                 if(count % 1000 == 0)
@@ -176,6 +226,8 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             log.info("End inserting into exp.Object. Inserted total of " + count + " rows.");
 
             DataIteratorBuilder rowsWithObjectURI = new ListofMapsDataIterator.Builder(data.get(0).keySet(), data);
+
+            updateNarrativeCache(container, user, cacheData, log);
 
             //insert into snd.EventData (which includes extensible columns for EventData)
             return super.importRows(user, container, rowsWithObjectURI, errors, configParameters, extraScriptContext);
@@ -198,7 +250,17 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             }
 
             deleteFromExpTables(oldRows, container, log);
-            return super.deleteRows(user, container, oldRows, configParameters, extraScriptContext);
+
+            Set<Integer> cacheData = new HashSet<>();
+            for (Map<String, Object> oldRow : oldRows)
+            {
+                cacheData.add((Integer) oldRow.get("EventId"));
+            }
+
+            List<Map<String, Object>> result = super.deleteRows(user, container, oldRows, configParameters, extraScriptContext);
+            updateNarrativeCache(container, user, cacheData, log);
+
+            return result;
         }
 
         @Override
@@ -217,11 +279,63 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             }
 
             //get rows from snd.eventData
-            TableSelector ts = new TableSelector(SNDSchema.getInstance().getTableInfoEventData());
-            List<Map<String, Object>> oldRows = (List<Map<String, Object>>) ts.getMapCollection();
-            deleteFromExpTables(oldRows, container, log);
+            deleteAllFromExpTables(log);
+
+            OntologyManager.clearCaches();
+
+            BatchValidationException errors = new BatchValidationException();
+            SNDManager.get().clearNarrativeCache(container, user, errors);
+
+            if (errors.hasErrors())
+                throw errors;
 
             return super.truncateRows(user, container, configParameters, extraScriptContext);
+        }
+
+        private int deleteFromExpObjectProperty(Logger log)
+        {
+            int numDeletedRows;
+            String defaultLsidAuthority = AppProps.getInstance().getDefaultLsidAuthority();
+
+            try (DbScope.Transaction tx = _expSchema.getScope().ensureTransaction())
+            {
+                SqlExecutor executor = new SqlExecutor(_expSchema);
+                SQLFragment truncObjProp = new SQLFragment("delete from " + _expSchema.getName() + ".ObjectProperty\n");
+                truncObjProp.append("where objectId in\n");
+                truncObjProp.append("(select objectId from exp.object where objectURI like '%urn:lsid:labkey.com:SND.EventData.Folder%')\n");
+                truncObjProp.append("and propertyId in\n");
+                truncObjProp.append("(select propertyId from exp.propertyDescriptor where PropertyURI like '%urn:lsid:"+ defaultLsidAuthority +":package-snd.Folder%')");
+                numDeletedRows = executor.execute(truncObjProp);
+                tx.commit();
+            }
+            catch (Exception e)
+            {
+                log.error(e.getMessage(), e);
+                throw new IllegalStateException(e);
+            }
+
+            return numDeletedRows;
+        }
+
+        private int deleteFromExpObject(Logger log)
+        {
+            int numDeletedRows;
+
+            try (DbScope.Transaction tx = _expSchema.getScope().ensureTransaction())
+            {
+                SqlExecutor executor = new SqlExecutor(_expSchema);
+                SQLFragment truncObjProp = new SQLFragment("delete from " + _expSchema.getName() + ".Object\n");
+                truncObjProp.append("where objectURI like '%urn:lsid:labkey.com:SND.EventData.Folder%'\n");
+                numDeletedRows = executor.execute(truncObjProp);
+                tx.commit();
+            }
+            catch (Exception e)
+            {
+                log.error(e.getMessage(), e);
+                throw new IllegalStateException(e);
+            }
+
+            return numDeletedRows;
         }
 
         private void deleteFromExpTables(List<Map<String, Object>> oldRows, Container container, Logger log)
@@ -249,6 +363,19 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             }
 
             log.info("End deleting from exp.ObjectProperty and exp.Object. Deleted total of " + count + " rows.");
+        }
+
+        private int deleteAllFromExpTables(Logger log)
+        {
+            log.info("Deleting from exp.ObjectProperty table.");
+            int objPropCount = deleteFromExpObjectProperty(log);
+            log.info("Deleted " + objPropCount + " rows from exp.ObjectProperty.");
+
+            log.info("Deleting from exp.Object table.");
+            int objCount = deleteFromExpObject(log);
+            log.info("Deleted " + objCount + " rows from exp.Object.");
+
+            return objCount;
         }
     }
 }

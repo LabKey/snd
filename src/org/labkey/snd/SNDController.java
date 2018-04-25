@@ -136,7 +136,7 @@ public class SNDController extends SpringActionController
                     && (lookupSchema != null && !lookupSchema.isEmpty())
                     && (lookupQuery != null && !lookupQuery.isEmpty()))
             {
-                Object defPk = SNDService.get().normalizeLookupDefaultValue(getUser(), getContainer(), lookupSchema, lookupQuery, defaultValue);
+                Object defPk = SNDService.get().normalizeLookupValue(getUser(), getContainer(), lookupSchema, lookupQuery, defaultValue);
                 if (defPk == null)
                 {
                     errors.reject(ERROR_MSG, "Unable to resolve default value " + defaultValue + " for assigned lookup key.");
@@ -1172,7 +1172,7 @@ public class SNDController extends SpringActionController
         @Override
         public Object execute(SimpleApiJsonForm form, BindException errors) throws Exception
         {
-            SNDService.get().fillInNarrativeCache(getContainer(), getUser());
+            SNDService.get().fillInNarrativeCache(getContainer(), getUser(), null);
             return new ApiSimpleResponse();
         }
     }

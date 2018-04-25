@@ -22,8 +22,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.cache.CacheManager;
 import org.labkey.api.cache.StringKeyCache;
+import org.labkey.api.collections.ArrayListMap;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
-import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DbSchema;
@@ -77,7 +77,6 @@ import org.labkey.snd.query.PackagesTable;
 import org.labkey.snd.table.PlainTextNarrativeDisplayColumn;
 import org.labkey.snd.trigger.SNDTriggerManager;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -92,6 +91,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import org.apache.log4j.Logger;
 
 import static org.labkey.api.snd.EventNarrativeOption.HTML_NARRATIVE;
 import static org.labkey.api.snd.EventNarrativeOption.REDACTED_HTML_NARRATIVE;
@@ -186,7 +186,7 @@ public class SNDManager
     /**
      * Gets lookup values for default values of a property descriptor. Used when creating json for a property descriptor.
      */
-    public Object getDefaultLookupDisplayValue(User u, Container c, String schema, String table, Object key)
+    public Object getLookupDisplayValue(User u, Container c, String schema, String table, Object key)
     {
         UserSchema userSchema = QueryService.get().getUserSchema(u, c, schema);
 
@@ -219,7 +219,7 @@ public class SNDManager
     /**
      * Gets key value of a default lookup value. Used when converting json to property descriptor.
      */
-    public Object normalizeLookupDefaultValue(User u, Container c, String schema, String table, Object display)
+    public Object normalizeLookupValue(User u, Container c, String schema, String table, Object display)
     {
         UserSchema userSchema = QueryService.get().getUserSchema(u, c, schema);
         if (userSchema == null)
@@ -1778,24 +1778,24 @@ public class SNDManager
                 {
                     case TEXT_NARRATIVE:
                         // Get text version from generateEventNarrative for better formatting (as opposed to using cache and PlainTextNarrativeDisplayColumn)
-                        String textNarrative = generateEventNarrative(c, event, topLevelEventDataSuperPkgs, false, false);
+                        String textNarrative = generateEventNarrative(c, u, event, topLevelEventDataSuperPkgs, false, false);
                         narratives.put(TEXT_NARRATIVE, textNarrative);
                         break;
                     case REDACTED_TEXT_NARRATIVE:
                         // Redacting means we have to generate on the fly, not from cache
-                        String redactedTextNarrative = generateEventNarrative(c, event, topLevelEventDataSuperPkgs, false, true);
+                        String redactedTextNarrative = generateEventNarrative(c, u, event, topLevelEventDataSuperPkgs, false, true);
                         narratives.put(REDACTED_TEXT_NARRATIVE, redactedTextNarrative);
                         break;
                     case HTML_NARRATIVE:
                         TableInfo eventsCacheTable = getTableInfo(schema, SNDSchema.EVENTSCACHE_TABLE_NAME);
                         TableSelector eventsCacheTs = new TableSelector(eventsCacheTable, eventFilter, null);
+                        String htmlNarrative = null;
                         if (eventsCacheTs.exists())
                         {
                             try (Results eventsCacheResults = eventsCacheTs.getResults())
                             {
                                 eventsCacheResults.next();
-                                String htmlNarrative = eventsCacheResults.getString(FieldKey.fromParts("htmlNarrative"));
-                                narratives.put(HTML_NARRATIVE, htmlNarrative);
+                                htmlNarrative = eventsCacheResults.getString(FieldKey.fromParts("htmlNarrative"));
                             }
                             catch (SQLException e)
                             {
@@ -1803,12 +1803,41 @@ public class SNDManager
                             }
                         }
                         else
-                            errors.addRowError(new ValidationException("Event ID " + event.getEventId() + " exists but narrative unexpectedly not found in EventsCache."));
+                        {
+                            // Info message about cache miss
+                            errors.addRowError(new ValidationException("Event ID " + event.getEventId() + " exists but narrative unexpectedly not found in EventsCache.", ValidationException.SEVERITY.INFO));
+
+                            htmlNarrative = generateEventNarrative(c, u, event, topLevelEventDataSuperPkgs, true, true);
+
+                            QueryUpdateService eventsCacheQus = getNewQueryUpdateService(schema, SNDSchema.EVENTSCACHE_TABLE_NAME);
+                            List<Map<String, Object>> rows = new ArrayList<>();
+                            Map<String, Object> row = new CaseInsensitiveHashMap<>();
+
+                            row.put("EventId", event.getEventId());
+                            row.put("HtmlNarrative", htmlNarrative);
+                            row.put("Container", c);
+                            rows.add(row);
+
+                            try (DbScope.Transaction tx = schema.getDbSchema().getScope().ensureTransaction())
+                            {
+                                eventsCacheQus.insertRows(u, c, rows, errors, null, null);
+                                tx.commit();
+                            }
+                            catch (QueryUpdateServiceException | BatchValidationException | SQLException | DuplicateKeyException e)
+                            {
+                                errors.addRowError(new ValidationException(e.getMessage()));
+                            }
+                        }
+
+                        if (htmlNarrative != null)
+                        {
+                            narratives.put(HTML_NARRATIVE, htmlNarrative);
+                        }
 
                         break;
                     case REDACTED_HTML_NARRATIVE:
                         // Redacting means we have to generate on the fly, not from cache
-                        String redactedHtmlNarrative = generateEventNarrative(c, event, topLevelEventDataSuperPkgs, true, true);
+                        String redactedHtmlNarrative = generateEventNarrative(c, u, event, topLevelEventDataSuperPkgs, true, true);
                         narratives.put(REDACTED_HTML_NARRATIVE, redactedHtmlNarrative);
                         break;
                 }
@@ -2353,7 +2382,7 @@ public class SNDManager
                             QueryUpdateService eventNotesQus = getNewQueryUpdateService(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
                             QueryUpdateService eventsCacheQus = getNewQueryUpdateService(schema, SNDSchema.EVENTSCACHE_TABLE_NAME);
 
-                            String htmlEventNarrative = generateEventNarrative(c, event, topLevelEventDataPkgs, true, false);
+                            String htmlEventNarrative = generateEventNarrative(c, u, event, topLevelEventDataPkgs, true, false);
                             Map<String, Object> eventsCacheRow = getEventsCacheRow(c, u, event.getEventId(), htmlEventNarrative);
                             String textEventNarrative = PlainTextNarrativeDisplayColumn.removeHtmlTagsFromNarrative(htmlEventNarrative);
                             BatchValidationException errors = new BatchValidationException();
@@ -2364,7 +2393,7 @@ public class SNDManager
                                 eventNotesQus.insertRows(u, c, Collections.singletonList(event.getEventNotesRow(c)), errors, null, null);
                                 insertEventDatas(c, u, event, errors);
                                 eventsCacheQus.insertRows(u, c, Collections.singletonList(eventsCacheRow), errors, null, null);
-                                generateEventNarrative(c, event, topLevelEventDataPkgs, true, false);
+                                generateEventNarrative(c, u, event, topLevelEventDataPkgs, true, false);
                                 NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), textEventNarrative, "Create event");
                                 tx.commit();
                             }
@@ -2496,7 +2525,7 @@ public class SNDManager
                             QueryUpdateService eventNotesQus = getNewQueryUpdateService(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
                             QueryUpdateService eventsCacheQus = getNewQueryUpdateService(schema, SNDSchema.EVENTSCACHE_TABLE_NAME);
 
-                            String htmlEventNarrative = generateEventNarrative(c, event, topLevelEventDataSuperPkgs, true, false);
+                            String htmlEventNarrative = generateEventNarrative(c, u, event, topLevelEventDataSuperPkgs, true, false);
                             Map<String, Object> eventsCacheRow = getEventsCacheRow(c, u, event.getEventId(), htmlEventNarrative);
                             String textEventNarrative = PlainTextNarrativeDisplayColumn.removeHtmlTagsFromNarrative(htmlEventNarrative);
                             BatchValidationException errors = new BatchValidationException();
@@ -2531,6 +2560,27 @@ public class SNDManager
         return event;
     }
 
+    /**
+     * Deletes the cached narratives for the list of event ids.
+     */
+    public void deleteNarrativeCacheRows(Container c, User u, List<Map<String, Object>> eventIds, BatchValidationException errors)
+    {
+        UserSchema sndSchema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        QueryUpdateService eventsCacheQus = getNewQueryUpdateService(sndSchema, SNDSchema.EVENTSCACHE_TABLE_NAME);
+
+        try
+        {
+            eventsCacheQus.deleteRows(u, c, eventIds, null, null);
+        }
+        catch (InvalidKeyException | BatchValidationException | QueryUpdateServiceException | SQLException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Clears entire narrative cache.
+     */
     public void clearNarrativeCache(Container c, User u, BatchValidationException errors)
     {
         UserSchema sndSchema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -2548,35 +2598,79 @@ public class SNDManager
     }
 
     /**
-     * Called from SNDController.RefreshNarrativeCacheAction to truncate and repopulate the event narrative cache.
+     * Called from SNDService to find events missing narratives and populate their narratives in narrative cache.
      */
-    public void fillInNarrativeCache(Container c, User u, BatchValidationException errors)
+    public void fillInNarrativeCache(Container c, User u, BatchValidationException errors, @Nullable Logger logger)
     {
         UserSchema sndSchema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
-        QueryUpdateService eventsCacheQus = getNewQueryUpdateService(sndSchema, SNDSchema.EVENTSCACHE_TABLE_NAME);
 
-        SQLFragment eventSql = new SQLFragment("SELECT EventId FROM ");
+        SQLFragment eventSql = new SQLFragment("SELECT ev.EventId FROM ");
         eventSql.append(sndSchema.getTable(SNDSchema.EVENTS_TABLE_NAME), "ev");
         eventSql.append(" LEFT JOIN ");
         eventSql.append(sndSchema.getTable(SNDSchema.EVENTSCACHE_TABLE_NAME), "ec");
+        eventSql.append(" ON ev.EventId = ec.EventId");
         eventSql.append(" WHERE ec.HtmlNarrative IS NULL");
         SqlSelector selector = new SqlSelector(sndSchema.getDbSchema(), eventSql);
 
         List<Integer> eventIds = selector.getArrayList(Integer.class);
 
+        Map<String, Object> row;
         List<Map<String, Object>> rows = new ArrayList<>();
-        Map<Integer, SuperPackage> eventDataTopLevelSuperPkgs;
-
-        for (int eventId : eventIds)
+        for (Integer eventId : eventIds)
         {
-            eventDataTopLevelSuperPkgs = getTopLevelEventDataSuperPkgs(c, u, eventId, errors);
-            Event event = getEvent(c, u, eventId, null, false, eventDataTopLevelSuperPkgs, errors);  // don't populate narratives or set narrative options, since we're repopulating the narrative cache
-            String eventNarrative = generateEventNarrative(c, event, eventDataTopLevelSuperPkgs, true, false);
-            Map<String, Object> row = new CaseInsensitiveHashMap<>();
+            row = new HashMap<>();
             row.put("EventId", eventId);
-            row.put("HtmlNarrative", eventNarrative);
-            row.put("Container", c);
             rows.add(row);
+        }
+
+        populateNarrativeCache(c, u, rows, errors, logger);
+    }
+
+    /**
+     *  Populate specific event narratives in narrative cache.
+     */
+    public void populateNarrativeCache(Container c, User u, List<Map<String, Object>> eventIds, BatchValidationException errors, @Nullable Logger logger)
+    {
+        UserSchema sndSchema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        QueryUpdateService eventsCacheQus = getNewQueryUpdateService(sndSchema, SNDSchema.EVENTSCACHE_TABLE_NAME);
+
+        Map<Integer, SuperPackage> eventDataTopLevelSuperPkgs;
+        List<Map<String, Object>> rows = new ArrayList<>();
+
+        // Logger for pipeline
+        if (logger != null)
+        {
+            logger.info("Generating narratives.");
+        }
+
+        int count = 0;
+        Integer eventId;
+        Map<String, Object> row;
+        for (Map<String, Object> eventRow : eventIds)
+        {
+            eventId = (Integer)eventRow.get("EventId");
+            if (eventId != null)
+            {
+                row = new ArrayListMap<>();
+                eventDataTopLevelSuperPkgs = getTopLevelEventDataSuperPkgs(c, u, eventId, errors);
+                Event event = getEvent(c, u, eventId, null, false, eventDataTopLevelSuperPkgs, errors);  // don't populate narratives or set narrative options, since we're repopulating the narrative cache
+                String eventNarrative = generateEventNarrative(c, u, event, eventDataTopLevelSuperPkgs, true, false);
+                row.put("EventId", eventId);
+                row.put("HtmlNarrative", eventNarrative);
+                row.put("Container", c);
+                rows.add(row);
+                count++;
+
+                if (logger != null && count % 1000 == 0)
+                {
+                    logger.info(count + " narratives generated.");
+                }
+            }
+        }
+
+        if (logger != null)
+        {
+            logger.info("Inserting narratives into cache.");
         }
 
         try (DbScope.Transaction tx = sndSchema.getDbSchema().getScope().ensureTransaction())
@@ -2706,7 +2800,7 @@ public class SNDManager
      * with real values.  Formats based on html or plain text and creates redacted or non-redacted version. Called from
      * generateEventNarrative.
      */
-    private String generateEventDataNarrative(Container c, Event event, EventData eventData, SuperPackage superPackage, int tabIndex, boolean genHtml, boolean genRedacted)
+    private String generateEventDataNarrative(Container c, User u, Event event, EventData eventData, SuperPackage superPackage, int tabIndex, boolean genHtml, boolean genRedacted)
     {
         StringBuilder eventDataNarrative = new StringBuilder();
         if (superPackage.getNarrative() != null)
@@ -2766,6 +2860,11 @@ public class SNDManager
                     value = attributeData.getValue();
                 }
 
+                if (value != null && pd.getLookupSchema() != null && pd.getLookupQuery() != null)
+                {
+                    value = (String) getLookupDisplayValue(u, c, pd.getLookupSchema(), pd.getLookupQuery(), Integer.parseInt(value));
+                }
+
                 if (PropertyType.getFromURI(null, pd.getRangeURI()) == PropertyType.DATE_TIME)
                 {
                     value = handleNarrativeDate(c, event, attributeData, value, AttributeData.DATE_TIME_FORMAT, true);
@@ -2790,7 +2889,7 @@ public class SNDManager
                 tabIndex++;
                 for (EventData data : eventData.getSubPackages())
                 {
-                    eventDataNarrative.append(generateEventDataNarrative(c, event, data, getSuperPackage(data.getSuperPkgId(), superPackage.getChildPackages()), tabIndex, genHtml, genRedacted));
+                    eventDataNarrative.append(generateEventDataNarrative(c, u, event, data, getSuperPackage(data.getSuperPkgId(), superPackage.getChildPackages()), tabIndex, genHtml, genRedacted));
                 }
             }
         }
@@ -2807,7 +2906,7 @@ public class SNDManager
      * Call this function to generate the event narrative.  Options to generate in html or plain text and redacted or
      * non-redacted version.
      */
-    private String generateEventNarrative(Container c, Event event, Map<Integer, SuperPackage> topLevelEventDataSuperPkgs, boolean genHtml, boolean genRedacted)
+    private String generateEventNarrative(Container c, User u, Event event, Map<Integer, SuperPackage> topLevelEventDataSuperPkgs, boolean genHtml, boolean genRedacted)
     {
         StringBuilder narrative = new StringBuilder();
         if (event.getDate() != null)
@@ -2845,8 +2944,7 @@ public class SNDManager
         {
             for (EventData eventData : event.getEventData())
             {
-                narrative.append(generateEventDataNarrative(c, event, eventData, topLevelEventDataSuperPkgs.get(eventData.getEventDataId()), 0, genHtml, genRedacted));
-
+                narrative.append(generateEventDataNarrative(c, u, event, eventData, topLevelEventDataSuperPkgs.get(eventData.getEventDataId()), 0, genHtml, genRedacted));
             }
         }
 

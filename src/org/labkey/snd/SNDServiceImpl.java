@@ -55,6 +55,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.apache.log4j.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -167,7 +168,7 @@ public class SNDServiceImpl implements SNDService
     @Override
     public Object getDefaultLookupDisplayValue(User u, Container c, String schema, String table, Object key)
     {
-        return SNDManager.get().getDefaultLookupDisplayValue(u, c, schema, table, key);
+        return SNDManager.get().getLookupDisplayValue(u, c, schema, table, key);
     }
 
     public void saveProject(Container c, User u, Project project, boolean isRevision)
@@ -305,9 +306,9 @@ public class SNDServiceImpl implements SNDService
     }
 
     @Override
-    public Object normalizeLookupDefaultValue(User u, Container c, String schema, String table, Object display)
+    public Object normalizeLookupValue(User u, Container c, String schema, String table, Object display)
     {
-        return SNDManager.get().normalizeLookupDefaultValue(u, c, schema, table, display);
+        return SNDManager.get().normalizeLookupValue(u, c, schema, table, display);
     }
 
     @Override
@@ -339,11 +340,11 @@ public class SNDServiceImpl implements SNDService
         return mutableData;
     }
 
-    public void fillInNarrativeCache(Container c, User u)
+    public void fillInNarrativeCache(Container c, User u, Logger logger)
     {
         BatchValidationException errors = new BatchValidationException();
 
-        SNDManager.get().fillInNarrativeCache(c, u, errors);
+        SNDManager.get().fillInNarrativeCache(c, u, errors, logger);
 
         if (errors.hasErrors())
             throw new ApiUsageException(errors);
@@ -354,6 +355,26 @@ public class SNDServiceImpl implements SNDService
         BatchValidationException errors = new BatchValidationException();
 
         SNDManager.get().clearNarrativeCache(c, u, errors);
+
+        if (errors.hasErrors())
+            throw new ApiUsageException(errors);
+    }
+
+    public void deleteNarrativeCacheRows(Container c, User u, List<Map<String, Object>> eventIds)
+    {
+        BatchValidationException errors = new BatchValidationException();
+
+        SNDManager.get().deleteNarrativeCacheRows(c, u, eventIds, errors);
+
+        if (errors.hasErrors())
+            throw new ApiUsageException(errors);
+    }
+
+    public void populateNarrativeCache(Container c, User u, List<Map<String, Object>> eventIds, Logger logger)
+    {
+        BatchValidationException errors = new BatchValidationException();
+
+        SNDManager.get().populateNarrativeCache(c, u, eventIds, errors, logger);
 
         if (errors.hasErrors())
             throw new ApiUsageException(errors);

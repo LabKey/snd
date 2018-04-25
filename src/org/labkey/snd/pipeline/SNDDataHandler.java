@@ -217,7 +217,7 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
                 //defaultValue
                 if (ct.getDefaultValue() != null)
                 {
-                    Object defaultValue = SNDService.get().normalizeLookupDefaultValue(info.getUser(), info.getContainer(),
+                    Object defaultValue = SNDService.get().normalizeLookupValue(info.getUser(), info.getContainer(),
                             fk.getFkDbSchema(), fk.getFkTable(), ct.getDefaultValue());
                     if (defaultValue != null)
                     {

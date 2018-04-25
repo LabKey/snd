@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
+import org.apache.log4j.Logger;
 
 /**
  * Created by marty on 8/4/2017.
@@ -56,11 +57,13 @@ public interface SNDService
     Event getEvent(Container c, User u, int eventId, @Nullable Set<EventNarrativeOption> narrativeOptions);
     JSONObject convertPropertyDescriptorToJson(Container c, User u, GWTPropertyDescriptor pd, boolean resolveLookupValues);
     JSONArray lookupValuesToJson(Container c, User u, String schema, String query);
-    Object normalizeLookupDefaultValue(User u, Container c, String schema, String table, Object display);
+    Object normalizeLookupValue(User u, Container c, String schema, String table, Object display);
     void registerEventTriggerFactory(Module module, EventTriggerFactory factory);
     void unregisterEventTriggerFactory(Module module);
     Lock getWriteLock();
     List<Map<String,Object>> getMutableData(DataIteratorBuilder rows, DataIteratorContext dataIteratorContext) throws IOException;
-    void fillInNarrativeCache(Container c, User u);
+    void fillInNarrativeCache(Container c, User u, Logger logger);
     void clearNarrativeCache(Container c, User u);
+    void deleteNarrativeCacheRows(Container c, User u, List<Map<String, Object>> eventIds);
+    void populateNarrativeCache(Container c, User u, List<Map<String, Object>> eventIds, Logger logger);
 }

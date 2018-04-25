@@ -83,7 +83,7 @@
                 LABKEY.Ajax.request({
                     success: fillInCacheSuccess,
                     failure: handleFailure,
-                    url: LABKEY.ActionURL.buildURL('snd', 'refreshNarrativeCache.api'),
+                    url: LABKEY.ActionURL.buildURL('snd', 'fillInNarrativeCache.api'),
                     params: {},
                     scope: this
                 })
@@ -95,7 +95,7 @@
                     LABKEY.Ajax.request({
                         success: clearingCacheSuccess,
                         failure: handleFailure,
-                        url: LABKEY.ActionURL.buildURL('snd', 'refreshNarrativeCache.api'),
+                        url: LABKEY.ActionURL.buildURL('snd', 'clearNarrativeCache.api'),
                         params: {},
                         scope: this
                     })
@@ -109,6 +109,8 @@
 
             function handleFailure(e) {
                 showPopulatingQcStateMsg(false);
+                showFillingInCacheMsg(false);
+                showClearingCacheMsg(false);
                 if (e.status === 401) {
                     LABKEY.Utils.alert("Error","Unauthorized");
                 }

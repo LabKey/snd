@@ -34,7 +34,6 @@ import org.labkey.api.security.User;
 import org.labkey.api.security.UserPrincipal;
 import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.Permission;
-import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.settings.AppProps;
 import org.labkey.api.snd.SNDService;
 import org.labkey.api.util.UnexpectedException;
@@ -47,10 +46,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.Set;
 
 /**
  * Exposes all of the event attribute data, one row per attribute/value combination.
@@ -194,6 +193,35 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
             return null;
         }
 
+        private void updateNarrativeCache(Container container, User user, Set<Integer>cacheData, Logger log)
+        {
+            if (cacheData.size() > 0)
+            {
+                log.info("Deleting affected narrative cache rows.");
+                List<Map<String, Object>> rows = new ArrayList<>();
+                Map<String, Object> row;
+
+                for (Integer cacheDatum : cacheData)
+                {
+                    row = new HashMap<>();
+                    row.put("EventId", cacheDatum);
+                    rows.add(row);
+                }
+
+                _sndService.deleteNarrativeCacheRows(container, user, rows);
+
+                if (cacheData.size() > 10000)
+                {
+                    log.info("Greater than 10,000 rows so not automatically populating narrative cache. Ensure to refresh manually.");
+                }
+                else
+                {
+                    log.info("Repopulate affected rows in narrative cache.");
+                    _sndService.populateNarrativeCache(container, user, rows, log);
+                }
+            }
+        }
+
         private int insertObject(Container c, String uri, List<ObjectProperty> props, Integer pkgId, int inserted, Logger logger)
         {
             try
@@ -226,6 +254,8 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
             Integer pkgId = null;
             boolean found = false;
 
+            Set<Integer> cacheEventIds = new HashSet<>();
+
             for(Map<String, Object> row : data)
             {
                 //Note: DateTimeValue is not in the source view but adding it here since it is a field in exp.ObjectProperty,
@@ -236,6 +266,9 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
                 String stringValue = (String) row.get("StringValue");
                 Character typeTag = ((String) row.get("TypeTag")).toCharArray()[0];
                 String key = (String) row.get("_Key");
+
+                //add to list of cached narrative rows to delete
+                cacheEventIds.add((Integer) row.get("EventId"));
 
                 String objectURI = getObjectURI((Integer) row.get("EventDataId"), container);
                 if (prevUri == null)
@@ -256,10 +289,19 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
                             Object value = null;
                             if (floatValue != null)
                                 value = floatValue;
-                            else if (stringValue != null)
-                                value = stringValue;
                             else if (dateTimeValue != null)
                                 value = dateTimeValue;
+                            else if (stringValue != null)
+                            {
+                                if (pd.getLookupSchema() != null && pd.getLookupQuery() != null)
+                                {
+                                    value = _sndService.normalizeLookupValue(user, container, pd.getLookupSchema(), pd.getLookupQuery(), stringValue);
+                                }
+                                else
+                                {
+                                    value = stringValue;
+                                }
+                            }
 
                             ObjectProperty oprop = new ObjectProperty(objectURI, container, pd.getPropertyURI(), value);
                             oprop.setTypeTag(typeTag);
@@ -306,6 +348,8 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
 
             OntologyManager.clearPropertyCache();
             logger.info("End updating exp.ObjectProperty. Inserted/Updated " + inserted + " rows.");
+
+            updateNarrativeCache(container, user, cacheEventIds, logger);
 
             return data;
         }
@@ -360,6 +404,12 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
                 log.error(e.getMessage(), e);
                 throw new IllegalStateException(e);
             }
+
+            //Deleting event narrative cache
+            log.info("Clearing event narrative cache.");
+            _sndService.clearNarrativeCache(container, user);
+            OntologyManager.clearCaches();
+
             return numDeletedRows;
         }
 
@@ -379,6 +429,7 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
                 log = _logger;
             }
 
+            Set<Integer> cacheData = new HashSet<>();
             try (DbScope.Transaction tx = _expSchema.getScope().ensureTransaction())
             {
                 for (Map<String, Object> row : oldRows)
@@ -394,6 +445,9 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
                     deleteObjProp.add(propertyId);
                     executor.execute(deleteObjProp);
                     log.info("Deleting a row in exp.ObjectProperty with objectId = " + objectId + ", and propertyId = " + propertyId);
+
+                    //narrative cache to update
+                    cacheData.add((Integer) row.get("EventId"));
                 }
                 tx.commit();
             }
@@ -402,6 +456,9 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
                 log.error(e.getMessage(), e);
                 throw new IllegalStateException(e);
             }
+
+            updateNarrativeCache(container, user, cacheData, log);
+
             return oldRows;
         }
     }
