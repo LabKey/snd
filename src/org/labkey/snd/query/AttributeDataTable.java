@@ -255,6 +255,7 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
             boolean found = false;
 
             Set<Integer> cacheEventIds = new HashSet<>();
+            int cacheCount = 0;
 
             for(Map<String, Object> row : data)
             {
@@ -269,6 +270,13 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
 
                 //add to list of cached narrative rows to delete
                 cacheEventIds.add((Integer) row.get("EventId"));
+                if (cacheEventIds.size() >= 100000)
+                {
+                    cacheCount += cacheEventIds.size();
+                    logger.info("Updating " + cacheEventIds.size() + " rows in event narrative cache.");
+                    updateNarrativeCache(container, user, cacheEventIds, logger);
+                    cacheEventIds = new HashSet<>();
+                }
 
                 String objectURI = getObjectURI((Integer) row.get("EventDataId"), container);
                 if (prevUri == null)
@@ -303,28 +311,43 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
                                 }
                             }
 
-                            ObjectProperty oprop = new ObjectProperty(objectURI, container, pd.getPropertyURI(), value);
-                            oprop.setTypeTag(typeTag);
-                            oprop.setPropertyId(pd.getPropertyId());
-
-                            OntologyObject ontologyObject = OntologyManager.getOntologyObject(container, objectURI);
-                            if (null != ontologyObject)
+                            if (value == null)
                             {
-                                if (isUpdate)
+                                if (pd.getLookupSchema() != null && pd.getLookupQuery() != null)
                                 {
-                                    OntologyManager.deleteProperty(ontologyObject, OntologyManager.getPropertyDescriptor(pd.getPropertyURI(), container), false);
+                                    logger.info("Value null for property " + pd.getName() + ". Value skipped. Verify lookup " + pd.getLookupSchema() + "." + pd.getLookupQuery() + " contains " + stringValue);
+                                }
+                                else
+                                {
+                                    logger.info("Value null for property " + pd.getName() + ". Value skipped.");
                                 }
                             }
 
-                            if (isUpdate || isInsertOnly)
+                            else
                             {
-                                if (!prevUri.equals(objectURI))
+                                ObjectProperty oprop = new ObjectProperty(objectURI, container, pd.getPropertyURI(), value);
+                                oprop.setTypeTag(typeTag);
+                                oprop.setPropertyId(pd.getPropertyId());
+
+                                OntologyObject ontologyObject = OntologyManager.getOntologyObject(container, objectURI);
+                                if (null != ontologyObject)
                                 {
-                                    inserted = insertObject(container, prevUri, prevObjProps, pkgId, inserted, logger);
-                                    prevUri = objectURI;
-                                    prevObjProps = new ArrayList<>();
+                                    if (isUpdate)
+                                    {
+                                        OntologyManager.deleteProperty(ontologyObject, OntologyManager.getPropertyDescriptor(pd.getPropertyURI(), container), false);
+                                    }
                                 }
-                                prevObjProps.add(oprop);
+
+                                if (isUpdate || isInsertOnly)
+                                {
+                                    if (!prevUri.equals(objectURI))
+                                    {
+                                        inserted = insertObject(container, prevUri, prevObjProps, pkgId, inserted, logger);
+                                        prevUri = objectURI;
+                                        prevObjProps = new ArrayList<>();
+                                    }
+                                    prevObjProps.add(oprop);
+                                }
                             }
 
                             break;
@@ -349,7 +372,10 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
             OntologyManager.clearPropertyCache();
             logger.info("End updating exp.ObjectProperty. Inserted/Updated " + inserted + " rows.");
 
+            cacheCount += cacheEventIds.size();
+            logger.info("Updating " + cacheEventIds.size() + " rows in event narrative cache.");
             updateNarrativeCache(container, user, cacheEventIds, logger);
+            logger.info("Updated a total of " + cacheCount + " rows in event narrative cache.");
 
             return data;
         }
