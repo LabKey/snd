@@ -85,7 +85,7 @@ public class SNDController extends SpringActionController
         }
 
         @Override
-        public boolean doAction(Object o, BindException errors) throws Exception
+        public boolean doAction(Object o, BindException errors)
         {
             return true;
         }
@@ -162,7 +162,7 @@ public class SNDController extends SpringActionController
         }
 
         @Override
-        public ApiResponse execute(SimpleApiJsonForm form, BindException errors) throws Exception
+        public ApiResponse execute(SimpleApiJsonForm form, BindException errors)
         {
             JSONObject json = form.getJsonObject();
             Package pkg = new Package();
@@ -494,7 +494,7 @@ public class SNDController extends SpringActionController
         }
 
         @Override
-        public ApiResponse execute(SimpleApiJsonForm form, BindException errors) throws Exception
+        public ApiResponse execute(SimpleApiJsonForm form, BindException errors)
         {
             JSONObject json = form.getJsonObject();
             JSONArray pkgIds = json.getJSONArray("packages");
@@ -757,7 +757,7 @@ public class SNDController extends SpringActionController
         }
 
         @Override
-        public ApiResponse execute(SimpleApiJsonForm form, BindException errors) throws Exception
+        public ApiResponse execute(SimpleApiJsonForm form, BindException errors)
         {
             JSONObject json = form.getJsonObject();
             ApiSimpleResponse response = new ApiSimpleResponse();
@@ -1120,7 +1120,7 @@ public class SNDController extends SpringActionController
     public class RegisterTestTriggerFactoryAction extends ApiAction<SimpleApiJsonForm>
     {
         @Override
-        public Object execute(SimpleApiJsonForm form, BindException errors) throws Exception
+        public Object execute(SimpleApiJsonForm form, BindException errors)
         {
             JSONObject json = form.getJsonObject();
             Boolean unregister = (json != null && json.has("unregister") && json.getBoolean("unregister"));

@@ -962,7 +962,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     }
 
     @Before
-    public void preTest() throws Exception
+    public void preTest()
     {
         goToProjectHome();
 //        truncateSndPkg();
@@ -1659,7 +1659,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     }
 
     @Test
-    public void testSuperPackageApis() throws Exception
+    public void testSuperPackageApis()
     {
         goToProjectHome();
         goToSchemaBrowser();

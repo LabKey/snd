@@ -416,7 +416,6 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
         @Override
         public List<Map<String, Object>> deleteRows(User user, Container container, List<Map<String, Object>> oldRows,
                                                     @Nullable Map<Enum, Object> configParameters, @Nullable Map<String, Object> extraScriptContext)
-                throws InvalidKeyException, BatchValidationException, QueryUpdateServiceException, SQLException
         {
             Logger log = null;
             if (configParameters != null)
