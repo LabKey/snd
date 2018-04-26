@@ -1159,7 +1159,7 @@ public class SNDController extends SpringActionController
     public class ClearNarrativeCacheAction extends ApiAction<SimpleApiJsonForm>
     {
         @Override
-        public Object execute(SimpleApiJsonForm form, BindException errors) throws Exception
+        public Object execute(SimpleApiJsonForm form, BindException errors)
         {
             SNDService.get().clearNarrativeCache(getContainer(), getUser());
             return new ApiSimpleResponse();
@@ -1170,7 +1170,7 @@ public class SNDController extends SpringActionController
     public class FillInNarrativeCacheAction extends ApiAction<SimpleApiJsonForm>
     {
         @Override
-        public Object execute(SimpleApiJsonForm form, BindException errors) throws Exception
+        public Object execute(SimpleApiJsonForm form, BindException errors)
         {
             SNDService.get().fillInNarrativeCache(getContainer(), getUser(), null);
             return new ApiSimpleResponse();
@@ -1181,7 +1181,7 @@ public class SNDController extends SpringActionController
     public class PopulateQCStatesAction extends ApiAction<SimpleApiJsonForm>
     {
         @Override
-        public Object execute(SimpleApiJsonForm form, BindException errors) throws Exception
+        public Object execute(SimpleApiJsonForm form, BindException errors)
         {
             SNDManager.get().populateQCStates(getContainer(), getUser());
 
@@ -1194,7 +1194,7 @@ public class SNDController extends SpringActionController
     {
 
         @Override
-        public ModelAndView getView(Object o, BindException errors) throws Exception
+        public ModelAndView getView(Object o, BindException errors)
         {
             return new JspView<>("/org/labkey/snd/security/view/categorySecurity.jsp");
         }
@@ -1222,7 +1222,7 @@ public class SNDController extends SpringActionController
         }
 
         @Override
-        public boolean handlePost(Object o, BindException errors) throws Exception
+        public boolean handlePost(Object o, BindException errors)
         {
             return false;
         }
@@ -1239,7 +1239,7 @@ public class SNDController extends SpringActionController
     {
 
         @Override
-        public ModelAndView getView(Object o, BindException errors) throws Exception
+        public ModelAndView getView(Object o, BindException errors)
         {
             return new JspView<>("/org/labkey/snd/view/sndAdmin.jsp");
         }
