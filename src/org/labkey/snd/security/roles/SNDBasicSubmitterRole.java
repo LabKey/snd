@@ -8,6 +8,9 @@ import org.labkey.snd.security.permissions.SNDInProgressDeletePermission;
 import org.labkey.snd.security.permissions.SNDInProgressInsertPermission;
 import org.labkey.snd.security.permissions.SNDInProgressReadPermission;
 import org.labkey.snd.security.permissions.SNDInProgressUpdatePermission;
+import org.labkey.snd.security.permissions.SNDRejectedDeletePermission;
+import org.labkey.snd.security.permissions.SNDRejectedReadPermission;
+import org.labkey.snd.security.permissions.SNDRejectedUpdatePermission;
 
 public class SNDBasicSubmitterRole extends AbstractModuleScopedRole
 {
@@ -16,7 +19,9 @@ public class SNDBasicSubmitterRole extends AbstractModuleScopedRole
         super("SND Basic Submitter", "SND Basic Submitters may read, add, update and delete SND data with QC state In Progress.",
                 SNDModule.class,
                 SNDInProgressReadPermission.class, SNDInProgressInsertPermission.class,
-                SNDInProgressUpdatePermission.class, SNDInProgressDeletePermission.class);
+                SNDInProgressUpdatePermission.class, SNDInProgressDeletePermission.class,
+                SNDRejectedReadPermission.class, SNDRejectedUpdatePermission.class,
+                SNDRejectedDeletePermission.class);
     }
 
     @Override

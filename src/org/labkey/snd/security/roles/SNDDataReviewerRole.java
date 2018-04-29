@@ -8,6 +8,8 @@ import org.labkey.snd.security.permissions.SNDCompletedReadPermission;
 import org.labkey.snd.security.permissions.SNDCompletedUpdatePermission;
 import org.labkey.snd.security.permissions.SNDInProgressReadPermission;
 import org.labkey.snd.security.permissions.SNDInProgressUpdatePermission;
+import org.labkey.snd.security.permissions.SNDRejectedReadPermission;
+import org.labkey.snd.security.permissions.SNDRejectedUpdatePermission;
 import org.labkey.snd.security.permissions.SNDReviewRequestedReadPermission;
 import org.labkey.snd.security.permissions.SNDReviewRequestedUpdatePermission;
 
@@ -19,7 +21,8 @@ public class SNDDataReviewerRole extends AbstractModuleScopedRole
                 SNDModule.class,
                 SNDInProgressReadPermission.class, SNDInProgressUpdatePermission.class,
                 SNDReviewRequestedUpdatePermission.class, SNDReviewRequestedReadPermission.class,
-                SNDCompletedReadPermission.class, SNDCompletedUpdatePermission.class);
+                SNDCompletedReadPermission.class, SNDCompletedUpdatePermission.class,
+                SNDRejectedReadPermission.class, SNDRejectedUpdatePermission.class);
     }
 
     @Override

@@ -12,6 +12,10 @@ import org.labkey.snd.security.permissions.SNDInProgressDeletePermission;
 import org.labkey.snd.security.permissions.SNDInProgressInsertPermission;
 import org.labkey.snd.security.permissions.SNDInProgressReadPermission;
 import org.labkey.snd.security.permissions.SNDInProgressUpdatePermission;
+import org.labkey.snd.security.permissions.SNDRejectedDeletePermission;
+import org.labkey.snd.security.permissions.SNDRejectedInsertPermission;
+import org.labkey.snd.security.permissions.SNDRejectedReadPermission;
+import org.labkey.snd.security.permissions.SNDRejectedUpdatePermission;
 import org.labkey.snd.security.permissions.SNDReviewRequestedDeletePermission;
 import org.labkey.snd.security.permissions.SNDReviewRequestedInsertPermission;
 import org.labkey.snd.security.permissions.SNDReviewRequestedReadPermission;
@@ -28,7 +32,9 @@ public class SNDDataAdminRole extends AbstractModuleScopedRole
                 SNDReviewRequestedUpdatePermission.class, SNDReviewRequestedReadPermission.class,
                 SNDReviewRequestedInsertPermission.class, SNDReviewRequestedDeletePermission.class,
                 SNDCompletedReadPermission.class, SNDCompletedUpdatePermission.class,
-                SNDCompletedInsertPermission.class, SNDCompletedDeletePermission.class);
+                SNDCompletedInsertPermission.class, SNDCompletedDeletePermission.class,
+                SNDRejectedReadPermission.class, SNDRejectedUpdatePermission.class,
+                SNDRejectedDeletePermission.class, SNDRejectedInsertPermission.class);
     }
 
     @Override

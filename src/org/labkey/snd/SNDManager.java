@@ -2957,12 +2957,12 @@ public class SNDManager
         UserSchema coreSchema = QueryService.get().getUserSchema(u, c, "core");
         DbSchema coreDbSchema = coreSchema.getDbSchema();
         TableInfo qcStateTi = coreDbSchema.getTable("QCState");
-//        TableInfo qcStateTi = getTableInfo(coreDbSchema, "QCState")
 
         Object[][] states = new Object[][]{
                 {"Completed", "Record has been completed and is public", true},
                 {"In Progress", "Draft Record, not public", false},
                 {"Review Required", "Review is required prior to public release", false},
+                {"Rejected", "Record has been reviewed and rejected", false}
         };
 
         try (DbScope.Transaction transaction = coreSchema.getDbSchema().getScope().ensureTransaction())
