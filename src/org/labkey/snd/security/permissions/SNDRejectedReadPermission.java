@@ -1,11 +1,11 @@
 package org.labkey.snd.security.permissions;
 
-import org.labkey.api.security.permissions.AbstractPermission;
+import org.labkey.snd.security.QCStateEnum;
 
-public class SNDRejectedReadPermission extends AbstractPermission
+public class SNDRejectedReadPermission extends SNDQCStatePermission
 {
     public SNDRejectedReadPermission()
     {
-        super("Read Rejected SND Data", "Allows reading SND data with QC state Rejected");
+        super("Read Rejected SND Data", "Allows reading SND data with QC state Rejected", QCStateEnum.REJECTED);
     }
 }

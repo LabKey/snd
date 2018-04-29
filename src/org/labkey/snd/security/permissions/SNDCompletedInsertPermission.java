@@ -1,11 +1,11 @@
 package org.labkey.snd.security.permissions;
 
-import org.labkey.api.security.permissions.AbstractPermission;
+import org.labkey.snd.security.QCStateEnum;
 
-public class SNDCompletedInsertPermission extends AbstractPermission
+public class SNDCompletedInsertPermission extends SNDQCStatePermission
 {
     public SNDCompletedInsertPermission()
     {
-        super("Insert Completed SND Data", "Allows inserting SND data with QC state Completed");
+        super("Insert Completed SND Data", "Allows inserting SND data with QC state Completed", QCStateEnum.COMPLETED);
     }
 }

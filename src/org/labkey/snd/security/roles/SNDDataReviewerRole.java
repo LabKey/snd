@@ -10,8 +10,8 @@ import org.labkey.snd.security.permissions.SNDInProgressReadPermission;
 import org.labkey.snd.security.permissions.SNDInProgressUpdatePermission;
 import org.labkey.snd.security.permissions.SNDRejectedReadPermission;
 import org.labkey.snd.security.permissions.SNDRejectedUpdatePermission;
-import org.labkey.snd.security.permissions.SNDReviewRequestedReadPermission;
-import org.labkey.snd.security.permissions.SNDReviewRequestedUpdatePermission;
+import org.labkey.snd.security.permissions.SNDReviewRequiredReadPermission;
+import org.labkey.snd.security.permissions.SNDReviewRequiredUpdatePermission;
 
 public class SNDDataReviewerRole extends AbstractModuleScopedRole
 {
@@ -20,7 +20,7 @@ public class SNDDataReviewerRole extends AbstractModuleScopedRole
         super("SND Data Reviewer", "SND Data Reviewer may read and update SND data with QC states In Progress, Review Requested and Completed.",
                 SNDModule.class,
                 SNDInProgressReadPermission.class, SNDInProgressUpdatePermission.class,
-                SNDReviewRequestedUpdatePermission.class, SNDReviewRequestedReadPermission.class,
+                SNDReviewRequiredUpdatePermission.class, SNDReviewRequiredReadPermission.class,
                 SNDCompletedReadPermission.class, SNDCompletedUpdatePermission.class,
                 SNDRejectedReadPermission.class, SNDRejectedUpdatePermission.class);
     }

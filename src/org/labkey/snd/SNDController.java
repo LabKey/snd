@@ -1184,7 +1184,7 @@ public class SNDController extends SpringActionController
         @Override
         public Object execute(SimpleApiJsonForm form, BindException errors)
         {
-            SNDManager.get().populateQCStates(getContainer(), getUser());
+            SNDSecurityManager.get().populateQCStates(getContainer(), getUser());
 
             return new ApiSimpleResponse();
         }

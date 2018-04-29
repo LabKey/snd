@@ -2952,43 +2952,6 @@ public class SNDManager
         return narrative.toString();
     }
 
-    public void populateQCStates(Container c, User u)
-    {
-        UserSchema coreSchema = QueryService.get().getUserSchema(u, c, "core");
-        DbSchema coreDbSchema = coreSchema.getDbSchema();
-        TableInfo qcStateTi = coreDbSchema.getTable("QCState");
-
-        Object[][] states = new Object[][]{
-                {"Completed", "Record has been completed and is public", true},
-                {"In Progress", "Draft Record, not public", false},
-                {"Review Required", "Review is required prior to public release", false},
-                {"Rejected", "Record has been reviewed and rejected", false}
-        };
-
-        try (DbScope.Transaction transaction = coreSchema.getDbSchema().getScope().ensureTransaction())
-        {
-            // check if QCStates exist, if not insert them
-            for (Object[] qc : states)
-            {
-                SimpleFilter filter = new SimpleFilter(FieldKey.fromString("Label"), qc[0]);
-                TableSelector ts = new TableSelector(qcStateTi, Collections.singleton("RowId"), filter, null);
-                Integer[] rowIds = ts.getArray(Integer.class);
-
-                if (rowIds.length < 1)
-                {
-                    Map<String, Object> row = new CaseInsensitiveHashMap<>();
-                    row.put("Container", c.getId());
-                    row.put("Label", qc[0]);
-                    row.put("Description", qc[1]);
-                    row.put("PublicData", qc[2]);
-                    Table.insert(u, qcStateTi, row);
-                }
-            }
-
-            transaction.commit();
-        }
-    }
-
     public Map<Integer, Category> getAllCategories(Container c, User u)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);

@@ -1,11 +1,11 @@
 package org.labkey.snd.security.permissions;
 
-import org.labkey.api.security.permissions.AbstractPermission;
+import org.labkey.snd.security.QCStateEnum;
 
-public class SNDInProgressUpdatePermission extends AbstractPermission
+public class SNDInProgressUpdatePermission extends SNDQCStatePermission
 {
     public SNDInProgressUpdatePermission()
     {
-        super("Update In Progress SND Data", "Allows updating SND data with QC state In Progress");
+        super("Update In Progress SND Data", "Allows updating SND data with QC state In Progress", QCStateEnum.IN_PROGRESS);
     }
 }
