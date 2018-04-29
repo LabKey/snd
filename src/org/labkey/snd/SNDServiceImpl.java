@@ -36,6 +36,7 @@ import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
+import org.labkey.api.snd.Category;
 import org.labkey.api.snd.Event;
 import org.labkey.api.snd.EventTriggerFactory;
 import org.labkey.api.snd.EventNarrativeOption;
@@ -378,5 +379,10 @@ public class SNDServiceImpl implements SNDService
 
         if (errors.hasErrors())
             throw new ApiUsageException(errors);
+    }
+
+    public Map<Integer, Category> getAllCategories(Container c, User u)
+    {
+        return SNDManager.get().getAllCategories(c, u);
     }
 }

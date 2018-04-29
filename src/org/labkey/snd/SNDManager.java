@@ -62,6 +62,7 @@ import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
 import org.labkey.api.settings.LookAndFeelProperties;
 import org.labkey.api.snd.AttributeData;
+import org.labkey.api.snd.Category;
 import org.labkey.api.snd.Event;
 import org.labkey.api.snd.EventData;
 import org.labkey.api.snd.EventNarrativeOption;
@@ -2986,5 +2987,44 @@ public class SNDManager
 
             transaction.commit();
         }
+    }
+
+    public Map<Integer, Category> getAllCategories(Container c, User u)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        TableInfo pkgCategoriesTable = getTableInfo(schema, SNDSchema.PKGCATEGORIES__TABLE_NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT CategoryId, Description, Active, ObjectId, Container FROM ");
+        sql.append(pkgCategoriesTable, "ed");
+
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+        List<Category> categories = selector.getArrayList(Category.class);
+
+        Map<Integer, Category> categoryMap = new TreeMap<>((o1, o2) -> {
+            Category cat1 = null;
+            Category cat2 = null;
+            for (Category category : categories)
+            {
+                if (category.getCategoryId() == o1)
+                    cat1 = category;
+
+                if (category.getCategoryId() == o2)
+                    cat2 = category;
+            }
+
+            if (cat1 != null && cat2 != null)
+            {
+                return cat1.getDescription().toLowerCase().compareTo(cat2.getDescription().toLowerCase());
+            }
+
+            return o1 - o2;
+        });
+        for (Category category : categories)
+        {
+            category.setContainer(c);
+            categoryMap.put(category.getCategoryId(), category);
+        }
+
+        return categoryMap;
     }
 }

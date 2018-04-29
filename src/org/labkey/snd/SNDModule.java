@@ -27,12 +27,17 @@ import org.labkey.api.module.ModuleContext;
 import org.labkey.api.module.SpringModule;
 import org.labkey.api.query.DefaultSchema;
 import org.labkey.api.query.QuerySchema;
+import org.labkey.api.security.roles.RoleManager;
 import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.snd.SNDDomainKind;
 import org.labkey.api.snd.SNDService;
 import org.labkey.api.view.WebPartFactory;
 import org.labkey.snd.pipeline.SNDDataHandler;
+import org.labkey.snd.security.roles.SNDBasicSubmitterRole;
+import org.labkey.snd.security.roles.SNDDataAdminRole;
+import org.labkey.snd.security.roles.SNDDataReviewerRole;
+import org.labkey.snd.security.roles.SNDReaderRole;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -74,6 +79,11 @@ public class SNDModule extends SpringModule
         PropertyService.get().registerDomainKind(new SNDDomainKind());
         PropertyService.get().registerDomainKind(new PackageDomainKind());
         ServiceRegistry.get().registerService(SNDService.class, SNDServiceImpl.INSTANCE);
+
+        RoleManager.registerRole(new SNDBasicSubmitterRole(), false);
+        RoleManager.registerRole(new SNDDataAdminRole(), false);
+        RoleManager.registerRole(new SNDDataReviewerRole(), false);
+        RoleManager.registerRole(new SNDReaderRole(), false);
     }
 
     @Override

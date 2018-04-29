@@ -48,6 +48,7 @@ import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.JspView;
 import org.labkey.api.view.NavTree;
+import org.labkey.snd.security.SNDSecurityManager;
 import org.labkey.snd.trigger.test.SNDTestEventTriggerFactory;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
@@ -1224,13 +1225,15 @@ public class SNDController extends SpringActionController
         @Override
         public boolean handlePost(Object o, BindException errors)
         {
-            return false;
+            Map props = getViewContext().getExtendedProperties();
+            SNDSecurityManager.get().updatePermissions(getContainer(), getUser(), props);
+            return true;
         }
 
         @Override
         public URLHelper getSuccessURL(Object o)
         {
-            return null;
+            return new ActionURL(SecurityAction.class, getContainer());
         }
     }
 
