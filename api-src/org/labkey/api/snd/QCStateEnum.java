@@ -1,4 +1,6 @@
-package org.labkey.snd.security;
+package org.labkey.api.snd;
+
+import org.jetbrains.annotations.Nullable;
 
 public enum QCStateEnum
 {
@@ -46,5 +48,19 @@ public enum QCStateEnum
     public void setPublicData(boolean publicData)
     {
         _publicData = publicData;
+    }
+
+    @Nullable
+    public static QCStateEnum getByName(String name)
+    {
+        for (QCStateEnum qcStateEnum : QCStateEnum.values())
+        {
+            if (qcStateEnum.getName().equals(name))
+            {
+                return qcStateEnum;
+            }
+        }
+
+        return null;
     }
 }

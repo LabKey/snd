@@ -3,6 +3,7 @@ package org.labkey.snd.security;
 
 
 import org.labkey.api.collections.CaseInsensitiveHashMap;
+import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.DbScope;
@@ -13,20 +14,31 @@ import org.labkey.api.data.TableSelector;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.QueryService;
 import org.labkey.api.query.UserSchema;
+import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.Group;
 import org.labkey.api.security.MutableSecurityPolicy;
 import org.labkey.api.security.SecurityPolicy;
 import org.labkey.api.security.SecurityPolicyManager;
 import org.labkey.api.security.User;
+import org.labkey.api.security.permissions.Permission;
 import org.labkey.api.security.roles.Role;
 import org.labkey.api.security.SecurityManager;
 import org.labkey.api.snd.Category;
+import org.labkey.api.snd.Event;
+import org.labkey.api.snd.QCStateEnum;
 import org.labkey.api.snd.SNDService;
+import org.labkey.api.snd.SuperPackage;
+import org.labkey.api.view.NotFoundException;
+import org.labkey.snd.SNDManager;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class SNDSecurityManager
@@ -36,6 +48,64 @@ public class SNDSecurityManager
     public static SNDSecurityManager get()
     {
         return _instance;
+    }
+
+    public void updatePermission(Container c, User u, int categoryId, String groupName, String roleName)
+    {
+        List<Integer> categoryIds = new ArrayList<>();
+        categoryIds.add(categoryId);
+
+        List<Category> categories = SNDManager.get().getCategories(c, u, categoryIds);
+        Category category;
+        if (categories != null && categories.size() > 0)
+        {
+            category = categories.get(0);
+            Group group = SecurityManager.getGroup(SecurityManager.getGroupId(c, groupName));
+            if (group != null)
+            {
+                MutableSecurityPolicy policy;
+
+                SecurityPolicy existingPolicy = SecurityPolicyManager.getPolicy(c, category.getResourceId());
+                if (existingPolicy != null)
+                {
+                    policy = new MutableSecurityPolicy(existingPolicy);
+                }
+                else
+                {
+                    policy = new MutableSecurityPolicy(category);
+                }
+
+                Role role = getRoleByName(roleName);
+                if (role == null && !roleName.equals("None"))
+                {
+                    throw new NotFoundException("Role not found.");
+                }
+
+                // Clear role first
+                if (role != null || roleName.equals("None"))
+                {
+                    policy.clearAssignedRoles(group);
+                }
+
+                if (role != null)
+                {
+                    policy.addRoleAssignment(group, role);
+                }
+
+                if (role != null || roleName.equals("None"))
+                {
+                    SecurityPolicyManager.savePolicy(policy);
+                }
+            }
+            else
+            {
+                throw new NotFoundException("Group not found.");
+            }
+        }
+        else
+        {
+            throw new NotFoundException("Category not found.");
+        }
     }
 
     public void updatePermissions(Container c, User u, Map props)
@@ -58,7 +128,7 @@ public class SNDSecurityManager
         for (Object key : props.keySet())
         {
             // parse incoming string
-            parts = ((String)key).split("\\|");
+            parts = ((String) key).split("\\|");
 
             if (parts.length < 2)
                 continue;
@@ -124,6 +194,130 @@ public class SNDSecurityManager
     {
         return EnumSet.allOf(SecurityRolesEnum.class).stream().map(SecurityRolesEnum::getRole).collect(Collectors.toMap(
                 Role::getName, role -> role));
+    }
+
+    private boolean hasPermission(User u, Category category, QCStateActionEnum action, QCStateEnum qcState)
+    {
+        Permission perm = action.getPermission(qcState);
+        if (perm != null && category.hasPermission(u, perm.getClass()))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean hasPermissionForCategories(User u, List<Category> categories, QCStateActionEnum action, QCStateEnum qcState)
+    {
+        boolean permission = false;
+
+        if (categories != null && action != null && qcState != null)
+        {
+            for (Category category : categories)
+            {
+                if (hasPermission(u, category, action, qcState))
+                {
+                    permission = true;
+                    break;
+                }
+            }
+        }
+
+        return permission;
+    }
+
+    public boolean hasPermissionForTopLevelSuperPkgs(Container c, User u, Map<Integer, SuperPackage> superPackages, Event event, QCStateActionEnum action)
+    {
+        if (event == null)
+        {
+            return false;
+        }
+
+        if (superPackages == null || superPackages.isEmpty())
+        {
+            // Event with no super packages will have no categories
+            return true;
+        }
+
+        if (action == null)
+        {
+            event.setException(new ValidationException("Missing action type for security check."));
+            return false;
+        }
+
+        if (event.getQcState() == null)
+        {
+            event.setException(new ValidationException("Missing QC state for security check."));
+            return false;
+        }
+
+        boolean hasPermission = true;
+        boolean hasSuperPkgPermission;
+        List<Integer> categoryIds;
+        List<Category> categories;
+        for (SuperPackage superPackage : superPackages.values())
+        {
+            hasSuperPkgPermission = false;
+            categoryIds = new ArrayList<>();
+            if (superPackage.getPkg() != null)
+            {
+                categoryIds.addAll(superPackage.getPkg().getCategories().keySet());
+                if (categoryIds.isEmpty())
+                {
+                    hasSuperPkgPermission = false;
+                }
+                else
+                {
+                    categories = SNDManager.get().getCategories(c, u, categoryIds);
+                    hasSuperPkgPermission = hasPermissionForCategories(u, categories, action, event.getQcState(c, u));
+                }
+            }
+
+            if (!hasSuperPkgPermission)
+            {
+                hasPermission = false;
+                break;
+            }
+        }
+
+        if (!hasPermission && action != QCStateActionEnum.READ)
+        {
+            event.setException(new ValidationException("User " + u.getFriendlyName() + " does not have permission to "
+                    + action.getName() + " event data for QC state " + event.getQcState(c, u).getName() + " for these super packages."));
+        }
+        return hasPermission;
+    }
+
+    public Integer getQCStateId(Container c, User u, QCStateEnum qcState)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, "core");
+        TableInfo qcStateTable = SNDManager.get().getTableInfo(schema, "QCState");
+
+        SimpleFilter qcFilter = new SimpleFilter(FieldKey.fromParts("Label"), qcState.getName(), CompareType.EQUAL);
+
+        // Get from eventNotes table
+        Set<String> cols = new HashSet<>();
+        cols.add("RowId");
+        TableSelector qcStateTs = new TableSelector(qcStateTable, cols, qcFilter, null);
+
+        return qcStateTs.getObject(Integer.class);
+    }
+
+    public QCStateEnum getQCState(Container c, User u, int qcStateId)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, "core");
+        TableInfo qcStateTable = SNDManager.get().getTableInfo(schema, "QCState");
+
+        SimpleFilter qcFilter = new SimpleFilter(FieldKey.fromParts("RowId"), qcStateId, CompareType.EQUAL);
+
+        // Get from eventNotes table
+        Set<String> cols = new HashSet<>();
+        cols.add("Label");
+        TableSelector qcStateTs = new TableSelector(qcStateTable, cols, qcFilter, null);
+
+        String qcStateName = qcStateTs.getObject(String.class);
+
+        return QCStateEnum.getByName(qcStateName);
     }
 
     public void populateQCStates(Container c, User u)

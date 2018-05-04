@@ -35,6 +35,9 @@ import org.labkey.remoteapi.query.SelectRowsCommand;
 import org.labkey.remoteapi.query.SelectRowsResponse;
 import org.labkey.remoteapi.query.TruncateTableCommand;
 import org.labkey.remoteapi.query.UpdateRowsCommand;
+import org.labkey.remoteapi.security.AddGroupMembersCommand;
+import org.labkey.remoteapi.security.CreateGroupCommand;
+import org.labkey.remoteapi.security.CreateGroupResponse;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.TestFileUtils;
@@ -55,6 +58,7 @@ import org.labkey.test.pages.snd.EditPackagePage;
 import org.labkey.test.pages.snd.EditProjectPage;
 import org.labkey.test.pages.snd.PackageListPage;
 import org.labkey.test.pages.snd.ProjectListPage;
+import org.labkey.test.util.ApiPermissionsHelper;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Maps;
 import org.labkey.test.util.SqlserverOnlyTest;
@@ -75,6 +79,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.labkey.test.WebTestHelper.buildURL;
 
 @Category ({CustomModules.class})
 public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
@@ -105,6 +110,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     private static final int TEST_SUPER_PKG_START_ID2 = 140;
     private static final int TEST_SUPER_PKG_START_ID3 = 150;
     private static final int TEST_SUPER_PKG_START_ID4 = 160;
+    private static final int TEST_SUPER_PKG_START_ID5 = 170;
     private static final String TEST_SUPER_PKG_DESCRIPTION_1 = "My package description2";
     private static final String TEST_SUPER_PKG_DESCRIPTION_2 = "My package description3";
     private static final String TEST_SUPER_PKG_DESCRIPTION_3 = "My package description4";
@@ -125,7 +131,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     private static final String TEST_PROJECT_DESC2 = "Project Test2";
     private static final String TEST_EDIT_PROJECT_DESC = "Edited Project";
     private static final String TEST_REV_PROJECT_DESC = "Revised Project";
-    private static final String TEST_PROJECT_DEFAULT_PKGS = "default";
+    private static final String TEST_PROJECT_DEFAULT_PKGS = "'default'";
     private static final int TEST_IMPORT_SUPERPKG1 = 5100;
     private static final int TEST_IMPORT_SUPERPKG2 = 5150;
     private static final int TEST_IMPORT_SUPERPKG3 = 5275;
@@ -160,6 +166,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         "    failure: function(e){ callback(e.responseText); },                 \n" +
         "    jsonData: {                                                        \n" +
         "        'id' : '" + TEST_PKG_ID + "',                                  \n" +
+        "		 'testIdNumberStart': '" + TEST_SUPER_PKG_START_ID5 + "',       \n" +
         "        'description': 'My package description',                       \n" +
         "        'active': true,                                                \n" +
         "        'repeatable': true,                                            \n" +
@@ -510,10 +517,11 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         "   jsonData: {                                             \n" +
         "       eventId: 1812345,                                   \n" +
         "       subjectId: 1,                                       \n" +
+        "       qcState: 'Completed',                               \n" +
         "       note: 'This is a test event note.',                 \n" +
         "       projectIdRev: '" + PKG_TEST_PROJECT_ID + "|0',      \n" +
         "       eventData: [{                                       \n" +
-        "           superPkgId: " + TEST_IMPORT_SUPERPKG3 + ",      \n" +
+        "           superPkgId: " + TEST_SUPER_PKG_START_ID5 + ",   \n" +
         "           extraFields: [],                                \n" +
         "           attributes: []                                  \n" +
         "       }]                                                  \n" +
@@ -565,7 +573,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
                 "var refId = " + refId + ";\n" +
                 "var start = '" + start + "';\n" +
                 "var end = '" + end + "';\n" +
-                "var packages = '" + packages + "';\n" +
+                "var packages = " + packages + ";\n" +
                 "var json = {\n" +
                 "   \"projectId\": id,\n" +
                 "   \"active\": true,\n" +
@@ -868,6 +876,9 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         //insert package categories
         runScript(CREATECATEGORIESAPI);
         populateLookups();
+        populateQCStates();
+
+        initPermissions();
 
         // These will run as part of project setup to populate data
         testSNDImport();
@@ -878,6 +889,38 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     {
         clickFolder(TEST1SUBFOLDER);
         runScript(CREATEDOMAINSAPI);
+    }
+
+    private void populateQCStates()
+    {
+        beginAt(buildURL("snd", PROJECTNAME, "admin"));
+
+        click(Locator.linkContainingText("Populate QC States"));
+        waitForText("QC states inserted");
+
+        Locator closeButton = Locator.tagWithClass("button", "close")
+                .withAttribute("data-dismiss", "modal");
+        click(closeButton);
+    }
+
+    private void setRole(int groupId, int categoryId, String role)
+    {
+        beginAt(buildURL("snd", PROJECTNAME, "security"));
+
+        setFormElementJS(Locator.inputById(groupId + "_" + categoryId), role);
+
+        clickButton("Save");
+        waitForText("Security");
+    }
+
+    private void initPermissions()
+    {
+        ApiPermissionsHelper _permissionsHelper = new ApiPermissionsHelper(this);
+
+        int groupId = _permissionsHelper.createProjectGroup("SNDApiTestGroup", getProjectName());
+        _permissionsHelper.addUserToProjGroup(getCurrentUser(), PROJECTNAME, "SNDApiTestGroup");
+
+        setRole(groupId, TEST_CATEGORY_ID3, "SND Data Admin");
     }
 
     private void runScript(String script)
@@ -1571,10 +1614,10 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         assertEquals("Has project not false","false",dataRegionTable.getDataAsText(0,"Has Project"));
 
         //add package to project
-        runScript(createProjectApi(PKG_TEST_PROJECT_ID, "Package API test project", TEST_PROJECT_REF_ID + 10, TEST_PROJECT_START_DATE, TEST_PROJECT_FUTURE_END_DATE, TEST_PROJECT_DEFAULT_PKGS));
+        runScript(createProjectApi(PKG_TEST_PROJECT_ID, "Package API test project", TEST_PROJECT_REF_ID + 10, TEST_PROJECT_START_DATE, TEST_PROJECT_FUTURE_END_DATE, "[{\"superPkgId\":" + TEST_SUPER_PKG_START_ID5 + ", \"active\":true}]"));
         refresh();
         dataRegionTable = new DataRegionTable("query",this);
-        int rowIndex = dataRegionTable.getRowIndex("Description", "TB and Weight");
+        int rowIndex = dataRegionTable.getRowIndex("Description", "My package description");
         assertEquals("Has event not false","false",dataRegionTable.getDataAsText(rowIndex,"Has Event"));
         assertEquals("Has project not true","true",dataRegionTable.getDataAsText(rowIndex,"Has Project"));
 
@@ -1582,7 +1625,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         runScript(ADDEVENT);
         refresh();
         dataRegionTable = new DataRegionTable("query",this);
-        rowIndex = dataRegionTable.getRowIndex("Description", "Empty Package");
+        rowIndex = dataRegionTable.getRowIndex("Description", "My package description");
         assertEquals("Has event not true","true",dataRegionTable.getDataAsText(rowIndex,"Has Event"));
         assertEquals("Has project not true","true",dataRegionTable.getDataAsText(rowIndex,"Has Project"));
 
@@ -1972,7 +2015,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         log("Launching the Testing framework");
         goToProjectHome();
         beginAt(WebTestHelper.buildURL("snd",getProjectName(), "test"));
-        waitForText("Tests are ready to run");
+        waitForText(10000, "Tests are ready to run");
 
         log("Waiting for test to load");
         clickButton("Run tests", 0);

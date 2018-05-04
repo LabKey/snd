@@ -14,11 +14,14 @@ import org.labkey.api.query.QueryUpdateServiceException;
 import org.labkey.api.query.SimpleQueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.security.User;
+import org.labkey.api.snd.Event;
 import org.labkey.api.snd.SNDService;
 import org.labkey.snd.NarrativeAuditProvider;
 import org.labkey.snd.SNDManager;
 import org.labkey.snd.SNDSchema;
 import org.labkey.snd.SNDUserSchema;
+import org.labkey.snd.security.QCStateActionEnum;
+import org.labkey.snd.security.SNDSecurityManager;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -175,6 +178,20 @@ public class EventsTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             int eventId = (Integer) oldRowMap.get("EventId");
             String subjectId = (String) oldRowMap.get("SubjectId");
             Date eventDate = (Date) oldRowMap.get("Date");
+
+            BatchValidationException errors = new BatchValidationException();
+            Event event = SNDManager.get().getEvent(container, user, eventId, null, null, errors);
+            if (!SNDSecurityManager.get().hasPermissionForTopLevelSuperPkgs(container, user, SNDManager.get().getTopLevelEventDataSuperPkgs(container, user, event), event, QCStateActionEnum.DELETE))
+            {
+                if (event.hasErrors())
+                {
+                    throw new QueryUpdateServiceException(event.getException());
+                }
+                else
+                {
+                    throw new QueryUpdateServiceException("Verify user has permission to delete this event.");
+                }
+            }
 
             // This needs to be an atomic operation otherwise could get deadlock
             try (DbScope.Transaction tx = SNDSchema.getInstance().getSchema().getScope().ensureTransaction(SNDService.get().getWriteLock()))

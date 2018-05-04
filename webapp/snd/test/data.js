@@ -26,6 +26,25 @@
                     Description: 'CalciumTestTrigger',
                     Active: true,
                     Comment: 'This is electrolytes test trigger validation.'
+                },
+                {
+                    CategoryId: 24,
+                    Description: 'SNDPermissionTest',
+                    Active: true,
+                    Comment: 'This is required to save and view data.'
+                }
+            ],
+            INIT_GROUPS: {
+                SNDTestGroup: {
+                    roles: ['org.labkey.api.security.roles.ReaderRole',
+                        'org.labkey.api.security.roles.EditorRole']
+                }
+            },
+            INIT_ROLES_ASSIGNMENT: [
+                {
+                    categoryId: 24,
+                    groupName: 'SNDTestGroup',
+                    roleName: 'SND Data Admin'
                 }
             ],
             INIT_PACKAGES: [
@@ -158,7 +177,7 @@
                         active: true,
                         repeatable: true,
                         narrative: 'Electrolytes',
-                        categories: [22],
+                        categories: [22, 24],
                         subPackages: [{
                             pkgId: 810,
                             sortOrder: 2,
@@ -214,7 +233,7 @@
                         active: true,
                         repeatable: true,
                         narrative: 'Calcium: {amount} {units} measured using {kit_type} test',
-                        categories: [23],
+                        categories: [23, 24],
                         subPackages: [],
                         attributes: [
                             {
@@ -272,7 +291,7 @@
                         active: true,
                         repeatable: true,
                         narrative: 'Creatinine: {amount} {units} measured using {kit_type} test',
-                        categories: [],
+                        categories: [24],
                         subPackages: [],
                         attributes: [
                             {
@@ -301,7 +320,7 @@
                         active: true,
                         repeatable: true,
                         narrative: '{amount} {units} of blood drawn in {tube} tube. Regeneration date {regenDate}.',
-                        categories: [],
+                        categories: [24],
                         subPackages: [],
                         attributes: [
                             {
@@ -445,6 +464,7 @@
                     date: "2018-02-26T17:51:20",
                     note: "This is a test event note.",
                     projectIdRev: '60|0',
+                    qcState: 'Completed',
                     eventData: [
                         {
                             superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
@@ -486,6 +506,7 @@
                     date: "2018-02-26T17:51:20",
                     note: "This is a test event note.",
                     projectIdRev: '60|0',
+                    qcState: 'Completed',
                     eventData: [
                         {
                             superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
@@ -539,6 +560,7 @@
                     date: "2018-02-26T17:51:20",
                     note: "Note for event attribute data sample JSON",
                     projectIdRev: '61|0',
+                    qcState: 'Completed',
                     eventData: [
                         {
                             superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
@@ -608,6 +630,7 @@
                     date: "2018-02-26T17:51:20",
                     note: "Note for event attribute data sample JSON",
                     projectIdRev: '61|0',
+                    qcState: 'Completed',
                     eventData: [
                         {
                             superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
@@ -685,6 +708,7 @@
                     date: "2018-02-26T17:51:20",
                     note: "Note for narrative generation sample JSON",
                     projectIdRev: '61|0',
+                    qcState: 'Completed',
                     eventData: [
                         {
                             superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
@@ -754,6 +778,7 @@
                     date: "2018-02-26T17:51:20",
                     note: "Note for narrative generation sample JSON",
                     projectIdRev: '61|0',
+                    qcState: 'Completed',
                     textNarrative: "2018-02-26 17:51\nSubject Id: 2\n\n" +
                                     "Electrolytes\n\tPotassium: 200 mEq/L measured using Potassium Detection Kit\n\t" +
                                     "Sodium: 100 mEq/L measured using Sodium Colorimetric Detection Kit\n\t" +
@@ -855,6 +880,7 @@
                     date: "2018-02-26T17:51:20",
                     note: "Note for Save Event: Out of range attribute",
                     projectIdRev: '61|0',
+                    qcState: 'Completed',
                     eventData: [
                         {
                             superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
@@ -925,6 +951,7 @@
                     date: "2018-02-26T17:51:20",
                     note: "Note for Save Event: Out of range attribute",
                     projectIdRev: '61|0',
+                    qcState: 'Completed',
                     exception: {
                         severity: "Error",
                         message: "1 error found"
@@ -1004,6 +1031,7 @@
                     date: "2018-02-26T17:51:20",
                     note: "Note for Package dependency",
                     projectIdRev: '62|0',
+                    qcState: 'Completed',
                     eventData: [
                         {
                             superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
@@ -1061,6 +1089,7 @@
                     date: "2018-02-26T17:51:20",
                     note: "Note for Package dependency",
                     projectIdRev: '62|0',
+                    qcState: 'Completed',
                     exception: {
                         severity: "Error",
                         message: "1 error found"
@@ -1123,6 +1152,7 @@
                     date: "2017-05-25T17:51:20",
                     note: "Note for Save Event: Out of range attribute",
                     projectIdRev: '61|0',
+                    qcState: 'Completed',
                     eventData: [
                         {
                             superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
@@ -1193,6 +1223,7 @@
                     date: "2017-05-25T17:51:20",
                     note: "Note for Save Event: Out of range attribute",
                     projectIdRev: '61|0',
+                    qcState: 'Completed',
                     exception: {
                         severity:"Error",
                         message:"1 error found"
@@ -1272,6 +1303,7 @@
                     date: "2017-05-25T17:51:20",
                     note: "Note for Save Event: Trigger warning",
                     projectIdRev: '61|0',
+                    qcState: 'Completed',
                     eventData: [
                         {
                             superPkgId: LABKEY.SND_PKG_CACHE['816']['superPkgId'],
@@ -1297,6 +1329,7 @@
                     date: "2017-05-25T17:51:20",
                     note: "Note for Save Event: Trigger warning",
                     projectIdRev: '61|0',
+                    qcState: 'Completed',
                     exception: {
                         severity:"Warning",
                         message:"1 warning found"
@@ -1330,6 +1363,7 @@
                     date: "2017-05-25T17:51:20",
                     note: "Note for Save Event: Missing attribute. EventData warning",
                     projectIdRev: '61|0',
+                    qcState: 'Completed',
                     eventData: [
                         {
                             superPkgId: LABKEY.SND_PKG_CACHE['818']['superPkgId'],
@@ -1351,6 +1385,7 @@
                     date: "2017-05-25T17:51:20",
                     note: "Note for Save Event: Missing attribute. EventData warning",
                     projectIdRev: '61|0',
+                    qcState: 'Completed',
                     exception: {
                         severity:"Error",
                         message:"1 error found"
@@ -1381,6 +1416,7 @@
                     date: "2017-05-25T17:51:20",
                     note: "Note for Save Event: Trigger info",
                     projectIdRev: '61|0',
+                    qcState: 'Completed',
                     eventData: [
                         {
                             superPkgId: LABKEY.SND_PKG_CACHE['816']['superPkgId'],
@@ -1406,6 +1442,7 @@
                     date: "2017-05-25T17:51:20",
                     note: "Note for Save Event: Trigger info",
                     projectIdRev: '61|0',
+                    qcState: 'Completed',
                     exception: {
                         severity:"Info",
                         message:"1 info found"

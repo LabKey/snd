@@ -43,9 +43,11 @@ import org.labkey.api.snd.EventNarrativeOption;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.snd.Project;
+import org.labkey.api.snd.QCStateEnum;
 import org.labkey.api.snd.SNDSequencer;
 import org.labkey.api.snd.SNDService;
 import org.labkey.api.snd.SuperPackage;
+import org.labkey.snd.security.SNDSecurityManager;
 import org.labkey.snd.trigger.SNDTriggerManager;
 
 import java.io.IOException;
@@ -210,7 +212,7 @@ public class SNDServiceImpl implements SNDService
     {
         BatchValidationException errors = new BatchValidationException();
 
-        Event event = SNDManager.get().getEvent(c, u, eventId, narrativeOptions, true, null, errors);
+        Event event = SNDManager.get().getEvent(c, u, eventId, narrativeOptions, null, errors);
 
         if (errors.hasErrors())
             throw new ApiUsageException(errors);
@@ -237,6 +239,18 @@ public class SNDServiceImpl implements SNDService
         }
 
         return event;
+    }
+
+    @Override
+    public Integer getQCStateId(Container c, User u, QCStateEnum qcState)
+    {
+        return SNDSecurityManager.get().getQCStateId(c, u, qcState);
+    }
+
+    @Override
+    public QCStateEnum getQCState(Container c, User u, int qcStateId)
+    {
+        return SNDSecurityManager.get().getQCState(c, u, qcStateId);
     }
 
     public JSONObject convertPropertyDescriptorToJson(Container c, User u, GWTPropertyDescriptor pd, boolean resolveLookupValues)

@@ -35,6 +35,7 @@
                             date: "2018-02-26T17:51:20",
                             note: "This is a test event note.",
                             projectIdRev: '60|0',
+                            qcState: 'Completed',
                             eventData: [
                                 {
                                     superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
@@ -69,6 +70,7 @@
                             date: "2018-02-26T17:51:20",
                             note: "This is a test event note.",
                             projectIdRev: '60|0',
+                            qcState: 'Completed',
                             eventData: [
                                 {
                                     attributes: [{
@@ -100,6 +102,7 @@
                             date: "2018-02-26T17:51:20",
                             note: "This is a test event note.",
                             projectIdRev: '60|0',
+                            qcState: 'Completed',
                             eventData: [
                                 {
                                     superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
@@ -199,6 +202,7 @@
                             date: "2018-02-26T17:51:20",
                             note: "Note for event attribute data sample JSON",
                             projectIdRev: '61|0',
+                            qcState: 'Completed',
                             eventData: [
                                 {
                                     superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
@@ -276,6 +280,7 @@
                             date: "2018-02-26T17:51:20",
                             note: "Note for event attribute data sample JSON",
                             projectIdRev: '61|0',
+                            qcState: 'Completed',
                             eventData: [
                                 {
                                     superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
@@ -356,6 +361,7 @@
                             date: "2018-02-26T17:51:20",
                             note: "This is a test event note.",
                             projectIdRev: '60|0',
+                            qcState: 'Completed',
                             eventData: [
                                 {
                                     superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
@@ -416,6 +422,7 @@
                             date: "2018-02-26T17:51:20",
                             note: "This is a test event note.",
                             projectIdRev: '60|0',
+                            qcState: 'Completed',
                             eventData: [
                                 {
                                     superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
@@ -448,6 +455,7 @@
                             subjectId:1,
                             date: "2018-02-26T17:51:20",
                             note: "Note for Save Event with Missing Project ID",
+                            qcState: 'Completed',
                             eventData: [
                                 {
                                     superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
@@ -482,6 +490,7 @@
                             date : "2018-03-03T17:21:22",
                             projectIdRev : "61",
                             note : "Note for Save Event with Missing Revision number for project Id",
+                            qcState: 'Completed',
                             eventData: [
                                     {
                                         superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
@@ -515,6 +524,7 @@
                             date : "2018-03-03T17:21:22",
                             projectIdRev : "64|0",
                             note : "Note for Save Event with Invalid project Id",
+                            qcState: 'Completed',
                             eventData: [
                                 {
                                     superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],
@@ -549,6 +559,7 @@
                             subjectId: 1,
                             projectIdRev: "60|0",
                             note: "Note for Save Event with Invalid date",
+                            qcState: 'Completed',
                             eventData: [
                                 {
                                     superPkgId: LABKEY.SND_PKG_CACHE['819']['superPkgId'],

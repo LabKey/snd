@@ -18,6 +18,7 @@ package org.labkey.snd;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.cache.CacheManager;
@@ -26,6 +27,7 @@ import org.labkey.api.collections.ArrayListMap;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.CoreSchema;
 import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.DbScope;
 import org.labkey.api.data.Results;
@@ -70,11 +72,14 @@ import org.labkey.api.snd.Package;
 import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.snd.Project;
 import org.labkey.api.snd.ProjectItem;
+import org.labkey.api.snd.QCStateEnum;
 import org.labkey.api.snd.SNDDomainKind;
 import org.labkey.api.snd.SNDSequencer;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.util.DateUtil;
 import org.labkey.snd.query.PackagesTable;
+import org.labkey.snd.security.QCStateActionEnum;
+import org.labkey.snd.security.SNDSecurityManager;
 import org.labkey.snd.table.PlainTextNarrativeDisplayColumn;
 import org.labkey.snd.trigger.SNDTriggerManager;
 
@@ -145,7 +150,7 @@ public class SNDManager
     /**
      * Generic get table info function
      */
-    private TableInfo getTableInfo(@NotNull UserSchema schema, @NotNull String table)
+    public TableInfo getTableInfo(@NotNull UserSchema schema, @NotNull String table)
     {
         TableInfo tableInfo = schema.getTable(table);
         if (tableInfo == null)
@@ -1627,6 +1632,7 @@ public class SNDManager
             attribute.setPropertyId(gwtPropertyDescriptor.getPropertyId());
             if (properties.get(gwtPropertyDescriptor.getPropertyURI()) != null)
             {
+                //TODO: Add redacted here
                 propValue = properties.get(gwtPropertyDescriptor.getPropertyURI()).value();
 
                 // Convert dates to ISO8601 format
@@ -1721,7 +1727,7 @@ public class SNDManager
     /**
      * Gets event for a given event Id.  Call from SNDService.getEvent
      */
-    public Event getEvent(Container c, User u, int eventId, Set<EventNarrativeOption> narrativeOptions, boolean isPopulatingNarratives, Map<Integer, SuperPackage> topLevelEventDataSuperPkgs, BatchValidationException errors)
+    public Event getEvent(Container c, User u, int eventId, Set<EventNarrativeOption> narrativeOptions, @Nullable Map<Integer, SuperPackage> topLevelEventDataSuperPkgs, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -1753,7 +1759,7 @@ public class SNDManager
 
             // Get narrative from eventsCache table
 
-            if (isPopulatingNarratives)
+            if (narrativeOptions != null && !narrativeOptions.isEmpty())
             {
                 Map<EventNarrativeOption, String> narratives = getNarratives(c, u, narrativeOptions, topLevelEventDataSuperPkgs, event, errors);
                 if (narratives != null)
@@ -2357,56 +2363,61 @@ public class SNDManager
     {
         Map<Integer, SuperPackage> topLevelEventDataPkgs = getTopLevelEventDataSuperPkgs(c, u, event);
 
-        SNDTriggerManager.get().fireInsertTriggers(c, u, event, topLevelEventDataPkgs);
+        SNDSecurityManager.get().hasPermissionForTopLevelSuperPkgs(c, u, topLevelEventDataPkgs, event, QCStateActionEnum.INSERT);
 
         if (!event.hasErrors())
         {
-            String projectObjectId = getProjectObjectId(c, u, event);
+            SNDTriggerManager.get().fireInsertTriggers(c, u, event, topLevelEventDataPkgs);
 
             if (!event.hasErrors())
             {
-                event.setParentObjectId(projectObjectId);
+                String projectObjectId = getProjectObjectId(c, u, event);
 
                 if (!event.hasErrors())
                 {
-                    ensureSuperPkgsBelongToProject(c, u, event);
+                    event.setParentObjectId(projectObjectId);
 
                     if (!event.hasErrors())
                     {
-                        ensureValidEventData(c, u, event);
+                        ensureSuperPkgsBelongToProject(c, u, event);
 
-                        if (!event.hasErrors() && !validateOnly)
+                        if (!event.hasErrors())
                         {
-                            UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
-                            TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
-                            QueryUpdateService eventQus = getQueryUpdateService(eventTable);
-                            QueryUpdateService eventNotesQus = getNewQueryUpdateService(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
-                            QueryUpdateService eventsCacheQus = getNewQueryUpdateService(schema, SNDSchema.EVENTSCACHE_TABLE_NAME);
+                            ensureValidEventData(c, u, event);
 
-                            String htmlEventNarrative = generateEventNarrative(c, u, event, topLevelEventDataPkgs, true, false);
-                            Map<String, Object> eventsCacheRow = getEventsCacheRow(c, u, event.getEventId(), htmlEventNarrative);
-                            String textEventNarrative = PlainTextNarrativeDisplayColumn.removeHtmlTagsFromNarrative(htmlEventNarrative);
-                            BatchValidationException errors = new BatchValidationException();
+                            if (!event.hasErrors() && !validateOnly)
+                            {
+                                UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+                                TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
+                                QueryUpdateService eventQus = getQueryUpdateService(eventTable);
+                                QueryUpdateService eventNotesQus = getNewQueryUpdateService(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
+                                QueryUpdateService eventsCacheQus = getNewQueryUpdateService(schema, SNDSchema.EVENTSCACHE_TABLE_NAME);
 
-                            try (DbScope.Transaction tx = eventTable.getSchema().getScope().ensureTransaction())
-                            {
-                                eventQus.insertRows(u, c, Collections.singletonList(event.getEventRow(c)), errors, null, null);
-                                eventNotesQus.insertRows(u, c, Collections.singletonList(event.getEventNotesRow(c)), errors, null, null);
-                                insertEventDatas(c, u, event, errors);
-                                eventsCacheQus.insertRows(u, c, Collections.singletonList(eventsCacheRow), errors, null, null);
-                                generateEventNarrative(c, u, event, topLevelEventDataPkgs, true, false);
-                                NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), textEventNarrative, "Create event");
-                                tx.commit();
-                            }
-                            catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException | ValidationException e)
-                            {
-                                event.setException(new ValidationException(e.getMessage(), ValidationException.SEVERITY.ERROR));
-                            }
-                            finally
-                            {
-                                if (errors.hasErrors())
+                                String htmlEventNarrative = generateEventNarrative(c, u, event, topLevelEventDataPkgs, true, false);
+                                Map<String, Object> eventsCacheRow = getEventsCacheRow(c, u, event.getEventId(), htmlEventNarrative);
+                                String textEventNarrative = PlainTextNarrativeDisplayColumn.removeHtmlTagsFromNarrative(htmlEventNarrative);
+                                BatchValidationException errors = new BatchValidationException();
+
+                                try (DbScope.Transaction tx = eventTable.getSchema().getScope().ensureTransaction())
                                 {
-                                    event.addBatchValidationExceptions(errors);
+                                    eventQus.insertRows(u, c, Collections.singletonList(event.getEventRow(c)), errors, null, null);
+                                    eventNotesQus.insertRows(u, c, Collections.singletonList(event.getEventNotesRow(c)), errors, null, null);
+                                    insertEventDatas(c, u, event, errors);
+                                    eventsCacheQus.insertRows(u, c, Collections.singletonList(eventsCacheRow), errors, null, null);
+                                    generateEventNarrative(c, u, event, topLevelEventDataPkgs, true, false);
+                                    NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), textEventNarrative, "Create event");
+                                    tx.commit();
+                                }
+                                catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException | ValidationException e)
+                                {
+                                    event.setException(new ValidationException(e.getMessage(), ValidationException.SEVERITY.ERROR));
+                                }
+                                finally
+                                {
+                                    if (errors.hasErrors())
+                                    {
+                                        event.addBatchValidationExceptions(errors);
+                                    }
                                 }
                             }
                         }
@@ -2500,57 +2511,62 @@ public class SNDManager
     {
         Map<Integer, SuperPackage> topLevelEventDataSuperPkgs = getTopLevelEventDataSuperPkgs(c, u, event);
 
-        SNDTriggerManager.get().fireUpdateTriggers(c, u, event, topLevelEventDataSuperPkgs);
+        SNDSecurityManager.get().hasPermissionForTopLevelSuperPkgs(c, u, topLevelEventDataSuperPkgs, event, QCStateActionEnum.UPDATE);
 
         if (!event.hasErrors())
         {
-            String projectObjectId = getProjectObjectId(c, u, event);
+            SNDTriggerManager.get().fireUpdateTriggers(c, u, event, topLevelEventDataSuperPkgs);
 
             if (!event.hasErrors())
             {
-                event.setParentObjectId(projectObjectId);
+                String projectObjectId = getProjectObjectId(c, u, event);
 
                 if (!event.hasErrors())
                 {
-                    ensureSuperPkgsBelongToProject(c, u, event);
+                    event.setParentObjectId(projectObjectId);
 
                     if (!event.hasErrors())
                     {
-                        ensureValidEventData(c, u, event);
+                        ensureSuperPkgsBelongToProject(c, u, event);
 
-                        if (!event.hasErrors() && !validateOnly)
+                        if (!event.hasErrors())
                         {
-                            UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
-                            TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
-                            QueryUpdateService eventQus = getQueryUpdateService(eventTable);
-                            QueryUpdateService eventNotesQus = getNewQueryUpdateService(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
-                            QueryUpdateService eventsCacheQus = getNewQueryUpdateService(schema, SNDSchema.EVENTSCACHE_TABLE_NAME);
+                            ensureValidEventData(c, u, event);
 
-                            String htmlEventNarrative = generateEventNarrative(c, u, event, topLevelEventDataSuperPkgs, true, false);
-                            Map<String, Object> eventsCacheRow = getEventsCacheRow(c, u, event.getEventId(), htmlEventNarrative);
-                            String textEventNarrative = PlainTextNarrativeDisplayColumn.removeHtmlTagsFromNarrative(htmlEventNarrative);
-                            BatchValidationException errors = new BatchValidationException();
+                            if (!event.hasErrors() && !validateOnly)
+                            {
+                                UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+                                TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
+                                QueryUpdateService eventQus = getQueryUpdateService(eventTable);
+                                QueryUpdateService eventNotesQus = getNewQueryUpdateService(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
+                                QueryUpdateService eventsCacheQus = getNewQueryUpdateService(schema, SNDSchema.EVENTSCACHE_TABLE_NAME);
 
-                            try (DbScope.Transaction tx = eventTable.getSchema().getScope().ensureTransaction())
-                            {
-                                eventQus.updateRows(u, c, Collections.singletonList(event.getEventRow(c)), null, null, null);
-                                deleteEventNotes(c, u, event.getEventId());
-                                eventNotesQus.insertRows(u, c, Collections.singletonList(event.getEventNotesRow(c)), errors, null, null);
-                                deleteEventDatas(c, u, event.getEventId());
-                                insertEventDatas(c, u, event, errors);
-                                eventsCacheQus.updateRows(u, c, Collections.singletonList(eventsCacheRow), null, null, null);
-                                NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), textEventNarrative, "Event update");
-                                tx.commit();
-                            }
-                            catch (QueryUpdateServiceException | BatchValidationException | SQLException | InvalidKeyException | DuplicateKeyException | ValidationException e)
-                            {
-                                event.setException(new ValidationException(e.getMessage(), ValidationException.SEVERITY.ERROR));
-                            }
-                            finally
-                            {
-                                if (errors.hasErrors())
+                                String htmlEventNarrative = generateEventNarrative(c, u, event, topLevelEventDataSuperPkgs, true, false);
+                                Map<String, Object> eventsCacheRow = getEventsCacheRow(c, u, event.getEventId(), htmlEventNarrative);
+                                String textEventNarrative = PlainTextNarrativeDisplayColumn.removeHtmlTagsFromNarrative(htmlEventNarrative);
+                                BatchValidationException errors = new BatchValidationException();
+
+                                try (DbScope.Transaction tx = eventTable.getSchema().getScope().ensureTransaction())
                                 {
-                                    event.addBatchValidationExceptions(errors);
+                                    eventQus.updateRows(u, c, Collections.singletonList(event.getEventRow(c)), null, null, null);
+                                    deleteEventNotes(c, u, event.getEventId());
+                                    eventNotesQus.insertRows(u, c, Collections.singletonList(event.getEventNotesRow(c)), errors, null, null);
+                                    deleteEventDatas(c, u, event.getEventId());
+                                    insertEventDatas(c, u, event, errors);
+                                    eventsCacheQus.updateRows(u, c, Collections.singletonList(eventsCacheRow), null, null, null);
+                                    NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), textEventNarrative, "Event update");
+                                    tx.commit();
+                                }
+                                catch (QueryUpdateServiceException | BatchValidationException | SQLException | InvalidKeyException | DuplicateKeyException | ValidationException e)
+                                {
+                                    event.setException(new ValidationException(e.getMessage(), ValidationException.SEVERITY.ERROR));
+                                }
+                                finally
+                                {
+                                    if (errors.hasErrors())
+                                    {
+                                        event.addBatchValidationExceptions(errors);
+                                    }
                                 }
                             }
                         }
@@ -2654,7 +2670,7 @@ public class SNDManager
             {
                 row = new ArrayListMap<>();
                 eventDataTopLevelSuperPkgs = getTopLevelEventDataSuperPkgs(c, u, eventId, errors);
-                Event event = getEvent(c, u, eventId, null, false, eventDataTopLevelSuperPkgs, errors);  // don't populate narratives or set narrative options, since we're repopulating the narrative cache
+                Event event = getEvent(c, u, eventId, null, eventDataTopLevelSuperPkgs, errors);  // don't populate narratives or set narrative options, since we're repopulating the narrative cache
                 String eventNarrative = generateEventNarrative(c, u, event, eventDataTopLevelSuperPkgs, true, false);
                 row.put("EventId", eventId);
                 row.put("HtmlNarrative", eventNarrative);
@@ -2726,7 +2742,7 @@ public class SNDManager
     /**
      * Returns a map of top level event data Ids to full top level super packages for the passed in event
      */
-    private Map<Integer, SuperPackage> getTopLevelEventDataSuperPkgs(Container c, User u, Event event)
+    public Map<Integer, SuperPackage> getTopLevelEventDataSuperPkgs(Container c, User u, Event event)
     {
         Map<Integer, SuperPackage> topLevelPkgs = new TreeMap<>();
         BatchValidationException errors = new BatchValidationException();
@@ -2950,6 +2966,21 @@ public class SNDManager
         }
 
         return narrative.toString();
+    }
+
+    public List<Category> getCategories(Container c, User u, List<Integer> categoryIds)
+    {
+        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        TableInfo pkgCategoriesTable = getTableInfo(schema, SNDSchema.PKGCATEGORIES__TABLE_NAME);
+
+        SQLFragment sql = new SQLFragment("SELECT CategoryId, Description, Active, ObjectId, Container FROM ");
+        sql.append(pkgCategoriesTable, "ed");
+        sql.append(" WHERE CategoryId IN (");
+        sql.append(StringUtils.join(categoryIds, ","));
+        sql.append(")");
+
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+        return selector.getArrayList(Category.class);
     }
 
     public Map<Integer, Category> getAllCategories(Container c, User u)

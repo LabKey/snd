@@ -1,6 +1,6 @@
 package org.labkey.snd.security.permissions;
 
-import org.labkey.snd.security.QCStateEnum;
+import org.labkey.api.snd.QCStateEnum;
 
 public class SNDReviewRequiredReadPermission extends SNDQCStatePermission
 {

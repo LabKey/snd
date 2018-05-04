@@ -1,6 +1,7 @@
 package org.labkey.snd.security;
 
 import org.jetbrains.annotations.Nullable;
+import org.labkey.api.snd.QCStateEnum;
 import org.labkey.snd.security.permissions.SNDCompletedDeletePermission;
 import org.labkey.snd.security.permissions.SNDCompletedInsertPermission;
 import org.labkey.snd.security.permissions.SNDCompletedReadPermission;
@@ -25,16 +26,18 @@ import java.util.List;
 
 public enum QCStateActionEnum
 {
-    INSERT(new SNDCompletedInsertPermission(), new SNDInProgressInsertPermission(), new SNDRejectedInsertPermission(), new SNDReviewRequiredInsertPermission()),
-    UPDATE(new SNDCompletedUpdatePermission(), new SNDInProgressUpdatePermission(), new SNDRejectedUpdatePermission(), new SNDReviewRequiredUpdatePermission()),
-    DELETE(new SNDCompletedDeletePermission(), new SNDInProgressDeletePermission(), new SNDRejectedDeletePermission(), new SNDReviewRequiredDeletePermission()),
-    READ(new SNDCompletedReadPermission(), new SNDInProgressReadPermission(), new SNDRejectedReadPermission(), new SNDReviewRequiredReadPermission());
+    INSERT("Insert", new SNDCompletedInsertPermission(), new SNDInProgressInsertPermission(), new SNDRejectedInsertPermission(), new SNDReviewRequiredInsertPermission()),
+    UPDATE("Update", new SNDCompletedUpdatePermission(), new SNDInProgressUpdatePermission(), new SNDRejectedUpdatePermission(), new SNDReviewRequiredUpdatePermission()),
+    DELETE("Delete", new SNDCompletedDeletePermission(), new SNDInProgressDeletePermission(), new SNDRejectedDeletePermission(), new SNDReviewRequiredDeletePermission()),
+    READ("Read", new SNDCompletedReadPermission(), new SNDInProgressReadPermission(), new SNDRejectedReadPermission(), new SNDReviewRequiredReadPermission());
 
     private List<SNDQCStatePermission> _permissions = new ArrayList<>();
+    private String _name;
 
-    QCStateActionEnum(SNDQCStatePermission... perms)
+    QCStateActionEnum(String name, SNDQCStatePermission... perms)
     {
         _permissions.addAll(Arrays.asList(perms));
+        _name = name;
     }
 
     @Nullable
@@ -49,5 +52,10 @@ public enum QCStateActionEnum
         }
 
         return null;
+    }
+
+    public String getName()
+    {
+        return _name;
     }
 }

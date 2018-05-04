@@ -5,13 +5,17 @@ import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.module.Module;
 import org.labkey.api.module.ModuleLoader;
+import org.labkey.api.security.HasPermission;
 import org.labkey.api.security.SecurableResource;
+import org.labkey.api.security.SecurityPolicyManager;
 import org.labkey.api.security.User;
+import org.labkey.api.security.UserPrincipal;
+import org.labkey.api.security.permissions.Permission;
 import org.labkey.api.util.GUID;
 
 import java.util.List;
 
-public class Category implements SecurableResource
+public class Category implements SecurableResource, HasPermission
 {
     private int _categoryId;
     private String _description;
@@ -115,5 +119,11 @@ public class Category implements SecurableResource
     public boolean mayInheritPolicy()
     {
         return false;
+    }
+
+    @Override
+    public boolean hasPermission(@NotNull UserPrincipal user, @NotNull Class<? extends Permission> perm)
+    {
+        return SecurityPolicyManager.getPolicy(this).hasPermission("User does not have permission", user, perm);
     }
 }

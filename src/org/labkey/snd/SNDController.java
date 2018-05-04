@@ -33,6 +33,8 @@ import org.labkey.api.module.Module;
 import org.labkey.api.security.RequiresLogin;
 import org.labkey.api.security.RequiresPermission;
 import org.labkey.api.security.permissions.AdminPermission;
+import org.labkey.api.security.permissions.InsertPermission;
+import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.snd.AttributeData;
 import org.labkey.api.snd.Event;
 import org.labkey.api.snd.EventData;
@@ -40,6 +42,7 @@ import org.labkey.api.snd.EventNarrativeOption;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.Project;
 import org.labkey.api.snd.ProjectItem;
+import org.labkey.api.snd.QCStateEnum;
 import org.labkey.api.snd.SNDSequencer;
 import org.labkey.api.snd.SNDService;
 import org.labkey.api.snd.SuperPackage;
@@ -789,7 +792,7 @@ public class SNDController extends SpringActionController
         }
     }
 
-    @RequiresPermission(AdminPermission.class)
+    @RequiresPermission(ReadPermission.class)
     public class GetEventAction extends ApiAction<SimpleApiJsonForm>
     {
         @Override
@@ -858,11 +861,15 @@ public class SNDController extends SpringActionController
                 JSONObject eventJson = event.toJSON(getViewContext().getContainer(), getUser());
                 response.put("json", eventJson);
             }
+            else
+            {
+                response.put("json", "Event not found.");
+            }
             return response;
         }
     }
 
-    @RequiresPermission(AdminPermission.class)
+    @RequiresPermission(InsertPermission.class)
     public class SaveEventAction extends ApiAction<SimpleApiJsonForm>
     {
         @Override
@@ -894,6 +901,10 @@ public class SNDController extends SpringActionController
             if (!json.has("projectIdRev") || json.get("projectIdRev") == null)
             {
                 errors.reject(ERROR_MSG, "Missing required json parameter: projectIdRev.");
+            }
+            if (!json.has("qcState") || json.get("qcState") == null || !json.get("qcState").getClass().getSimpleName().equals("String"))
+            {
+                errors.reject(ERROR_MSG, "QCState not found.");
             }
 
             JSONArray eventDataJson = json.has("eventData") ? json.getJSONArray("eventData") : null;
@@ -968,6 +979,8 @@ public class SNDController extends SpringActionController
             String subjectId = json.getString("subjectId");
             String dateString = json.getString("date");
             Boolean validateOnly = (Boolean)json.get("validateOnly");
+            String qcStateString = json.getString("qcState");
+            int qcState = SNDService.get().getQCStateId(getContainer(), getUser(), QCStateEnum.getByName(qcStateString));
 
             ApiSimpleResponse response = new ApiSimpleResponse();
 
@@ -997,6 +1010,7 @@ public class SNDController extends SpringActionController
                     eventData = parseEventData(eventDataJson);
 
                 Event event = new Event(eventId, subjectId, date, projectIdrev, note, eventData, getContainer());
+                event.setQcState(qcState);
 
                 // Get extra fields
                 JSONArray jsonExtras = json.optJSONArray("extraFields");
@@ -1256,6 +1270,23 @@ public class SNDController extends SpringActionController
             root.addChild("SND Home Page", url);
             root.addChild("SND Admin Settings and Controls");
             return root;
+        }
+    }
+
+    @RequiresPermission(AdminPermission.class)
+    public class UpdateRoleAction extends ApiAction<SimpleApiJsonForm>
+    {
+        @Override
+        public Object execute(SimpleApiJsonForm form, BindException errors)
+        {
+            JSONObject json = form.getJsonObject();
+            Integer categoryId = json.getInt("categoryId");
+            String groupName = json.getString("groupName");
+            String roleName = json.getString("roleName");
+
+            SNDSecurityManager.get().updatePermission(getContainer(), getUser(), categoryId, groupName, roleName);
+
+            return new ApiSimpleResponse();
         }
     }
 }

@@ -40,6 +40,7 @@ public class Event
     private String _parentObjectId;
     private Map<EventNarrativeOption, String> narratives;
     private Map<GWTPropertyDescriptor, Object> _extraFields = new HashMap<>();
+    private Integer _qcState;
 
     // This will store a count of the different severity of exceptions
     private Map<ValidationException.SEVERITY, Integer> _exceptionCount = new HashMap<>();
@@ -50,6 +51,7 @@ public class Event
     public static final String EVENT_DATE = "date";
     public static final String EVENT_PROJECT_ID_REV = "projectIdRev";
     public static final String EVENT_NOTE = "note";
+    public static final String EVENT_QCSTATE = "qcState";
     public static final String EVENT_DATA = "eventData";
     public static final String EVENT_PARENT_OBJECTID = "parentObjectId";
     public static final String EVENT_CONTAINER = "Container";
@@ -186,6 +188,26 @@ public class Event
         this.narratives = narratives;
     }
 
+    public Integer getQcState()
+    {
+        return _qcState;
+    }
+
+    public QCStateEnum getQcState(Container c, User u)
+    {
+        return SNDService.get().getQCState(c, u, _qcState);
+    }
+
+    public void setQcState(Integer qcState)
+    {
+        _qcState = qcState;
+    }
+
+    public void setQcState(Container c, User u, QCStateEnum qcState)
+    {
+        _qcState = SNDService.get().getQCStateId(c, u, qcState);
+    }
+
     public ValidationException getException()
     {
         return _eventException;
@@ -224,9 +246,15 @@ public class Event
 
     public void addBatchValidationExceptions(BatchValidationException bve)
     {
+        int count;
         for (ValidationException ve : bve.getRowErrors())
         {
-            _exceptionCount.put(ve.getSeverity(), _exceptionCount.get(ve.getSeverity()) + 1);
+            count = 0;
+            if (_exceptionCount.get(ve.getSeverity()) != null)
+            {
+                count = _exceptionCount.get(ve.getSeverity()) + 1;
+            }
+            _exceptionCount.put(ve.getSeverity(), count);
             if (ve.getSeverity() == ValidationException.SEVERITY.ERROR)
                 _eventException = ve;
         }
@@ -251,6 +279,7 @@ public class Event
         eventValues.put(EVENT_SUBJECT_ID, getSubjectId());
         eventValues.put(EVENT_DATE, getDate());
         eventValues.put(EVENT_PARENT_OBJECTID, getParentObjectId());
+        eventValues.put(EVENT_QCSTATE, getQcState());
         eventValues.put(EVENT_CONTAINER, c.getId());
 
         Map<GWTPropertyDescriptor, Object> extras = getExtraFields();
@@ -287,6 +316,7 @@ public class Event
 
         json.put(EVENT_PROJECT_ID_REV, getProjectIdRev());
         json.put(EVENT_NOTE, getNote());
+        json.put(EVENT_QCSTATE, getQcState(c, u).getName());
 
         JSONArray eventDataJson = new JSONArray();
         if (getEventData() != null)

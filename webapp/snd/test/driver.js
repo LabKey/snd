@@ -8,13 +8,21 @@
         beforeTestsFn,
         callbackCounter = 0;
 
+    var groupIds = {};  // group id cache
+
     var TEST_URLS = {
         GET_EVENT_URL: LABKEY.ActionURL.buildURL('snd', 'getEvent.api'),
         SAVE_EVENT_URL: LABKEY.ActionURL.buildURL('snd', 'saveEvent.api'),
         SAVE_PKG_URL: LABKEY.ActionURL.buildURL('snd', 'savePackage.api'),
         GET_PKG_URL: LABKEY.ActionURL.buildURL('snd', 'getPackages.api'),
         SAVE_PROJECT_URL: LABKEY.ActionURL.buildURL('snd', 'saveProject.api'),
-        REGISTER_TEST_TRIGGER_URL: LABKEY.ActionURL.buildURL('snd', 'registerTestTriggerFactory.api')
+        REGISTER_TEST_TRIGGER_URL: LABKEY.ActionURL.buildURL('snd', 'registerTestTriggerFactory.api'),
+        UPDATE_ROLE_URL: LABKEY.ActionURL.buildURL('snd', 'updateRole.api'),
+        IMPERSONATE_GROUP_URL: LABKEY.ActionURL.buildURL('user', 'impersonateGroup.api'),
+        IMPERSONATE_ROLES_URL: LABKEY.ActionURL.buildURL('user', 'impersonateRoles.api'),
+        ADD_ASSIGNMENT_URL: LABKEY.ActionURL.buildURL('security', 'addAssignment.api'),
+        CLEAR_ASSIGNMENTS_URL: LABKEY.ActionURL.buildURL('security', 'clearAssignedRoles.api'),
+        STOP_IMPERSONATING_URL: LABKEY.ActionURL.buildURL('login', 'logOut.api')
     };
 
     var report = {
@@ -106,27 +114,45 @@
         }
     };
 
-    function log(msg, status, clear, append) {
+    function log(msg, status, clear, append, clearIfNotError) {
         var log = $('.snd-test-log');
+        var logDiv = $('.test-log');
 
         if (clear) {
+            log.html(msg);
+        }
+        else if (clearIfNotError && logDiv.attr("class").indexOf("test-log-failure") === -1) {
             log.html(msg);
         }
         else {
             log.html(log.html() + (append ? '' : '<br>') + msg);
         }
 
-        var logDiv = $('.test-log');
         if (status === 'success') {
-            logDiv.addClass('test-log-success');
-            logDiv.removeClass('test-log-failure');
+            if (clearIfNotError) {
+                if (logDiv.attr("class").indexOf("test-log-failure") === -1) {
+                    logDiv.addClass('test-log-success');
+                    logDiv.removeClass('test-log-failure');
+                }
+            }
+            else {
+                logDiv.addClass('test-log-success');
+                logDiv.removeClass('test-log-failure');
+            }
         }
         else if (status === 'failure') {
             logDiv.addClass('test-log-failure');
             logDiv.removeClass('test-log-success');
         }
         else {
-            logDiv.removeClass('test-log-success test-log-failure');
+            if (clearIfNotError) {
+                if (logDiv.attr("class").indexOf("test-log-failure") === -1) {
+                    logDiv.removeClass('test-log-success test-log-failure');
+                }
+            }
+            else {
+                logDiv.removeClass('test-log-success test-log-failure');
+            }
         }
         logDiv.scrollTop(logDiv.prop('scrollHeight'));
     }
@@ -322,6 +348,151 @@
         })
     }
 
+    function initSecurity(cb) {
+        saveGroups(function () {initAssignments(function () {saveRoles(cb)})});
+    }
+
+    function sleep(milliseconds) {
+        var start = new Date().getTime();
+        for (var i = 0; i < 1e7; i++) {
+            if ((new Date().getTime() - start) > milliseconds){
+                break;
+            }
+        }
+    }
+
+    var groupCount;
+    function initAssignments(cb) {
+        var groupData = LABKEY.getInitData().BEFORE_ALL_TESTS.INIT_GROUPS;
+        groupCount = Object.keys(groupData).length;
+
+        for (var group in groupData) {
+            if (groupData.hasOwnProperty(group)) {
+
+                LABKEY.Ajax.request({
+                    url: TEST_URLS.CLEAR_ASSIGNMENTS_URL,
+                    jsonData: {
+                        principalId: groupIds[group]
+                    },
+                    scope: this,
+                    failure: function (json) {
+                        handleFailure(json, 'Failed clearing group permissions.');
+                    },
+                    success: function (response) {
+                        var roleCount = groupData[group].roles.length;
+                        for (var r = 0; r < groupData[group].roles.length; r++) {
+                            LABKEY.Ajax.request({
+                                url: TEST_URLS.ADD_ASSIGNMENT_URL,
+                                jsonData: {
+                                    principalId: groupIds[group],
+                                    roleClassName: groupData[group].roles[r]
+                                },
+                                scope: this,
+                                failure: function (json) {
+                                    handleFailure(json, 'Failed assigning group permission.');
+                                },
+                                success: function () {
+                                    roleCount--;
+                                    if (roleCount === 0) {
+                                        groupCount--;
+                                    }
+
+                                    if (groupCount === 0) {
+                                        cb();
+                                    }
+                                }
+                            });
+                            sleep(1000);  // hacky but these api calls are not designed for rapid calls
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    function saveGroups(cb) {
+        var groupData = LABKEY.getInitData().BEFORE_ALL_TESTS.INIT_GROUPS;
+        groupCount = Object.keys(groupData).length;
+        for (var group in groupData) {
+            console.log("Saving group: " + group);
+            if (groupData.hasOwnProperty(group)) {
+                LABKEY.Ajax.request({
+                    url: LABKEY.ActionURL.buildURL("security", "createGroup"),
+                    method: "POST",
+                    jsonData: {name: group},
+                    scope: this,
+                    failure: function (json) {
+                        console.log("Save group failure. Group: " + group);
+                        var noProblem = false;
+                        if (json && json.responseText) {
+                            var jsonResponse = JSON.parse(json.responseText);
+
+                            if (jsonResponse && jsonResponse.exception) {
+
+                                // Group already exists so get group id
+                                if (jsonResponse.exception.indexOf("already exists") !== -1) {
+                                    noProblem = true;
+                                    console.log("Group already saved. Looking up group. Group: " + group);
+                                    LABKEY.Query.selectRows({
+                                        schemaName: 'core',
+                                        queryName: 'Principals',
+                                        columns: ['UserId', 'Name'],
+                                        scope: this,
+                                        filterArray: [LABKEY.Filter.create('Name', group, LABKEY.Filter.Types.EQUALS)],
+                                        failure: function (json) {
+                                            handleFailure(json, 'Failed category initialization');
+                                        },
+                                        success: function (results) {
+                                            console.log("Successfully looked up group " + group);
+                                            console.log("Looked up group rows " + results.rows.length);
+                                            groupCount--;
+                                            if (results.rows.length > 0) {
+                                                console.log("Adding name: " + results.rows[0].Name, ", userid: " + results.rows[0].UserId);
+                                                groupIds[results.rows[0].Name] = results.rows[0].UserId;
+                                            }
+                                            if (groupCount === 0) {
+                                                cb();
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                        if (!noProblem) {
+                            handleFailure(json, 'Failed permission group initialization');
+                        }
+                    },
+                    success: function (response) {
+                        console.log("Save group success. Group: " + group);
+                        var json = JSON.parse(response.responseText);
+
+                        groupIds[json.name] = json.id;
+                        groupCount--;
+                        if (groupCount === 0)
+                            cb();
+                    }
+                });
+            }
+        }
+    }
+
+    function saveRoles(cb) {
+        var roleData = LABKEY.getInitData().BEFORE_ALL_TESTS.INIT_ROLES_ASSIGNMENT;
+        var multi = new LABKEY.MultiRequest();
+        for (var i = 0; i < roleData.length; i++) {
+            multi.add(LABKEY.Ajax.request,
+                    {
+                        url: TEST_URLS.UPDATE_ROLE_URL,
+                        jsonData: roleData[i],
+                        failure: function (json) {
+                            handleFailure(json, 'Failed SND roles initialization');
+                        }
+                    });
+        }
+
+        multi.send(cb, this);
+    }
+
     // Save packages one at a time
     function savePackage(index, cb) {
         var pkgIds = [];
@@ -448,7 +619,37 @@
     }
 
     function initData(cb) {
-        cleanTestData(function() {initPackageData(function initProjects() {initProjectData(cb);})});
+        initSecurity(function() {cleanTestData(function() {initPackageData(function () {initProjectData(cb)})})});
+    }
+
+    function impersonateSNDTestUser(cb) {
+        if (groupIds["SNDTestGroup"]) {
+            LABKEY.Ajax.request({
+                url: TEST_URLS.IMPERSONATE_GROUP_URL,
+                jsonData: {groupId: groupIds["SNDTestGroup"]},
+                scope: this,
+                failure: function (json) {
+                    handleFailure(json, 'Failed impersonation.');
+                },
+                success: function () {
+                    cb();
+                }
+            });
+        }
+    }
+
+    function stopImpersonating(cb) {
+        LABKEY.Ajax.request({
+            url: TEST_URLS.STOP_IMPERSONATING_URL,
+            scope: this,
+            failure: function (json) {
+                handleFailure(json, 'Failed to stop impersonation.');
+            },
+            success: function () {
+                if (typeof cb === "function")
+                    cb();
+            }
+        });
     }
 
     function registerTestTriggerFactory(cb) {
@@ -470,7 +671,7 @@
             jsonData: {'unregister': true},
             scope: this,
             failure: function (json) {
-                handleFailure(json, 'Failed test trigger initialization.');
+                handleFailure(json, 'Failed test trigger unregister.');
             },
             success: cb
         });
@@ -587,7 +788,7 @@
     function cleanTestData(cb) {
         callbackCounter = 0;
 
-        deleteEvents(cb);
+        impersonateSNDTestUser(function() {deleteEvents(function() {stopImpersonating(cb)})});
     }
 
     function cachePkgs(cb) {
@@ -627,7 +828,7 @@
         }
 
         renderTests();
-        log('Tests are ready to run.', undefined, true);
+        log('Tests are ready to run.', undefined, false, false, true);
     }
 
     function reset() {
@@ -671,8 +872,8 @@
             if (report.completed && (report.testsRan - report.testsPassed) === 0) {
                 status = 'success';
             }
-            log(report.summary(), status);
-            unregisterTestTriggerFactory();
+            log(report.summary(), status, true);
+            stopImpersonating(unregisterTestTriggerFactory);
         });
     }
 
@@ -680,7 +881,10 @@
 
         registerTestTriggerFactory(
                 function() {
-                    cleanTestData(runAllCleanTests);
+                    cleanTestData(
+                            function() {
+                                impersonateSNDTestUser(runAllCleanTests)
+                            });
                 }
         );
     }
