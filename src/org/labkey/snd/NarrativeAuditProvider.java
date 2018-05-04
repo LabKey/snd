@@ -25,6 +25,7 @@ public class NarrativeAuditProvider extends AbstractAuditTypeProvider implements
     public static final String COLUMN_NAME_EVENTID = "EventId";
     public static final String COLUMN_NAME_SUBJECTID = "SubjectId";
     public static final String COLUMN_NAME_EVENTDATE = "EventDate";
+    public static final String COLUMN_NAME_QCSTATE = "QcState";
 
     static final List<FieldKey> defaultVisibleColumns = new ArrayList<>();
 
@@ -38,6 +39,7 @@ public class NarrativeAuditProvider extends AbstractAuditTypeProvider implements
         defaultVisibleColumns.add(FieldKey.fromParts(COLUMN_NAME_EVENTID));
         defaultVisibleColumns.add(FieldKey.fromParts(COLUMN_NAME_SUBJECTID));
         defaultVisibleColumns.add(FieldKey.fromParts(COLUMN_NAME_EVENTDATE));
+        defaultVisibleColumns.add(FieldKey.fromParts(COLUMN_NAME_QCSTATE));
     }
 
     @Override
@@ -76,13 +78,14 @@ public class NarrativeAuditProvider extends AbstractAuditTypeProvider implements
         return (Class<K>)NarrativeAuditTypeEvent.class;
     }
 
-    public static void addAuditEntry(Container container, User user, Integer eventId, String subjectId, Date eventDate, String narrative, String comment)
+    public static void addAuditEntry(Container container, User user, Integer eventId, String subjectId, Date eventDate, String narrative, Integer qcState, String comment)
     {
         NarrativeAuditProvider.NarrativeAuditTypeEvent event = new NarrativeAuditProvider.NarrativeAuditTypeEvent(container.getId(), comment);
         event.setNarrative(narrative);
         event.setEventId(eventId);
         event.setSubjectId(subjectId);
         event.setEventDate(eventDate);
+        event.setQcState(qcState);
 
         AuditLogService.get().addEvent(user, event);
     }
@@ -93,6 +96,7 @@ public class NarrativeAuditProvider extends AbstractAuditTypeProvider implements
         private Integer _eventId;
         private String _subjectId;
         private Date _eventDate;
+        private Integer _qcState;
 
         public NarrativeAuditTypeEvent()
         {
@@ -143,6 +147,16 @@ public class NarrativeAuditProvider extends AbstractAuditTypeProvider implements
         {
             _eventDate = eventDate;
         }
+
+        public Integer getQcState()
+        {
+            return _qcState;
+        }
+
+        public void setQcState(Integer qcState)
+        {
+            _qcState = qcState;
+        }
     }
 
     public static class NarrativeAuditDomainKind extends AbstractAuditDomainKind
@@ -161,6 +175,11 @@ public class NarrativeAuditProvider extends AbstractAuditTypeProvider implements
             fields.add(createPropertyDescriptor(COLUMN_NAME_EVENTID, PropertyType.INTEGER));
             fields.add(createPropertyDescriptor(COLUMN_NAME_SUBJECTID, PropertyType.STRING));
             fields.add(createPropertyDescriptor(COLUMN_NAME_EVENTDATE, PropertyType.DATE_TIME));
+            PropertyDescriptor pd = createPropertyDescriptor(COLUMN_NAME_QCSTATE, PropertyType.INTEGER);
+            pd.setLookupSchema("core");
+            pd.setLookupQuery("QCState");
+            fields.add(pd);
+
             _fields = Collections.unmodifiableSet(fields);
         }
 

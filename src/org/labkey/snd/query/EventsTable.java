@@ -178,12 +178,17 @@ public class EventsTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             int eventId = (Integer) oldRowMap.get("EventId");
             String subjectId = (String) oldRowMap.get("SubjectId");
             Date eventDate = (Date) oldRowMap.get("Date");
+            Integer qcState = (Integer) oldRowMap.get("QcState");
 
             BatchValidationException errors = new BatchValidationException();
             Event event = SNDManager.get().getEvent(container, user, eventId, null, null, errors);
             if (!SNDSecurityManager.get().hasPermissionForTopLevelSuperPkgs(container, user, SNDManager.get().getTopLevelEventDataSuperPkgs(container, user, event), event, QCStateActionEnum.DELETE))
             {
-                if (event.hasErrors())
+                if (event == null)
+                {
+                    throw new QueryUpdateServiceException("Event not found.");
+                }
+                else if (event.hasErrors())
                 {
                     throw new QueryUpdateServiceException(event.getException());
                 }
@@ -206,7 +211,7 @@ public class EventsTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
                 throw new QueryUpdateServiceException(e.getMessage());
             }
 
-            NarrativeAuditProvider.addAuditEntry(container, user, eventId, subjectId, eventDate, null, "Delete event");
+            NarrativeAuditProvider.addAuditEntry(container, user, eventId, subjectId, eventDate, null, qcState, "Delete event");
 
             List<Map<String, Object>> cacheData = new ArrayList<>();
             Map<String, Object> cacheKey = new HashMap<>();

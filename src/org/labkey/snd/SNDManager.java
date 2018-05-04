@@ -1727,6 +1727,7 @@ public class SNDManager
     /**
      * Gets event for a given event Id.  Call from SNDService.getEvent
      */
+    @Nullable
     public Event getEvent(Container c, User u, int eventId, Set<EventNarrativeOption> narrativeOptions, @Nullable Map<Integer, SuperPackage> topLevelEventDataSuperPkgs, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
@@ -1745,25 +1746,35 @@ public class SNDManager
                 topLevelEventDataSuperPkgs = getTopLevelEventDataSuperPkgs(c, u, eventId, errors);
             }
 
-            TableInfo eventNotesTable = getTableInfo(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
-
-            // Get from eventNotes table
-            Set<String> cols = new HashSet<>();
-            cols.add("Note");
-            TableSelector eventNoteTs = new TableSelector(eventNotesTable, cols, eventFilter, null);
-
-            event.setNote(eventNoteTs.getObject(String.class));
-            event.setProjectIdRev(getProjectIdRev(c, u, event.getParentObjectId(), errors));
-            event.setEventData(getEventDatas(c, u, topLevelEventDataSuperPkgs, errors));
-            addExtraFieldsToEvent(c, u, event, eventTs.getMap());
-
-            // Get narrative from eventsCache table
-
-            if (narrativeOptions != null && !narrativeOptions.isEmpty())
+            if (!errors.hasErrors())
             {
-                Map<EventNarrativeOption, String> narratives = getNarratives(c, u, narrativeOptions, topLevelEventDataSuperPkgs, event, errors);
-                if (narratives != null)
-                    event.setNarratives(narratives);
+                // TODO: permission check
+                //boolean hasPermission = SNDSecurityManager.get().hasPermissionForTopLevelSuperPkgs(c, u, topLevelEventDataSuperPkgs, event, QCStateActionEnum.READ);
+
+                if (!event.hasErrors())
+                {
+
+                    TableInfo eventNotesTable = getTableInfo(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
+
+                    // Get from eventNotes table
+                    Set<String> cols = new HashSet<>();
+                    cols.add("Note");
+                    TableSelector eventNoteTs = new TableSelector(eventNotesTable, cols, eventFilter, null);
+
+                    event.setNote(eventNoteTs.getObject(String.class));
+                    event.setProjectIdRev(getProjectIdRev(c, u, event.getParentObjectId(), errors));
+                    event.setEventData(getEventDatas(c, u, topLevelEventDataSuperPkgs, errors));
+                    addExtraFieldsToEvent(c, u, event, eventTs.getMap());
+
+                    // Get narrative from eventsCache table
+
+                    if (narrativeOptions != null && !narrativeOptions.isEmpty())
+                    {
+                        Map<EventNarrativeOption, String> narratives = getNarratives(c, u, narrativeOptions, topLevelEventDataSuperPkgs, event, errors);
+                        if (narratives != null)
+                            event.setNarratives(narratives);
+                    }
+                }
             }
         }
 
@@ -2405,7 +2416,7 @@ public class SNDManager
                                     insertEventDatas(c, u, event, errors);
                                     eventsCacheQus.insertRows(u, c, Collections.singletonList(eventsCacheRow), errors, null, null);
                                     generateEventNarrative(c, u, event, topLevelEventDataPkgs, true, false);
-                                    NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), textEventNarrative, "Create event");
+                                    NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), textEventNarrative, event.getQcState(), "Create event");
                                     tx.commit();
                                 }
                                 catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException | ValidationException e)
@@ -2554,7 +2565,7 @@ public class SNDManager
                                     deleteEventDatas(c, u, event.getEventId());
                                     insertEventDatas(c, u, event, errors);
                                     eventsCacheQus.updateRows(u, c, Collections.singletonList(eventsCacheRow), null, null, null);
-                                    NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), textEventNarrative, "Event update");
+                                    NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), textEventNarrative, event.getQcState(), "Event update");
                                     tx.commit();
                                 }
                                 catch (QueryUpdateServiceException | BatchValidationException | SQLException | InvalidKeyException | DuplicateKeyException | ValidationException e)
