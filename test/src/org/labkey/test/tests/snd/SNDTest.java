@@ -35,9 +35,6 @@ import org.labkey.remoteapi.query.SelectRowsCommand;
 import org.labkey.remoteapi.query.SelectRowsResponse;
 import org.labkey.remoteapi.query.TruncateTableCommand;
 import org.labkey.remoteapi.query.UpdateRowsCommand;
-import org.labkey.remoteapi.security.AddGroupMembersCommand;
-import org.labkey.remoteapi.security.CreateGroupCommand;
-import org.labkey.remoteapi.security.CreateGroupResponse;
 import org.labkey.test.BaseWebDriverTest;
 import org.labkey.test.Locator;
 import org.labkey.test.TestFileUtils;
@@ -900,7 +897,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 
         Locator closeButton = Locator.tagWithClass("button", "close")
                 .withAttribute("data-dismiss", "modal");
-        click(closeButton);
+        waitAndClick(closeButton);
     }
 
     private void setRole(int groupId, int categoryId, String role)
