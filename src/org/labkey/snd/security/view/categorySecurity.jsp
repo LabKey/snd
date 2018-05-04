@@ -95,7 +95,8 @@
     }
 
     .input-role {
-        width: 150px;
+        width: 95%;
+        min-width: 140px;
         border: 0;
         text-align: center;
         font-size: 14px;
@@ -123,6 +124,11 @@
 
     .btn-role {
         height: 30px;
+        width: 100%;
+    }
+
+    .btn-group {
+        width: 100%;
     }
 </style>
 
@@ -133,7 +139,7 @@
     }
 
     function clearAll() {
-        var els = document.getElementsByClassName("input-role");
+        var els = document.querySelectorAll(".input-role:not(.input-all)");
         for (var key in els) {
             if (els.hasOwnProperty(key)) {
                 els[key].value = "None";
@@ -176,7 +182,7 @@
                 %>
                         <td class="dropdown-selection" data-toggle="tooltip" title='Set all roles for group'><div class="input-append btn-group" data-toggle="dropdown">
                             <a class="btn dropdown-toggle btn-role" data-toggle="dropdown" href="#">
-                                <input class="input-role" id="<%=h("all_" + g.getUserId())%>" type="text" value='' readonly>
+                                <input class="input-role input-all" id="<%=h("all_" + g.getUserId())%>" type="text" value='' readonly>
                                 <span class="caret"></span></a>
                                 <ul class="dropdown-menu">
                                     <li>
