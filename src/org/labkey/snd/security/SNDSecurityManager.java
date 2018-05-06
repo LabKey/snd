@@ -280,10 +280,10 @@ public class SNDSecurityManager
             }
         }
 
-        if (!hasPermission && action != QCStateActionEnum.READ)
+        if (!hasPermission)
         {
             event.setException(new ValidationException("User " + u.getFriendlyName() + " does not have permission to "
-                    + action.getName() + " event data for QC state " + event.getQcState(c, u).getName() + " for these super packages."));
+                    + action.getName() + " event data for QC state " + event.getQcState(c, u).getName() + " for these super packages.", ValidationException.SEVERITY.ERROR));
         }
         return hasPermission;
     }

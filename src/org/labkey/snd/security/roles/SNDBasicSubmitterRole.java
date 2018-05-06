@@ -10,7 +10,10 @@ import org.labkey.snd.security.permissions.SNDInProgressReadPermission;
 import org.labkey.snd.security.permissions.SNDInProgressUpdatePermission;
 import org.labkey.snd.security.permissions.SNDRejectedDeletePermission;
 import org.labkey.snd.security.permissions.SNDRejectedReadPermission;
-import org.labkey.snd.security.permissions.SNDRejectedUpdatePermission;
+import org.labkey.snd.security.permissions.SNDReviewRequiredDeletePermission;
+import org.labkey.snd.security.permissions.SNDReviewRequiredInsertPermission;
+import org.labkey.snd.security.permissions.SNDReviewRequiredReadPermission;
+import org.labkey.snd.security.permissions.SNDReviewRequiredUpdatePermission;
 
 public class SNDBasicSubmitterRole extends AbstractModuleScopedRole
 {
@@ -20,8 +23,9 @@ public class SNDBasicSubmitterRole extends AbstractModuleScopedRole
                 SNDModule.class,
                 SNDInProgressReadPermission.class, SNDInProgressInsertPermission.class,
                 SNDInProgressUpdatePermission.class, SNDInProgressDeletePermission.class,
-                SNDRejectedReadPermission.class, SNDRejectedUpdatePermission.class,
-                SNDRejectedDeletePermission.class);
+                SNDReviewRequiredReadPermission.class, SNDReviewRequiredInsertPermission.class,
+                SNDReviewRequiredUpdatePermission.class, SNDReviewRequiredDeletePermission.class,
+                SNDRejectedReadPermission.class, SNDRejectedDeletePermission.class);
     }
 
     @Override

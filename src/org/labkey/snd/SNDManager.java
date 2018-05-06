@@ -1748,10 +1748,9 @@ public class SNDManager
 
             if (!errors.hasErrors())
             {
-                // TODO: permission check
-                //boolean hasPermission = SNDSecurityManager.get().hasPermissionForTopLevelSuperPkgs(c, u, topLevelEventDataSuperPkgs, event, QCStateActionEnum.READ);
+                boolean hasPermission = SNDSecurityManager.get().hasPermissionForTopLevelSuperPkgs(c, u, topLevelEventDataSuperPkgs, event, QCStateActionEnum.READ);
 
-                if (!event.hasErrors())
+                if (!event.hasErrors() && hasPermission)
                 {
 
                     TableInfo eventNotesTable = getTableInfo(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
@@ -1774,6 +1773,12 @@ public class SNDManager
                         if (narratives != null)
                             event.setNarratives(narratives);
                     }
+                }
+                else
+                {
+                    Event emptyEvent = new Event();
+                    emptyEvent.setException(event.getException());
+                    event = emptyEvent;
                 }
             }
         }
