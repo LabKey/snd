@@ -638,6 +638,20 @@
         }
     }
 
+    function impersonateRoles(roles, cb) {
+        LABKEY.Ajax.request({
+            url: TEST_URLS.IMPERSONATE_ROLES_URL,
+            jsonData: {roleNames: roles},
+            scope: this,
+            failure: function (json) {
+                handleFailure(json, 'Failed impersonating role.');
+            },
+            success: function () {
+                cb();
+            }
+        });
+    }
+
     function stopImpersonating(cb) {
         LABKEY.Ajax.request({
             url: TEST_URLS.STOP_IMPERSONATING_URL,
@@ -901,11 +915,18 @@
             }
             report.testsRan++;
 
-            cb({
+            var config = {
                 context: context,
                 passed: passed,
                 error: error
-            });
+            };
+
+            if (test.roles) {
+                stopImpersonating(function() {impersonateSNDTestUser(function() {cb(config)})});
+            }
+            else {
+                cb(config);
+            }
         };
 
         var handleExpectedFailure = function(name, error) {
@@ -980,128 +1001,140 @@
             finish('Test "' + test.name + '" is not runnable. Configured improperly, expected run() to be implemented');
         }
         else {
+
             var testRun;
 
-            try {
-                testRun = test.run(context);
-            }
-            catch (e) {
-                var msg;
-                if (LABKEY.Utils.isString(e)) {
-                    msg = e;
+            var runTest = function() {
+                try {
+                    testRun = test.run(context);
                 }
-                else {
-                    msg = e.message;
-                    console.error('Stacktrace for test \"' + test.name + '\"');
-                    console.error(e.stack);
-                }
+                catch (e) {
+                    var msg;
+                    if (LABKEY.Utils.isString(e)) {
+                        msg = e;
+                    }
+                    else {
+                        msg = e.message;
+                        console.error('Stacktrace for test \"' + test.name + '\"');
+                        console.error(e.stack);
+                    }
 
-                finish('Test "' + test.name + '" failed. An uncaught error was thrown: \"' + msg + '\". See console for additional output.');
-                return;
-            }
-
-            if (LABKEY.Utils.isString(testRun)) {
-                finish('Test "' + test.name + '" failed. ' + testRun);
-            }
-            else if (testRun !== undefined && testRun.request !== undefined && (testRun.response !== undefined || testRun.expectedFailure)) {
-
-                var testRequest = {
-                    url: testRun.request.url,
-                    method: testRun.request.method || null,
-                    jsonData: $.isFunction(testRun.request.jsonData) ? testRun.request.jsonData() : testRun.request.jsonData
-                };
-
-                if (testRun.request.headers) {
-                    testRequest.headers = testRun.request.headers;
+                    finish('Test "' + test.name + '" failed. An uncaught error was thrown: \"' + msg + '\". See console for additional output.');
+                    return;
                 }
 
-                if (testRun.expectedFailure) {
-                    testRequest.success = function(response) {
-                        var successJson;
+                if (LABKEY.Utils.isString(testRun)) {
+                    finish('Test "' + test.name + '" failed. ' + testRun);
+                }
+                else if (testRun !== undefined && testRun.request !== undefined && (testRun.response !== undefined || testRun.expectedFailure)) {
 
-                        try {
-                            successJson = JSON.parse(response.responseText);
-                        }
-                        catch (e) {
-                            successJson = null;
-                        }
-
-                        if (successJson != null) {
-                            if (successJson.event["exception"]) {
-                                handleExpectedFailure(test.name, response);
-                            }
-                            else {
-                                finish('Test "' + test.name + '" unexpectedly succeeded.');
-                            }
-                        }
-                        else {
-                            finish('Test "' + test.name + '" is missing json response');
-                        }
+                    var testRequest = {
+                        url: testRun.request.url,
+                        method: testRun.request.method || null,
+                        jsonData: $.isFunction(testRun.request.jsonData) ? testRun.request.jsonData() : testRun.request.jsonData
                     };
-                    testRequest.failure = function(response) { handleExpectedFailure.call(this, test.name, response) };
-                }
-                else {
-                    testRequest.success = function(response) {
-                        var json;
 
-                        try {
-                            json = JSON.parse(response.responseText);
-                        }
-                        catch (e) {
-                            // could have responded html...
-                            finish('Test "' + test.name + '" unexpectedly failed. Response not JSON.');
-                            return;
-                        }
+                    if (testRun.request.headers) {
+                        testRequest.headers = testRun.request.headers;
+                    }
 
-                        if ($.isFunction(testRun.response)) {
-                            var result = testRun.response(response, json);
-                            if (result === true) {
-                                finish();
-                            }
-                            else if (LABKEY.Utils.isString(result)) {
-                                finish('Test "' + test.name + '" failed. ' + result);
-                            }
-                            else if (LABKEY.Utils.isObject(result)) {
-                                finish(undefined, result);
-                            }
-                            else {
-                                finish('Test "' + test.name + '" failed. Test should specify a reason for failure or return true.');
-                            }
-                        }
-                        else {
-                            compareResponse(json, testRun.response);
-                            return;
-                        }
-                    };
-                    testRequest.failure = function(error) {
-                        if (error) {
+                    if (testRun.expectedFailure) {
+                        testRequest.success = function (response) {
+                            var successJson;
+
                             try {
-                                var json = JSON.parse(error.responseText);
+                                successJson = JSON.parse(response.responseText);
+                            }
+                            catch (e) {
+                                successJson = null;
+                            }
 
-                                if (LABKEY.Utils.isObject(testRun.response)) {
-                                    compareResponse(json, testRun.response);
-                                    return;
+                            if (successJson != null) {
+                                if (successJson.event["exception"]) {
+                                    handleExpectedFailure(test.name, response);
                                 }
-                                else if (json && json.exception) {
-                                    finish(error.status + ': ' + json.exception);
-                                    handleFailure(json, 'Test "' + test.name + '" stack trace.');
+                                else {
+                                    finish('Test "' + test.name + '" unexpectedly succeeded.');
                                 }
+                            }
+                            else {
+                                finish('Test "' + test.name + '" is missing json response');
+                            }
+                        };
+                        testRequest.failure = function (response) {
+                            handleExpectedFailure.call(this, test.name, response)
+                        };
+                    }
+                    else {
+                        testRequest.success = function (response) {
+                            var json;
+
+                            try {
+                                json = JSON.parse(response.responseText);
                             }
                             catch (e) {
                                 // could have responded html...
                                 finish('Test "' + test.name + '" unexpectedly failed. Response not JSON.');
+                                return;
                             }
-                        }
-                        else {
-                            finish('Test "' + test.name + '" unexpectedly failed. No error provided.');
-                        }
-                    };
-                }
 
-                LABKEY.Ajax.request(testRequest);
+                            if ($.isFunction(testRun.response)) {
+                                var result = testRun.response(response, json);
+                                if (result === true) {
+                                    finish();
+                                }
+                                else if (LABKEY.Utils.isString(result)) {
+                                    finish('Test "' + test.name + '" failed. ' + result);
+                                }
+                                else if (LABKEY.Utils.isObject(result)) {
+                                    finish(undefined, result);
+                                }
+                                else {
+                                    finish('Test "' + test.name + '" failed. Test should specify a reason for failure or return true.');
+                                }
+                            }
+                            else {
+                                compareResponse(json, testRun.response);
+                                return;
+                            }
+                        };
+                        testRequest.failure = function (error) {
+                            if (error) {
+                                try {
+                                    var json = JSON.parse(error.responseText);
+
+                                    if (LABKEY.Utils.isObject(testRun.response)) {
+                                        compareResponse(json, testRun.response);
+                                        return;
+                                    }
+                                    else if (json && json.exception) {
+                                        finish(error.status + ': ' + json.exception);
+                                        handleFailure(json, 'Test "' + test.name + '" stack trace.');
+                                    }
+                                }
+                                catch (e) {
+                                    // could have responded html...
+                                    finish('Test "' + test.name + '" unexpectedly failed. Response not JSON.');
+                                }
+                            }
+                            else {
+                                finish('Test "' + test.name + '" unexpectedly failed. No error provided.');
+                            }
+                        };
+                    }
+
+                    LABKEY.Ajax.request(testRequest);
+                }
+                else {
+                    finish('Test "' + test.name + '" is not runnable. Returned improper configuration.');
+                }
+            }
+
+            if (test.roles) {
+                stopImpersonating(function() {impersonateRoles(test.roles, runTest)})
             }
             else {
-                finish('Test "' + test.name + '" is not runnable. Returned improper configuration.');
+                runTest();
             }
         }
     }

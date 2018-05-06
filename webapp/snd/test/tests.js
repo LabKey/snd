@@ -679,7 +679,10 @@
         var test, eventId, saveResponse, getResponse;
         LABKEY.getEventTestData().forEach(function(testData) {
             eventId = testData.jsonData['eventId'];
-            test = {name: testData['name'] + ' - Save'};
+            test = {
+                name: testData['name'] + ' - Save',
+                roles: testData['roles']
+            };
 
             // Set up save event request
             var saveRequest = {
