@@ -1728,7 +1728,7 @@ public class SNDManager
      * Gets event for a given event Id.  Call from SNDService.getEvent
      */
     @Nullable
-    public Event getEvent(Container c, User u, int eventId, Set<EventNarrativeOption> narrativeOptions, @Nullable Map<Integer, SuperPackage> topLevelEventDataSuperPkgs, BatchValidationException errors)
+    public Event getEvent(Container c, User u, int eventId, Set<EventNarrativeOption> narrativeOptions, @Nullable Map<Integer, SuperPackage> topLevelEventDataSuperPkgs, boolean skipPermissionCheck, BatchValidationException errors)
     {
         UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
 
@@ -1748,7 +1748,12 @@ public class SNDManager
 
             if (!errors.hasErrors())
             {
-                boolean hasPermission = SNDSecurityManager.get().hasPermissionForTopLevelSuperPkgs(c, u, topLevelEventDataSuperPkgs, event, QCStateActionEnum.READ);
+                boolean hasPermission = true;
+
+                if (!skipPermissionCheck)
+                {
+                    hasPermission = SNDSecurityManager.get().hasPermissionForTopLevelSuperPkgs(c, u, topLevelEventDataSuperPkgs, event, QCStateActionEnum.READ);
+                }
 
                 if (!event.hasErrors() && hasPermission)
                 {
@@ -2686,7 +2691,7 @@ public class SNDManager
             {
                 row = new ArrayListMap<>();
                 eventDataTopLevelSuperPkgs = getTopLevelEventDataSuperPkgs(c, u, eventId, errors);
-                Event event = getEvent(c, u, eventId, null, eventDataTopLevelSuperPkgs, errors);  // don't populate narratives or set narrative options, since we're repopulating the narrative cache
+                Event event = getEvent(c, u, eventId, null, eventDataTopLevelSuperPkgs, true, errors);  // don't populate narratives or set narrative options, since we're repopulating the narrative cache
                 String eventNarrative = generateEventNarrative(c, u, event, eventDataTopLevelSuperPkgs, true, false);
                 row.put("EventId", eventId);
                 row.put("HtmlNarrative", eventNarrative);

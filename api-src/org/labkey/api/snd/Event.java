@@ -193,8 +193,14 @@ public class Event
         return _qcState;
     }
 
+    @Nullable
     public QCStateEnum getQcState(Container c, User u)
     {
+        if (_qcState == null)
+        {
+            return null;
+        }
+
         return SNDService.get().getQCState(c, u, _qcState);
     }
 
@@ -316,7 +322,11 @@ public class Event
 
         json.put(EVENT_PROJECT_ID_REV, getProjectIdRev());
         json.put(EVENT_NOTE, getNote());
-        json.put(EVENT_QCSTATE, getQcState(c, u).getName());
+
+        if (_qcState != null)
+        {
+            json.put(EVENT_QCSTATE, getQcState(c, u).getName());
+        }
 
         JSONArray eventDataJson = new JSONArray();
         if (getEventData() != null)

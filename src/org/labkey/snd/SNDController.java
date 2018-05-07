@@ -858,8 +858,16 @@ public class SNDController extends SpringActionController
             }
             if (event != null)
             {
+                if (event.hasErrors())
+                {
+                    response.put("success", false);
+                }
+                else
+                {
+                    response.put("success", true);
+                }
                 JSONObject eventJson = event.toJSON(getViewContext().getContainer(), getUser());
-                response.put("json", eventJson);
+                response.put("event", eventJson);
             }
             else
             {

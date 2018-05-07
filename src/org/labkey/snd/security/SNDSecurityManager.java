@@ -282,8 +282,8 @@ public class SNDSecurityManager
 
         if (!hasPermission)
         {
-            event.setException(new ValidationException("User " + u.getFriendlyName() + " does not have permission to "
-                    + action.getName() + " event data for QC state " + event.getQcState(c, u).getName() + " for these super packages.", ValidationException.SEVERITY.ERROR));
+            event.setException(new ValidationException("You do not have permission to " + action.getName() + " event data for QC state "
+                    + event.getQcState(c, u).getName() + " for these super packages.", ValidationException.SEVERITY.ERROR));
         }
         return hasPermission;
     }

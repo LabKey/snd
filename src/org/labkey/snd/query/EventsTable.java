@@ -181,20 +181,21 @@ public class EventsTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             Integer qcState = (Integer) oldRowMap.get("QcState");
 
             BatchValidationException errors = new BatchValidationException();
-            Event event = SNDManager.get().getEvent(container, user, eventId, null, null, errors);
+            Event event = SNDManager.get().getEvent(container, user, eventId, null, null, true, errors);
+            if (event == null || event.getEventId() == null)
+            {
+                throw new QueryUpdateServiceException("Event not found.");
+            }
+
             if (!SNDSecurityManager.get().hasPermissionForTopLevelSuperPkgs(container, user, SNDManager.get().getTopLevelEventDataSuperPkgs(container, user, event), event, QCStateActionEnum.DELETE))
             {
-                if (event == null)
-                {
-                    throw new QueryUpdateServiceException("Event not found.");
-                }
-                else if (event.hasErrors())
+                if (event.hasErrors())
                 {
                     throw new QueryUpdateServiceException(event.getException());
                 }
                 else
                 {
-                    throw new QueryUpdateServiceException("Verify user has permission to delete this event.");
+                    throw new QueryUpdateServiceException("You do not have permission to delete this event.");
                 }
             }
 
