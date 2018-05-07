@@ -127,7 +127,7 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
     @Override
     public QueryUpdateService getUpdateService()
     {
-        UserSchema schema = QueryService.get().getUserSchema(getUserSchema().getUser(), getContainer(), SNDSchema.NAME);
+        UserSchema schema = SNDManager.getSndUserSchema(getContainer(), getUserSchema().getUser());
         SimpleUserSchema.SimpleTable simpleTable = new SimpleUserSchema.SimpleTable(schema, this);
         return new AttributeDataTable.UpdateService(simpleTable);
     }

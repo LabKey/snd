@@ -180,7 +180,7 @@ public class PackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
                 }
 
                 // get all super packages for this package and delete them (if they exist)
-                UserSchema schema = QueryService.get().getUserSchema(user, container, SNDSchema.NAME);
+                UserSchema schema = SNDManager.getSndUserSchema(container, user);
                 TableInfo superPkgsTable = getTableInfo(schema, SNDSchema.SUPERPKGS_TABLE_NAME);
                 QueryUpdateService superPkgQus = getQueryUpdateService(superPkgsTable);
                 List<Map<String, Object>> superPkgRows = new ArrayList<>();

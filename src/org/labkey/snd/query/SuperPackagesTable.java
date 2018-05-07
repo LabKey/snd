@@ -150,7 +150,7 @@ public class SuperPackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSche
             List<Integer> projItemIds = SNDManager.get().getProjectItemIdsForSuperPkgId(container, user, superPkgId);
             List<Map<String, Object>> projItemRows = new ArrayList<>();
 
-            UserSchema schema = QueryService.get().getUserSchema(user, container, SNDSchema.NAME);
+            UserSchema schema = SNDManager.getSndUserSchema(container, user);
             TableInfo projItemsTable = getTableInfo(schema, SNDSchema.PROJECTITEMS_TABLE_NAME);
             QueryUpdateService projItemsQus = getQueryUpdateService(projItemsTable);
 

@@ -26,6 +26,7 @@ import org.labkey.api.data.TableSelector;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.security.User;
+import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.snd.query.AttributeDataTable;
 import org.labkey.snd.query.CategoriesTable;
 import org.labkey.snd.query.EventDataTable;
@@ -45,9 +46,22 @@ import java.util.Set;
 
 public class SNDUserSchema extends SimpleUserSchema
 {
+    private boolean _permissionCheck = true;
+
     public SNDUserSchema(String name, @Nullable String description, User user, Container container, DbSchema dbschema)
     {
         super(name, description, user, container, dbschema);
+    }
+
+    public SNDUserSchema(String name, @Nullable String description, User user, Container container, DbSchema dbschema, boolean permissionCheck)
+    {
+        super(name, description, user, container, dbschema);
+        _permissionCheck = permissionCheck;
+    }
+
+    public boolean getPermissionCheck()
+    {
+        return _permissionCheck;
     }
 
     public enum TableType
@@ -122,7 +136,12 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema)
                     {
-                        return new EventNotesTable(schema, SNDSchema.getInstance().getTableInfoEventNotes()).init();
+                        if (!schema.getPermissionCheck() || schema.getContainer().hasPermission(schema.getUser(), AdminPermission.class))
+                        {
+                            return new EventNotesTable(schema, SNDSchema.getInstance().getTableInfoEventNotes()).init();
+                        }
+
+                        return null;
                     }
                 },
         EventData
@@ -130,7 +149,12 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema)
                     {
-                        return new EventDataTable(schema, SNDSchema.getInstance().getTableInfoEventData()).init();
+                        if (!schema.getPermissionCheck() || schema.getContainer().hasPermission(schema.getUser(), AdminPermission.class))
+                        {
+                            return new EventDataTable(schema, SNDSchema.getInstance().getTableInfoEventData()).init();
+                        }
+
+                        return null;
                     }
                 },
         AttributeData
@@ -138,7 +162,12 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema)
                     {
-                        return new AttributeDataTable(schema);
+                        if (!schema.getPermissionCheck() || schema.getContainer().hasPermission(schema.getUser(), AdminPermission.class))
+                        {
+                            return new AttributeDataTable(schema);
+                        }
+
+                        return null;
                     }
                 },
         Lookups
@@ -166,7 +195,12 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema)
                     {
-                        return new EventsCacheTable(schema, SNDSchema.getInstance().getTableInfoEventsCache()).init();
+                        if (!schema.getPermissionCheck() || schema.getContainer().hasPermission(schema.getUser(), AdminPermission.class))
+                        {
+                            return new EventsCacheTable(schema, SNDSchema.getInstance().getTableInfoEventsCache()).init();
+                        }
+
+                        return null;
                     }
                 };
 

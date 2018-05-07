@@ -36,8 +36,7 @@
             ],
             INIT_GROUPS: {
                 SNDTestGroup: {
-                    roles: ['org.labkey.api.security.roles.ReaderRole',
-                        'org.labkey.api.security.roles.EditorRole']
+                    roles: ['org.labkey.api.security.roles.FolderAdminRole']
                 }
             },
             INIT_ROLES_ASSIGNMENT: [

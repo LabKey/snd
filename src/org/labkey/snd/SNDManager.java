@@ -27,15 +27,12 @@ import org.labkey.api.collections.ArrayListMap;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
-import org.labkey.api.data.CoreSchema;
-import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.DbScope;
 import org.labkey.api.data.Results;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.SqlExecutor;
 import org.labkey.api.data.SqlSelector;
-import org.labkey.api.data.Table;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableResultSet;
 import org.labkey.api.data.TableSelector;
@@ -72,7 +69,6 @@ import org.labkey.api.snd.Package;
 import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.snd.Project;
 import org.labkey.api.snd.ProjectItem;
-import org.labkey.api.snd.QCStateEnum;
 import org.labkey.api.snd.SNDDomainKind;
 import org.labkey.api.snd.SNDSequencer;
 import org.labkey.api.snd.SuperPackage;
@@ -127,6 +123,11 @@ public class SNDManager
     public StringKeyCache getCache()
     {
         return _cache;
+    }
+
+    public static UserSchema getSndUserSchema(Container c, User u)
+    {
+        return new SNDUserSchema(SNDSchema.NAME, null, u, c, SNDSchema.getInstance().getSchema(), false);
     }
 
     public static String getPackageName(int id)
@@ -194,7 +195,15 @@ public class SNDManager
      */
     public Object getLookupDisplayValue(User u, Container c, String schema, String table, Object key)
     {
-        UserSchema userSchema = QueryService.get().getUserSchema(u, c, schema);
+        UserSchema userSchema;
+        if (schema.equals(SNDSchema.NAME))
+        {
+            userSchema = getSndUserSchema(c, u);
+        }
+        else
+        {
+            userSchema = QueryService.get().getUserSchema(u, c, schema);
+        }
 
         TableInfo tableInfo = getTableInfo(userSchema, table);
         QueryUpdateService lookupQus = getQueryUpdateService(tableInfo);
@@ -262,7 +271,7 @@ public class SNDManager
      */
     public void updatePackage(User u, Container c, @NotNull Package pkg, @Nullable SuperPackage superPkg, BatchValidationException errors)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         TableInfo pkgsTable = getTableInfo(schema, SNDSchema.PKGS_TABLE_NAME);
         QueryUpdateService pkgQus = getQueryUpdateService(pkgsTable);
@@ -317,7 +326,7 @@ public class SNDManager
      */
     public void createPackage(User u, Container c, @NotNull Package pkg, @Nullable SuperPackage superPkg, BatchValidationException errors)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         TableInfo pkgsTable = getTableInfo(schema, SNDSchema.PKGS_TABLE_NAME);
         QueryUpdateService pkgQus = getQueryUpdateService(pkgsTable);
@@ -371,7 +380,7 @@ public class SNDManager
      */
     private List<Integer> getSavedSuperPkgs(Container c, User u)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT SuperPkgId FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "s");
@@ -384,7 +393,7 @@ public class SNDManager
      */
     private void deleteRemovedChildren(User u, Container c, SuperPackage superPkg, BatchValidationException errors)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         TableInfo superPkgsTable = getTableInfo(schema, SNDSchema.SUPERPKGS_TABLE_NAME);
         QueryUpdateService superPkgQus = getQueryUpdateService(superPkgsTable);
@@ -416,7 +425,7 @@ public class SNDManager
      */
     public void saveSuperPackages(User u, Container c, List<SuperPackage> superPkgs, BatchValidationException errors)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         TableInfo superPkgsTable = getTableInfo(schema, SNDSchema.SUPERPKGS_TABLE_NAME);
         QueryUpdateService superPkgQus = getQueryUpdateService(superPkgsTable);
@@ -489,7 +498,7 @@ public class SNDManager
      */
     private Map<Integer, String> getPackageCategories(Container c, User u, int pkgId, BatchValidationException errors)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT cj.CategoryId, ca.Description FROM ");
         sql.append(schema.getTable(SNDSchema.PKGCATEGORYJUNCTION_TABLE_NAME), "cj");
@@ -577,7 +586,7 @@ public class SNDManager
     @Nullable
     public static List<Integer> getSuperPkgIdsForPkg(Container c, User u, Integer packageId)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
@@ -596,7 +605,7 @@ public class SNDManager
     @Nullable
     public static SuperPackage getTopLevelSuperPkgForPkg(Container c, User u, Integer packageId)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SuperPkgPath, sp.SortOrder, sp.Required FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
@@ -616,7 +625,7 @@ public class SNDManager
     @Nullable
     public static List<SuperPackage> getSuperPkgs(Container c, User u, List<Integer> superPackageIds)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SuperPkgPath, sp.SortOrder, sp.Required FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
@@ -637,7 +646,7 @@ public class SNDManager
     @Nullable
     public static List<SuperPackage> convertToTopLevelSuperPkgs(Container c, User u, List<Integer> superPackageIds)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT DISTINCT sp2.SuperPkgId, sp2.ParentSuperPkgId, sp2.PkgId, sp2.SuperPkgPath, sp2.SortOrder, sp.Required FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
@@ -665,7 +674,7 @@ public class SNDManager
         if ((superPackageIds == null) || (superPackageIds.size() == 0))
             return null;
 
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SuperPkgPath, sp.SortOrder, sp.Required FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
@@ -686,7 +695,7 @@ public class SNDManager
     @Nullable
     public static List<SuperPackage> getChildSuperPkgs(Container c, User u, Integer parentSuperPackageId)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SuperPkgPath, sp.SortOrder, sp.Required FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
@@ -708,7 +717,7 @@ public class SNDManager
         if ((superPackageIds == null) || (superPackageIds.size() == 0))
             return null;
 
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SuperPkgPath, sp.SortOrder, sp.Required FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
@@ -729,7 +738,7 @@ public class SNDManager
     @Nullable
     public static List<Integer> getDeletedChildSuperPkgs(Container c, User u, List<SuperPackage> superPackages, Integer parentSuperPackageId)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
@@ -777,7 +786,7 @@ public class SNDManager
      */
     public boolean isDescendent(Container c, User u, int topLevelSuperPkgId, int pkgId)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT PkgId FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
@@ -802,7 +811,7 @@ public class SNDManager
     @Nullable
     private SuperPackage getFullSuperPackage(Container c, User u, int superPkgId, boolean fullSubpackages, BatchValidationException errors)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.PkgId, sp.SortOrder, sp.Required, pkg.PkgId, pkg.Description, pkg.Active, pkg.Narrative, pkg.Repeatable FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
@@ -836,7 +845,7 @@ public class SNDManager
      */
     private List<SuperPackage> getAllChildSuperPkgs(Container c, User u, int pkgId, boolean includeFullSubpackages, BatchValidationException errors)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment childSql = new SQLFragment("SELECT * FROM ");
         childSql.append(SNDSchema.NAME + "." + SNDSchema.SUPERPKGS_FUNCTION_NAME + "(?)").add(pkgId);
@@ -883,7 +892,7 @@ public class SNDManager
      */
     public Package addLookupsToPkg(Container c, User u, Package pkg)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
         Map<String, Map<String, Object>> sndLookups = ((SNDUserSchema) schema).getLookupSets();
         Map<String, String> lookups = new HashMap<>();
 
@@ -954,7 +963,7 @@ public class SNDManager
     public List<Package> getPackages(Container c, User u, List<Integer> pkgIds, boolean includeExtraFields, boolean includeLookups,
                                      boolean includeFullSubpackages, BatchValidationException errors)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         TableInfo pkgsTable = getTableInfo(schema, SNDSchema.PKGS_TABLE_NAME);
         QueryUpdateService pkgQus = getQueryUpdateService(pkgsTable);
@@ -995,7 +1004,7 @@ public class SNDManager
      */
     public boolean projectRevisionIsLatest(Container c, User u, int id, int rev)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT ProjectId FROM ");
         sql.append(schema.getTable(SNDSchema.PROJECTS_TABLE_NAME), "pr");
@@ -1011,7 +1020,7 @@ public class SNDManager
      */
     private boolean projectRevisionExists(Container c, User u, int id, int rev)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT ProjectId FROM ");
         sql.append(schema.getTable(SNDSchema.PROJECTS_TABLE_NAME), "pr");
@@ -1098,7 +1107,7 @@ public class SNDManager
      */
     private boolean isValidReferenceId(Container c, User u, Project project, boolean revision, BatchValidationException errors)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
         TableInfo projectTable = getTableInfo(schema, SNDSchema.PROJECTS_TABLE_NAME);
         boolean valid = true;
         List<Map<String, Object>> rows;
@@ -1178,7 +1187,7 @@ public class SNDManager
      */
     private boolean isValidRevision(Container c, User u, Project project, boolean revision, BatchValidationException errors)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
         Date endDate;
 
@@ -1285,7 +1294,7 @@ public class SNDManager
     {
         if (validProject(c, u, project, false, errors))
         {
-            UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+            UserSchema schema = getSndUserSchema(c, u);
 
             TableInfo projectTable = getTableInfo(schema, SNDSchema.PROJECTS_TABLE_NAME);
             QueryUpdateService projectQus = getQueryUpdateService(projectTable);
@@ -1314,7 +1323,7 @@ public class SNDManager
      */
     private void updateProjectField(Container c, User u, int id, int rev, String field, String value)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("UPDATE " + SNDSchema.getInstance().getTableInfoProjects() );
         sql.append(" SET " + field + " = ?");
@@ -1332,7 +1341,7 @@ public class SNDManager
     {
         if (validProject(c, u, project, true, errors))
         {
-            UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+            UserSchema schema = getSndUserSchema(c, u);
             List<Map<String, Object>> updatedProjectItems = new ArrayList<>();
 
             updateProjectField(c, u, project.getProjectId(), project.getRevisionNum(), "EndDate",
@@ -1397,7 +1406,7 @@ public class SNDManager
     {
         if (validProject(c, u, project, false, errors))
         {
-            UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+            UserSchema schema = getSndUserSchema(c, u);
 
             // Erase all project items for this project
             SQLFragment sql = new SQLFragment("DELETE FROM " + SNDSchema.getInstance().getTableInfoProjectItems() );
@@ -1436,7 +1445,7 @@ public class SNDManager
      */
     public String getProjectObjectId(Container c, User u, Project project, BatchValidationException errors)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT ObjectId FROM ");
         sql.append(schema.getTable(SNDSchema.PROJECTS_TABLE_NAME), "pr");
@@ -1454,7 +1463,7 @@ public class SNDManager
      */
     public List<Map<String, Object>> getProjectItems(Container c, User u, int projectId, int revNum)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT ProjectItemId FROM ");
         sql.append(schema.getTable(SNDSchema.PROJECTITEMS_TABLE_NAME), "pi");
@@ -1510,7 +1519,7 @@ public class SNDManager
     @Nullable
     public static List<Integer> getProjectItemIdsForSuperPkgId(Container c, User u, Integer superPkgId)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT pi.ProjectItemId FROM ");
         sql.append(schema.getTable(SNDSchema.PROJECTITEMS_TABLE_NAME), "pi");
@@ -1528,7 +1537,7 @@ public class SNDManager
      */
     public Project getProject(Container c, User u, int projectId, int revNum, BatchValidationException errors)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         TableInfo projectsTable = getTableInfo(schema, SNDSchema.PROJECTS_TABLE_NAME);
 
@@ -1609,7 +1618,7 @@ public class SNDManager
      */
     private EventData getEventData(Container c, User u, int eventDataId, SuperPackage superPackage, BatchValidationException errors)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
         TableInfo eventDataTable = getTableInfo(schema, SNDSchema.EVENTDATA_TABLE_NAME);
 
         // Get from EventData table
@@ -1730,7 +1739,7 @@ public class SNDManager
     @Nullable
     public Event getEvent(Container c, User u, int eventId, Set<EventNarrativeOption> narrativeOptions, @Nullable Map<Integer, SuperPackage> topLevelEventDataSuperPkgs, boolean skipPermissionCheck, BatchValidationException errors)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         TableInfo eventsTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
 
@@ -1794,7 +1803,7 @@ public class SNDManager
     private Map<EventNarrativeOption, String> getNarratives(Container c, User u, Set<EventNarrativeOption> narrativeOptions, Map<Integer, SuperPackage> topLevelEventDataSuperPkgs, Event event, BatchValidationException errors)
     {
         Map<EventNarrativeOption, String> narratives = null;
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
         SimpleFilter eventFilter = new SimpleFilter(FieldKey.fromParts("EventId"), event.getEventId(), CompareType.EQUAL);
 
         if (narrativeOptions != null)
@@ -1880,7 +1889,7 @@ public class SNDManager
      */
     public boolean eventExists(Container c, User u, int eventId)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT EventId FROM ");
         sql.append(schema.getTable(SNDSchema.EVENTS_TABLE_NAME), "ev");
@@ -1925,7 +1934,7 @@ public class SNDManager
 
                 if (!event.hasErrors() && projectId != null && revisionNum != null)
                 {
-                    UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+                    UserSchema schema = getSndUserSchema(c, u);
 
                     SQLFragment sql = new SQLFragment("SELECT ObjectId FROM ");
                     sql.append(schema.getTable(SNDSchema.PROJECTS_TABLE_NAME), "pr");
@@ -1953,7 +1962,7 @@ public class SNDManager
     @Nullable
     private String getProjectIdRev(Container c, User u, String objectId, BatchValidationException errors)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT ProjectId, RevisionNum FROM ");
         sql.append(schema.getTable(SNDSchema.PROJECTS_TABLE_NAME), "pr");
@@ -1982,7 +1991,7 @@ public class SNDManager
      */
     public void deleteEventNotes(Container c, User u, int eventId) throws SQLException, QueryUpdateServiceException, BatchValidationException, InvalidKeyException
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT EventNoteId FROM ");
         sql.append(schema.getTable(SNDSchema.EVENTNOTES_TABLE_NAME), "en");
@@ -2084,7 +2093,7 @@ public class SNDManager
      */
     public Integer getPackageIdForSuperPackage(Container c, User u, int superPkgId)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT PkgId FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
@@ -2196,7 +2205,7 @@ public class SNDManager
      */
     private void insertEventDatas(Container c, User u, Event event, BatchValidationException errors) throws ValidationException, SQLException, QueryUpdateServiceException, BatchValidationException, DuplicateKeyException
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
         TableInfo eventDataTable = getTableInfo(schema, SNDSchema.EVENTDATA_TABLE_NAME);
 
         QueryUpdateService eventDataQus = getNewQueryUpdateService(schema, SNDSchema.EVENTDATA_TABLE_NAME);
@@ -2230,7 +2239,7 @@ public class SNDManager
 
         if (!event.hasErrors() && event.getEventData() != null && event.getEventData().size() > 0)
         {
-            UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+            UserSchema schema = getSndUserSchema(c, u);
 
             TableInfo projectItemsTable = getTableInfo(schema, SNDSchema.PROJECTITEMS_TABLE_NAME);
 
@@ -2274,7 +2283,7 @@ public class SNDManager
      */
     private Package getPackageForSuperPackage(Container c, User u, int superPkgId, BatchValidationException errors)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT PkgId FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
@@ -2408,7 +2417,7 @@ public class SNDManager
 
                             if (!event.hasErrors() && !validateOnly)
                             {
-                                UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+                                UserSchema schema = getSndUserSchema(c, u);
                                 TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
                                 QueryUpdateService eventQus = getQueryUpdateService(eventTable);
                                 QueryUpdateService eventNotesQus = getNewQueryUpdateService(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
@@ -2463,7 +2472,7 @@ public class SNDManager
      */
     public void deleteEventsCache(Container c, User u, int eventId) throws SQLException, QueryUpdateServiceException, BatchValidationException, InvalidKeyException
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         QueryUpdateService eventsCacheQus = getNewQueryUpdateService(schema, SNDSchema.EVENTSCACHE_TABLE_NAME);
 
@@ -2478,7 +2487,7 @@ public class SNDManager
      */
     public void deleteEventDatas(Container c, User u, int eventId) throws SQLException, QueryUpdateServiceException, BatchValidationException, InvalidKeyException
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT EventDataId FROM ");
         sql.append(schema.getTable(SNDSchema.EVENTDATA_TABLE_NAME), "ed");
@@ -2508,7 +2517,7 @@ public class SNDManager
      */
     private void deleteExpObjects(Container c, User u, int eventId)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
         TableInfo eventDataTable = getTableInfo(schema, SNDSchema.EVENTDATA_TABLE_NAME);
 
         // Get from eventNotes table
@@ -2556,7 +2565,7 @@ public class SNDManager
 
                             if (!event.hasErrors() && !validateOnly)
                             {
-                                UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+                                UserSchema schema = getSndUserSchema(c, u);
                                 TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
                                 QueryUpdateService eventQus = getQueryUpdateService(eventTable);
                                 QueryUpdateService eventNotesQus = getNewQueryUpdateService(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
@@ -2603,7 +2612,7 @@ public class SNDManager
      */
     public void deleteNarrativeCacheRows(Container c, User u, List<Map<String, Object>> eventIds, BatchValidationException errors)
     {
-        UserSchema sndSchema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema sndSchema = getSndUserSchema(c, u);
         QueryUpdateService eventsCacheQus = getNewQueryUpdateService(sndSchema, SNDSchema.EVENTSCACHE_TABLE_NAME);
 
         try
@@ -2621,7 +2630,7 @@ public class SNDManager
      */
     public void clearNarrativeCache(Container c, User u, BatchValidationException errors)
     {
-        UserSchema sndSchema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema sndSchema = getSndUserSchema(c, u);
         QueryUpdateService eventsCacheQus = getNewQueryUpdateService(sndSchema, SNDSchema.EVENTSCACHE_TABLE_NAME);
 
         try (DbScope.Transaction tx = sndSchema.getDbSchema().getScope().ensureTransaction())
@@ -2640,7 +2649,7 @@ public class SNDManager
      */
     public void fillInNarrativeCache(Container c, User u, BatchValidationException errors, @Nullable Logger logger)
     {
-        UserSchema sndSchema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema sndSchema = getSndUserSchema(c, u);
 
         SQLFragment eventSql = new SQLFragment("SELECT ev.EventId FROM ");
         eventSql.append(sndSchema.getTable(SNDSchema.EVENTS_TABLE_NAME), "ev");
@@ -2669,7 +2678,7 @@ public class SNDManager
      */
     public void populateNarrativeCache(Container c, User u, List<Map<String, Object>> eventIds, BatchValidationException errors, @Nullable Logger logger)
     {
-        UserSchema sndSchema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema sndSchema = getSndUserSchema(c, u);
         QueryUpdateService eventsCacheQus = getNewQueryUpdateService(sndSchema, SNDSchema.EVENTSCACHE_TABLE_NAME);
 
         Map<Integer, SuperPackage> eventDataTopLevelSuperPkgs;
@@ -2727,7 +2736,7 @@ public class SNDManager
      */
     private Map<Integer, SuperPackage> getTopLevelEventDataSuperPkgs(Container c, User u, int eventId, BatchValidationException errors)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT SuperPkgId, EventDataId FROM ");
         sql.append(schema.getTable(SNDSchema.EVENTDATA_TABLE_NAME), "ed");
@@ -2991,7 +3000,7 @@ public class SNDManager
 
     public List<Category> getCategories(Container c, User u, List<Integer> categoryIds)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
         TableInfo pkgCategoriesTable = getTableInfo(schema, SNDSchema.PKGCATEGORIES__TABLE_NAME);
 
         SQLFragment sql = new SQLFragment("SELECT CategoryId, Description, Active, ObjectId, Container FROM ");
@@ -3006,7 +3015,7 @@ public class SNDManager
 
     public Map<Integer, Category> getAllCategories(Container c, User u)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, SNDSchema.NAME);
+        UserSchema schema = getSndUserSchema(c, u);
         TableInfo pkgCategoriesTable = getTableInfo(schema, SNDSchema.PKGCATEGORIES__TABLE_NAME);
 
         SQLFragment sql = new SQLFragment("SELECT CategoryId, Description, Active, ObjectId, Container FROM ");
