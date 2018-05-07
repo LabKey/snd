@@ -554,13 +554,16 @@
                 }
             }, {
                 name: 'Valid Save Event with super package and trigger unit type conversion',
+                roles: ['org.labkey.api.security.roles.ReaderRole',
+                    'org.labkey.api.security.roles.EditorRole',
+                    'org.labkey.snd.security.roles.SNDBasicSubmitterRole'],
                 jsonData: {
                     eventId: 1800001,
                     subjectId: 2,
                     date: "2018-02-26T17:51:20",
                     note: "Note for event attribute data sample JSON",
                     projectIdRev: '61|0',
-                    qcState: 'Completed',
+                    qcState: 'In Progress',
                     eventData: [
                         {
                             superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
@@ -630,7 +633,7 @@
                     date: "2018-02-26T17:51:20",
                     note: "Note for event attribute data sample JSON",
                     projectIdRev: '61|0',
-                    qcState: 'Completed',
+                    qcState: 'In Progress',
                     eventData: [
                         {
                             superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
@@ -1467,6 +1470,117 @@
                             subPackages: []
                         }
                     ]
+                }
+            }, {
+                name: 'Failed Insert Event: Wrong permissions. Reader inserting Completed event.',
+                roles: ['org.labkey.api.security.roles.ReaderRole',
+                    'org.labkey.api.security.roles.EditorRole',
+                    'org.labkey.snd.security.roles.SNDReaderRole'],
+                jsonData: {
+                    eventId: 1800007,
+                    subjectId: 25,
+                    date: "2017-05-25T17:51:20",
+                    note: "Note for Save Event",
+                    projectIdRev: '61|0',
+                    qcState: 'Completed',
+                    eventData: [
+                        {
+                            superPkgId: LABKEY.SND_PKG_CACHE['816']['superPkgId'],
+                            attributes: [{
+                                propertyName: 'amount',
+                                value: 99
+
+                            }, {
+                                propertyName: 'units',
+                                value: "mEq/L"
+                            }, {
+                                propertyName: 'kit_type',
+                                value: "Calcium Detection Kit"
+                            }],
+                            subPackages: []
+                        }
+                    ]
+                },
+                expectedFailure: 'You do not have permission to Update event data for QC state Completed for these super packages.',
+                expected: {
+                    exception: {
+                        severity:"Error",
+                        message:"You do not have permission to Update event data for QC state Completed for these super packages."
+                    }
+                }
+            }, {
+                name: 'Failed Update Event: Wrong permission. Basic submitter updating to rejected',
+                roles: ['org.labkey.api.security.roles.ReaderRole',
+                    'org.labkey.api.security.roles.EditorRole',
+                    'org.labkey.snd.security.roles.SNDBasicSubmitterRole'],
+                jsonData: {
+                    eventId: 1800008,
+                    subjectId: 25,
+                    date: "2017-05-25T17:51:20",
+                    note: "Note for Save Event",
+                    projectIdRev: '61|0',
+                    qcState: 'Rejected',
+                    eventData: [
+                        {
+                            superPkgId: LABKEY.SND_PKG_CACHE['816']['superPkgId'],
+                            attributes: [{
+                                propertyName: 'amount',
+                                value: 99
+
+                            }, {
+                                propertyName: 'units',
+                                value: "mEq/L"
+                            }, {
+                                propertyName: 'kit_type',
+                                value: "Calcium Detection Kit"
+                            }],
+                            subPackages: []
+                        }
+                    ]
+                },
+                expectedFailure: 'You do not have permission to Insert event data for QC state Rejected for these super packages.',
+                expected: {
+                    exception: {
+                        severity:"Error",
+                        message:"You do not have permission to Insert event data for QC state Rejected for these super packages."
+                    }
+                }
+            }, {
+                name: 'Failed Insert Event: Wrong permission. Reviewer inserting In Progress data.',
+                roles: ['org.labkey.api.security.roles.ReaderRole',
+                    'org.labkey.api.security.roles.EditorRole',
+                    'org.labkey.snd.security.roles.SNDDataReviewerRole'],
+                jsonData: {
+                    eventId: 1800008,
+                    subjectId: 25,
+                    date: "2017-05-25T17:51:20",
+                    note: "Note for Save Event",
+                    projectIdRev: '61|0',
+                    qcState: 'In Progress',
+                    eventData: [
+                        {
+                            superPkgId: LABKEY.SND_PKG_CACHE['816']['superPkgId'],
+                            attributes: [{
+                                propertyName: 'amount',
+                                value: 99
+
+                            }, {
+                                propertyName: 'units',
+                                value: "mEq/L"
+                            }, {
+                                propertyName: 'kit_type',
+                                value: "Calcium Detection Kit"
+                            }],
+                            subPackages: []
+                        }
+                    ]
+                },
+                expectedFailure: 'You do not have permission to Insert event data for QC state In Progress for these super packages.',
+                expected: {
+                    exception: {
+                        severity:"Error",
+                        message:"You do not have permission to Insert event data for QC state In Progress for these super packages."
+                    }
                 }
             }
         ];

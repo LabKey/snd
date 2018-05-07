@@ -13,6 +13,7 @@
     var TEST_URLS = {
         GET_EVENT_URL: LABKEY.ActionURL.buildURL('snd', 'getEvent.api'),
         SAVE_EVENT_URL: LABKEY.ActionURL.buildURL('snd', 'saveEvent.api'),
+        DELETE_EVENT_URL: LABKEY.ActionURL.buildURL('query', 'deleteRows.api'),
         SAVE_PKG_URL: LABKEY.ActionURL.buildURL('snd', 'savePackage.api'),
         GET_PKG_URL: LABKEY.ActionURL.buildURL('snd', 'getPackages.api'),
         SAVE_PROJECT_URL: LABKEY.ActionURL.buildURL('snd', 'saveProject.api'),

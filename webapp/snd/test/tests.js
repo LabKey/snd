@@ -123,73 +123,6 @@
                     expectedFailure:"Missing json parameter: attributes for a top level package"
                 }
             }
-            // TODO: Comment this in when we implement the required subpackages feature
-        // }, {
-        //     name: 'Save Event : Missing one of the package in subpackages',
-        //     run : function() {
-        //         return {
-        //             request: {
-        //                 url: LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
-        //                 jsonData :{
-        //                              eventId: 1800001,
-        //                              subjectId: 2,
-        //                              date: "2018-02-26T17:51:20",
-        //                              note: "Note for event attribute data sample JSON",
-        //                              projectIdRev: '61|0',
-        //                              eventData: [
-        //                          {
-        //                              superPkgId: LABKEY.SND_PKG_CACHE['814']['superPkgId'],
-        //                              attributes : [],
-        //                              subPackages : [{
-        //                                  superPkgId : LABKEY.getSubpackageSuperPkgId(810, LABKEY.SND_PKG_CACHE['814']['subPackages']),
-        //                                  attributes: [
-        //                                      {
-        //                                          propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'amount')['propertyId'],
-        //                                          value: 100
-        //                                      }, {
-        //                                          propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'units')['propertyId'],
-        //                                          value: "mEq/L"
-        //                                      }, {
-        //                                          propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810']['attributes'], 'kit_type')['propertyId'],
-        //                                          value: "Sodium Colorimetric Detection Kit"
-        //                                      }]
-        //
-        //                              }, {
-        //                                  superPkgId: LABKEY.getSubpackageSuperPkgId(811, LABKEY.SND_PKG_CACHE['814']['subPackages']),
-        //                                  attributes: [
-        //                                      {
-        //                                          propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'amount')['propertyId'],
-        //                                          value: "200"
-        //                                      }, {
-        //                                          propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'units')['propertyId'],
-        //                                          value: "mEq/L"
-        //                                      }, {
-        //                                          propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811']['attributes'], 'kit_type')['propertyId'],
-        //                                          value: "Potassium Detection Kit"
-        //                                      }]
-        //
-        //                              },{
-        //                                  superPkgId: LABKEY.getSubpackageSuperPkgId(813, LABKEY.SND_PKG_CACHE['814']['subPackages']),
-        //                                  attributes: [
-        //                                      {
-        //                                          propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'amount')['propertyId'],
-        //                                          value: "400"
-        //                                      }, {
-        //                                          propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'units')['propertyId'],
-        //                                          value: "mEq/L"
-        //                                      }, {
-        //                                          propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813']['attributes'], 'kit_type')['propertyId'],
-        //                                          value: "Chloride Blood Detection Kit"
-        //                                      }]
-        //                              }]
-        //                          }
-        //                      ]
-        //                  }
-        //             },
-        //             expectedFailure: "Missing data for subpackage 812 which contains required fields"
-        //         }
-        //     }
-
         }, {
             name: 'Save Event : Missing one of the attribute information in subpackages',
             run : function() {
@@ -350,6 +283,7 @@
             }
 
         },{
+            //Note: this event is used in permission check tests below. Do not update without verifying those first.
             name: 'Save Event: Multiple instance of event Data for same event',
             run: function(){
                 return{
@@ -640,7 +574,100 @@
                     }
                 }
             }
+        },{
 
+            name: 'Get Event: Invalid permission. Basic submitter reading completed data.',
+            roles: ['org.labkey.api.security.roles.ReaderRole',
+                'org.labkey.api.security.roles.EditorRole',
+                'org.labkey.snd.security.roles.SNDBasicSubmitterRole'],
+            run : function()
+            {
+                return{
+                    request:{
+                        url:LABKEY.SND_TEST_URLS.GET_EVENT_URL,
+                        jsonData:{"eventId": "1800002"}
+                    },
+                    expectedFailure : 'You do not have permission to Read event data for QC state Completed for these super packages.'
+                }
+            }
+        },{
+
+            name: 'Get Event: Valid permission. Data reviewer reading completed data.',
+            roles: ['org.labkey.api.security.roles.ReaderRole',
+                'org.labkey.api.security.roles.EditorRole',
+                'org.labkey.snd.security.roles.SNDDataReviewerRole'],
+            run : function()
+            {
+                return{
+                    request:{
+                        url:LABKEY.SND_TEST_URLS.GET_EVENT_URL,
+                        jsonData:{"eventId": "1800002"}
+                    },
+                    response:function(response,json)
+                    {
+                        if(response.status === 200 && json.event && !json.event.exception)
+                        {
+                            return true;
+                        }
+
+                        LABKEY.handleFailure(response, name + " - Stack Trace");
+                        return false;
+                    }
+                }
+            }
+        },{
+
+            name: 'Delete Event: Invalid permission. Basic submitter role cannot delete completed data.',
+            roles: ['org.labkey.api.security.roles.ReaderRole',
+                'org.labkey.api.security.roles.EditorRole',
+                'org.labkey.snd.security.roles.SNDBasicSubmitterRole'],
+            run : function()
+            {
+                return{
+                    request:{
+                        url:LABKEY.SND_TEST_URLS.DELETE_EVENT_URL,
+                        jsonData: {
+                            schemaName: 'snd',
+                            queryName: 'Events',
+                            rows: [{
+                                EventId: 1800002
+                            }]
+                        }
+                    },
+                    expectedFailure : 'You do not have permission to Delete event data for QC state Completed for these super packages.'
+                }
+            }
+        },{
+
+            name: 'Delete Event: Correct permission. Data admin role',
+            roles: ['org.labkey.api.security.roles.ReaderRole',
+                'org.labkey.api.security.roles.EditorRole',
+                'org.labkey.snd.security.roles.SNDDataAdminRole'],
+            run : function()
+            {
+                return{
+                    request:{
+                        url:LABKEY.SND_TEST_URLS.DELETE_EVENT_URL,
+                        jsonData: {
+                            schemaName: 'snd',
+                            queryName: 'Events',
+                            rows: [{
+                                EventId: 1800002
+                            }]
+                        }
+                    },
+                    response:function(response,json)
+                    {
+                        if(response.status === 200 && !json.event && json.rowsAffected === 1)
+                        {
+                            return true;
+                        }
+
+                        LABKEY.handleFailure(response, name + " - Stack Trace");
+                        return false;
+                    }
+                }
+            }
         }
     ];
 
