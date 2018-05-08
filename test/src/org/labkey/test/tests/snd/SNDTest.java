@@ -2022,6 +2022,8 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 
         log("Verifying no test failed");
         assertTextPresent("Complete","Failed tests: 0");
+
+        checkExpectedErrors(2);  // expected delete failures
     }
 
     private String getPerimissionTableValue(int row, int col)

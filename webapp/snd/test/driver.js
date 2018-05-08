@@ -608,7 +608,7 @@
     function initPackageData(cb) {
         log('Initializing data...', null, true);
 
-        saveCategories(function () {savePackage(0, cb);});
+        savePackage(0, cb);
     }
 
     function initProjectData(cb) {
@@ -620,7 +620,7 @@
     }
 
     function initData(cb) {
-        initSecurity(function() {cleanTestData(function() {initPackageData(function () {initProjectData(cb)})})});
+        saveCategories(function() {initSecurity(function() {cleanTestData(function() {initPackageData(function () {initProjectData(cb)})})})});
     }
 
     function impersonateSNDTestUser(cb) {
