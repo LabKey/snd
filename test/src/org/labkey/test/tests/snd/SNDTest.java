@@ -59,11 +59,13 @@ import org.labkey.test.util.ApiPermissionsHelper;
 import org.labkey.test.util.DataRegionTable;
 import org.labkey.test.util.Maps;
 import org.labkey.test.util.SqlserverOnlyTest;
+import org.openqa.selenium.WebElement;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
@@ -2020,6 +2022,98 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 
         log("Verifying no test failed");
         assertTextPresent("Complete","Failed tests: 0");
+    }
+
+    private String getPerimissionTableValue(int row, int col)
+    {
+        List<WebElement> els = ((Locator.XPathLocator)getSimpleTableCell(Locator.id("category-security"), row, col)).child("div").child("a").child("input").findElements(getDriver());
+        if (els.size() > 0)
+        {
+            return els.get(0).getAttribute("value");
+        }
+
+        return null;
+    }
+
+    private void clickRoleInOpenDropDown(String name)
+    {
+        List<WebElement> els = Locator.tagWithClassContaining("div", "btn-group open").child("ul").child("li").child("a").withText(name).findElements(getDriver());
+        if (els.size() > 0)
+        {
+            els.get(0).click();
+        }
+    }
+
+    @Test
+    public void categoryPermissionsUI() throws ParseException
+    {
+        goToProjectHome();
+
+        log("Create permission categories");
+        List<String> categories = Arrays.asList("Permission category 1", "Permission category 2", "Permission category 3");
+        List<String> permissions = Arrays.asList("SND Reader", "SND Basic Submitter", "SND Data Reviewer");
+        List<Integer> categoryRows = new ArrayList<>();
+        PackageListPage listPage = PackageListPage.beginAt(this , getProjectName());
+        EditCategoriesPage catPage = listPage.clickEditCategories();
+
+        // create categories
+        for (String category : categories)
+        {
+            catPage.addCategory(category, true);
+            catPage = catPage.clickSave();
+            waitFor(() -> false, 2000);
+        }
+
+        log("Check link on admin page.");
+        beginAt(WebTestHelper.buildURL("snd",getProjectName(), "admin"));
+
+        assertElementPresent(Locator.linkWithText("SND Security"));
+        click(Locator.linkWithText("SND Security"));
+        String value;
+        int rowCount = getTableRowCount("category-security") - 1;
+
+        for (int i = 0; i < rowCount; i++)
+        {
+            if (categories.contains(getTableCellText(Locator.id("category-security"), i, 0)))
+            {
+                value = getPerimissionTableValue(i, 1);
+                assertNotNull(value);
+                assertTrue(value.equals("None"));
+                categoryRows.add(i);
+            }
+        }
+
+        click(Locator.id("a_all_-3"));
+        clickRoleInOpenDropDown("SND Reader");
+
+        for (Integer r : categoryRows)
+        {
+            value = getPerimissionTableValue(r, 1);
+            assertNotNull(value);
+            assertTrue(value.equals("SND Reader"));
+        }
+
+        findButton("Clear All").click();
+        acceptAlert();
+
+        for (int k = 0; k < categoryRows.size(); k++)
+        {
+            value = getPerimissionTableValue(categoryRows.get(k), 1);
+            assertNotNull(value);
+            assertTrue(value.equals("None"));
+            click(getSimpleTableCell(Locator.id("category-security"), categoryRows.get(k), 1));
+            clickRoleInOpenDropDown(permissions.get(k));
+        }
+
+        waitAndClickAndWait(Locator.linkContainingText("Save"));
+
+        for (int j = 0; j < categoryRows.size(); j++)
+        {
+            value = getPerimissionTableValue(categoryRows.get(j), 1);
+            assertNotNull(value);
+            assertTrue(value.equals(permissions.get(j)));
+        }
+
     }
 
     private void truncateSndPkg() throws Exception
