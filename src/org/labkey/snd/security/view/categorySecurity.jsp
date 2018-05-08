@@ -139,10 +139,13 @@
     }
 
     function clearAll() {
-        var els = document.querySelectorAll(".input-role:not(.input-all)");
-        for (var key in els) {
-            if (els.hasOwnProperty(key)) {
-                els[key].value = "None";
+        if (window.confirm("This will clear all roles. Clear All?")) {
+
+            var els = document.querySelectorAll(".input-role:not(.input-all)");
+            for (var key in els) {
+                if (els.hasOwnProperty(key)) {
+                    els[key].value = "None";
+                }
             }
         }
     }
@@ -160,7 +163,7 @@
 
     <labkey:form id="categorySecurityForm" action="<%=h(buildURL(SNDController.CategorySecurityAction.class))%>" method="POST">
 
-        <table class="table table-striped table-bordered table-hover roles-table">
+        <table class="table table-striped table-bordered table-hover roles-table" id="category-security">
             <thead id="groups-hdr">
                 <tr>
                     <th> </th>
@@ -181,7 +184,7 @@
                     {
                 %>
                         <td class="dropdown-selection" data-toggle="tooltip" title='Set all roles for group'><div class="input-append btn-group" data-toggle="dropdown">
-                            <a class="btn dropdown-toggle btn-role" data-toggle="dropdown" href="#">
+                            <a class="btn dropdown-toggle btn-role" data-toggle="dropdown" href="#" id="<%=h("a_all_" + g.getUserId())%>">
                                 <input class="input-role input-all" id="<%=h("all_" + g.getUserId())%>" type="text" value='' readonly>
                                 <span class="caret"></span></a>
                                 <ul class="dropdown-menu">
