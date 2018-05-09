@@ -617,6 +617,31 @@
             }
         },{
 
+            name: 'Get Event: Valid permission. Reader reading completed data.',
+            roles: ['org.labkey.api.security.roles.ReaderRole',
+                'org.labkey.api.security.roles.EditorRole',
+                'org.labkey.snd.security.roles.SNDReaderRole'],
+            run : function()
+            {
+                return{
+                    request:{
+                        url:LABKEY.SND_TEST_URLS.GET_EVENT_URL,
+                        jsonData:{"eventId": "1800002"}
+                    },
+                    response:function(response,json)
+                    {
+                        if(response.status === 200 && json.event && !json.event.exception)
+                        {
+                            return true;
+                        }
+
+                        LABKEY.handleFailure(response, name + " - Stack Trace");
+                        return false;
+                    }
+                }
+            }
+        }, {
+
             name: 'Delete Event: Invalid permission. Basic submitter role cannot delete completed data.',
             roles: ['org.labkey.api.security.roles.ReaderRole',
                 'org.labkey.api.security.roles.EditorRole',
