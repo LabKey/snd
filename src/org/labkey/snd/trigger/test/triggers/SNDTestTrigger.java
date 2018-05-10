@@ -20,10 +20,4 @@ public class SNDTestTrigger implements EventTrigger
     {
 
     }
-
-    @Override
-    public Integer getOrder()
-    {
-        return null;
-    }
 }

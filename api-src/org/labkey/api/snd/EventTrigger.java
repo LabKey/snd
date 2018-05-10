@@ -11,5 +11,8 @@ public interface EventTrigger
 {
     void onInsert(Container c, User u, TriggerAction triggerAction, Map<String, Object> extraContext);
     void onUpdate(Container c, User u, TriggerAction triggerAction, Map<String, Object> extraContext);
-    Integer getOrder();
+    default Integer getOrder()
+    {
+        return null;
+    }
 }
