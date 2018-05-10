@@ -103,11 +103,10 @@ public class SuperPackagesTable extends SimpleUserSchema.SimpleTable<SNDUserSche
     {
         Set<String> cols = new HashSet<>();
         cols.add("HasEvent");
-        cols.add("HasProject");
         TableSelector ts = new TableSelector(this, cols, new SimpleFilter(FieldKey.fromString("SuperPkgId"), superPkgId), null);
         Map<String, Object> ret = ts.getMap();
 
-        return Boolean.parseBoolean((String) ret.get("HasEvent")) | Boolean.parseBoolean((String) ret.get("HasProject"));
+        return Boolean.parseBoolean((String) ret.get("HasEvent"));
     }
 
     @Override
