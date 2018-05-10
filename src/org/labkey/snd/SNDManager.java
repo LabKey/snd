@@ -2590,7 +2590,7 @@ public class SNDManager
                                     deleteEventDatas(c, u, event.getEventId());
                                     insertEventDatas(c, u, event, errors);
                                     eventsCacheQus.updateRows(u, c, Collections.singletonList(eventsCacheRow), null, null, null);
-                                    NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), textEventNarrative, event.getQcState(), "Event update");
+                                    NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), textEventNarrative, event.getQcState(), "Update event");
                                     tx.commit();
                                 }
                                 catch (QueryUpdateServiceException | BatchValidationException | SQLException | InvalidKeyException | DuplicateKeyException | ValidationException e)
