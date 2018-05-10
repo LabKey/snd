@@ -10,7 +10,7 @@ public class TriggerAction
     EventTrigger _trigger;
     Event _event;
     EventData _eventData;
-    Map<Integer, SuperPackage> _topLevelEventDataSuperPkgs;  // Maps EventDataId to SuperPackage
+    Map<Integer, SuperPackage> _topLevelSuperPkgs;  // Maps EventDataId to SuperPackage
     SuperPackage _superPackage;
 
     public TriggerAction(@NotNull EventTrigger trigger, @NotNull Event event, @NotNull EventData eventData,
@@ -19,7 +19,7 @@ public class TriggerAction
         _trigger = trigger;
         _event = event;
         _eventData = eventData;
-        _topLevelEventDataSuperPkgs = topLevelPkgs;
+        _topLevelSuperPkgs = topLevelPkgs;
         _superPackage = superPackage;
     }
 
@@ -53,14 +53,14 @@ public class TriggerAction
         _eventData = eventData;
     }
 
-    public Map<Integer, SuperPackage> getTopLevelEventDataSuperPkgs()
+    public Map<Integer, SuperPackage> getTopLevelSuperPkgs()
     {
-        return _topLevelEventDataSuperPkgs;
+        return _topLevelSuperPkgs;
     }
 
-    public void setTopLevelEventDataSuperPkgs(Map<Integer, SuperPackage> topLevelEventDataSuperPkgsPkgs)
+    public void setTopLevelSuperPkgs(Map<Integer, SuperPackage> topLevelSuperPkgsPkgs)
     {
-        _topLevelEventDataSuperPkgs = topLevelEventDataSuperPkgsPkgs;
+        _topLevelSuperPkgs = topLevelSuperPkgsPkgs;
     }
 
     public SuperPackage getSuperPackage()
