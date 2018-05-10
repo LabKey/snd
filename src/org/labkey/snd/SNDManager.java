@@ -93,6 +93,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
 import org.apache.log4j.Logger;
 
 import static org.labkey.api.snd.EventNarrativeOption.HTML_NARRATIVE;
@@ -509,7 +510,7 @@ public class SNDManager
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
         Map<Integer, String> categories = new HashMap<>();
-        try(TableResultSet rs = selector.getResultSet())
+        try (TableResultSet rs = selector.getResultSet())
         {
             for (Map<String, Object> r : rs)
             {
@@ -1049,7 +1050,7 @@ public class SNDManager
             rowEnd = null;
 
             // For revisions we get enddate of incoming revised end date if comparing with revised project revision
-            if (revision && ((Integer)row.get("RevisionNum") == project.getRevisionNum()))
+            if (revision && ((Integer) row.get("RevisionNum") == project.getRevisionNum()))
             {
                 rowEnd = project.getEndDateRevised();
             }
@@ -1121,7 +1122,7 @@ public class SNDManager
             filter = new SimpleFilter(FieldKey.fromString("ProjectId"), project.getProjectId(), CompareType.EQUAL);
             filter.addCondition(FieldKey.fromString("RevisionNum"), project.getRevisionNum(), CompareType.EQUAL);
             TableSelector ts = new TableSelector(projectTable, filter, null);
-            try(TableResultSet rs = ts.getResultSet())
+            try (TableResultSet rs = ts.getResultSet())
             {
                 for (Map<String, Object> r : rs)
                 {
@@ -1131,7 +1132,7 @@ public class SNDManager
                 if (rows.size() > 0)
                 {
                     Map<String, Object> row = rows.get(0);
-                    if ((Integer) row.get("ReferenceId") != project.getReferenceId() && Boolean.parseBoolean((String)row.get("HasEvent")))
+                    if ((Integer) row.get("ReferenceId") != project.getReferenceId() && Boolean.parseBoolean((String) row.get("HasEvent")))
                     {
                         errors.addRowError(new ValidationException("This is an in use project. Reference Id cannot be changed."));
                         valid = false;
@@ -1151,7 +1152,7 @@ public class SNDManager
             rows = new ArrayList<>();
             filter = new SimpleFilter(FieldKey.fromString("ReferenceId"), project.getReferenceId(), CompareType.EQUAL);
             TableSelector ts = new TableSelector(projectTable, filter, null);
-            try(TableResultSet rs = ts.getResultSet())
+            try (TableResultSet rs = ts.getResultSet())
             {
                 for (Map<String, Object> r : rs)
                 {
@@ -1202,7 +1203,7 @@ public class SNDManager
         Integer rev;
         String end;
 
-        try(TableResultSet rows = selector.getResultSet())
+        try (TableResultSet rows = selector.getResultSet())
         {
             // Iterate through rows to check date overlap and ensure revision is incremented properly
             for (Map<String, Object> row : rows)
@@ -1325,7 +1326,7 @@ public class SNDManager
     {
         UserSchema schema = getSndUserSchema(c, u);
 
-        SQLFragment sql = new SQLFragment("UPDATE " + SNDSchema.getInstance().getTableInfoProjects() );
+        SQLFragment sql = new SQLFragment("UPDATE " + SNDSchema.getInstance().getTableInfoProjects());
         sql.append(" SET " + field + " = ?");
         sql.append(" WHERE ProjectId = ? AND RevisionNum = ?");
         sql.add(value).add(id).add(rev);
@@ -1409,7 +1410,7 @@ public class SNDManager
             UserSchema schema = getSndUserSchema(c, u);
 
             // Erase all project items for this project
-            SQLFragment sql = new SQLFragment("DELETE FROM " + SNDSchema.getInstance().getTableInfoProjectItems() );
+            SQLFragment sql = new SQLFragment("DELETE FROM " + SNDSchema.getInstance().getTableInfoProjectItems());
             sql.append(" WHERE ParentObjectId = ?");
             sql.add(project.getObjectId());
 
@@ -1474,7 +1475,7 @@ public class SNDManager
         sql.add(projectId).add(revNum);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
         List<Map<String, Object>> projectItems = new ArrayList<>();
-        try(TableResultSet rs = selector.getResultSet())
+        try (TableResultSet rs = selector.getResultSet())
         {
 
             for (Map<String, Object> row : rs)
@@ -1647,11 +1648,11 @@ public class SNDManager
                 // Convert dates to ISO8601 format
                 if (PropertyType.getFromURI(null, gwtPropertyDescriptor.getRangeURI()).equals(PropertyType.DATE))
                 {
-                    propValue = DateUtil.formatDateTime((Date)propValue, AttributeData.DATE_FORMAT);
+                    propValue = DateUtil.formatDateTime((Date) propValue, AttributeData.DATE_FORMAT);
                 }
                 else if (PropertyType.getFromURI(null, gwtPropertyDescriptor.getRangeURI()).equals(PropertyType.DATE_TIME))
                 {
-                    propValue = DateUtil.formatDateTime((Date)propValue, AttributeData.DATE_TIME_FORMAT);
+                    propValue = DateUtil.formatDateTime((Date) propValue, AttributeData.DATE_TIME_FORMAT);
                 }
 
                 attribute.setValue(propValue.toString());
@@ -1669,7 +1670,7 @@ public class SNDManager
         sql.append(" WHERE ParentEventDataId = ?").add(eventDataId);
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
-        try(TableResultSet results = selector.getResultSet())
+        try (TableResultSet results = selector.getResultSet())
         {
             Integer superPkgId;
             SuperPackage eventDataSuperPkg = null;
@@ -1971,7 +1972,7 @@ public class SNDManager
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
         String idRev = null;
-        try(TableResultSet rs = selector.getResultSet())
+        try (TableResultSet rs = selector.getResultSet())
         {
             for (Map<String, Object> row : rs)
             {
@@ -2250,7 +2251,7 @@ public class SNDManager
             cols.add("Active");
             TableSelector projectItemsTs = new TableSelector(projectItemsTable, cols, projectItemsFilter, null);
 
-            try(TableResultSet projectItems = projectItemsTs.getResultSet())
+            try (TableResultSet projectItems = projectItemsTs.getResultSet())
             {
                 boolean found;
 
@@ -2294,7 +2295,7 @@ public class SNDManager
         List<Integer> pkgIds = Lists.newArrayList(selector.getObject(Integer.class));
 
 
-        return getPackages(c, u, pkgIds, false, false,true, errors).get(0);
+        return getPackages(c, u, pkgIds, false, false, true, errors).get(0);
     }
 
     /**
@@ -2364,7 +2365,9 @@ public class SNDManager
             }
 
             if (!found && superPackage.getRequired())
+            {
                 eventData.setException(event, new ValidationException("Missing data for subpackage " + superPackage.getPkgId() + " which is a required subpackage."));
+            }
         }
     }
 
@@ -2375,14 +2378,17 @@ public class SNDManager
     {
         BatchValidationException errors = new BatchValidationException();
 
-        for (EventData eventData : event.getEventData())
+        if (event.getEventData() != null)
         {
-            ensureValidPackage(event, eventData, getPackageForSuperPackage(c, u, eventData.getSuperPkgId(), errors));
-        }
+            for (EventData eventData : event.getEventData())
+            {
+                ensureValidPackage(event, eventData, getPackageForSuperPackage(c, u, eventData.getSuperPkgId(), errors));
+            }
 
-        if (errors.hasErrors())
-        {
-            event.addBatchValidationExceptions(errors);
+            if (errors.hasErrors())
+            {
+                event.addBatchValidationExceptions(errors);
+            }
         }
     }
 
@@ -2674,7 +2680,7 @@ public class SNDManager
     }
 
     /**
-     *  Populate specific event narratives in narrative cache.
+     * Populate specific event narratives in narrative cache.
      */
     public void populateNarrativeCache(Container c, User u, List<Map<String, Object>> eventIds, BatchValidationException errors, @Nullable Logger logger)
     {
@@ -2695,7 +2701,7 @@ public class SNDManager
         Map<String, Object> row;
         for (Map<String, Object> eventRow : eventIds)
         {
-            eventId = (Integer)eventRow.get("EventId");
+            eventId = (Integer) eventRow.get("EventId");
             if (eventId != null)
             {
                 row = new ArrayListMap<>();
@@ -2748,7 +2754,7 @@ public class SNDManager
         Integer superPkgId;
         Integer eventDataId;
 
-        try(TableResultSet results = selector.getResultSet())
+        try (TableResultSet results = selector.getResultSet())
         {
             for (Map<String, Object> result : results)
             {
@@ -2863,7 +2869,7 @@ public class SNDManager
         {
             // plain text indenting
             StringBuilder tabs = new StringBuilder("\n");
-            for (int t = 0; t<tabIndex; t++)
+            for (int t = 0; t < tabIndex; t++)
             {
                 tabs.append("\t");
             }

@@ -72,14 +72,27 @@ import java.util.Set;
 public class SNDController extends SpringActionController
 {
     private static final DefaultActionResolver _actionResolver = new DefaultActionResolver(SNDController.class);
-    public static final String NAME = "snd" ;
+    public static final String NAME = "snd";
 
     public SNDController()
     {
         setActionResolver(_actionResolver);
     }
 
-    @RequiresLogin 
+    private Map<GWTPropertyDescriptor, Object> getExtraFields(JSONArray jsonExtras)
+    {
+        Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
+        JSONObject extra;
+        for (int e = 0; e < jsonExtras.length(); e++)
+        {
+            extra = jsonExtras.getJSONObject(e);
+            extras.put(ExperimentService.get().convertJsonToPropertyDescriptor(extra), extra.get("value"));
+        }
+
+        return extras;
+    }
+
+    @RequiresLogin
     public class BeginAction extends RedirectAction
     {
         @Override
@@ -184,14 +197,7 @@ public class SNDController extends SpringActionController
             JSONArray jsonExtras = json.optJSONArray("extraFields");
             if (null != jsonExtras)
             {
-                Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
-                JSONObject extra;
-                for (int e = 0; e < jsonExtras.length(); e++)
-                {
-                    extra = jsonExtras.getJSONObject(e);
-                    extras.put(ExperimentService.get().convertJsonToPropertyDescriptor(extra), extra.get("value"));
-                }
-                pkg.setExtraFields(extras);
+                pkg.setExtraFields(getExtraFields(jsonExtras));
             }
 
             // Get categories
@@ -286,13 +292,13 @@ public class SNDController extends SpringActionController
 
                         superPackageInfo.setSortOrder(jsonSubPackage.getInt("sortOrder"));
                         Object required = jsonSubPackage.get("required");
-                        if(required == null)
+                        if (required == null)
                         {
                             Object errorPkgId = jsonSubPackage.get("pkgId");
                             errors.reject(ERROR_MSG, "Parameter 'required' is missing for subPackage with package ID " + errorPkgId + ".");
                             break;
                         }
-                        superPackageInfo.setRequired((Boolean)required);
+                        superPackageInfo.setRequired((Boolean) required);
                         superPackageInfos.add(superPackageInfo);
                     }
 
@@ -426,7 +432,9 @@ public class SNDController extends SpringActionController
             int _sortOrder;
             boolean _required;
 
-            SuperPackageInfo(){}
+            SuperPackageInfo()
+            {
+            }
 
             public int getSortOrder()
             {
@@ -449,7 +457,7 @@ public class SNDController extends SpringActionController
             }
         }
 
-        private void setAdditionalSuperPackageInfo (LinkedList<SuperPackageInfo> superPackageInfos, SuperPackage superPackage)
+        private void setAdditionalSuperPackageInfo(LinkedList<SuperPackageInfo> superPackageInfos, SuperPackage superPackage)
         {
             // pick one of the additional infos for this super package ID
             SuperPackageInfo superPackageInfo = superPackageInfos.getFirst();
@@ -530,8 +538,10 @@ public class SNDController extends SpringActionController
 
                 SNDService sndService = SNDService.get();
                 if (ids.size() > 0 && sndService != null)
+                {
                     pkgs.addAll(sndService.getPackages(getViewContext().getContainer(), getUser(), ids,
                             includeExtraFields, includeLookups, includeFullSubpackages));
+                }
             }
 
             JSONArray jsonOut = new JSONArray();
@@ -691,14 +701,7 @@ public class SNDController extends SpringActionController
             JSONArray jsonExtras = json.optJSONArray("extraFields");
             if (null != jsonExtras)
             {
-                Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
-                JSONObject extra;
-                for (int e = 0; e < jsonExtras.length(); e++)
-                {
-                    extra = jsonExtras.getJSONObject(e);
-                    extras.put(ExperimentService.get().convertJsonToPropertyDescriptor(extra), extra.get("value"));
-                }
-                project.setExtraFields(extras);
+                project.setExtraFields(getExtraFields(jsonExtras));
             }
 
             // Parse project items. Not done for revision
@@ -927,7 +930,7 @@ public class SNDController extends SpringActionController
             {
                 for (int i = 0; i < eventDataJson.length(); i++)
                 {
-                    JSONObject eventDatumJson = (JSONObject)eventDataJson.get(i);
+                    JSONObject eventDatumJson = (JSONObject) eventDataJson.get(i);
 
                     if (eventDatumJson.has("eventDataId"))
                     {
@@ -964,7 +967,7 @@ public class SNDController extends SpringActionController
             {
                 for (int i = 0; i < attributesDataJson.length(); i++)
                 {
-                    JSONObject attributeJson = (JSONObject)attributesDataJson.get(i);
+                    JSONObject attributeJson = (JSONObject) attributesDataJson.get(i);
 
                     if ((!attributeJson.has("propertyId") || attributeJson.get("propertyId") == null)
                             && (!attributeJson.has("propertyName") || attributeJson.get("propertyName") == null))
@@ -986,7 +989,7 @@ public class SNDController extends SpringActionController
             Integer eventId = json.has("eventId") ? json.getInt("eventId") : null;
             String subjectId = json.getString("subjectId");
             String dateString = json.getString("date");
-            Boolean validateOnly = (Boolean)json.get("validateOnly");
+            Boolean validateOnly = (Boolean) json.get("validateOnly");
             String qcStateString = json.getString("qcState");
             int qcState = SNDService.get().getQCStateId(getContainer(), getUser(), QCStateEnum.getByName(qcStateString));
 
@@ -1024,14 +1027,7 @@ public class SNDController extends SpringActionController
                 JSONArray jsonExtras = json.optJSONArray("extraFields");
                 if (null != jsonExtras)
                 {
-                    Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
-                    JSONObject extra;
-                    for (int e = 0; e < jsonExtras.length(); e++)
-                    {
-                        extra = jsonExtras.getJSONObject(e);
-                        extras.put(ExperimentService.get().convertJsonToPropertyDescriptor(extra), extra.get("value"));
-                    }
-                    event.setExtraFields(extras);
+                    event.setExtraFields(getExtraFields(jsonExtras));
                 }
 
                 Event savedEvent = SNDService.get().saveEvent(getContainer(), getUser(), event, validateOnly);
@@ -1057,7 +1053,7 @@ public class SNDController extends SpringActionController
             {
                 for (int i = 0; i < eventDataJson.length(); i++)
                 {
-                    JSONObject eventDatumJson = (JSONObject)eventDataJson.get(i);
+                    JSONObject eventDatumJson = (JSONObject) eventDataJson.get(i);
 
                     Integer eventDataId = eventDatumJson.has("eventDataId") ? eventDatumJson.getInt("eventDataId") : null;
                     int superPackageId = eventDatumJson.getInt("superPkgId");
@@ -1076,14 +1072,7 @@ public class SNDController extends SpringActionController
                     JSONArray jsonExtras = eventDatumJson.optJSONArray("extraFields");
                     if (null != jsonExtras)
                     {
-                        Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
-                        JSONObject extra;
-                        for (int e = 0; e < jsonExtras.length(); e++)
-                        {
-                            extra = jsonExtras.getJSONObject(e);
-                            extras.put(ExperimentService.get().convertJsonToPropertyDescriptor(extra), extra.get("value"));
-                        }
-                        eventData.setExtraFields(extras);
+                        eventData.setExtraFields(getExtraFields(jsonExtras));
                     }
 
                     // narrative not used for saving, so make it null
@@ -1108,7 +1097,7 @@ public class SNDController extends SpringActionController
 
                 for (int i = 0; i < attributesDataJson.length(); i++)
                 {
-                    JSONObject attributeJson = (JSONObject)attributesDataJson.get(i);
+                    JSONObject attributeJson = (JSONObject) attributesDataJson.get(i);
 
                     if (attributeJson.has("propertyName"))
                     {

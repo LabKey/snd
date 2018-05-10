@@ -1,7 +1,6 @@
 package org.labkey.snd.security;
 
 
-
 import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
@@ -199,12 +198,8 @@ public class SNDSecurityManager
     private boolean hasPermission(User u, Category category, QCStateActionEnum action, QCStateEnum qcState)
     {
         Permission perm = action.getPermission(qcState);
-        if (perm != null && category.hasPermission(u, perm.getClass()))
-        {
-            return true;
-        }
+        return perm != null && category.hasPermission(u, perm.getClass());
 
-        return false;
     }
 
     public boolean hasPermissionForCategories(User u, List<Category> categories, QCStateActionEnum action, QCStateEnum qcState)
@@ -282,8 +277,9 @@ public class SNDSecurityManager
 
         if (!hasPermission)
         {
+            QCStateEnum qcState = event.getQcState(c, u);
             event.setException(new ValidationException("You do not have permission to " + action.getName() + " event data for QC state "
-                    + event.getQcState(c, u).getName() + " for these super packages.", ValidationException.SEVERITY.ERROR));
+                    + (qcState != null ? qcState.getName() : "Undefined") + " for these super packages.", ValidationException.SEVERITY.ERROR));
         }
         return hasPermission;
     }
