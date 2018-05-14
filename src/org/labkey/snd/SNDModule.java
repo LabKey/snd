@@ -21,17 +21,23 @@ import org.labkey.api.audit.AuditLogService;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerManager;
 import org.labkey.api.exp.api.ExperimentService;
+import org.labkey.api.exp.list.ListService;
 import org.labkey.api.exp.property.PropertyService;
+import org.labkey.api.module.AdminLinkManager;
 import org.labkey.api.module.Module;
 import org.labkey.api.module.ModuleContext;
 import org.labkey.api.module.SpringModule;
 import org.labkey.api.query.DefaultSchema;
 import org.labkey.api.query.QuerySchema;
+import org.labkey.api.security.permissions.AdminPermission;
+import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.security.roles.RoleManager;
 import org.labkey.api.services.ServiceRegistry;
 import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.snd.SNDDomainKind;
 import org.labkey.api.snd.SNDService;
+import org.labkey.api.view.ActionURL;
+import org.labkey.api.view.NavTree;
 import org.labkey.api.view.WebPartFactory;
 import org.labkey.snd.pipeline.SNDDataHandler;
 import org.labkey.snd.security.roles.SNDBasicSubmitterRole;
@@ -102,6 +108,14 @@ public class SNDModule extends SpringModule
 
         ExperimentService.get().registerExperimentDataHandler(new SNDDataHandler());
         AuditLogService.get().registerAuditType(new NarrativeAuditProvider());
+
+        AdminLinkManager.getInstance().addListener((adminNavTree, container, user) ->
+        {
+            // Only need read permissions to view manage lists page
+            if (container.getActiveModules().contains(SNDModule.this) && container.hasPermission(user, AdminPermission.class))
+                adminNavTree.addChild(new NavTree("SND Admin", new ActionURL(SNDController.AdminAction.class, container)));
+        });
+
     }
 
     @Override
