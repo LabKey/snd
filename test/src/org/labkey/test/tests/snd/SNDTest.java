@@ -958,7 +958,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         {
             resp = command.execute(connection, getProjectName());
         }
-        catch(Exception e)
+        catch (IOException | CommandException e)
         {
             throw new RuntimeException(e);
         }
@@ -997,7 +997,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         {
             command.execute(connection, getProjectName());
         }
-        catch(Exception e)
+        catch (IOException | CommandException e)
         {
             throw new RuntimeException(e);
         }
