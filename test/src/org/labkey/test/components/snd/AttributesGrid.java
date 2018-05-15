@@ -16,15 +16,12 @@
 package org.labkey.test.components.snd;
 
 import org.labkey.test.Locator;
+import org.labkey.test.components.Component;
 import org.labkey.test.components.WebDriverComponent;
-import org.labkey.test.components.html.Input;
-import org.labkey.test.pages.LabKeyPage;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.util.List;
-
-import static org.labkey.test.components.html.Input.Input;
 
 public class AttributesGrid extends WebDriverComponent<AttributesGrid.ElementCache>
 {
@@ -78,7 +75,7 @@ public class AttributesGrid extends WebDriverComponent<AttributesGrid.ElementCac
         return new ElementCache();
     }
 
-    protected class ElementCache extends WebDriverComponent.ElementCache
+    protected class ElementCache extends Component.ElementCache
     {
         public List<WebElement> getRows()
         {

@@ -16,6 +16,7 @@
 package org.labkey.test.components.snd;
 
 import org.labkey.test.Locator;
+import org.labkey.test.components.Component;
 import org.labkey.test.components.WebDriverComponent;
 import org.labkey.test.components.html.Checkbox;
 import org.labkey.test.components.html.Input;
@@ -153,7 +154,7 @@ public class AttributeGridRow extends WebDriverComponent<AttributeGridRow.Elemen
         return new ElementCache();
     }
 
-    protected class ElementCache extends WebDriverComponent.ElementCache
+    protected class ElementCache extends Component.ElementCache
     {
         Select lookupKeySelect = SelectWrapper.Select(Locator.xpath("//div/select[contains(@name, '_lookupKey')]"))
                 .findWhenNeeded(getComponentElement());

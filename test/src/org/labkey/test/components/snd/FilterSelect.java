@@ -17,6 +17,7 @@ package org.labkey.test.components.snd;
 
 import org.labkey.test.Locator;
 import org.labkey.test.WebDriverWrapper;
+import org.labkey.test.components.Component;
 import org.labkey.test.components.WebDriverComponent;
 import org.labkey.test.components.html.Input;
 import org.openqa.selenium.WebDriver;
@@ -125,7 +126,7 @@ public class FilterSelect extends WebDriverComponent<FilterSelect.ElementCache>
         return new ElementCache();
     }
 
-    protected class ElementCache extends WebDriverComponent.ElementCache
+    protected class ElementCache extends Component.ElementCache
     {
         Input input = Input(Locator.tagWithName("input", "query-search-input"), getDriver())
                 .findWhenNeeded(this);

@@ -17,8 +17,8 @@ package org.labkey.test.components.snd;
 
 import org.labkey.test.Locator;
 import org.labkey.test.WebDriverWrapper;
+import org.labkey.test.components.Component;
 import org.labkey.test.components.WebDriverComponent;
-
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -100,7 +100,7 @@ public class SuperPackageRow extends WebDriverComponent<SuperPackageRow.ElementC
         return new ElementCache();
     }
 
-    protected class ElementCache extends WebDriverComponent.ElementCache
+    protected class ElementCache extends Component.ElementCache
     {
         public WebElement menuToggle = Locator.tagWithClassContaining("div", "btn-group") // sometimes dropdown, dropup
                         .child(Locator.id("superpackage-actions"))

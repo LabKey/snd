@@ -16,14 +16,11 @@
 package org.labkey.test.components.snd;
 
 import org.labkey.test.Locator;
+import org.labkey.test.components.Component;
 import org.labkey.test.components.WebDriverComponent;
-import org.labkey.test.components.html.Input;
-import org.labkey.test.pages.LabKeyPage;
 import org.labkey.test.pages.snd.EditPackagePage;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-
-import static org.labkey.test.components.html.Input.Input;
 
 public class PackageViewerResult extends WebDriverComponent<PackageViewerResult.ElementCache>
 {
@@ -76,7 +73,7 @@ public class PackageViewerResult extends WebDriverComponent<PackageViewerResult.
         return new ElementCache();
     }
 
-    protected class ElementCache extends WebDriverComponent.ElementCache
+    protected class ElementCache extends Component.ElementCache
     {
         WebElement viewLink = Locator.tagWithClassContaining("a", "package-row_icon")
                 .withChild(Locator.tagWithClass("i", "fa fa-eye"))

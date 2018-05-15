@@ -15,13 +15,12 @@
  */
 package org.labkey.test.components.snd;
 
-import org.labkey.api.cache.Cache;
 import org.labkey.test.Locator;
 import org.labkey.test.WebDriverWrapper;
+import org.labkey.test.components.Component;
 import org.labkey.test.components.WebDriverComponent;
 import org.labkey.test.components.html.Checkbox;
 import org.labkey.test.components.html.Input;
-import org.labkey.test.pages.LabKeyPage;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
@@ -90,7 +89,7 @@ public class CategoryEditRow extends WebDriverComponent<CategoryEditRow.ElementC
         return new ElementCache();
     }
 
-    protected class ElementCache extends WebDriverComponent.ElementCache
+    protected class ElementCache extends Component.ElementCache
     {
         Input descriptionInput = Input(Locators.descriptionEdit(), getDriver()).timeout(4000).findWhenNeeded(this);
         Checkbox activeCheckBox  = Checkbox.Checkbox(

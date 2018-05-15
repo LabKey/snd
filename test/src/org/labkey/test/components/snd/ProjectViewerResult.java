@@ -17,6 +17,7 @@
 package org.labkey.test.components.snd;
 
 import org.labkey.test.Locator;
+import org.labkey.test.components.Component;
 import org.labkey.test.components.WebDriverComponent;
 import org.labkey.test.pages.snd.EditProjectPage;
 import org.labkey.test.pages.snd.ProjectListPage;
@@ -82,7 +83,7 @@ public class ProjectViewerResult extends WebDriverComponent<ProjectViewerResult.
         return new ElementCache();
     }
 
-    protected class ElementCache extends WebDriverComponent.ElementCache
+    protected class ElementCache extends Component.ElementCache
     {
         WebElement viewLink = Locator.tagWithClassContaining("a", "project-row_icon")
                 .withChild(Locator.tagWithClass("i", "fa fa-eye"))
