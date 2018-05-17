@@ -81,6 +81,7 @@ import static org.junit.Assert.assertTrue;
 import static org.labkey.test.WebTestHelper.buildURL;
 
 @Category ({CustomModules.class})
+@BaseWebDriverTest.ClassTimeout(minutes = 15)
 public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 {
     private static final String PROJECTNAME = "SNDTest Project";
