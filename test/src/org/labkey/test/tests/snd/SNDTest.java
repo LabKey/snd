@@ -2015,7 +2015,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         log("Launching the Testing framework");
         goToProjectHome();
         beginAt(WebTestHelper.buildURL("snd",getProjectName(), "test"));
-        waitForText(50000, "Tests are ready to run");
+        waitForElement(Locator.tagWithClass("tr","test-results-row"));
 
         log("Waiting for test to load");
         clickButton("Run tests", 0);
