@@ -77,7 +77,7 @@ public class Package
 
     public void setPkgId(int pkgId)
     {
-        this._pkgId = pkgId;
+        _pkgId = pkgId;
     }
 
     @Nullable
@@ -88,7 +88,7 @@ public class Package
 
     public void setDescription(String description)
     {
-        this._description = description;
+        _description = description;
     }
 
     @Nullable
@@ -109,7 +109,7 @@ public class Package
 
     public void setRepeatable(boolean repeatable)
     {
-        this._repeatable = repeatable;
+        _repeatable = repeatable;
     }
 
     public boolean isActive()
@@ -119,7 +119,7 @@ public class Package
 
     public void setActive(boolean active)
     {
-        this._active = active;
+        _active = active;
     }
 
     public boolean hasEvent()
@@ -150,7 +150,7 @@ public class Package
 
     public void setCategories(@NotNull Map<Integer, String> categories)
     {
-        this._categories = categories;
+        _categories = categories;
     }
 
     @NotNull
@@ -161,7 +161,7 @@ public class Package
 
     public void setAttributes(@NotNull List<GWTPropertyDescriptor> attributes)
     {
-        this._attributes = attributes;
+        _attributes = attributes;
     }
 
     @NotNull
@@ -172,7 +172,7 @@ public class Package
 
     public void setSubpackages(@NotNull List<SuperPackage> subpackages)
     {
-        this._subpackages = subpackages;
+        _subpackages = subpackages;
     }
 
     @NotNull
@@ -183,7 +183,7 @@ public class Package
 
     public void setExtraFields(@NotNull Map<GWTPropertyDescriptor, Object> extraFields)
     {
-        this._extraFields = extraFields;
+        _extraFields = extraFields;
     }
 
     @NotNull

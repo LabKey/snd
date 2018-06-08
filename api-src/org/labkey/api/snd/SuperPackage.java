@@ -67,22 +67,22 @@ public class SuperPackage
     // copy constructor
     public SuperPackage(SuperPackage _superPackage)
     {
-        this._superPkgId = _superPackage.getSuperPkgId();  // Integers are immutable
-        this._childPackages = new ArrayList<>();
+        _superPkgId = _superPackage.getSuperPkgId();  // Integers are immutable
+        _childPackages = new ArrayList<>();
         List<SuperPackage> childPackages = _superPackage.getChildPackages();
         if (childPackages != null)
         {
             for (SuperPackage childPackage : _superPackage.getChildPackages())
-                this._childPackages.add(new SuperPackage(childPackage));
+                _childPackages.add(new SuperPackage(childPackage));
         }
-        this._pkgId = _superPackage.getPkgId();
-        this._superPkgId = _superPackage.getSuperPkgId();  // Strings are also immutable
-        this._parentSuperPkgId = _superPackage.getParentSuperPkgId();
-        this._description = _superPackage.getDescription();
-        this._narrative = _superPackage.getNarrative();
-        this._sortOrder = _superPackage.getSortOrder();
-        this._repeatable = _superPackage.getRepeatable();
-        this._required = _superPackage.getRequired();
+        _pkgId = _superPackage.getPkgId();
+        _superPkgId = _superPackage.getSuperPkgId();  // Strings are also immutable
+        _parentSuperPkgId = _superPackage.getParentSuperPkgId();
+        _description = _superPackage.getDescription();
+        _narrative = _superPackage.getNarrative();
+        _sortOrder = _superPackage.getSortOrder();
+        _repeatable = _superPackage.getRepeatable();
+        _required = _superPackage.getRequired();
     }
 
     @Nullable
