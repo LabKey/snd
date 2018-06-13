@@ -137,8 +137,7 @@ export const CrumbRoutes: Array<RouteProps> = [
     },
 
     {
-        // TODO: Need to reapply component crumb here once crumb is fixed for new typescript
-        component: null,
+        component: Crumb,
         exact: true,
         path: '/packages/*',
         props: {
@@ -148,8 +147,7 @@ export const CrumbRoutes: Array<RouteProps> = [
     },
 
     {
-        // TODO: Need to reapply component crumb here once crumb is fixed for new typescript
-        component: null,
+        component: Crumb,
         exact: true,
         path: '/projects/*',
         props: {
