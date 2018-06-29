@@ -1017,7 +1017,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     public void testSNDModule()
     {
         //TODO: Implement this once we get a UI
-//        BeginPage beginPage = BeginPage.beginAt(this, getProjectName());
+//        BeginPage beginPage = BeginPage.beginAtFolderMgmt(this, getProjectName());
 //        assertEquals(200, getResponseCode());
 //        final String expectedHello = "Hello, and welcome to the SND module.";
 //        assertEquals("Wrong hello message", expectedHello, beginPage.getHelloMessage());
