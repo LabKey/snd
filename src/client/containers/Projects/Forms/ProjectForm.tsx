@@ -192,19 +192,43 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps, ProjectFo
         }
     }
 
-    renderExtraFields() {
-        const { model, view } = this.props;
+    renderExtraFields(perRow: number, index: number, displayCols: number) {
+        const { model } = this.props;
 
         if (model) {
             const { extraFields } = model;
             return <ExtraFields
+                key={"extra_fields_" + index}
                 extraFields={extraFields}
                 disabled={false}
                 handleFieldChange={this.handleFieldChange}
+                perRow={perRow}
+                index={index}
+                displayCols={displayCols}
             />
         }
 
         return null;
+    }
+
+    renderOverflowExtraFields(start) {
+        const { model } = this.props;
+        const perRow = 6;
+        const displayCols = 2;
+
+        let fieldRows = [];
+
+        if (model) {
+            const { extraFields } = model;
+            const overFlowCount = extraFields.length - start;
+
+            let rows = Math.floor(overFlowCount / perRow) + 1;
+            for (var i=0; i<rows; i++) {
+                fieldRows.push( this.renderExtraFields(perRow, start + (perRow * i), displayCols));
+            }
+        }
+
+        return fieldRows;
     }
 
     submit(active: boolean = false) {
@@ -221,7 +245,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps, ProjectFo
             <div>
                 <form>
                     <div className="row clearfix">
-                        <div className="col-sm-6" style={{height: '180px'}}>
+                        <div className="col-sm-6" style={{height: '156px'}}>
                             <div className="row clearfix">
                                 <div className="col-xs-4">
                                     <ControlLabel htmlFor='projectId'>Project Id</ControlLabel>
@@ -284,7 +308,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps, ProjectFo
                                 </div>
                             </div>
                             <div className="margin-top">
-                                    {this.renderExtraFields()}
+                                    {this.renderExtraFields(3, 0, 4)}
                             </div>
                         </div>
                         <div className="col-sm-6">
@@ -303,10 +327,13 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps, ProjectFo
                                         rows={7}
                                         value={model.description}/>
                                 </div>
-                            </div>
+                            </div >
+                        </div>
+                        <div className="clearfix col-sm-12" style={{marginRight:'15px'}}>
+                            {this.renderOverflowExtraFields(3)}
                         </div>
                     </div>
-                    <div style={{borderBottom: '1px solid black'}}/>
+                    <div style={{borderBottom: '1px solid black', paddingTop: '15px'}}/>
 
                     <SuperPackageForm
                         model={model}

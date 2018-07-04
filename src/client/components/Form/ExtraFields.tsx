@@ -27,6 +27,10 @@ interface ExtraFieldsProps
     handleFieldChange?: any
     name?: string
     revisedFields?: boolean
+    perRow: number
+    index?: number
+    displayCols: number
+    key: string
     view?: VIEW_TYPES
 }
 
@@ -45,74 +49,76 @@ export class ExtraFields extends React.Component<ExtraFieldsProps, any>
 
     render()
     {
-        const {extraFields, disabled, handleFieldChange, revisedFields} = this.props;
-        let count = -1;
-        let colClass = "col-sm-6";
-
-        // Auto generated fields limited to 3 right now
-        if (extraFields.length > 3)
-            extraFields.splice(3);
-
-        if (extraFields.length === 3)
-            colClass = "col-sm-4";
+        const {extraFields, disabled, handleFieldChange, revisedFields, displayCols, index, perRow, key} = this.props;
+        let count = index - 1;
+        let colClass = "col-sm-" + displayCols;
+        let start = index ? index : 0;
 
         if (extraFields && extraFields.length)
         {
+            let fields = extraFields.slice(start, start + perRow);  // One row
+            if (fields.length > 0)
+            {
+                let divClass = "row clearfix";
+                if (index != 0)
+                    divClass += " margin-top";
 
-            return (
-                <div>
-                    <div className="row clearfix">
-                        {extraFields.map((extra) =>
-                            {
-                                let {name} = extra;
-                                return (
-                                    <div key={"extraCol-" + name + (revisedFields ? 'Old' : '')} className={colClass}>
+                return (
+                    <div key={key}>
+                        <div className={divClass}>
+                            {fields.map((extra) => {
+                                    let {name} = extra;
+                                    return (
+                                        <div key={"extraCol-" + name + (revisedFields ? 'Old' : '')} className={colClass}
+                                             style={{paddingRight: '-15px'}}>
                                             <ControlLabel>{name}</ControlLabel>
-                                    </div>
-                                );
-                            }
-                        )}
-                    </div>
-                    <div className="row clearfix">
-                        {extraFields.map((extra, i) =>
-                            {
-                                let {lookupValues, value, name} = extra;
-                                count++;
-                                return (
+                                        </div>
+                                    );
+                                }
+                            )}
+                        </div>
+                        <div className="row clearfix">
+                            {fields.map((extra, i) => {
+                                    let {lookupValues, value, name} = extra;
+                                    count++;
+                                    return (
 
-                                    <div key={"extraCol-" + name + (revisedFields ? 'Old' : '')} className={colClass}>
-                                        {lookupValues ? (
-                                            <div>
+                                        <div key={"extraCol-" + name + (revisedFields ? 'Old' : '')} className={colClass}
+                                             style={{paddingRight: '-15px !important'}}>
+                                            {lookupValues ? (
+                                                <div>
                                                     {React.createElement(ExtraFieldSelectInput,
                                                         {
                                                             disabled: disabled || revisedFields,
                                                             options: lookupValues,
                                                             handleFieldChange: revisedFields ? null : handleFieldChange,
-                                                            val: revisedFields ? this.staticVals[i] : value,
+                                                            val: revisedFields ? this.staticVals[i + index] : value,
                                                             name: name + (revisedFields ? 'Old' : ''),
                                                             index: count
                                                         }
                                                     )}
-                                            </div>
+                                                </div>
                                             ) : (
                                                 <div>
                                                     {React.createElement(TextInput,
                                                         {
                                                             disabled: disabled || revisedFields,
-                                                            value: revisedFields ? this.staticVals[i] : value,
+                                                            value: revisedFields ? this.staticVals[i + index] : value,
                                                             onChange: revisedFields ? null : handleFieldChange,
                                                             name: ('extraFields_' + count + '_' + name + (revisedFields ? 'Old' : ''))
                                                         }
                                                     )}
                                                 </div>
                                             )}
-                                    </div>
-                                );
-                            }
-                        )}
+                                        </div>
+                                    );
+                                }
+                            )}
+                        </div>
                     </div>
-                </div>
-            );
+                );
+            }
+            return <div/>
         }
 
         return <div className="row col-sm-12" style={{height: '53px'}}/>

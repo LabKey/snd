@@ -298,19 +298,44 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
         )
     }
 
-    renderExtraFields() {
+    renderExtraFields(perRow: number, index: number, displayCols: number) {
         const { model, view } = this.props;
         const disabled = view === VIEW_TYPES.PACKAGE_VIEW;
         if (model) {
             const { extraFields } = model;
             return <ExtraFields
+                key={"extra_fields_" + index}
                 extraFields={extraFields}
                 disabled={disabled}
                 handleFieldChange={this.handleFieldChange}
+                perRow={perRow}
+                index={index}
+                displayCols={displayCols}
             />
         }
 
         return null;
+    }
+
+    renderOverflowExtraFields(start) {
+        const { model } = this.props;
+        const perRow = 6;
+        const displayCols = 2;
+
+        let fieldRows = [];
+
+        if (model) {
+            const { extraFields } = model;
+            const overFlowCount = extraFields.length - start;
+
+            let rows = Math.floor(overFlowCount / perRow) + 1;
+            for (var i=0; i<rows; i++) {
+                fieldRows.push( this.renderExtraFields(perRow, start + (perRow * i), displayCols));
+            }
+
+        }
+
+        return fieldRows;
     }
 
     submit(active: boolean = false) {
@@ -327,7 +352,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
             <div>
                 <form>
                     <div className="row clearfix">
-                        <div className="col-sm-8" style={{height: '220px'}}>
+                        <div className="col-sm-8" style={{height: '190px'}}>
                             <div className="row clearfix">
                                 <div className="col-xs-2">
                                     <ControlLabel htmlFor='pkgId'>Package Id</ControlLabel>
@@ -371,15 +396,18 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                             </div>
                         </div>
                         <div className="col-sm-4">
-                            <div className="row col-sm-12">
-                                {this.renderExtraFields()}
+                            <div className="col-sm-12 extra-col-row">
+                                {this.renderExtraFields(2, 0, 6)}
                             </div>
                             {this.renderCategories()}
                         </div>
                     </div>
+                    <div className=" extra-col-row clearfix col-sm-12" >
+                        {this.renderOverflowExtraFields(2)}
+                    </div>
 
                     <div className="row clearfix">
-                        <div className="col-sm-12 margin-top">
+                        <div className="col-sm-12" style={{marginTop:'20px'}}>
                             <strong>Attributes</strong>&nbsp;
                             <Button onClick={this.props.parseAttributes} className="attributes__parse">
                                 <i className="fa fa-refresh attributes__parse-button"/>

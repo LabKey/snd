@@ -77,7 +77,7 @@ export class CategoriesSelectResults extends React.Component<CategoriesSelectRes
                 style={{
                     background: disabled ? '#eee' : '',
                     border: '1px solid #ddd',
-                    height: '89px',
+                    height: '82px',
                     maxHeight: '525px'
                 }}
                 title={text}>

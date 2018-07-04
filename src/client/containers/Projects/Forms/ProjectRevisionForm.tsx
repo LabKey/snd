@@ -98,19 +98,45 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
         }
     }
 
-    renderExtraFields(revisedFields: boolean) {
+    renderExtraFields(revisedFields: boolean, perRow: number, index: number, displayCols: number) {
         const { model } = this.props;
 
         if (model) {
             const { extraFields } = model;
-            return <ExtraFields
+            return <div key={"extra_fields_" + index}>
+            <ExtraFields
+                key={"extra_fields_" + index}
                 extraFields={extraFields}
                 revisedFields={revisedFields}
                 handleFieldChange={this.handleFieldChange}
+                perRow={perRow}
+                index={index}
+                displayCols={displayCols}
             />
+            </div>
         }
 
         return null;
+    }
+
+    renderOverflowExtraFields(start: number, revised: boolean) {
+        const { model } = this.props;
+        const perRow = 6;
+        const displayCols = 2;
+
+        let fieldRows = [];
+
+        if (model) {
+            const { extraFields } = model;
+            const overFlowCount = extraFields.length - start;
+
+            let rows = Math.floor(overFlowCount / perRow) + 1;
+            for (var i=0; i<rows; i++) {
+                fieldRows.push( this.renderExtraFields(revised, perRow, start + (perRow * i), displayCols));
+            }
+        }
+
+        return fieldRows;
     }
 
     submit(active: boolean = false) {
@@ -126,7 +152,7 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
                 <form>
                     <div style={{marginBottom: '20px', marginTop: '-15px'}}><h4>New Revision</h4></div>
                     <div className="row clearfix">
-                        <div className="col-sm-6" style={{height: '180px'}}>
+                        <div className="col-sm-6" style={{height: '156px'}}>
                             <div className="row clearfix">
                                 <div className="col-xs-4">
                                     <ControlLabel htmlFor='projectId'>Project Id</ControlLabel>
@@ -189,7 +215,7 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
                                 </div>
                             </div>
                             <div className="margin-top">
-                                {this.renderExtraFields(false)}
+                                {this.renderExtraFields(false, 3, 0, 4)}
                             </div>
                         </div>
                         <div className="col-sm-6">
@@ -209,27 +235,30 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
                                         value={model.description}/>
                                 </div>
                             </div>
-                            <div className="row clearfix margin-top">
-                                <div className="col-xs-12">
-                                    <CheckboxInput
-                                        disabled={false}
-                                        required={false}
-                                        value={false}
-                                        onChange={this.handleFieldChange}
-                                        name='copyRevisedPkgs'
-                                        />
-                                    Copy assigned packages from revision {this.oldModel.revisionNum}
-                                </div>
+                        </div>
+                        <div className="clearfix col-sm-12"  style={{paddingLeft: '15px', marginBottom: '10px', marginRight:'15px'}}>
+                            {this.renderOverflowExtraFields(3, false)}
+                        </div>
+                        <div className="clearfix col-sm-12">
+                            <div className="col-sm-6" />
+                            <div className="col-xs-6" >
+                                <CheckboxInput
+                                    disabled={false}
+                                    required={false}
+                                    value={false}
+                                    onChange={this.handleFieldChange}
+                                    name='copyRevisedPkgs'
+                                />
+                                Copy assigned packages from revision {this.oldModel.revisionNum}
                             </div>
                         </div>
                     </div>
-
-                    <div style={{marginTop: '20px'}}/>
+                    <div style={{marginTop: '10px'}}/>
                     <div style={{backgroundColor: '#EEEEEE'}}>
                         <div style={{borderTop: '1px solid #DDDDDD', paddingBottom: '15px', paddingTop: '5px', paddingLeft: '15px', marginLeft: '-15px', marginRight: '-15px', backgroundColor: '#EEEEEE'}}>
                             <h4>Previous Revision</h4></div>
                         <div style={{borderBottom: '1px solid #DDDDDD', backgroundColor: '#EEEEEE'}} className="row clearfix">
-                            <div className="col-sm-6" style={{height: '180px'}}>
+                            <div className="col-sm-6" style={{height: '156px'}}>
                                 <div className="row clearfix">
                                     <div className="col-xs-4">
                                         <ControlLabel htmlFor='projectIdOld'>Project Id</ControlLabel>
@@ -292,7 +321,7 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
                                     </div>
                                 </div>
                                 <div className="margin-top">
-                                    {this.renderExtraFields(true)}
+                                    {this.renderExtraFields(true, 3, 0, 4)}
                                 </div>
                             </div>
                             <div className="col-sm-6">
@@ -312,6 +341,9 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
                                         value={this.oldModel.description}/>
                                     </div>
                                 </div>
+                            </div>
+                            <div className="clearfix col-sm-12" style={{paddingLeft: '15px', marginBottom: '10px', marginRight:'15px'}}>
+                                {this.renderOverflowExtraFields(3, true)}
                             </div>
                         </div>
                     </div>

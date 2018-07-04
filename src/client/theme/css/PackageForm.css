@@ -62,3 +62,8 @@
 .attributes__parse {
     margin-left: 5px;
 }
+
+.extra-col-row {
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+}
