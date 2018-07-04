@@ -83,6 +83,28 @@ public class EditProjectPage extends LabKeyPage<EditProjectPage.ElementCache>
         return elementCache().referenceIdTextBox.getAttribute("value");
     }
 
+    public EditProjectPage setProjects1TextBox(String value)
+    {
+        setFormElement(elementCache().testProjects1TextBox, value);
+        return this;
+    }
+
+    public String getProjects1TextBox()
+    {
+        return elementCache().testProjects1TextBox.getAttribute("value");
+    }
+
+    public EditProjectPage setProjects4TextBox(String value)
+    {
+        setFormElement(elementCache().testProjects5TextBox, value);
+        return this;
+    }
+
+    public String getProjects5TextBox()
+    {
+        return elementCache().testProjects5TextBox.getAttribute("value");
+    }
+
     public EditProjectPage setStartDate(String date)
     {
         setDate(elementCache().startDateTextBox, date);
@@ -244,6 +266,16 @@ public class EditProjectPage extends LabKeyPage<EditProjectPage.ElementCache>
                         .followingSibling("div").withDescendant(Locator.tag("table"))
                         .refindWhenNeeded(getDriver()).withTimeout(4000),
                 getDriver());
+
+        WebElement testProjects1TextBox = Locator.tagWithClass("input","form-control")
+                .withAttribute("name","extraFields_0_testProjects1")
+                .findWhenNeeded(getDriver())
+                .withTimeout(4000);
+
+        WebElement testProjects5TextBox = Locator.tagWithClass("input","form-control")
+                .withAttribute("name","extraFields_4_testProjects5")
+                .findWhenNeeded(getDriver())
+                .withTimeout(4000);
 
         WebElement referenceIdTextBox = Locator.tagWithClass("input","form-control")
                 .withAttribute("name","referenceId")

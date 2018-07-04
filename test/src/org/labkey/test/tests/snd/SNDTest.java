@@ -87,7 +87,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     private static final String PROJECTNAME = "SNDTest Project";
     private static final String TEST1SUBFOLDER = "Test1";
     private static final String TEST1PATH = PROJECTNAME + "/" + TEST1SUBFOLDER;
-    private static final String PKGSTESTCOL = "testPkgs";
+    private static final String PKGSTESTCOL = "testPkgs1";
     private static final String EXTCOLTESTDATA1 = "testString 1";
     private static final String EXTCOLTESTDATA2 = "testString 2";
     private static final String EXTCOLTESTDATA3 = "testString 3";
@@ -818,10 +818,10 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
 
     private static final String CREATECATEGORIESAPI = APISCRIPTS + " populateCategories();";
 
-    private final Map<String, Object> TEST1ROW1MAP = Maps.of("PkgId", TEST_PKG_ID1, "Description", "Description 1", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223451b901", "testPkgs", EXTCOLTESTDATA1);
-    private final Map<String, Object> TEST1ROW2MAP = Maps.of("PkgId", TEST_PKG_ID2, "Description", "Description 2", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223751b901", "testPkgs", EXTCOLTESTDATA2);
-    private final Map<String, Object> TEST1ROW3MAP = Maps.of("PkgId", TEST_PKG_ID3, "Description", "Description 3", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223481b901", "testPkgs", EXTCOLTESTDATA3);
-    private final Map<String, Object> TEST1ROW3AMAP = Maps.of("PkgId", TEST_PKG_ID3, "Description", "Updated Description 3", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223481b901", "testPkgs", EXTCOLTESTDATA3A);
+    private final Map<String, Object> TEST1ROW1MAP = Maps.of("PkgId", TEST_PKG_ID1, "Description", "Description 1", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223451b901", "testPkgs1", EXTCOLTESTDATA1);
+    private final Map<String, Object> TEST1ROW2MAP = Maps.of("PkgId", TEST_PKG_ID2, "Description", "Description 2", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223751b901", "testPkgs1", EXTCOLTESTDATA2);
+    private final Map<String, Object> TEST1ROW3MAP = Maps.of("PkgId", TEST_PKG_ID3, "Description", "Description 3", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223481b901", "testPkgs1", EXTCOLTESTDATA3);
+    private final Map<String, Object> TEST1ROW3AMAP = Maps.of("PkgId", TEST_PKG_ID3, "Description", "Updated Description 3", "ObjectId", "dbe961b9-b7ba-102d-8c2a-99223481b901", "testPkgs1", EXTCOLTESTDATA3A);
 
     //Sample files for import to be used in this order
     private static final File INITIAL_IMPORT_FILE = TestFileUtils.getSampleData("snd/pipeline/import/1_initial.snd.xml");
@@ -1540,7 +1540,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         CustomizeView customizeViewHelper = new CustomizeView(this);
 
         customizeViewHelper.openCustomizeViewPanel();
-        customizeViewHelper.addColumn("testPkgs");
+        customizeViewHelper.addColumn("testPkgs1");
         customizeViewHelper.applyCustomView();
 
         assertTextPresent(EXTCOLTESTDATA1, EXTCOLTESTDATA2, EXTCOLTESTDATA3);
@@ -1568,6 +1568,64 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         selectQuery("snd", "Pkgs");
         waitAndClickAndWait(Locator.linkWithText("view data"));
         assertTextNotPresent(EXTCOLTESTDATA2, "Description 2");
+
+        testExtensibleUI();
+    }
+
+    public void testExtensibleUI()
+    {
+        String referenceId = "1010";
+        String startDate = "2018-01-02";
+        String endDate = "2018-02-02";
+        String description = "Description for the new project";
+
+        log("Extensible columns in project screen");
+        ProjectListPage listPage = ProjectListPage.beginAt(this , getTest1Project());
+        listPage.waitForPageLoad();
+        EditProjectPage editProjectPage = listPage.clickNewProject();
+
+        waitForText("testProjects6");
+        assertTextPresent("testProjects1");
+
+        editProjectPage.setDescription(description);
+        editProjectPage.setReferenceId(referenceId);
+        editProjectPage.setStartDate(startDate);
+        editProjectPage.setEndDate(endDate);
+
+        editProjectPage.setProjects1TextBox("1");
+        editProjectPage.setProjects4TextBox("4");
+
+        listPage = editProjectPage.clickSave();
+
+        log("Verifying the new project extensible values");
+        listPage.showNotActive(true);
+        ProjectViewerResult projectViewerResult = listPage.getProject(description);
+        EditProjectPage viewPage = projectViewerResult.clickView();
+        assertEquals("testProjects1 not equal to set value.", "1", viewPage.getProjects1TextBox());
+        assertEquals("testProjects5 not equal to set value.", "4", viewPage.getProjects5TextBox());
+
+        listPage = editProjectPage.clickProjectsCrumb();
+        listPage.showNotActive(true);
+
+        log("Extensible columns in project revision screen");
+        projectViewerResult = listPage.getProject(description);
+        EditProjectPage revisePage = projectViewerResult.clickRevise();
+        waitForText("testProjects6");
+
+        assertTextPresent("testProjects1", 4);
+        assertTextPresent("testProjects4", 4);
+        assertEquals("testProjects1 not equal to set value.", "1", revisePage.getProjects1TextBox());
+        assertEquals("testProjects5 not equal to set value.", "4", revisePage.getProjects5TextBox());
+
+        log("Extensible columns in package screen");
+        goToProjectHome();
+        PackageListPage pkgListPage = PackageListPage.beginAt(this , getTest1Project());
+
+        EditPackagePage editPage = pkgListPage.clickNewPackage();
+
+        assertTextPresent("testPkgs1", 2);
+        assertTextPresent("testPkgs4", 2);
+
     }
 
     public void testPackageApis()
@@ -2142,6 +2200,11 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     protected String getProjectName()
     {
         return PROJECTNAME;
+    }
+
+    protected String getTest1Project()
+    {
+        return getProjectName() + "/" + TEST1SUBFOLDER;
     }
 
     @Override

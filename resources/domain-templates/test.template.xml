@@ -6,7 +6,19 @@
     <template xsi:type="SNDTemplateType">
         <table tableName="Pkgs" tableDbType="NOT_IN_DB">
             <dat:columns>
-                <dat:column columnName="testPkgs">
+                <dat:column columnName="testPkgs1">
+                    <dat:rangeURI>string</dat:rangeURI>
+                </dat:column>
+                <dat:column columnName="testPkgs2">
+                    <dat:rangeURI>string</dat:rangeURI>
+                </dat:column>
+                <dat:column columnName="testPkgs3">
+                    <dat:rangeURI>string</dat:rangeURI>
+                </dat:column>
+                <dat:column columnName="testPkgs4">
+                    <dat:rangeURI>string</dat:rangeURI>
+                </dat:column>
+                <dat:column columnName="testPkgs5">
                     <dat:rangeURI>string</dat:rangeURI>
                 </dat:column>
             </dat:columns>
@@ -15,7 +27,22 @@
     <template xsi:type="SNDTemplateType">
         <table tableName="Projects" tableDbType="NOT_IN_DB">
             <dat:columns>
-                <dat:column columnName="testProjects">
+                <dat:column columnName="testProjects1">
+                    <dat:rangeURI>int</dat:rangeURI>
+                </dat:column>
+                <dat:column columnName="testProjects2">
+                    <dat:rangeURI>int</dat:rangeURI>
+                </dat:column>
+                <dat:column columnName="testProjects3">
+                    <dat:rangeURI>int</dat:rangeURI>
+                </dat:column>
+                <dat:column columnName="testProjects4">
+                    <dat:rangeURI>int</dat:rangeURI>
+                </dat:column>
+                <dat:column columnName="testProjects5">
+                    <dat:rangeURI>int</dat:rangeURI>
+                </dat:column>
+                <dat:column columnName="testProjects6">
                     <dat:rangeURI>int</dat:rangeURI>
                 </dat:column>
             </dat:columns>
