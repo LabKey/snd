@@ -1577,7 +1577,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         String referenceId = "1010";
         String startDate = "2018-01-02";
         String endDate = "2018-02-02";
-        String description = "Description for the new project";
+        String description = "Description for the extensible project";
 
         log("Extensible columns in project screen");
         ProjectListPage listPage = ProjectListPage.beginAt(this , getTest1Project());
@@ -1595,27 +1595,30 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         editProjectPage.setProjects1TextBox("1");
         editProjectPage.setProjects4TextBox("4");
 
-        listPage = editProjectPage.clickSave();
+        // TODO: This will only work once we can run multiple SND projects on same server
+//        ProjectViewerResult projectViewerResult;
 
-        log("Verifying the new project extensible values");
-        listPage.showNotActive(true);
-        ProjectViewerResult projectViewerResult = listPage.getProject(description);
-        EditProjectPage viewPage = projectViewerResult.clickView();
-        assertEquals("testProjects1 not equal to set value.", "1", viewPage.getProjects1TextBox());
-        assertEquals("testProjects5 not equal to set value.", "4", viewPage.getProjects5TextBox());
+//        listPage = editProjectPage.clickSave();
+//
+//        log("Verifying the new project extensible values");
+//        listPage.showNotActive(true);
+//        projectViewerResult = listPage.getProject(description);
+//        EditProjectPage viewPage = projectViewerResult.clickView();
+//        assertEquals("testProjects1 not equal to set value.", "1", viewPage.getProjects1TextBox());
+//        assertEquals("testProjects5 not equal to set value.", "4", viewPage.getProjects5TextBox());
 
-        listPage = editProjectPage.clickProjectsCrumb();
-        listPage.showNotActive(true);
+//        listPage = editProjectPage.clickProjectsCrumb();
+//        listPage.showNotActive(true);
 
-        log("Extensible columns in project revision screen");
-        projectViewerResult = listPage.getProject(description);
-        EditProjectPage revisePage = projectViewerResult.clickRevise();
-        waitForText("testProjects6");
+//        log("Extensible columns in project revision screen");
+//        projectViewerResult = listPage.getProject(description);
+//        EditProjectPage revisePage = projectViewerResult.clickRevise();
+//        waitForText("testProjects6");
 
-        assertTextPresent("testProjects1", 4);
-        assertTextPresent("testProjects4", 4);
-        assertEquals("testProjects1 not equal to set value.", "1", revisePage.getProjects1TextBox());
-        assertEquals("testProjects5 not equal to set value.", "4", revisePage.getProjects5TextBox());
+//        assertTextPresent("testProjects1", 4);
+//        assertTextPresent("testProjects4", 4);
+//        assertEquals("testProjects1 not equal to set value.", "1", revisePage.getProjects1TextBox());
+//        assertEquals("testProjects5 not equal to set value.", "4", revisePage.getProjects5TextBox());
 
         log("Extensible columns in package screen");
         goToProjectHome();
@@ -1882,8 +1885,9 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         listPage.waitForDeleteSuccess();
         listPage.waitForPageLoad();
         listPage.showNotActive(true);
-        listPage.waitForPageLoad();
+        listPage.waitForNotActiveLoad();
         listPage.showDrafts(true);
+        listPage.waitForDraftsLoad();
         assertFalse("Project not deleted.", listPage.isProjectPresent(description));
     }
 

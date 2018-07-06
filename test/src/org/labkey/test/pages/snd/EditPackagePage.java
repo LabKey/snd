@@ -223,7 +223,7 @@ public class EditPackagePage extends LabKeyPage<EditPackagePage.ElementCache>
                 .findWhenNeeded(panelBody);
 
         AttributesGrid grid = new AttributesGrid(
-                Locator.tagWithClassContaining("div", "margin")
+                Locator.tag("div")
                         .withChild(Locator.tagWithText("strong", "Attributes"))
                         .followingSibling("div").withDescendant(Locator.tag("table"))
                         .refindWhenNeeded(getDriver()).withTimeout(4000),
