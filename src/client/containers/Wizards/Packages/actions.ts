@@ -16,9 +16,9 @@
 import { push } from 'react-router-redux'
 
 import {PKG_WIZARD_TYPES, VALIDATOR_GTE, VALIDATOR_LTE} from './constants'
-import { PropertyDescriptor, PropertyValidator } from "../model";
+import {AttributeLookups, PropertyDescriptor, PropertyValidator} from "../model";
 import {
-    PackageModel, PackageWizardModel, PackageSubmissionModel
+    PackageModel, PackageWizardModel, PackageSubmissionModel, PackageWizardContainer
 } from './model'
 
 import { setAppError } from "../../App/actions";
@@ -26,11 +26,42 @@ import { setAppError } from "../../App/actions";
 import { packagesInvalidate } from '../../Packages/actions'
 import { PKG_SQ } from '../../Packages/constants'
 
-import { labkeyAjax, queryInvalidate } from '../../../query/actions'
+import {labkeyAjax, queryInvalidate, selectRows} from '../../../query/actions'
 import {parseNarrativeKeywords} from "./reducer";
 import {TOPLEVEL_SUPER_PKG_SQ} from "../../SuperPackages/constants";
 import {formatSubPackages} from "../SuperPackages/actions";
 import {VIEW_TYPES} from "../../App/constants";
+import {LabKeyQueryResponse} from "../../../query/model";
+import {Dispatch} from "redux";
+
+export function fetchDefaultLookups(model: PackageWizardModel, name: string, value: string, dispatch: Dispatch<any>) {
+    const valParts = value.split(".");
+
+    return selectRows(
+        valParts[0],
+        valParts[1],
+        null,
+        {
+            columns: ["LookupId", "Value"]
+        }
+    ).then((response: LabKeyQueryResponse) => {
+
+        const parts = name.split('_');
+        const index = parts[1];
+
+        let lookups = response.rows.map(function(row) {
+            return new AttributeLookups(row["LookupId"].value, row["Value"].value)
+        });
+
+        model.data.attributes[index].lookupValues = lookups;
+
+        const updatedModel = new PackageWizardModel(Object.assign({}, model, {
+            model
+        }));
+
+        dispatch(updatedModel.saveField(name, value));
+    });
+}
 
 export function fetchPackage(id: string | number, includeExtraFields: boolean, includeLookups: boolean) {
     return labkeyAjax(

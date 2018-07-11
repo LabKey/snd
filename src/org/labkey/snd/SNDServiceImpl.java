@@ -259,7 +259,7 @@ public class SNDServiceImpl implements SNDService
 
         if (pd.getLookupSchema() != null && pd.getLookupQuery() != null && pd.getDefaultValue() != null)
         {
-            json.put("defaultValue", SNDService.get().getDefaultLookupDisplayValue(u, c, pd.getLookupSchema(), pd.getLookupQuery(), pd.getDefaultValue()));
+            json.put("defaultValue", pd.getDefaultValue());
         }
 
         if (resolveLookupValues && (pd.getLookupSchema() != null) && (pd.getLookupQuery() != null))
@@ -285,9 +285,10 @@ public class SNDServiceImpl implements SNDService
         return json;
     }
 
-    public JSONArray lookupValuesToJson(Container c, User u, String schema, String query)
+    private JSONArray lookupValuesToJson(Container c, User u, String schema, String query)
     {
         JSONArray array = new JSONArray();
+        JSONObject jsonObject;
 
         UserSchema userSchema = QueryService.get().getUserSchema(u, c, schema);
         TableInfo table = userSchema.getTable(query);
@@ -296,24 +297,44 @@ public class SNDServiceImpl implements SNDService
         {
             // Use the title column for the actual lookup value
             String title = table.getTitleColumn();
-            if (title == null)
+            String pk = null;
+            if (!table.getPkColumnNames().isEmpty())
             {
-                title = table.getPkColumnNames().get(0);
-            }
+                pk = table.getPkColumnNames().get(0);
 
-            TableSelector ts = new TableSelector(table);
-            Object value;
-            try(ResultSet rs = ts.getResultSet())
-            {
-                while (rs.next())
+                if (title == null)
                 {
-                    value = rs.getObject(title);
-                    array.put(value);
+                    title = table.getPkColumnNames().get(0);
                 }
             }
-            catch (SQLException e)
+
+            if (pk == null)
+                pk = title;
+
+            if (pk != null && title != null)
             {
-                throw new RuntimeException(e);
+                TableSelector ts = new TableSelector(table);
+
+                Object label;
+                Object value;
+                try (ResultSet rs = ts.getResultSet())
+                {
+                    while (rs.next())
+                    {
+                        value = rs.getObject(pk);
+                        label = rs.getObject(title);
+
+                        jsonObject = new JSONObject();
+                        jsonObject.put("value", value);
+                        jsonObject.put("label", label);
+
+                        array.put(jsonObject);
+                    }
+                }
+                catch (SQLException e)
+                {
+                    throw new RuntimeException(e);
+                }
             }
         }
 

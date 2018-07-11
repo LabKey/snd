@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 /**
@@ -50,7 +51,7 @@ public class Package
     private List<GWTPropertyDescriptor> _attributes = new ArrayList<>();
     private List<SuperPackage> _subpackages = new ArrayList<>();
     private Map<GWTPropertyDescriptor, Object> _extraFields = new HashMap<>();
-    private Map<String, String> _lookups = new HashMap<>();
+    private Map<String, String> _lookups = new TreeMap<>();
     private Integer _qcState;
     private Integer _topLevelSuperPkgId;
 
@@ -266,7 +267,7 @@ public class Package
         {
             for (GWTPropertyDescriptor pd : getAttributes())
             {
-                attributes.put(SNDService.get().convertPropertyDescriptorToJson(c, u, pd, false));
+                attributes.put(SNDService.get().convertPropertyDescriptorToJson(c, u, pd, true));
             }
         }
 

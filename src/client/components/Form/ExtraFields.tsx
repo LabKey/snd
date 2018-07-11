@@ -67,11 +67,14 @@ export class ExtraFields extends React.Component<ExtraFieldsProps, any>
                     <div key={key}>
                         <div className={divClass}>
                             {fields.map((extra) => {
-                                    let {name} = extra;
+                                    let {name, label} = extra;
+                                    if (!label)
+                                        label = name;
+
                                     return (
                                         <div key={"extraCol-" + name + (revisedFields ? 'Old' : '')} className={colClass}
                                              style={{paddingRight: '-15px'}}>
-                                            <ControlLabel>{name}</ControlLabel>
+                                            <ControlLabel>{label}</ControlLabel>
                                         </div>
                                     );
                                 }
@@ -121,6 +124,6 @@ export class ExtraFields extends React.Component<ExtraFieldsProps, any>
             return <div/>
         }
 
-        return <div className="row col-sm-12" style={{height: '53px'}}/>
+        return <div className="row col-sm-12" style={{height: '46px'}}/>
     }
 }

@@ -69,6 +69,15 @@ public class AttributeGridRow extends WebDriverComponent<AttributeGridRow.Elemen
     public AttributeGridRow selectLookupKey(String key)
     {
         elementCache().lookupKeySelect.selectByVisibleText(key);
+        if (!key.equals(""))
+        {
+            getWrapper().waitForElement(elementCache().DEFAULT_VALUE_SELECT);
+        }
+        else
+        {
+            getWrapper().waitForElement(elementCache().DEFAULT_VALUE_INPUT);
+        }
+
         return this;
     }
 
@@ -121,6 +130,17 @@ public class AttributeGridRow extends WebDriverComponent<AttributeGridRow.Elemen
         return elementCache().defaultValueInput.get();
     }
 
+    public AttributeGridRow setDefaultLookup(String defaultValue)
+    {
+        elementCache().defaultValueSelect.selectByVisibleText(defaultValue);
+        return this;
+    }
+
+    public String getDefaultLookup()
+    {
+        return elementCache().defaultValueSelect.getFirstSelectedOption().getText();
+    }
+
     public AttributeGridRow selectOrder(String order)   // values: "Move Up", "Move Down"
     {
         elementCache().orderSelect.selectByVisibleText(order);
@@ -156,6 +176,9 @@ public class AttributeGridRow extends WebDriverComponent<AttributeGridRow.Elemen
 
     protected class ElementCache extends Component.ElementCache
     {
+        Locator DEFAULT_VALUE_SELECT = Locator.xpath("//div/select[contains(@name, 'defaultValue')]");
+        Locator DEFAULT_VALUE_INPUT = Locator.xpath("//div/input[contains(@name, 'defaultValue')]");
+
         Select lookupKeySelect = SelectWrapper.Select(Locator.xpath("//div/select[contains(@name, '_lookupKey')]"))
                 .findWhenNeeded(getComponentElement());
         Select dataTypeSelect = SelectWrapper.Select(Locator.xpath("//div/select[contains(@name, '_rangeURI')]"))
@@ -166,7 +189,9 @@ public class AttributeGridRow extends WebDriverComponent<AttributeGridRow.Elemen
         ).findWhenNeeded(getComponentElement());
         Input maxInput = Input(Locator.xpath("//div/input[contains(@name, '_max')]"), getDriver())
                 .findWhenNeeded(getComponentElement());
-        Input defaultValueInput = Input(Locator.xpath("//div/input[contains(@name, 'defaultValue')]"), getDriver())
+        Input defaultValueInput = Input(DEFAULT_VALUE_INPUT, getDriver())
+                .findWhenNeeded(getComponentElement());
+        Select defaultValueSelect = SelectWrapper.Select(DEFAULT_VALUE_SELECT)
                 .findWhenNeeded(getComponentElement());
         Select orderSelect = SelectWrapper.Select(Locator.xpath("//div/select[contains(@name, '_sortOrder')]"))
                 .findWhenNeeded(getComponentElement());

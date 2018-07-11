@@ -147,33 +147,7 @@ public class SNDController extends SpringActionController
             json.put("defaultTypeValue", DefaultValueType.FIXED_EDITABLE.toString());
 
             String defaultValue = (String) json.get("defaultValue");
-            String lookupSchema = (String) json.get("lookupSchema");
-            String lookupQuery = (String) json.get("lookupQuery");
-            if ((defaultValue != null && !defaultValue.isEmpty())
-                    && (lookupSchema != null && !lookupSchema.isEmpty())
-                    && (lookupQuery != null && !lookupQuery.isEmpty()))
-            {
-                Object defPk = SNDService.get().normalizeLookupValue(getUser(), getContainer(), lookupSchema, lookupQuery, defaultValue);
-                if (defPk == null)
-                {
-                    errors.reject(ERROR_MSG, "Unable to resolve default value " + defaultValue + " for assigned lookup key.");
-                }
-                else
-                {
-                    String defStrPk = "";
-                    if (String.class.isInstance(defPk))
-                    {
-                        defStrPk = (String) defPk;
-                    }
-                    else if (Integer.class.isInstance(defPk))
-                    {
-                        defStrPk = Integer.toString((Integer) defPk);
-                    }
-
-                    if (!defStrPk.equals(""))
-                        json.put("defaultValue", defStrPk);
-                }
-            }
+            json.put("defaultValue", defaultValue);
 
             return ExperimentService.get().convertJsonToPropertyDescriptor(json);
         }

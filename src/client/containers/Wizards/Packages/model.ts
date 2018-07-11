@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import * as actions from './actions'
-import { PropertyDescriptor } from "../model";
+import {AttributeLookupProps, PropertyDescriptor} from "../model";
 import {AssignedPackageModel} from "../../SuperPackages/model";
 import {SubPackageSubmissionModel} from "../SuperPackages/model";
 import {VIEW_TYPES} from "../../App/constants";
@@ -27,15 +27,10 @@ export class PackageQueryResponse implements PackageQueryResponseProps {
     json: Array<PackageModel> = [];
 }
 
-interface PackageModelAttributeLookupProps {
-    value: string
-    label: string
-}
-
 interface PackageModelProps {
     active?: boolean
     attributes?: Array<PropertyDescriptor>
-    attributeLookups?: Array<PackageModelAttributeLookupProps>
+    attributeLookups?: Array<AttributeLookupProps>
     categories?: Array<number>
     container?: string
     description?: string
@@ -53,7 +48,7 @@ interface PackageModelProps {
 export class PackageModel implements PackageModelProps {
     active: boolean = false;
     attributes: Array<PropertyDescriptor> = [];
-    attributeLookups: Array<PackageModelAttributeLookupProps> = [];
+    attributeLookups: Array<AttributeLookupProps> = [];
     categories: Array<number> = [];
     container: string = undefined;
     description: string = undefined;

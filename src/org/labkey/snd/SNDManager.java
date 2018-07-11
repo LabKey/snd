@@ -84,6 +84,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -895,7 +896,7 @@ public class SNDManager
     {
         UserSchema schema = getSndUserSchema(c, u);
         Map<String, Map<String, Object>> sndLookups = ((SNDUserSchema) schema).getLookupSets();
-        Map<String, String> lookups = new HashMap<>();
+        Map<String, String> lookups = new TreeMap<>(Comparator.comparing((String o) -> o.split("\\.")[1]));
 
         String key, label;
         for (String sndLookup : sndLookups.keySet())

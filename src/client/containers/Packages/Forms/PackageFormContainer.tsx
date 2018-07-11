@@ -143,9 +143,38 @@ export class PackageFormContainerImpl extends React.Component<PackageFormContain
         dispatch(push('/packages'))
     }
 
+    handleAttributeChange(name, value) {
+        const { dispatch, model } = this.props;
+        const parts = name.split('_');
+        const index = parts[1];
+
+        if (parts[2] && parts[2] === "lookupKey") {
+            if (value === "") {
+                model.data.attributes[index].lookupValues = null;
+                model.data.attributes[index].defaultValue = null;
+
+                const updatedModel = new PackageWizardModel(Object.assign({}, model, {
+                    model
+                }));
+
+                dispatch(updatedModel.saveField(name, value));
+            }
+            else {
+                actions.fetchDefaultLookups(model, name, value, dispatch);
+            }
+        } else {
+            dispatch(model.saveField(name, value));
+        }
+    }
+
     handleFieldChange(name, value) {
         const { dispatch, model } = this.props;
-        dispatch(model.saveField(name, value));
+
+        if (name.indexOf("attributes") != -1) {
+            this.handleAttributeChange(name, value);
+        } else {
+            dispatch(model.saveField(name, value));
+        }
     }
 
     handleSubmit(active: boolean) {

@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 import * as React from 'react';
+import {AttributeLookupProps} from "../../containers/Wizards/model";
 
 interface ExtraFieldSelectProps {
     disabled?: boolean
     handleFieldChange?: any
     index?: any
     name?: string
-    options?: any
+    options?: Array<AttributeLookupProps>
     val?: any
 }
 
@@ -35,8 +36,8 @@ export const ExtraFieldSelectInput = (props: ExtraFieldSelectProps) => {
                 className="form-control"
                 disabled={props.disabled === true}>
                 <option disabled style={{display: 'none'}}/>
-                {props.options.map((opt: string, i: number) => {
-                    return <option key={i} value={opt}>{opt}</option>;
+                {props.options.map((opt: AttributeLookupProps, i: number) => {
+                    return <option key={i} value={opt.value}>{opt.label}</option>;
                 })}
             </select>
         </div>

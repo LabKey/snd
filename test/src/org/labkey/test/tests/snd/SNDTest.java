@@ -1272,7 +1272,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
                 .setLabel("Terra")
                 .setMin(2)
                 .setMax(7)
-                .setDefault("mL")
+                .setDefaultLookup("mL")
                 .setRequired(true)
                 .setRedactedText("and rocks");
 
@@ -1305,7 +1305,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         assertEquals("Terra", verifyEarthRow.getLabel());
         assertEquals("2", verifyEarthRow.getMin());
         assertEquals("7", verifyEarthRow.getMax());
-        assertEquals("mL", verifyEarthRow.getDefault());
+        assertEquals("mL", verifyEarthRow.getDefaultLookup());
         assertEquals("and rocks", verifyEarthRow.getRedactedText());
     }
 
@@ -1392,7 +1392,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
                 .setLabel("as it sounds")
                 .setMin(2)
                 .setMax(7)
-                .setDefault("mL")
+                .setDefaultLookup("mL")
                 .setRequired(true)
                 .setRedactedText("radishes");
 

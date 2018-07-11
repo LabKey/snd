@@ -25,6 +25,21 @@ export class PropertyValidator implements PropertyValidatorProps {
     }
 }
 
+export interface AttributeLookupProps {
+    value: string
+    label: string
+}
+
+export class AttributeLookups implements AttributeLookupProps{
+    value: string = undefined;
+    label: string = undefined;
+
+    constructor(value: string, label: string) {
+        this.value = value;
+        this.label = label;
+    }
+}
+
 interface PropertyDescriptorProps {
     defaultValue?: string
     format?: string
@@ -32,7 +47,7 @@ interface PropertyDescriptorProps {
     lookupKey?: string
     lookupQuery?: string
     lookupSchema?: string
-    lookupValues?: Array<string>
+    lookupValues?: Array<AttributeLookupProps>
     max?: number
     min?: number
     name?: string
@@ -53,7 +68,7 @@ export class PropertyDescriptor implements PropertyDescriptorProps {
     lookupKey: string = undefined;
     lookupQuery: string = undefined;
     lookupSchema: string = undefined;
-    lookupValues: Array<string> = undefined;
+    lookupValues: Array<AttributeLookupProps> = null;
     max: number = 0;
     min: number = 0;
     name: string = undefined;

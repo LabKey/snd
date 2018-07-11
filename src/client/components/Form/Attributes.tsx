@@ -160,10 +160,29 @@ class AttributesGridBody extends React.Component<AttributesGridProps, {}> {
                                         disabled = readOnly;
                                     }
 
+                                    // Change default field based on lookup key
+                                    let lookups = attributeLookups;
+                                    if (col.name === 'defaultValue') {
+                                        if (attribute.lookupValues !== null) {
+                                            col.inputComponent = LookupKeyInput;
+                                            lookups = attribute.lookupValues;
+                                            // attribute.defaultValue = attribute.defaultLookups[0].value;
+                                        }
+                                        else {
+                                            col.inputComponent = TextInput
+                                        }
+                                    }
+
+                                    // Disable data type if lookup key selected
+                                    if (col.name === 'rangeURI' && attribute.lookupKey && attribute.lookupKey !== '') {
+                                        disabled = true;
+                                        attribute[col.name] = "string";
+                                    }
+
                                     const props = {
                                         attribute,
                                         attributeId: i,
-                                        attributeLookups,
+                                        attributeLookups: lookups,
                                         disabled: col.disabled || disabled,
                                         first: i === 0,
                                         last: i === attributes.length - 1,
