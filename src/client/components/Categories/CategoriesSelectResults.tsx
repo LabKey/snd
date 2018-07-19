@@ -132,7 +132,7 @@ export class CategoriesSelectResults extends React.Component<CategoriesSelectRes
 
         if (focused) {
             return (
-                <div className='col-sm-12 clearfix data-search__container' style={{position: 'relative'}}>
+                <div className='col-xs-12 clearfix data-search__container' style={{position: 'relative'}}>
                     <div style={{position: 'absolute', zIndex: 1000, left: 15, top: 0, right: 15}}>
                         {this.renderSelected()}
                         {this.renderOptions()}
@@ -142,7 +142,7 @@ export class CategoriesSelectResults extends React.Component<CategoriesSelectRes
         }
 
         return (
-            <div className='col-sm-12 clearfix data-search__container' style={{position: 'relative'}}>
+            <div className='col-xs-12 clearfix data-search__container' style={{position: 'relative'}}>
                 {this.renderSelectedCondensed()}
             </div>
         )

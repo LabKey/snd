@@ -352,7 +352,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
             <div>
                 <form>
                     <div className="row clearfix">
-                        <div className="col-sm-8" style={{height: '190px'}}>
+                        <div className="col-xs-8" style={{height: '190px'}}>
                             <div className="row clearfix">
                                 <div className="col-xs-2">
                                     <ControlLabel htmlFor='pkgId'>Package Id</ControlLabel>
@@ -395,29 +395,29 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                                 </div>
                             </div>
                         </div>
-                        <div className="col-sm-4">
-                            <div className="col-sm-12 extra-col-row">
+                        <div className="col-xs-4">
+                            <div className="col-xs-12 extra-col-row">
                                 {this.renderExtraFields(2, 0, 6)}
                             </div>
                             {this.renderCategories()}
                         </div>
                     </div>
-                    <div className=" extra-col-row clearfix col-sm-12" >
+                    <div className=" extra-col-row clearfix col-xs-12" >
                         {this.renderOverflowExtraFields(2)}
                     </div>
 
                     <div className="row clearfix">
-                        <div className="col-sm-12" style={{marginTop:'20px'}}>
+                        <div className="col-xs-12" style={{marginTop:'20px'}}>
                             <strong>Attributes</strong>&nbsp;
                             <Button onClick={this.props.parseAttributes} className="attributes__parse">
                                 <i className="fa fa-refresh attributes__parse-button"/>
                                 &nbsp;<small>Parse Attributes</small>
                             </Button>
                         </div>
-                        <div className="col-sm-12 margin-top">
+                        <div className="col-xs-12 margin-top">
                             {this.renderAttributes()}
                         </div>
-                        <div className="col-sm-12 margin-bottom">
+                        <div className="col-xs-12 margin-bottom">
                             <CheckboxInput
                                 disabled={disabled}
                                 name='repeatable'
@@ -443,7 +443,7 @@ export class PackageFormImpl extends React.Component<PackageFormProps, PackageFo
                     />
 
                     <div className="row clearfix">
-                        <div className="col-sm-12 margin-top">
+                        <div className="col-xs-12 margin-top">
                             {this.renderButtons()}
                         </div>
                     </div>

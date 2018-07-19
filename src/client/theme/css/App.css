@@ -13,3 +13,8 @@
 .alert-dismiss:hover {
     transform: scale(1.1);
 }
+
+.app-container {
+    min-width: 768px;
+    margin: 0 auto;
+}

@@ -195,7 +195,7 @@ export class ProjectViewerImpl extends React.Component<ProjectViewerProps, Proje
                         toggleNotActive={this.toggleNotActive}
                     />
 
-                    <div className="col-sm-12 project-viewer__results" style={{margin: '0 0 0 2%'}}>
+                    <div className="col-xs-12 project-viewer__results" style={{margin: '0 0 0 2%'}}>
                         {showDrafts ?
                             <div className="project_viewer__results--drafts">
                                 <h4>Drafts</h4>

@@ -125,15 +125,15 @@ export class SuperPackageViewer extends React.Component<SuperPackageViewerProps,
         if (model != undefined && model.data != undefined) {
             return (
                 <div>
-                    <ListGroupItem className="col-sm-12">
+                    <ListGroupItem className="col-xs-12">
                         <SearchInput
                             inputRef={(el) => this.inputRef = el}
                             input={input}
                             handleClear={this.handleClear}
                             handleInputChange={this.handleInputChange}
                             name="packageSearch"
-                            wrapperClassName="col-sm-8"/>
-                        <div className="col-sm-4" onClick={this.togglePrimitivesOnly}>
+                            wrapperClassName="col-xs-8"/>
+                        <div className="col-xs-4" onClick={this.togglePrimitivesOnly}>
                             <input type="checkbox" style={{marginTop: '10px'}}/> Primitives only
                         </div>
                     </ListGroupItem>

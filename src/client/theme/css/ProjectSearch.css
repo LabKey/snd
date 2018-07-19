@@ -14,13 +14,11 @@
 }
 
 .projects-show_drafts {
-    margin: 25px 3% 10px;
+    margin: 25px 0 10px 3%;
     cursor: pointer;
-    width: 150px;
 }
 
 .projects-show_not_active {
     margin: 25px 0 10px;
     cursor: pointer;
-    width: 180px;
 }

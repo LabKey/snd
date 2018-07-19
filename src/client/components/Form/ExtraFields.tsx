@@ -51,7 +51,7 @@ export class ExtraFields extends React.Component<ExtraFieldsProps, any>
     {
         const {extraFields, disabled, handleFieldChange, revisedFields, displayCols, index, perRow, key} = this.props;
         let count = index - 1;
-        let colClass = "col-sm-" + displayCols;
+        let colClass = "col-xs-" + displayCols;
         let start = index ? index : 0;
 
         if (extraFields && extraFields.length)
@@ -124,6 +124,6 @@ export class ExtraFields extends React.Component<ExtraFieldsProps, any>
             return <div/>
         }
 
-        return <div className="row col-sm-12" style={{height: '46px'}}/>
+        return <div className="row col-xs-12" style={{height: '46px'}}/>
     }
 }

@@ -152,7 +152,7 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
                 <form>
                     <div style={{marginBottom: '20px', marginTop: '-15px'}}><h4>New Revision</h4></div>
                     <div className="row clearfix">
-                        <div className="col-sm-6" style={{height: '156px'}}>
+                        <div className="col-xs-6" style={{height: '156px'}}>
                             <div className="row clearfix">
                                 <div className="col-xs-4">
                                     <ControlLabel htmlFor='projectId'>Project Id</ControlLabel>
@@ -218,7 +218,7 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
                                 {this.renderExtraFields(false, 3, 0, 4)}
                             </div>
                         </div>
-                        <div className="col-sm-6">
+                        <div className="col-xs-6">
                             <div className="row clearfix">
                                 <div className="col-xs-12">
                                     <ControlLabel htmlFor='description'>Description*</ControlLabel>
@@ -236,11 +236,11 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
                                 </div>
                             </div>
                         </div>
-                        <div className="clearfix col-sm-12"  style={{paddingLeft: '15px', marginBottom: '10px', marginRight:'15px'}}>
+                        <div className="clearfix col-xs-12"  style={{paddingLeft: '15px', marginBottom: '10px', marginRight:'15px'}}>
                             {this.renderOverflowExtraFields(3, false)}
                         </div>
-                        <div className="clearfix col-sm-12">
-                            <div className="col-sm-6" />
+                        <div className="clearfix col-xs-12">
+                            <div className="col-xs-6" />
                             <div className="col-xs-6" >
                                 <CheckboxInput
                                     disabled={false}
@@ -258,7 +258,7 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
                         <div style={{borderTop: '1px solid #DDDDDD', paddingBottom: '15px', paddingTop: '5px', paddingLeft: '15px', marginLeft: '-15px', marginRight: '-15px', backgroundColor: '#EEEEEE'}}>
                             <h4>Previous Revision</h4></div>
                         <div style={{borderBottom: '1px solid #DDDDDD', backgroundColor: '#EEEEEE'}} className="row clearfix">
-                            <div className="col-sm-6" style={{height: '156px'}}>
+                            <div className="col-xs-6" style={{height: '156px'}}>
                                 <div className="row clearfix">
                                     <div className="col-xs-4">
                                         <ControlLabel htmlFor='projectIdOld'>Project Id</ControlLabel>
@@ -324,7 +324,7 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
                                     {this.renderExtraFields(true, 3, 0, 4)}
                                 </div>
                             </div>
-                            <div className="col-sm-6">
+                            <div className="col-xs-6">
                                 <div className="row clearfix">
                                     <div className="col-xs-12">
                                         <ControlLabel htmlFor='descriptionOld'>Description*</ControlLabel>
@@ -342,13 +342,13 @@ export class ProjectRevisionFormImpl extends React.Component<ProjectFormProps> {
                                     </div>
                                 </div>
                             </div>
-                            <div className="clearfix col-sm-12" style={{paddingLeft: '15px', marginBottom: '10px', marginRight:'15px'}}>
+                            <div className="clearfix col-xs-12" style={{paddingLeft: '15px', marginBottom: '10px', marginRight:'15px'}}>
                                 {this.renderOverflowExtraFields(3, true)}
                             </div>
                         </div>
                     </div>
                     <div className="row clearfix">
-                        <div className="col-sm-12 margin-top">
+                        <div className="col-xs-12 margin-top">
                             {this.renderButtons()}
                         </div>
                     </div>

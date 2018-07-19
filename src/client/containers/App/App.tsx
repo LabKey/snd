@@ -130,8 +130,8 @@ export class AppImpl extends React.Component<AppProps, {}> {
         }
 
         return (
-            <div className="content-wrapper">
-                <div className="container">
+            <div className={"app-container"}>
+                <div>
                     <Switch>
                         {CrumbRoutes.map((route: RouteProps, index: number) => {
                             return <Route

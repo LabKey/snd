@@ -181,7 +181,7 @@ export class PackageViewerImpl extends React.Component<PackageViewerProps, Packa
                         showDrafts={showDrafts}
                         toggleDrafts={this.toggleDrafts}/>
 
-                    <div className="col-sm-12 package-viewer__results" style={{margin: '0 0 0 2%'}}>
+                    <div className="col-xs-12 package-viewer__results" style={{margin: '0 0 0 2%'}}>
                         {showDrafts ?
                             <div className="package_viewer__results--drafts">
                                 <h4>Drafts</h4>

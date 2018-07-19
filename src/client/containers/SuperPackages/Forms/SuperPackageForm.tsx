@@ -85,7 +85,7 @@ export class SuperPackageFormImpl extends React.Component<SuperPackageFormProps,
         return (
             <div className="row clearfix">
                 {!isReadyOnly ?
-                    <div className="col-sm-6">
+                    <div className="col-xs-6">
                         <div className="row clearfix col-xs-12 margin-top">
                             <ControlLabel>Available Packages</ControlLabel>
                         </div>
@@ -104,9 +104,9 @@ export class SuperPackageFormImpl extends React.Component<SuperPackageFormProps,
                     </div>
                     : null
                 }
-                <div className={isReadyOnly ? "col-sm-12" : "col-sm-6"}>
-                    <div className="row clearfix col-xs-12 margin-top"><div className="col-sm-8" style={{paddingLeft:0}}>Assigned Packages</div>
-                        <div className="col-sm-4 text-right">{isPackageView ?<span style={{fontSize:10}}>(Bold packages are required)</span>: null}</div></div>
+                <div className={isReadyOnly ? "col-xs-12" : "col-xs-6"}>
+                    <div className="row clearfix col-xs-12 margin-top"><div className="col-xs-8" style={{paddingLeft:0}}>Assigned Packages</div>
+                        <div className="col-xs-4 text-right">{isPackageView ?<span style={{fontSize:10}}>(Bold packages are required)</span>: null}</div></div>
                     <div className="row clearfix col-xs-12 assigned_packages">
                         <SubpackageViewer
                             subPackages={model.subPackages}

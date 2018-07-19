@@ -39,7 +39,7 @@ export class SearchInput extends React.Component<SearchInputProps, {}> {
         allowToggle: false,
         disabled: false,
         toggled: false,
-        wrapperClassName: 'col-sm-6 col-sm-8',
+        wrapperClassName: 'col-xs-6',
     };
 
     handleFocus(el: React.FocusEvent<HTMLInputElement>) {

@@ -245,7 +245,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps, ProjectFo
             <div>
                 <form>
                     <div className="row clearfix">
-                        <div className="col-sm-6" style={{height: '156px'}}>
+                        <div className="col-xs-6" style={{height: '156px'}}>
                             <div className="row clearfix">
                                 <div className="col-xs-4">
                                     <ControlLabel htmlFor='projectId'>Project Id</ControlLabel>
@@ -311,7 +311,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps, ProjectFo
                                     {this.renderExtraFields(3, 0, 4)}
                             </div>
                         </div>
-                        <div className="col-sm-6">
+                        <div className="col-xs-6">
                             <div className="row clearfix">
                                 <div className="col-xs-12">
                                     <ControlLabel htmlFor='description'>Description*</ControlLabel>
@@ -329,7 +329,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps, ProjectFo
                                 </div>
                             </div >
                         </div>
-                        <div className="clearfix col-sm-12" style={{marginRight:'15px'}}>
+                        <div className="clearfix col-xs-12" style={{marginRight:'15px'}}>
                             {this.renderOverflowExtraFields(3)}
                         </div>
                     </div>
@@ -350,7 +350,7 @@ export class ProjectFormImpl extends React.Component<ProjectFormProps, ProjectFo
                     />
 
                     <div className="row clearfix">
-                        <div className="col-sm-12 margin-top">
+                        <div className="col-xs-12 margin-top">
                             {this.renderButtons()}
                         </div>
                     </div>

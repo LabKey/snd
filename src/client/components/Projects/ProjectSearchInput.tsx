@@ -49,25 +49,29 @@ export class ProjectSearchInput extends React.Component<ProjectSearchInputProps,
         return(
             <div>
                 <div className="project-viewer__header clearfix" style={{paddingBottom: '20px', paddingTop: '10px'}}>
-                    <div className={"col-sm-3 col-md-2 projects-button"}>
-                        <Link to="/projects/new">
-                            <Button className="projects-new_project_btn">New Project</Button>
-                        </Link>
+                    <div className={"col-xs-12"}>
+                        <div className={"col-xs-2 projects-button"}>
+                            <Link to="/projects/new">
+                                <Button className="projects-new_project_btn">New Project</Button>
+                            </Link>
+                        </div>
+                        <div className={"col-xs-1"} />
+                        <SearchInput
+                            inputRef={inputRef}
+                            input={input}
+                            handleInputChange={handleInputChange}
+                            handleClear={handleClear}
+                            name="projectSearch"
+                            wrapperClassName={"col-xs-6"}/>
+                        <div className={"col-xs-3"}></div>
                     </div>
-                    <SearchInput
-                        inputRef={inputRef}
-                        input={input}
-                        handleInputChange={handleInputChange}
-                        handleClear={handleClear}
-                        name="projectSearch"
-                        wrapperClassName={"col-sm-6 col-md-8"}/>
-                    <div className="row clearfix">
-                    <div className="col-xs-2 projects-show_drafts" onClick={toggleDrafts}>
-                        <input type="checkbox" checked={showDrafts}/> Show Drafts
-                    </div>
-                    <div className="col-xs-10 projects-show_not_active" onClick={toggleNotActive}>
-                        <input type="checkbox" checked={showNotActive}/> Show Not Active
-                    </div>
+                    <div className="col-xs-12 row clearfix">
+                        <div className="col-xs-2 projects-show_drafts" onClick={toggleDrafts}>
+                            <input type="checkbox" checked={showDrafts}/> Show Drafts
+                        </div>
+                        <div className="col-xs-9 projects-show_not_active" onClick={toggleNotActive}>
+                            <input type="checkbox" checked={showNotActive}/> Show Not Active
+                        </div>
                     </div>
                 </div>
                 <div style={{borderBottom: '1px solid black', margin: '0 15px'}}/>

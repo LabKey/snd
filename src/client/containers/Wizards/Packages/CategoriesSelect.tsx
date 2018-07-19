@@ -181,7 +181,7 @@ export class CategoriesSelect extends React.Component<CategoriesSelectProps, Cat
         const { data, focused, input, selected } = this.state;
         return (
             <div className="row input-row">
-                <div className="clearfix col-sm-12 margin-top">
+                <div className="clearfix col-xs-12 margin-top">
                     <ControlLabel>Categories</ControlLabel >
                 </div>
                 <div ref={(el) => this.wrapper = el}>
@@ -196,7 +196,7 @@ export class CategoriesSelect extends React.Component<CategoriesSelectProps, Cat
                         inputRef={(el) => this.inputRef = el}
                         name="query-search-input"
                         toggled={focused}
-                        wrapperClassName="col-sm-12 clearfix"/>
+                        wrapperClassName="col-xs-12 clearfix"/>
                     <CategoriesSelectResults
                         data={model.data}
                         dataIds={data}

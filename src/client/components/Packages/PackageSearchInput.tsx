@@ -45,30 +45,35 @@ export class PackageSearchInput extends React.Component<PackageSearchInputProps,
         return(
             <div>
                 <div className="package-viewer__header clearfix" style={{paddingBottom: '20px', paddingTop: '10px'}}>
-                    <div className={"col-sm-3 col-md-2 packages-button"}>
-                        <Link to="/packages/new">
-                            <Button className="packages-new_pkg_btn">New Package</Button>
-                        </Link>
-                    </div>
-                    <SearchInput
-                        inputRef={inputRef}
-                        input={input}
-                        handleInputChange={handleInputChange}
-                        handleClear={handleClear}
-                        name="packageSearch"
-                        wrapperClassName={"col-sm-6 col-md-8"}/>
-                    <div className={"col-sm-3 col-md-2 packages-button"}>
-                        <div className="packages-options">
-                            <DropdownButton id="package-actions" title="Options" pullRight style={{width: '105px'}}>
-                                <MenuItem onClick={() => changeLocation('/categories')}>
+                    <div className={"col-xs-12"}>
+                        <div className={"col-xs-3 packages-button"}>
+                            <Link to="/packages/new">
+                                <Button className="packages-new_pkg_btn">New Package</Button>
+                            </Link>
+                        </div>
+                        <SearchInput
+                            inputRef={inputRef}
+                            input={input}
+                            handleInputChange={handleInputChange}
+                            handleClear={handleClear}
+                            name="packageSearch"
+                            wrapperClassName={"col-xs-6"}/>
+                        <div className={"col-xs-3 packages-button"}>
+                            <div className="packages-options">
+                                <DropdownButton id="package-actions" title="Options" pullRight style={{width: '105px'}}>
+                                    <MenuItem onClick={() => changeLocation('/categories')}>
                                         Edit Categories
-                                </MenuItem>
-                                <MenuItem disabled>Edit Projects</MenuItem>
-                            </DropdownButton>
+                                    </MenuItem>
+                                    <MenuItem disabled>Edit Projects</MenuItem>
+                                </DropdownButton>
+                            </div>
                         </div>
                     </div>
                     <div className="col-xs-12 packages-show_drafts" onClick={toggleDrafts}>
-                        <input type="checkbox" checked={showDrafts}/> Show drafts
+                        <div className="col-xs-6">
+                            <input type="checkbox" checked={showDrafts}/> Show drafts
+                        </div>
+                        <div className="col-xs-6"></div>
                     </div>
                 </div>
                 <div style={{borderBottom: '1px solid black', margin: '0 15px'}}/>
