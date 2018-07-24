@@ -205,7 +205,7 @@ public class EditPackagePage extends LabKeyPage<EditPackagePage.ElementCache>
         WebElement panelBody = Locator.tagWithClass("div", "panel-body").findWhenNeeded(appContainer);
 
         // container for description, narrative
-        WebElement packageEditPanel = Locator.xpath("//div[@class='col-sm-8']")
+        WebElement packageEditPanel = Locator.xpath("//div[@class='col-xs-8']")
                 .withDescendant(Locator.tagWithClass("label", "control-label").withText("Package Id"))
                 .findWhenNeeded(getDriver());
         WebElement descriptionEdit = Locator.tagWithClass("input", "form-control")
@@ -229,7 +229,7 @@ public class EditPackagePage extends LabKeyPage<EditPackagePage.ElementCache>
                         .refindWhenNeeded(getDriver()).withTimeout(4000),
                 getDriver());
 
-        WebElement categoryEditPanel = Locator.xpath("//div[@class='col-sm-4']")
+        WebElement categoryEditPanel = Locator.xpath("//div[@class='col-xs-4']")
                 .withDescendant(Locator.tagWithClass("label", "control-label").withText("Categories"))
                 .findWhenNeeded(getDriver()).withTimeout(4000);
         FilterSelect categoryPicker = FilterSelect.finder(getDriver())
