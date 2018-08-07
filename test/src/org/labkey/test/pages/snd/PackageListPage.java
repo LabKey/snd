@@ -103,7 +103,7 @@ public class PackageListPage extends LabKeyPage<PackageListPage.ElementCache>
                 .withTimeout(WAIT_FOR_JAVASCRIPT);
         Locator showDraftsLoc = Locator.tagWithClassContaining("div", "packages-show_drafts")
                 .withText("Show drafts")
-                .child("input");
+                .descendant("input");
         Input searchFilter = Input.Input(Locator.input("packageSearch"), getDriver())
                 .timeout(WAIT_FOR_JAVASCRIPT)
                 .findWhenNeeded(container);

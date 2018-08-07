@@ -37,7 +37,7 @@
 
     for (Group g : groups)
     {
-        if (g.getUserId() == Group.groupAdministrators)
+        if (g.getUserId() == Group.groupAdministrators || g.getUserId() == Group.groupDevelopers)
             continue;
 
         validGroups.add(g);
