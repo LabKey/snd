@@ -17,11 +17,15 @@ package org.labkey.api.snd;
 
 import org.labkey.api.data.Container;
 import org.labkey.api.exp.property.Domain;
+import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.query.ExtendedTableDomainKind;
 import org.labkey.api.security.User;
 import org.labkey.api.security.permissions.AdminPermission;
+import org.labkey.data.xml.domainTemplate.DomainTemplateType;
+import org.labkey.data.xml.domainTemplate.SNDTemplateType;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -78,5 +82,11 @@ public class SNDDomainKind extends ExtendedTableDomainKind
         result.add("ModifiedBy");
         result.add("Modified");
         return result;
+    }
+
+    @Override
+    public boolean matchesTemplateXML(String templateName, DomainTemplateType template, List<GWTPropertyDescriptor> properties)
+    {
+        return template instanceof SNDTemplateType;
     }
 }
