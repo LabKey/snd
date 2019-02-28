@@ -489,6 +489,7 @@
             multi.add(LABKEY.Ajax.request,
                     {
                         url: TEST_URLS.UPDATE_ROLE_URL,
+                        method: 'POST',
                         jsonData: roleData[i],
                         failure: function (json) {
                             handleFailure(json, 'Failed SND roles initialization');
@@ -534,6 +535,7 @@
 
                 // console.log('savePackage, savePackage api - index: ' + index);
                 LABKEY.Ajax.request({
+                    method: 'POST',
                     url: TEST_URLS.SAVE_PKG_URL,
                     jsonData: packageData,
                     scope: this,
@@ -593,6 +595,7 @@
 
                 LABKEY.Ajax.request({
                     url: TEST_URLS.SAVE_PROJECT_URL,
+                    method: 'POST',
                     jsonData: projectData,
                     scope: this,
                     failure: function (json) {

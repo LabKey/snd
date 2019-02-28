@@ -98,6 +98,7 @@
             function startFillInNarrativeCache() {
                 showFillingInCacheMsg(true);
                 LABKEY.Ajax.request({
+                    method: 'POST',
                     success: fillInCacheSuccess,
                     failure: handleFailure,
                     url: LABKEY.ActionURL.buildURL('snd', 'fillInNarrativeCache.api'),
@@ -110,6 +111,7 @@
                 if (confirm("Repopulating the cache after clearing can take a very long time.  Are you sure you want to clear it?")) {
                     showClearingCacheMsg(true);
                     LABKEY.Ajax.request({
+                        method: 'POST',
                         success: clearingCacheSuccess,
                         failure: handleFailure,
                         url: LABKEY.ActionURL.buildURL('snd', 'clearNarrativeCache.api'),
@@ -142,6 +144,7 @@
             function insertQCStates() {
                 showPopulatingQcStateMsg(true);
                 LABKEY.Ajax.request({
+                    method: 'POST',
                     success: insertQCStateSuccess,
                     failure: handleFailure,
                     url: LABKEY.ActionURL.buildURL('snd', 'populateQCStates.api'),

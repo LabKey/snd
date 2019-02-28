@@ -24,7 +24,8 @@
             run: function(){
                 return{
                     request:{
-                        url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL
+                        url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
+                        method: 'POST'
                     },
                     expectedFailure:"Missing json parameter."
                 }
@@ -35,6 +36,7 @@
                 return{
                     request:{
                         url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
+                        method: 'POST',
                         jsonData:{
                             eventId: 1800001,
                             date: "2018-02-26T17:51:20",
@@ -69,6 +71,7 @@
                 return{
                     request:{
                         url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
+                        method: 'POST',
                         jsonData:{
                             eventId: 1800001,
                             subjectId: 1,
@@ -101,6 +104,7 @@
                 return{
                     request:{
                         url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
+                        method: 'POST',
                         jsonData:{
                             eventId: 1800001,
                             subjectId: 1,
@@ -134,6 +138,7 @@
                 return {
                     request: {
                         url: LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
+                        method: 'POST',
                         jsonData :{
                             eventId: 1800001,
                             subjectId: 2,
@@ -212,6 +217,7 @@
                 return {
                     request: {
                         url: LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
+                        method: 'POST',
                         jsonData :{
                             eventId: 1800001,
                             subjectId: 2,
@@ -294,6 +300,7 @@
                 return{
                     request:{
                         url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
+                        method: 'POST',
                         jsonData:{
                             eventId: 1800002,
                             subjectId: 1,
@@ -355,6 +362,7 @@
                 return{
                     request:{
                         url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
+                        method: 'POST',
                         jsonData:{
                             eventId: "1800001-1",
                             subjectId : 1,
@@ -389,6 +397,7 @@
                 return{
                     request:{
                         url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
+                        method: 'POST',
                         jsonData:{
                             eventId: 1800001,
                             subjectId:1,
@@ -423,6 +432,7 @@
                 return{
                     request:{
                         url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
+                        method: 'POST',
                         jsonData:{
                             eventId : 1800002,
                             subjectId : 1,
@@ -457,6 +467,7 @@
                 return{
                     request:{
                         url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
+                        method: 'POST',
                         jsonData:{
                             eventId : 1800002,
                             subjectId : 1,
@@ -492,6 +503,7 @@
                 return {
                     request: {
                         url: LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
+                        method: 'POST',
                         jsonData: {
                             eventId: 1700007,
                             date: "xx",
@@ -745,6 +757,7 @@
             var saveRequest = {
                 request: {
                     url: LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
+                    method: 'POST',
                     jsonData: testData.jsonData
                 }
             };
