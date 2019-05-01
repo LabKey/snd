@@ -16,6 +16,7 @@
 package org.labkey.snd.query;
 
 import org.jetbrains.annotations.NotNull;
+import org.labkey.api.data.BaseColumnInfo;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.DisplayColumn;
 import org.labkey.api.data.DisplayColumnFactory;
@@ -71,7 +72,7 @@ public class EventsCacheTable extends SimpleUserSchema.SimpleTable<SNDUserSchema
     {
         super.init();
 
-        ColumnInfo plainTextNarrativeColumn = addColumn(wrapColumn("Plain Text Narrative", getRealTable().getColumn("HtmlNarrative")));
+        BaseColumnInfo plainTextNarrativeColumn = addColumn(wrapColumn("Plain Text Narrative", getRealTable().getColumn("HtmlNarrative")));
         plainTextNarrativeColumn.setDisplayColumnFactory(new DisplayColumnFactory()
         {
             public DisplayColumn createRenderer(ColumnInfo colInfo)

@@ -23,6 +23,7 @@ import org.labkey.api.data.ContainerFilter;
 import org.labkey.api.data.ContainerForeignKey;
 import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.DbScope;
+import org.labkey.api.data.ForeignKey;
 import org.labkey.api.data.JdbcType;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SqlExecutor;
@@ -89,15 +90,19 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
         // Inject a lookup to the EventData table
         ExprColumn eventDataCol = new ExprColumn(this, "EventData", new SQLFragment(ExprColumn.STR_TABLE_ALIAS + ".EventDataId"), JdbcType.VARCHAR);
         addColumn(eventDataCol);
-        eventDataCol.setFk(new QueryForeignKey(getUserSchema(), null, SNDUserSchema.TableType.EventData.name(), "EventDataId", "EventDataId", true));
+        eventDataCol.setFk(QueryForeignKey.from(getUserSchema(), this.getContainerFilter())
+                .table(SNDUserSchema.TableType.EventData.name())
+                .key("EventDataId")
+                .display("EventDataId")
+                .raw(true));
 
         // Inject a Container column directly into the table, making it easier to follow container filtering rules
         ExprColumn containerCol = new ExprColumn(this, "Container", new SQLFragment(ExprColumn.STR_TABLE_ALIAS  + ".Container"), JdbcType.VARCHAR);
         addColumn(containerCol);
         containerCol.setFk(new ContainerForeignKey(getUserSchema()));
 
-        getColumn("ObjectId").setFk(null);
-        getColumn("PropertyId").setLabel("Property");
+        getMutableColumn("ObjectId").setFk((ForeignKey)null);
+        getMutableColumn("PropertyId").setLabel("Property");
     }
 
     @Override
