@@ -31,6 +31,7 @@ public enum SNDSequencer
 
     private String sequenceName;
     private int minId;
+
     SNDSequencer(String name, int id)
     {
         sequenceName = name;
