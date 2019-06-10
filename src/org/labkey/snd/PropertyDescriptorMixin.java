@@ -11,14 +11,6 @@ import org.labkey.api.gwt.client.util.StringProperty;
  * necessary.
  */
 @JsonIgnoreProperties({
-        "setMeasure",
-        "setDimension",
-        "setExcludeFromShifting",
-        "lookupDescription",
-        "fileType",
-        "updatedField",
-        "newField",
-        "renderUpdate",
         "max",
         "min",
         "validators",  // Must handle separately
@@ -29,10 +21,8 @@ import org.labkey.api.gwt.client.util.StringProperty;
 })
 public abstract class PropertyDescriptorMixin
 {
-    PropertyDescriptorMixin(@JsonProperty("PHI") StringProperty phi, @JsonProperty("URL") StringProperty url)
+    PropertyDescriptorMixin(@JsonProperty("URL") StringProperty url)
     { }
-    @JsonProperty("PHI")
-    abstract void setPHI(String phi); // rename property on deserialize
     @JsonProperty("URL")
     abstract void setURL(String url); // rename property on deserialize
 }
