@@ -31,17 +31,18 @@ public enum SNDSequencer
 
     private String sequenceName;
     private int minId;
+
     SNDSequencer(String name, int id)
     {
         sequenceName = name;
         minId = id;
     }
 
-    private Integer generateId(Container c)
+    private int generateId(Container c)
     {
         DbSequence sequence = DbSequenceManager.get(c, sequenceName);
         sequence.ensureMinimum(minId);
-        return sequence.next();
+        return Math.toIntExact(sequence.next());
     }
 
     public Integer ensureId(Container container, Integer id)
