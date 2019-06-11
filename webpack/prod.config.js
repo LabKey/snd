@@ -6,16 +6,17 @@
 require("babel-polyfill");
 const webpack = require("webpack");
 const path = require("path");
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
     context: path.resolve(__dirname, '..'),
+
+    mode: 'production',
 
     devtool: 'source-map',
 
     entry: {
         'app': [
-            'babel-polyfill',
             './src/client/theme/style.js',
             './src/client/app.tsx'
         ]
@@ -31,19 +32,31 @@ module.exports = {
         rules: [
             {
                 test: /\.tsx?$/,
-                loaders: ['babel-loader', 'ts-loader']
+                loaders: [{
+                    loader: 'babel-loader',
+                    options: {
+                        babelrc: true,
+                        cacheDirectory: true,
+                        presets: [
+                            "@babel/preset-env",
+                            "@babel/preset-react"
+                        ]
+                    }
+                },{
+                    loader: 'ts-loader',
+                    options: {
+                        onlyCompileBundledFiles: true
+                        // this flag and the test regex will make sure that test files do not get bundled
+                        // see: https://github.com/TypeStrong/ts-loader/issues/267
+                    }
+                }]
             },
             {
                 test: /\.css$/,
-                loader: ExtractTextPlugin.extract({
-                    use: [{
-                        loader: 'css-loader',
-                        options: {
-                            sourceMap: true
-                        }
-                    }],
-                    fallback: 'style-loader'
-                })
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    'css-loader'
+                ]
             },
             {
                 test: /style.js/,
@@ -65,9 +78,8 @@ module.exports = {
         new webpack.DefinePlugin({
             'process.env.NODE_ENV': '"production"'
         }),
-        new ExtractTextPlugin({
-            allChunks: true,
+        new MiniCssExtractPlugin({
             filename: '[name].css'
-        })
+        }),
     ]
 };

@@ -1,10 +1,10 @@
 {
-  "presets": [["env", {
+  "presets": [["@babel/preset-env", {
     "targets": {
       "browsers": ["> 0.2%", "last 2 versions", "Firefox 45", "not dead"]
     }
   }
-  ], "react"],
+  ], "@babel/preset-react"],
   "env": {
     "development": {
       "presets": ["react-hmre"]

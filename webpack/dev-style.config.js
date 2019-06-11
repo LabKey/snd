@@ -4,7 +4,7 @@
  * Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
  */
 const path = require("path");
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
     context: path.resolve(__dirname, '..'),
@@ -25,15 +25,10 @@ module.exports = {
         rules: [
             {
                 test: /\.css$/,
-                loader: ExtractTextPlugin.extract({
-                    use: [{
-                        loader: 'css-loader',
-                        options: {
-                            sourceMap: true
-                        }
-                    }],
-                    fallback: 'style-loader'
-                })
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    'css-loader'
+                ]
             },
             {
                 test: /style.js/,
@@ -48,8 +43,7 @@ module.exports = {
     },
 
     plugins: [
-        new ExtractTextPlugin({
-            allChunks: true,
+        new MiniCssExtractPlugin({
             filename: '[name].css'
         })
     ]
