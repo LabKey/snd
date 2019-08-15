@@ -265,7 +265,7 @@ export const projects = handleActions({
     },
 
     [PROJECT_WIZARD_TYPES.PROJECTS_TOGGLE_SUPERPKG_ACTIVE]: (state: ProjectWizardContainer, action: any) => {
-        const { model, subpackage } = action;
+        const { model, subpackage, view } = action;
         const projectWizardModel = state.projectData[getRevisionId(model)];
 
         const subPackages = projectWizardModel.data.subPackages.map(function(subPkg) {
@@ -283,7 +283,8 @@ export const projects = handleActions({
         }));
 
         const toggledModel = new ProjectWizardModel(Object.assign({}, projectWizardModel, {
-            data
+            data,
+            isValid: isFormValid(data, projectWizardModel.initialData, view)
         }));
 
         return new ProjectWizardContainer(Object.assign({}, state, {projectData: {
@@ -317,8 +318,10 @@ function isFormValid(data: ProjectModel, initialData: ProjectModel, view: VIEW_T
 
     // Check updated assigned packages for Edit
     if (!isValidChange && view === VIEW_TYPES.PROJECT_EDIT) {
-        isValidChange = data.subPackages.map(p => p.pkgId).sort().join('') !==
-            initialData.subPackages.map(p => p.pkgId).sort().join('')
+        isValidChange = data.subPackages.map(p => (p.pkgId + '.' + p.active)).sort().join('') !==
+            initialData.subPackages.map(p => (p.pkgId + '.' + p.active)).sort().join('')
+        || data.subPackages.map(p => (p.pkgId + '.' + p.active)).sort().join('') !==
+            initialData.subPackages.map(p => (p.pkgId + '.' + p.active)).sort().join('')
     }
 
     // Check previous revision end date for revision
