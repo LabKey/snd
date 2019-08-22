@@ -1409,15 +1409,6 @@ public class SNDManager
         {
             UserSchema schema = getSndUserSchema(c, u);
 
-            // Erase all project items for this project
-            SQLFragment sql = new SQLFragment("DELETE FROM " + SNDSchema.getInstance().getTableInfoProjectItems());
-            sql.append(" WHERE ParentObjectId = ?");
-            sql.add(project.getObjectId());
-
-            SqlExecutor executor = new SqlExecutor(schema.getDbSchema());
-            executor.execute(sql);
-
-            //Update and insert new project items
             TableInfo projectTable = getTableInfo(schema, SNDSchema.PROJECTS_TABLE_NAME);
             QueryUpdateService projectQus = getQueryUpdateService(projectTable);
 
@@ -1427,16 +1418,114 @@ public class SNDManager
             List<Map<String, Object>> projectRows = new ArrayList<>();
             projectRows.add(project.getProjectRow(c));
 
+
+            // 1. Query for list of projectItems from DB (projectItemsFromDb) and from UI (projectItemsFromUi)
+            // 2. If projectItem is in dbList and not uiList, delete it
+            // 3. If projectItem doesn't exist in dbList, insert new row
+            // 4. If projectItem has changed, update it
+            SimpleFilter filter = new SimpleFilter(FieldKey.fromParts(ProjectItem.PROJECTITEM_PARENTOBJECTID), project.getObjectId(), CompareType.EQUAL);
+            List<ProjectItem> projectItemsFromDb  = new TableSelector(projectItemsTable, filter, null).getArrayList(ProjectItem.class);
+            List<ProjectItem>  projectItemsFromUi = project.getProjectItems();
+
             try (DbScope.Transaction tx = projectTable.getSchema().getScope().ensureTransaction())
             {
+                // update project
                 projectQus.updateRows(u, c, projectRows, null, null, null);
-                projectItemsQus.insertRows(u, c, project.getProjectItemRows(c), errors, null, null);
+
+                // update/insert projectItems
+                for (ProjectItem projectItemFromUi : projectItemsFromUi)
+                {
+                    boolean found = false;
+                    boolean same = false;
+
+                    for (ProjectItem projectItemFromDb : projectItemsFromDb)
+                    {
+                        if (projectItemFromDb.equals(projectItemFromUi)) {
+                            //ignore; the items are the same
+                            found = true;
+                            same = true;
+                            break;
+                        }
+                        else if (projectItemFromDb.getProjectItemId() == projectItemFromUi.getProjectItemId())
+                        {
+                            found = true;
+                            if (projectItemFromDb.equals(projectItemFromUi))
+                            {
+                                // need to update
+                                same = false;
+                            }
+                            break;
+                        }
+                    }
+
+                    if (found )
+                    {
+
+                        if (same)
+                        {
+                            // ignore - projectItem is unchanged
+                        }
+                        else
+                        {
+                            // update the projectItem
+                            Map<String, Object> pkMap = new HashMap<>();
+                            List<Map<String, Object>> pkList = new ArrayList<>();
+
+                            pkMap.put(ProjectItem.PROJECTITEM_ID, projectItemFromUi.getProjectItemId());
+                            pkList.add(pkMap);
+
+                            List<Map<String, Object>> projectItemRow = new ArrayList<>();
+                            projectItemRow.add(projectItemFromUi.getRow(c));
+
+                            List<Map<String, Object>> updatedRow = projectItemsQus.updateRows(u, c, projectItemRow, pkList, null, null);
+                        }
+                    }
+                    else {
+                        // insert new item
+
+                        List<Map<String, Object>> projectItemRow = new ArrayList<>();
+                        projectItemRow.add(projectItemFromUi.getRow(c));
+                        projectItemsQus.insertRows(u, c, projectItemRow, errors, null, null);
+                    }
+
+                }
+                // delete projectItems
+                for (ProjectItem projectItemFromDb : projectItemsFromDb)
+                {
+                    boolean found = false;
+
+                    for (ProjectItem projectItemFromUi : projectItemsFromUi)
+                    {
+                        if (projectItemFromDb.equals(projectItemFromUi))
+                        {
+                            //ignore; the items are the same
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        // delete row
+
+                        Map<String, Object> pkMap = new HashMap<>();
+                        List<Map<String, Object>> pkList = new ArrayList<>();
+
+                        pkMap.put(ProjectItem.PROJECTITEM_ID, projectItemFromDb.getProjectItemId());
+                        pkList.add(pkMap);
+
+                        List<Map<String, Object>> projectItemRow = new ArrayList<>();
+                        projectItemRow.add(projectItemFromDb.getRow(c));
+                        List<Map<String, Object>> deletedRow = projectItemsQus.deleteRows(u, c, projectItemRow, null, null);
+                    }
+                }
                 tx.commit();
             }
-            catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException | InvalidKeyException e)
+            catch ( QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException | InvalidKeyException e)
             {
                 errors.addRowError(new ValidationException(e.getMessage()));
             }
+
+
+
         }
     }
 
