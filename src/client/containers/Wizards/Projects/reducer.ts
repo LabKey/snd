@@ -15,7 +15,7 @@
  */
 
 
-import {ProjectModel, ProjectWizardContainer, ProjectWizardModel} from "./model";
+import {ProjectAssignedPackageModel, ProjectModel, ProjectWizardContainer, ProjectWizardModel} from "./model";
 import {PROJECT_WIZARD_TYPES} from "./constants";
 import {handleActions} from "redux-actions";
 import {PropertyDescriptor} from "../model";
@@ -133,9 +133,18 @@ export const projects = handleActions({
 
         if (json.projectItems && Array.isArray(json.projectItems)) {
             subPackages = json.projectItems.map(function (item) {
-                return new AssignedPackageModel(item.superPkg.pkgId, item.superPkg.description, item.superPkg.narrative,
-                    item.superPkg.repeatable, item.superPkg.superPkgId, item.active, true, false, item.superPkg.sortOrder,
-                    item.superPkg.subPackages);
+                return new ProjectAssignedPackageModel({
+                    pkgId: item.superPkg.pkgId,
+                    projectItemId: item.projectItemId,
+                    description: item.superPkg.description,
+                    narrative: item.superPkg.narrative,
+                    repeatable: item.superPkg.repeatable,
+                    superPkgId: item.superPkg.superPkgId,
+                    active: item.active,
+                    showActive: true,
+                    required:false,
+                    sortOrder: item.superPkg.sortOrder,
+                    subPackages: item.superPkg.subPackages});
             });
         }
 
@@ -265,13 +274,24 @@ export const projects = handleActions({
     },
 
     [PROJECT_WIZARD_TYPES.PROJECTS_TOGGLE_SUPERPKG_ACTIVE]: (state: ProjectWizardContainer, action: any) => {
-        const { model, subpackage } = action;
+        const { model, subpackage, view } = action;
         const projectWizardModel = state.projectData[getRevisionId(model)];
 
         const subPackages = projectWizardModel.data.subPackages.map(function(subPkg) {
             if (subpackage.superPkgId === subPkg.superPkgId) {
-                return new AssignedPackageModel(subPkg.pkgId, subPkg.description, subPkg.narrative, subPkg.repeatable,
-                    subPkg.superPkgId, !subpackage.active, subPkg.showActive, false, subPkg.sortOrder, subPkg.subPackages);
+                return new ProjectAssignedPackageModel({
+                    pkgId: subPkg.pkgId,
+                    projectItemId: subPkg.projectItemId,
+                    description: subPkg.description,
+                    narrative: subPkg.narrative,
+                    repeatable: subPkg.repeatable,
+                    superPkgId: subPkg.superPkgId,
+                    active: !subpackage.active,
+                    showActive: subPkg.showActive,
+                    required: false,
+                    sortOrder: subPkg.sortOrder,
+                    subPackages: subPkg.subPackages
+                });
             }
             else {
                 return subPkg;
@@ -283,7 +303,8 @@ export const projects = handleActions({
         }));
 
         const toggledModel = new ProjectWizardModel(Object.assign({}, projectWizardModel, {
-            data
+            data,
+            isValid: isFormValid(data, projectWizardModel.initialData, view)
         }));
 
         return new ProjectWizardContainer(Object.assign({}, state, {projectData: {
@@ -317,8 +338,10 @@ function isFormValid(data: ProjectModel, initialData: ProjectModel, view: VIEW_T
 
     // Check updated assigned packages for Edit
     if (!isValidChange && view === VIEW_TYPES.PROJECT_EDIT) {
-        isValidChange = data.subPackages.map(p => p.pkgId).sort().join('') !==
-            initialData.subPackages.map(p => p.pkgId).sort().join('')
+        isValidChange = data.subPackages.map(p => (p.pkgId + '.' + p.active)).sort().join('') !==
+            initialData.subPackages.map(p => (p.pkgId + '.' + p.active)).sort().join('')
+        || data.subPackages.map(p => (p.pkgId + '.' + p.active)).sort().join('') !==
+            initialData.subPackages.map(p => (p.pkgId + '.' + p.active)).sort().join('')
     }
 
     // Check previous revision end date for revision
