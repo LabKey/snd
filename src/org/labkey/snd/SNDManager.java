@@ -1418,11 +1418,6 @@ public class SNDManager
             List<Map<String, Object>> projectRows = new ArrayList<>();
             projectRows.add(project.getProjectRow(c));
 
-
-            // 1. Query for list of projectItems from DB (projectItemsFromDb) and from UI (projectItemsFromUi)
-            // 2. If projectItem is in dbList and not uiList, delete it
-            // 3. If projectItem doesn't exist in dbList, insert new row
-            // 4. If projectItem has changed, update it
             SimpleFilter filter = new SimpleFilter(FieldKey.fromParts(ProjectItem.PROJECTITEM_PARENTOBJECTID), project.getObjectId(), CompareType.EQUAL);
             List<ProjectItem> projectItemsFromDb  = new TableSelector(projectItemsTable, filter, null).getArrayList(ProjectItem.class);
             List<ProjectItem>  projectItemsFromUi = project.getProjectItems();
@@ -1475,7 +1470,7 @@ public class SNDManager
                         }
                     }
                 }
-                // delete projectItems
+                // delete projectItems from db that are not in the UI's JSON
                 for (ProjectItem projectItemFromDb : projectItemsFromDb)
                 {
                     boolean found = false;
@@ -1505,9 +1500,6 @@ public class SNDManager
             {
                 errors.addRowError(new ValidationException(e.getMessage()));
             }
-
-
-
         }
     }
 
@@ -3181,7 +3173,7 @@ public class SNDManager
                     {
                         String lookupQuery = pd.getKey().getLookupQuery();
                         UserSchema luSchema = QueryService.get().getUserSchema(u, c, lookupSchema);
-                        TableInfo luTi = luSchema.getTable(lookupQuery);
+                        TableInfo luTi = luSchema.getTable(lookupQuery, null, true, false);
 
                         try
                         {
