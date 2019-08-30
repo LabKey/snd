@@ -1435,86 +1435,68 @@ public class SNDManager
                 // update/insert projectItems
                 for (ProjectItem projectItemFromUi : projectItemsFromUi)
                 {
-                    boolean found = false;
-                    boolean same = false;
-
-                    for (ProjectItem projectItemFromDb : projectItemsFromDb)
-                    {
-                        if (projectItemFromDb.equals(projectItemFromUi)) {
-                            //ignore; the items are the same
-                            found = true;
-                            same = true;
-                            break;
-                        }
-                        else if (projectItemFromDb.getProjectItemId() == projectItemFromUi.getProjectItemId())
-                        {
-                            found = true;
-                            if (projectItemFromDb.equals(projectItemFromUi))
-                            {
-                                // need to update
-                                same = false;
-                            }
-                            break;
-                        }
-                    }
-
-                    if (found )
-                    {
-
-                        if (same)
-                        {
-                            // ignore - projectItem is unchanged
-                        }
-                        else
-                        {
-                            // update the projectItem
-                            Map<String, Object> pkMap = new HashMap<>();
-                            List<Map<String, Object>> pkList = new ArrayList<>();
-
-                            pkMap.put(ProjectItem.PROJECTITEM_ID, projectItemFromUi.getProjectItemId());
-                            pkList.add(pkMap);
-
-                            List<Map<String, Object>> projectItemRow = new ArrayList<>();
-                            projectItemRow.add(projectItemFromUi.getRow(c));
-
-                            List<Map<String, Object>> updatedRow = projectItemsQus.updateRows(u, c, projectItemRow, pkList, null, null);
-                        }
-                    }
-                    else {
-                        // insert new item
-
+                    // check for insert/update
+                    if (projectItemFromUi.getProjectItemId() == -1) {
+                        // if projectItemId is -1 - insert
+                        Map<String, Object> projectItemValues = new ArrayListMap<>();
                         List<Map<String, Object>> projectItemRow = new ArrayList<>();
-                        projectItemRow.add(projectItemFromUi.getRow(c));
+                        projectItemValues.put(ProjectItem.PROJECTITEM_PARENTOBJECTID, projectItemFromUi.getParentObjectId());
+                        projectItemValues.put(ProjectItem.PROJECTITEM_SUPERPKGID, projectItemFromUi.getSuperPkgId());
+                        projectItemValues.put(ProjectItem.PROJECTITEM_ACTIVE, projectItemFromUi.isActive());
+                        projectItemValues.put(ProjectItem.PROJECTITEM_CONTAINER, projectItemFromUi.getContainer());
+
+                        projectItemRow.add(projectItemValues);
                         projectItemsQus.insertRows(u, c, projectItemRow, errors, null, null);
                     }
+                    else {
+                        // update or ignore the row if no changes made
+                        for (ProjectItem projectItemFromDb : projectItemsFromDb)
+                        {
+                            if (projectItemFromDb.equals(projectItemFromUi)) {
+                                //ignore; the items are the same
+                                break;
+                            }
+                            else if (projectItemFromDb.getProjectItemId() == projectItemFromUi.getProjectItemId())
+                            {
+                                // need to update
+                                Map<String, Object> pkMap = new HashMap<>();
+                                List<Map<String, Object>> pkList = new ArrayList<>();
 
+                                pkMap.put("ProjectItemId", projectItemFromUi.getProjectItemId());
+                                pkList.add(pkMap);
+
+                                List<Map<String, Object>> projectItemRow = new ArrayList<>();
+                                projectItemRow.add(projectItemFromUi.getRow(c));
+
+                                List<Map<String, Object>> updatedRow = projectItemsQus.updateRows(u, c, projectItemRow, pkList, null, null);
+
+                                break;
+                            }
+                        }
+                    }
                 }
                 // delete projectItems
                 for (ProjectItem projectItemFromDb : projectItemsFromDb)
                 {
                     boolean found = false;
-
                     for (ProjectItem projectItemFromUi : projectItemsFromUi)
                     {
-                        if (projectItemFromDb.equals(projectItemFromUi))
+                        if (projectItemFromDb.getProjectItemId() == projectItemFromUi.getProjectItemId())
                         {
-                            //ignore; the items are the same
+                            //ignore; the row exists
                             found = true;
                             break;
                         }
                     }
                     if (!found) {
                         // delete row
-
                         Map<String, Object> pkMap = new HashMap<>();
                         List<Map<String, Object>> pkList = new ArrayList<>();
 
-                        pkMap.put(ProjectItem.PROJECTITEM_ID, projectItemFromDb.getProjectItemId());
+                        pkMap.put("ProjectItemId", projectItemFromDb.getProjectItemId());
                         pkList.add(pkMap);
 
-                        List<Map<String, Object>> projectItemRow = new ArrayList<>();
-                        projectItemRow.add(projectItemFromDb.getRow(c));
-                        List<Map<String, Object>> deletedRow = projectItemsQus.deleteRows(u, c, projectItemRow, null, null);
+                        List<Map<String, Object>> deletedRow = projectItemsQus.deleteRows(u, c, pkList, null, null);
                     }
                 }
                 tx.commit();
@@ -3151,7 +3133,7 @@ public class SNDManager
      * Returns a list of active projects with a list of project items
      */
 
-    public List<Map<String, Object>> getActiveProjects(Container c, User u, ArrayList<SimpleFilter> filters)
+    public List<Map<String, Object>> getActiveProjects(Container c, User u, ArrayList<SimpleFilter> filters, Boolean activeProjectItemsOnly)
     {
        List<Map<String, Object>> projectList = new ArrayList<>();
 
@@ -3228,7 +3210,7 @@ public class SNDManager
             }
 
             // add projectItems
-            List<Map<String, Object>> pItems = getProjectItemsList(c, u, project.getProjectId(), project.getRevisionNum());
+            List<Map<String, Object>> pItems = getProjectItemsList(c, u, project.getProjectId(), project.getRevisionNum(), activeProjectItemsOnly);
 
             if (pItems.size() > 0)
             {
@@ -3242,23 +3224,29 @@ public class SNDManager
         return projectList;
     }
 
-    public List<Map<String, Object>> getProjectItemsList(Container c, User u, int projectId, int revNum)
+    public List<Map<String, Object>> getProjectItemsList(Container c, User u, int projectId, int revNum, boolean activeProjectItemsOnly)
     {
         UserSchema schema = getSndUserSchema(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT pi.ProjectItemId, pi.superPkgId, p.pkgId, p.description FROM ");
-        sql.append(schema.getTable(SNDSchema.PROJECTITEMS_TABLE_NAME), "pi");
+        sql.append(schema.getTable(SNDSchema.PROJECTITEMS_TABLE_NAME, null, true, false), "pi");
         sql.append(" JOIN ");
-        sql.append(schema.getTable(SNDSchema.PROJECTS_TABLE_NAME), "pr");
+        sql.append(schema.getTable(SNDSchema.PROJECTS_TABLE_NAME, null, true, false), "pr");
         sql.append(" ON pi.ParentObjectId = pr.ObjectId");
         sql.append(" JOIN ");
-        sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
+        sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME, null, true, false), "sp");
         sql.append(" ON sp.SuperPkgId = pi.SuperPkgId");
         sql.append(" JOIN ");
-        sql.append(schema.getTable(SNDSchema.PKGS_TABLE_NAME), "p");
+        sql.append(schema.getTable(SNDSchema.PKGS_TABLE_NAME, null, true, false), "p");
         sql.append(" ON sp.PkgId = p.PkgId");
         sql.append(" WHERE ProjectId = ? AND RevisionNum = ?");
         sql.add(projectId).add(revNum);
+        if (activeProjectItemsOnly) {
+            sql.append(" AND pi.Active = ?");
+            sql.add(true);
+        }
+
+
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
 
         List<Map<String, Object>> projectItems = new ArrayList<>();

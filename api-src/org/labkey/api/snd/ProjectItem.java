@@ -142,14 +142,13 @@ public class ProjectItem
         return _active == that._active &&
                 _projectItemId == that._projectItemId &&
                 _superPkgId == that._superPkgId &&
-                _parentObjectId.equals(that._parentObjectId) &&
-                _container.equals(that._container) &&
-                _superPackage.equals(that._superPackage);
+                Objects.equals(_parentObjectId, that._parentObjectId) &&
+                Objects.equals(_container, that._container);
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(_active, _projectItemId, _superPkgId, _parentObjectId, _container, _superPackage);
+        return Objects.hash(_active, _projectItemId, _superPkgId, _parentObjectId, _container);
     }
 }
