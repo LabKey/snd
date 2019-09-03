@@ -3121,11 +3121,6 @@ public class SNDManager
         return categoryMap;
     }
 
-    public List<Map<String, Object>> getActiveProjects(Container c, User u, ArrayList<SimpleFilter> filters)
-    {
-        return getActiveProjects(c, u, filters, true);
-    }
-
     /**
      * Returns a list of active projects with a list of project items
      */
