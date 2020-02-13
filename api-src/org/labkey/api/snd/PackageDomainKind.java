@@ -25,10 +25,12 @@ import org.labkey.api.query.ExtendedTableDomainKind;
 import org.labkey.api.security.User;
 import org.labkey.api.security.permissions.AdminPermission;
 
+import org.json.JSONObject;
+
 /**
  * Created by marty on 8/14/2017.
  */
-public class PackageDomainKind extends ExtendedTableDomainKind
+public class PackageDomainKind extends ExtendedTableDomainKind<JSONObject>
 {
     private static final String NAMESPACE_PREFIX = "package";
     private static final String SCHEMA_NAME = "snd";

@@ -24,6 +24,7 @@ import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.data.xml.domainTemplate.DomainTemplateType;
 import org.labkey.data.xml.domainTemplate.SNDTemplateType;
 
+import org.json.JSONObject;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,7 +32,7 @@ import java.util.Set;
 /**
  * Created by marty on 7/11/2017.
  */
-public class SNDDomainKind extends ExtendedTableDomainKind
+public class SNDDomainKind extends ExtendedTableDomainKind<JSONObject>
 {
     private final String NAMESPACE_PREFIX = "snd";
     private final String SCHEMA_NAME = "snd";
