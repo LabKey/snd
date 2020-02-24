@@ -32,7 +32,7 @@ import java.util.Set;
 /**
  * Created by marty on 7/11/2017.
  */
-public class SNDDomainKind extends ExtendedTableDomainKind<JSONObject>
+public class SNDDomainKind extends ExtendedTableDomainKind
 {
     private final String NAMESPACE_PREFIX = "snd";
     private final String SCHEMA_NAME = "snd";

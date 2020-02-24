@@ -30,7 +30,7 @@ import org.json.JSONObject;
 /**
  * Created by marty on 8/14/2017.
  */
-public class PackageDomainKind extends ExtendedTableDomainKind<JSONObject>
+public class PackageDomainKind extends ExtendedTableDomainKind
 {
     private static final String NAMESPACE_PREFIX = "package";
     private static final String SCHEMA_NAME = "snd";
