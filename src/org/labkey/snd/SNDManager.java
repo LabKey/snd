@@ -2722,13 +2722,6 @@ public class SNDManager
             Map<String, Object> row;
             BatchValidationException errors = new BatchValidationException();
 
-            for (Integer cacheDatum : cacheData)
-            {
-                row = new HashMap<>();
-                row.put("EventId", cacheDatum);
-                rows.add(row);
-            }
-
             if (cacheData.size() > MAX_MERGE_ROWS)
             {
                 log.info("More than " + MAX_MERGE_ROWS + " rows. Truncating narrative cache");
@@ -2738,6 +2731,13 @@ public class SNDManager
             }
             else
             {
+                for (Integer cacheDatum : cacheData)
+                {
+                    row = new HashMap<>();
+                    row.put("EventId", cacheDatum);
+                    rows.add(row);
+                }
+
                 log.info("Deleting affected narrative cache rows.");
                 deleteNarrativeCacheRows(container, user, rows, errors);
                 //repopulate

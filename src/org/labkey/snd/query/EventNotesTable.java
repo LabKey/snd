@@ -27,6 +27,7 @@ import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.SimpleQueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema;
+import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
 import org.labkey.api.security.UserPrincipal;
 import org.labkey.api.security.permissions.AdminPermission;
@@ -71,19 +72,21 @@ public class EventNotesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
         private int getRowCount(DataIteratorBuilder rows, @Nullable Map<Enum,Object> configParameters, BatchValidationException errors)
         {
             List<Map<String, Object>> data;
+            int rowCount = 0;
 
             DataIteratorContext dataIteratorContext = getDataIteratorContext(errors, QueryUpdateService.InsertOption.MERGE, configParameters);
 
             try
             {
                 data = _sndService.getMutableData(rows, dataIteratorContext);
+                rowCount = data.size();
             }
             catch (IOException e)
             {
-                return 0;
+                errors.addRowError(new ValidationException(e.getMessage()));
             }
 
-            return data.size();
+            return rowCount;
         }
 
         @Override

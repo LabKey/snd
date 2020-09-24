@@ -29,6 +29,7 @@ import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.QueryUpdateServiceException;
 import org.labkey.api.query.SimpleQueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema.SimpleTable;
+import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.Event;
 import org.labkey.api.snd.SNDService;
@@ -92,6 +93,7 @@ public class EventsTable extends SimpleTable<SNDUserSchema>
             }
             catch (IOException e)
             {
+                errors.addRowError(new ValidationException(e.getMessage()));
                 return eventIds;
             }
 

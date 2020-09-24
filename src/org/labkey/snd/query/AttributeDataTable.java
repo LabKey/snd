@@ -176,23 +176,7 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
                 packageMap.put(pkgId, packageAttributes);
             }
         }
-        private int getRowCount(DataIteratorBuilder rows, @Nullable Map<Enum,Object> configParameters, BatchValidationException errors)
-        {
-            List<Map<String, Object>> data;
 
-            DataIteratorContext dataIteratorContext = getDataIteratorContext(errors, QueryUpdateService.InsertOption.MERGE, configParameters);
-
-            try
-            {
-                data = _sndService.getMutableData(rows, dataIteratorContext);
-            }
-            catch (IOException e)
-            {
-                return 0;
-            }
-
-            return data.size();
-        }
         private String getObjectURI(Integer eventDataId, Container c)
         {
             return _sndManager.generateLsid(c, String.valueOf(eventDataId));
@@ -378,14 +362,15 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
         {
             Logger log = SNDManager.getLogger(configParameters, AttributeDataTable.class);
 
+            List<Map<String, Object>> data = getMutableData(rows, getDataIteratorContext(errors, InsertOption.MERGE, configParameters));
             // Large merge triggers importRows path
-            if (getRowCount(rows, configParameters, errors) > SNDManager.MAX_MERGE_ROWS)
+            if (data.size() > SNDManager.MAX_MERGE_ROWS)
             {
+                data.clear();
                 log.info("More than " + SNDManager.MAX_MERGE_ROWS + " rows. using importRows method.");
                 return importRows(user, container, rows, errors, configParameters, extraScriptContext);
             }
             log.info("Merging rows.");
-            List<Map<String, Object>> data = getMutableData(rows, getDataIteratorContext(errors, InsertOption.MERGE, configParameters));
             return updateObjectProperty(user, container, data, false, true, log).size();
         }
 
