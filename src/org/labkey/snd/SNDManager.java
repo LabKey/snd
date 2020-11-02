@@ -1719,8 +1719,6 @@ public class SNDManager
             ts = new TableSelector(eventDataTable, filter, null);
 
             eventData = ts.getObject(EventData.class);
-
-            OntologyManager.getProperties(c, eventData.getObjectURI());  // TODO: What is this?
             properties = OntologyManager.getPropertyObjects(c, eventData.getObjectURI());
         }
         else
