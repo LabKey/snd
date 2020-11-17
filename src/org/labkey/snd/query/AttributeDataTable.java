@@ -83,6 +83,9 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
         ExprColumn eventDataAndName = new ExprColumn(this, "EventDataAndName", new SQLFragment(ExprColumn.STR_TABLE_ALIAS + ".EventDataAndName"), JdbcType.VARCHAR);
         addColumn(eventDataAndName);
 
+        ExprColumn attributeName = new ExprColumn(this, "AttributeName", new SQLFragment(ExprColumn.STR_TABLE_ALIAS + ".AttributeName"), JdbcType.VARCHAR);
+        addColumn(attributeName);
+
         ExprColumn studyLSID = new ExprColumn(this, "StudyLSID", new SQLFragment(ExprColumn.STR_TABLE_ALIAS + ".StudyLSID"), JdbcType.VARCHAR);
         addColumn(studyLSID);
 
@@ -120,7 +123,7 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
                 "CAST(X.ObjectId AS VARCHAR) as StudyLSID");
 
         // Flatten data from primary base table (exp.ObjectProperty), exp.Object, and snd.EventData
-        SQLFragment sql = new SQLFragment("(SELECT X.*, " + mockLsid + ", o.Container, o.ObjectURI, ed.EventDataId, CONCAT(ed.EventDataId,'-', pd.Name) as EventDataAndName FROM ");
+        SQLFragment sql = new SQLFragment("(SELECT X.*, " + mockLsid + ", o.Container, o.ObjectURI, ed.EventDataId, CONCAT(ed.EventDataId,'-', pd.Name) as EventDataAndName, pd.Name as AttributeName FROM ");
         sql.append(super.getFromSQL("X"));
         sql.append(" INNER JOIN ");
         sql.append(OntologyManager.getTinfoObject(), "o");
