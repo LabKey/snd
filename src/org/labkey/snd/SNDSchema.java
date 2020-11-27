@@ -39,6 +39,7 @@ public class SNDSchema
     public static final String SUPERPKGS_FUNCTION_NAME = "fGetSuperPkg";
     public static final String PROJECTS_FUNCTION_NAME = "fGetProjectItems";
     public static final String EVENTSCACHE_TABLE_NAME = "EventsCache";
+    public static final String MV_DATA_BY_CATEGORY = "mv_dataByCategory";
 
     public static SNDSchema getInstance()
     {
@@ -120,5 +121,10 @@ public class SNDSchema
     public TableInfo getTableInfoEventsCache()
     {
         return getSchema().getTable(EVENTSCACHE_TABLE_NAME);
+    }
+
+    public TableInfo getTableInfoMvAttributesCategories()
+    {
+        return getSchema().getTable(MV_DATA_BY_CATEGORY);
     }
 }

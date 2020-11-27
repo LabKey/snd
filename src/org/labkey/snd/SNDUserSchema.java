@@ -30,6 +30,7 @@ import org.labkey.api.security.User;
 import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.snd.query.AttributeDataTable;
 import org.labkey.snd.query.CategoriesTable;
+import org.labkey.snd.query.DataByCategoryTable;
 import org.labkey.snd.query.EventDataTable;
 import org.labkey.snd.query.EventNotesTable;
 import org.labkey.snd.query.EventsCacheTable;
@@ -203,7 +204,20 @@ public class SNDUserSchema extends SimpleUserSchema
 
                         return null;
                     }
-                };
+                },
+        DataByCategory
+        {
+            @Override
+            public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
+            {
+                if (!schema.getPermissionCheck() || schema.getContainer().hasPermission(schema.getUser(), AdminPermission.class))
+                {
+                    return new DataByCategoryTable(schema, cf);
+                }
+
+                return null;
+            }
+        };
 
 
         public abstract TableInfo createTable(SNDUserSchema schema, ContainerFilter cf);
