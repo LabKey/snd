@@ -2693,7 +2693,6 @@ public class SNDManager
                                 if (event.getEventNotesRow(c).containsKey("note") && event.getEventNotesRow(c).get("note") != null && event.getEventNotesRow(c).get("note").toString().trim().length() > 0)
                                     eventNotesQus = getNewQueryUpdateService(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
 
-                                //QueryUpdateService eventNotesQus = getNewQueryUpdateService(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
                                 QueryUpdateService eventsCacheQus = getNewQueryUpdateService(schema, SNDSchema.EVENTSCACHE_TABLE_NAME);
 
                                 String htmlEventNarrative = generateEventNarrative(c, u, event, topLevelEventDataSuperPkgs, true, false);
