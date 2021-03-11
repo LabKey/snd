@@ -2,9 +2,7 @@ package org.labkey.snd.query;
 
 import org.jetbrains.annotations.NotNull;
 import org.labkey.api.data.ContainerFilter;
-import org.labkey.api.data.ContainerForeignKey;
 import org.labkey.api.data.CoreSchema;
-import org.labkey.api.data.ForeignKey;
 import org.labkey.api.data.JdbcType;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.TableInfo;
@@ -12,11 +10,9 @@ import org.labkey.api.exp.OntologyManager;
 import org.labkey.api.query.ExprColumn;
 import org.labkey.api.query.FilteredTable;
 import org.labkey.api.query.LookupForeignKey;
-import org.labkey.api.query.QueryForeignKey;
 import org.labkey.api.security.UserPrincipal;
 import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.Permission;
-import org.labkey.api.settings.AppProps;
 import org.labkey.snd.SNDSchema;
 import org.labkey.snd.SNDUserSchema;
 
@@ -86,33 +82,6 @@ public class PackageAttributeTable extends FilteredTable<SNDUserSchema>
 
         ExprColumn validatorExpression = new ExprColumn(this, "validatorExpression", new SQLFragment(ExprColumn.STR_TABLE_ALIAS + ".validatorExpression"), JdbcType.VARCHAR);
         addColumn(validatorExpression);
-
-//
-//        ExprColumn eventDataAndName = new ExprColumn(this, "EventDataAndName", new SQLFragment(ExprColumn.STR_TABLE_ALIAS + ".EventDataAndName"), JdbcType.VARCHAR);
-//        addColumn(eventDataAndName);
-//
-//        // Inject a lookup to the EventData table
-//        ExprColumn eventDataCol = new ExprColumn(this, "EventData", new SQLFragment(ExprColumn.STR_TABLE_ALIAS + ".EventDataId"), JdbcType.VARCHAR);
-//        addColumn(eventDataCol);
-//        eventDataCol.setFk(QueryForeignKey.from(getUserSchema(), this.getContainerFilter())
-//                .table(SNDUserSchema.TableType.EventData.name())
-//                .key("EventDataId")
-//                .display("EventDataId")
-//                .raw(true));
-//
-//        // Inject a Container column directly into the table, making it easier to follow container filtering rules
-//        ExprColumn containerCol = new ExprColumn(this, "Container", new SQLFragment(ExprColumn.STR_TABLE_ALIAS  + ".Container"), JdbcType.VARCHAR);
-//        addColumn(containerCol);
-//        containerCol.setFk(new ContainerForeignKey(getUserSchema()));
-//
-//        getMutableColumn("ObjectId").setFk((ForeignKey)null);
-//        getMutableColumn("PropertyId").setLabel("Property");
-    }
-
-    @Override
-    protected void applyContainerFilter(ContainerFilter filter)
-    {
-        // Handle this in the FROM SQL generation
     }
 
     @Override
