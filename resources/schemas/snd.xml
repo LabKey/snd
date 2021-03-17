@@ -116,7 +116,6 @@
         </columns>
     </table>
     <table tableName="PkgCategoryJunction" tableDbType="TABLE">
-        <auditLogging>DETAILED</auditLogging>
         <insertUrl>/snd/app.view?#/categories</insertUrl>
         <updateUrl></updateUrl> <!--TODO: /snd/app.view?#/categories-->
         <importUrl></importUrl>
@@ -292,7 +291,6 @@
         </columns>
     </table>
     <table tableName="LookupSets" tableDbType="TABLE">
-        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="LookupSetId"/>
             <column columnName="SetName"/>
