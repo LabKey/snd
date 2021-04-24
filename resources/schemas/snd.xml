@@ -84,7 +84,6 @@
         </columns>
     </table>
     <table tableName="PkgCategories" tableDbType="TABLE">
-        <auditLogging>DETAILED</auditLogging>
         <insertUrl>/snd/app.view?#/categories</insertUrl>
         <updateUrl></updateUrl> <!--TODO: /snd/app.view?#/categories-->
         <importUrl></importUrl>
@@ -317,7 +316,6 @@
         </columns>
     </table>
     <table tableName="Lookups" tableDbType="TABLE">
-        <auditLogging>DETAILED</auditLogging>
         <columns>
             <column columnName="LookupId"/>
             <column columnName="LookupSetId"/>
