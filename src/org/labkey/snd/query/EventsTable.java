@@ -27,7 +27,6 @@ import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.InvalidKeyException;
 import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.QueryUpdateServiceException;
-import org.labkey.api.query.SimpleQueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema.SimpleTable;
 import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
@@ -72,7 +71,7 @@ public class EventsTable extends SimpleTable<SNDUserSchema>
         return new EventsTable.UpdateService(this);
     }
 
-    protected class UpdateService extends SimpleQueryUpdateService
+    protected class UpdateService extends SNDQueryUpdateService
     {
         public UpdateService(SimpleTable ti)
         {
@@ -111,19 +110,6 @@ public class EventsTable extends SimpleTable<SNDUserSchema>
         {
             _sndService.clearNarrativeCache(container, user);
             return super.truncateRows(user, container, configParameters, extraScriptContext);
-        }
-
-        @Override
-        public int loadRows(User user, Container container, DataIteratorBuilder rows, DataIteratorContext context, @Nullable Map<String, Object> extraScriptContext)
-        {
-            if (context.getInsertOption() == QueryUpdateService.InsertOption.MERGE || context.getInsertOption() == QueryUpdateService.InsertOption.REPLACE)
-            {
-                return mergeRows(user, container, rows, context.getErrors(), context.getConfigParameters(), extraScriptContext);
-            }
-            else
-            {
-                return importRows(user, container, rows, context.getErrors(), context.getConfigParameters(), extraScriptContext);
-            }
         }
 
         @Override

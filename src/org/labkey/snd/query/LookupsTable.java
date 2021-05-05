@@ -20,12 +20,10 @@ import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerFilter;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.dataiterator.DataIteratorBuilder;
-import org.labkey.api.dataiterator.DataIteratorContext;
 import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.InvalidKeyException;
 import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.QueryUpdateServiceException;
-import org.labkey.api.query.SimpleQueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema.SimpleTable;
 import org.labkey.api.security.User;
 import org.labkey.snd.SNDManager;
@@ -55,24 +53,11 @@ public class LookupsTable extends SimpleTable<SNDUserSchema>
         return new LookupsTable.UpdateService(this);
     }
 
-    protected class UpdateService extends SimpleQueryUpdateService
+    protected class UpdateService extends SNDQueryUpdateService
     {
         public UpdateService(SimpleTable ti)
         {
             super(ti, ti.getRealTable());
-        }
-
-        @Override
-        public int loadRows(User user, Container container, DataIteratorBuilder rows, DataIteratorContext context, @Nullable Map<String, Object> extraScriptContext)
-        {
-            if (context.getInsertOption() == QueryUpdateService.InsertOption.MERGE || context.getInsertOption() == QueryUpdateService.InsertOption.REPLACE)
-            {
-                return mergeRows(user, container, rows, context.getErrors(), context.getConfigParameters(), extraScriptContext);
-            }
-            else
-            {
-                return importRows(user, container, rows, context.getErrors(), context.getConfigParameters(), extraScriptContext);
-            }
         }
 
         @Override

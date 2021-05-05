@@ -39,7 +39,6 @@ import org.labkey.api.query.ExprColumn;
 import org.labkey.api.query.FilteredTable;
 import org.labkey.api.query.QueryForeignKey;
 import org.labkey.api.query.QueryUpdateService;
-import org.labkey.api.query.SimpleQueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.query.ValidationException;
@@ -149,7 +148,7 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
         return new AttributeDataTable.UpdateService(simpleTable);
     }
 
-    protected class UpdateService extends SimpleQueryUpdateService
+    protected class UpdateService extends SNDQueryUpdateService
     {
         private final SNDManager _sndManager = SNDManager.get();
         private final SNDService _sndService = SNDService.get();
@@ -354,19 +353,6 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
             _sndManager.updateNarrativeCache(container, user, cacheEventIds, logger);
 
             return data;
-        }
-
-        @Override
-        public int loadRows(User user, Container container, DataIteratorBuilder rows, DataIteratorContext context, @Nullable Map<String, Object> extraScriptContext)
-        {
-            if (context.getInsertOption() == QueryUpdateService.InsertOption.MERGE || context.getInsertOption() == QueryUpdateService.InsertOption.REPLACE)
-            {
-                return mergeRows(user, container, rows, context.getErrors(), context.getConfigParameters(), extraScriptContext);
-            }
-            else
-            {
-                return importRows(user, container, rows, context.getErrors(), context.getConfigParameters(), extraScriptContext);
-            }
         }
 
         @Override
