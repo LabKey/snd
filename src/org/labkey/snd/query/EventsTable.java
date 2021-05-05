@@ -114,6 +114,19 @@ public class EventsTable extends SimpleTable<SNDUserSchema>
         }
 
         @Override
+        public int loadRows(User user, Container container, DataIteratorBuilder rows, DataIteratorContext context, @Nullable Map<String, Object> extraScriptContext)
+        {
+            if (context.getInsertOption() == QueryUpdateService.InsertOption.MERGE || context.getInsertOption() == QueryUpdateService.InsertOption.REPLACE)
+            {
+                return mergeRows(user, container, rows, context.getErrors(), context.getConfigParameters(), extraScriptContext);
+            }
+            else
+            {
+                return importRows(user, container, rows, context.getErrors(), context.getConfigParameters(), extraScriptContext);
+            }
+        }
+
+        @Override
         public int importRows(User user, Container container, DataIteratorBuilder rows, BatchValidationException errors,
                               @Nullable Map<Enum,Object> configParameters, Map<String, Object> extraScriptContext)
         {

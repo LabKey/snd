@@ -20,6 +20,7 @@ import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerFilter;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.dataiterator.DataIteratorBuilder;
+import org.labkey.api.dataiterator.DataIteratorContext;
 import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.InvalidKeyException;
 import org.labkey.api.query.QueryUpdateService;
@@ -59,6 +60,19 @@ public class LookupsTable extends SimpleTable<SNDUserSchema>
         public UpdateService(SimpleTable ti)
         {
             super(ti, ti.getRealTable());
+        }
+
+        @Override
+        public int loadRows(User user, Container container, DataIteratorBuilder rows, DataIteratorContext context, @Nullable Map<String, Object> extraScriptContext)
+        {
+            if (context.getInsertOption() == QueryUpdateService.InsertOption.MERGE || context.getInsertOption() == QueryUpdateService.InsertOption.REPLACE)
+            {
+                return mergeRows(user, container, rows, context.getErrors(), context.getConfigParameters(), extraScriptContext);
+            }
+            else
+            {
+                return importRows(user, container, rows, context.getErrors(), context.getConfigParameters(), extraScriptContext);
+            }
         }
 
         @Override
