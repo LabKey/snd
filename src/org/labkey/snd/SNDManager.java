@@ -1732,12 +1732,13 @@ public class SNDManager
         Object propValue;
         for (GWTPropertyDescriptor gwtPropertyDescriptor : superPackage.getPkg().getAttributes())
         {
-            attribute = new AttributeData();
-            attribute.setPropertyName(gwtPropertyDescriptor.getName());
-            attribute.setPropertyDescriptor(gwtPropertyDescriptor);
-            attribute.setPropertyId(gwtPropertyDescriptor.getPropertyId());
-            if (properties != null && properties.get(gwtPropertyDescriptor.getPropertyURI()) != null)
+            if (properties != null && properties.get(gwtPropertyDescriptor.getPropertyURI()) != null && properties.get(gwtPropertyDescriptor.getPropertyURI()).value() != null)
             {
+                attribute = new AttributeData();
+                attribute.setPropertyName(gwtPropertyDescriptor.getName());
+                attribute.setPropertyDescriptor(gwtPropertyDescriptor);
+                attribute.setPropertyId(gwtPropertyDescriptor.getPropertyId());
+
                 //TODO: Add redacted here
                 propValue = properties.get(gwtPropertyDescriptor.getPropertyURI()).value();
 
@@ -1752,9 +1753,9 @@ public class SNDManager
                 }
 
                 attribute.setValue(propValue.toString());
-            }
 
-            attributeDatas.add(attribute);
+                attributeDatas.add(attribute);
+            }
         }
 
         eventData.setAttributes(attributeDatas);
