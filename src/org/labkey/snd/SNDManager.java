@@ -1732,30 +1732,31 @@ public class SNDManager
         Object propValue;
         for (GWTPropertyDescriptor gwtPropertyDescriptor : superPackage.getPkg().getAttributes())
         {
-            if (properties != null && properties.get(gwtPropertyDescriptor.getPropertyURI()) != null && properties.get(gwtPropertyDescriptor.getPropertyURI()).value() != null)
+            attribute = new AttributeData();
+            attribute.setPropertyName(gwtPropertyDescriptor.getName());
+            attribute.setPropertyDescriptor(gwtPropertyDescriptor);
+            attribute.setPropertyId(gwtPropertyDescriptor.getPropertyId());
+            if (properties != null && properties.get(gwtPropertyDescriptor.getPropertyURI()) != null)
             {
-                attribute = new AttributeData();
-                attribute.setPropertyName(gwtPropertyDescriptor.getName());
-                attribute.setPropertyDescriptor(gwtPropertyDescriptor);
-                attribute.setPropertyId(gwtPropertyDescriptor.getPropertyId());
-
                 //TODO: Add redacted here
                 propValue = properties.get(gwtPropertyDescriptor.getPropertyURI()).value();
-
-                // Convert dates to ISO8601 format
-                if (PropertyType.getFromURI(null, gwtPropertyDescriptor.getRangeURI()).equals(PropertyType.DATE))
+                if (propValue != null)
                 {
-                    propValue = DateUtil.formatDateTime((Date) propValue, AttributeData.DATE_FORMAT);
-                }
-                else if (PropertyType.getFromURI(null, gwtPropertyDescriptor.getRangeURI()).equals(PropertyType.DATE_TIME))
-                {
-                    propValue = DateUtil.formatDateTime((Date) propValue, AttributeData.DATE_TIME_FORMAT);
-                }
+                    // Convert dates to ISO8601 format
+                    if (PropertyType.getFromURI(null, gwtPropertyDescriptor.getRangeURI()).equals(PropertyType.DATE))
+                    {
+                        propValue = DateUtil.formatDateTime((Date) propValue, AttributeData.DATE_FORMAT);
+                    }
+                    else if (PropertyType.getFromURI(null, gwtPropertyDescriptor.getRangeURI()).equals(PropertyType.DATE_TIME))
+                    {
+                        propValue = DateUtil.formatDateTime((Date) propValue, AttributeData.DATE_TIME_FORMAT);
+                    }
 
-                attribute.setValue(propValue.toString());
-
-                attributeDatas.add(attribute);
+                    attribute.setValue(propValue.toString());
+                }
             }
+
+            attributeDatas.add(attribute);
         }
 
         eventData.setAttributes(attributeDatas);
