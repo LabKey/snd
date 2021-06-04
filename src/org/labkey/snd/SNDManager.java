@@ -321,6 +321,7 @@ public class SNDManager
         if (!errors.hasErrors())
         {
             // If package is in use (either assigned to an event or project) then do not update the domain
+            // If pipeline import job is running then always update
             if (!((PackagesTable) pkgsTable).isPackageInUse(pkg.getPkgId()) || isPipelineJob )
             {
                 String domainURI = PackageDomainKind.getDomainURI(PackageDomainKind.getPackageSchemaName(), getPackageName(pkg.getPkgId()), c, u);
