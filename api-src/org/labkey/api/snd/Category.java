@@ -135,10 +135,4 @@ public class Category implements SecurableResource, HasPermission
     {
         return false;
     }
-
-    @Override
-    public boolean hasPermission(@NotNull UserPrincipal user, @NotNull Class<? extends Permission> perm)
-    {
-        return SecurityPolicyManager.getPolicy(this).hasPermission("User does not have permission", user, perm);
-    }
 }
