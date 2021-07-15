@@ -1,7 +1,7 @@
 UPDATE exp.PropertyValidator SET TypeURI = 'urn:lsid:labkey.com:PropertyValidator:textlength'
-WHERE PropertyId IN (
-    SELECT pd.PropertyId
-    FROM exp.PropertyValidator pv
-    JOIN exp.PropertyDescriptor pd on pd.PropertyId = pv.PropertyId
-    where pv.TypeURI = 'urn:lsid:labkey.com:PropertyValidator:length' and pd.PropertyURI like '%package-snd%'
-)
+WHERE TypeURI = 'urn:lsid:labkey.com:PropertyValidator:length'
+  AND PropertyId IN (
+    SELECT PropertyId
+    FROM exp.PropertyDescriptor
+    WHERE PropertyURI LIKE '%:package-snd%Package%'
+  )
