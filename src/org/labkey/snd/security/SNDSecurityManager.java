@@ -302,8 +302,7 @@ public class SNDSecurityManager
 
     public Integer getQCStateId(Container c, User u, QCStateEnum qcState)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, "core");
-        TableInfo qcStateTable = CoreSchema.getInstance().getTableInfoQCState();
+        TableInfo qcStateTable = CoreSchema.getInstance().getTableInfoDataStates();
 
         SimpleFilter qcFilter = new SimpleFilter(FieldKey.fromParts("Label"), qcState.getName(), CompareType.EQUAL);
 
@@ -317,7 +316,7 @@ public class SNDSecurityManager
 
     public QCStateEnum getQCState(Container c, User u, int qcStateId)
     {
-        TableInfo qcStateTable = CoreSchema.getInstance().getTableInfoQCState();
+        TableInfo qcStateTable = CoreSchema.getInstance().getTableInfoDataStates();
 
         SimpleFilter qcFilter = new SimpleFilter(FieldKey.fromParts("RowId"), qcStateId, CompareType.EQUAL);
 
@@ -334,7 +333,7 @@ public class SNDSecurityManager
     public void populateQCStates(Container c, User u)
     {
         UserSchema coreSchema = QueryService.get().getUserSchema(u, c, "core");
-        TableInfo qcStateTi = CoreSchema.getInstance().getTableInfoQCState();
+        TableInfo qcStateTi = CoreSchema.getInstance().getTableInfoDataStates();
 
         Object[][] states = EnumSet.allOf(QCStateEnum.class).stream().map(qcStateEnum -> new Object[]{qcStateEnum.getName(), qcStateEnum.getDescription(), qcStateEnum.isPublicData()}).toArray(Object[][]::new);
 
