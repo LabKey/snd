@@ -305,6 +305,7 @@ public class SNDSecurityManager
         TableInfo qcStateTable = CoreSchema.getInstance().getTableInfoDataStates();
 
         SimpleFilter qcFilter = new SimpleFilter(FieldKey.fromParts("Label"), qcState.getName(), CompareType.EQUAL);
+        qcFilter.addCondition(qcStateTable.getColumn("container"),c.getId());
 
         // Get from eventNotes table
         Set<String> cols = new HashSet<>();
@@ -319,6 +320,7 @@ public class SNDSecurityManager
         TableInfo qcStateTable = CoreSchema.getInstance().getTableInfoDataStates();
 
         SimpleFilter qcFilter = new SimpleFilter(FieldKey.fromParts("RowId"), qcStateId, CompareType.EQUAL);
+        qcFilter.addCondition(qcStateTable.getColumn("container"),c.getId());
 
         // Get from eventNotes table
         Set<String> cols = new HashSet<>();

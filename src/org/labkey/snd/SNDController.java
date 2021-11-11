@@ -986,7 +986,7 @@ public class SNDController extends SpringActionController
             String dateString = json.getString("date");
             Boolean validateOnly = (Boolean) json.get("validateOnly");
             String qcStateString = json.getString("qcState");
-            int qcState = SNDService.get().getQCStateId(getContainer(), getUser(), QCStateEnum.getByName(qcStateString));
+            var qcState = SNDService.get().getQCStateId(getContainer(), getUser(), QCStateEnum.getByName(qcStateString));
             String objectId = json.has("objectId") ? json.getString("objectId") : GUID.makeGUID();
             ApiSimpleResponse response = new ApiSimpleResponse();
 

@@ -27,6 +27,7 @@ import org.labkey.api.query.QueryUpdateServiceException;
 import org.labkey.api.security.UserPrincipal;
 import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.Permission;
+import org.labkey.api.security.permissions.ReadPermission;
 import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.util.HtmlString;
 import org.labkey.snd.SNDManager;
@@ -250,6 +251,8 @@ public class PackageAttributeTable extends FilteredTable<SNDUserSchema>
     @Override
     public boolean hasPermission(@NotNull UserPrincipal user, @NotNull Class<? extends Permission> perm)
     {
+        if (perm.equals(ReadPermission.class))
+            return getContainer().hasPermission(user, perm);
         return getContainer().hasPermission(user, AdminPermission.class);
     }
 
