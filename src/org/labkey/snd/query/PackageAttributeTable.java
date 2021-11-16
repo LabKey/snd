@@ -27,6 +27,7 @@ import org.labkey.api.query.QueryUpdateServiceException;
 import org.labkey.api.security.UserPrincipal;
 import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.Permission;
+import org.labkey.api.security.roles.Role;
 import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.util.HtmlString;
 import org.labkey.snd.SNDManager;
@@ -38,12 +39,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class PackageAttributeTable extends FilteredTable<SNDUserSchema>
 {
-    public PackageAttributeTable(@NotNull SNDUserSchema userSchema, ContainerFilter cf)
+    private final Role _contextualRole;
+
+    public PackageAttributeTable(@NotNull SNDUserSchema userSchema, ContainerFilter cf, Role contextualRole)
     {
         super(OntologyManager.getTinfoPropertyDescriptor(), userSchema, cf);
+        _contextualRole = contextualRole;
+
         setName(SNDUserSchema.TableType.PackageAttribute.name());
         setDescription("Package/attributes, one row per package/attribute combination.");
 
@@ -247,10 +253,15 @@ public class PackageAttributeTable extends FilteredTable<SNDUserSchema>
         return sql;
     }
 
+    public @NotNull Set<Role> getContextualRoles()
+    {
+        return null != _contextualRole ? Set.of(_contextualRole) : Set.of();
+    }
+
     @Override
     public boolean hasPermission(@NotNull UserPrincipal user, @NotNull Class<? extends Permission> perm)
     {
-        return getContainer().hasPermission(user, AdminPermission.class);
+        return getContainer().hasPermission(user, AdminPermission.class, getContextualRoles());
     }
 
 }

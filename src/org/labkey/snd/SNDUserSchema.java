@@ -27,7 +27,7 @@ import org.labkey.api.data.TableSelector;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.security.User;
-import org.labkey.api.security.permissions.AdminPermission;
+import org.labkey.api.security.roles.Role;
 import org.labkey.snd.query.AttributeDataTable;
 import org.labkey.snd.query.CategoriesTable;
 import org.labkey.snd.query.EventDataTable;
@@ -48,22 +48,23 @@ import java.util.Set;
 
 public class SNDUserSchema extends SimpleUserSchema
 {
-    private boolean _permissionCheck = true;
+    private final Role _contextualRole;
 
     public SNDUserSchema(String name, @Nullable String description, User user, Container container, DbSchema dbschema)
     {
         super(name, description, user, container, dbschema);
+        _contextualRole = null;
     }
 
-    public SNDUserSchema(String name, @Nullable String description, User user, Container container, DbSchema dbschema, boolean permissionCheck)
+    public SNDUserSchema(String name, @Nullable String description, User user, Container container, DbSchema dbschema, Role contextualRole)
     {
         super(name, description, user, container, dbschema);
-        _permissionCheck = permissionCheck;
+        _contextualRole = contextualRole;
     }
 
-    public boolean getPermissionCheck()
+    public Role getContextualRole()
     {
-        return _permissionCheck;
+        return _contextualRole;
     }
 
     public enum TableType
@@ -138,12 +139,7 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
                     {
-                        if (!schema.getPermissionCheck() || schema.getContainer().hasPermission(schema.getUser(), AdminPermission.class))
-                        {
-                            return new EventNotesTable(schema, SNDSchema.getInstance().getTableInfoEventNotes(), cf).init();
-                        }
-
-                        return null;
+                        return new EventNotesTable(schema, SNDSchema.getInstance().getTableInfoEventNotes(), cf, schema.getContextualRole()).init();
                     }
                 },
         EventData
@@ -151,12 +147,7 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
                     {
-                        if (!schema.getPermissionCheck() || schema.getContainer().hasPermission(schema.getUser(), AdminPermission.class))
-                        {
-                            return new EventDataTable(schema, SNDSchema.getInstance().getTableInfoEventData(), cf).init();
-                        }
-
-                        return null;
+                        return new EventDataTable(schema, SNDSchema.getInstance().getTableInfoEventData(), cf, schema.getContextualRole()).init();
                     }
                 },
         AttributeData
@@ -164,12 +155,7 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
                     {
-                        if (!schema.getPermissionCheck() || schema.getContainer().hasPermission(schema.getUser(), AdminPermission.class))
-                        {
-                            return new AttributeDataTable(schema, cf);
-                        }
-
-                        return null;
+                        return new AttributeDataTable(schema, cf, schema.getContextualRole());
                     }
                 },
         PackageAttribute
@@ -177,12 +163,7 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
                     {
-                        if (!schema.getPermissionCheck() || schema.getContainer().hasPermission(schema.getUser(), AdminPermission.class))
-                        {
-                            return new PackageAttributeTable(schema, cf);
-                        }
-
-                        return null;
+                        return new PackageAttributeTable(schema, cf, schema.getContextualRole());
                     }
                 },
         Lookups
@@ -210,12 +191,7 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
                     {
-                        if (!schema.getPermissionCheck() || schema.getContainer().hasPermission(schema.getUser(), AdminPermission.class))
-                        {
-                            return new EventsCacheTable(schema, SNDSchema.getInstance().getTableInfoEventsCache(), cf).init();
-                        }
-
-                        return null;
+                        return new EventsCacheTable(schema, SNDSchema.getInstance().getTableInfoEventsCache(), cf, schema.getContextualRole()).init();
                     }
                 };
 
