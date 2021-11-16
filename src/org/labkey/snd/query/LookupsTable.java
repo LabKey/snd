@@ -32,6 +32,7 @@ import org.labkey.snd.SNDUserSchema;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class LookupsTable extends SimpleTable<SNDUserSchema>
 {
@@ -59,6 +60,15 @@ public class LookupsTable extends SimpleTable<SNDUserSchema>
         {
             super(ti, ti.getRealTable());
         }
+
+//        @Override
+//        protected Set<InsertOption> supportedInsertOptions()
+//        {
+//            if (hasAutoIncrementPK())
+//                return Set.of(InsertOption.INSERT, InsertOption.IMPORT);
+//            else
+//                return Set.of(InsertOption.INSERT, InsertOption.IMPORT, InsertOption.MERGE);
+//        }
 
         @Override
         public int mergeRows(User user, Container container, DataIteratorBuilder rows, BatchValidationException errors,
