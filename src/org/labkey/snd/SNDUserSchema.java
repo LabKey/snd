@@ -29,6 +29,7 @@ import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
+import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.roles.Role;
 import org.labkey.snd.query.AttributeDataTable;
 import org.labkey.snd.query.CategoriesTable;
@@ -142,7 +143,12 @@ public class SNDUserSchema extends SimpleUserSchema implements UserSchema.HasCon
                     @Override
                     public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
                     {
-                        return new EventNotesTable(schema, SNDSchema.getInstance().getTableInfoEventNotes(), cf).init();
+                        if (schema.getContainer().hasPermission(schema.getUser(), AdminPermission.class, schema.getContextualRoles()))
+                        {
+                            return new EventNotesTable(schema, SNDSchema.getInstance().getTableInfoEventNotes(), cf).init();
+                        }
+
+                        return null;
                     }
                 },
         EventData
@@ -150,7 +156,12 @@ public class SNDUserSchema extends SimpleUserSchema implements UserSchema.HasCon
                     @Override
                     public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
                     {
-                        return new EventDataTable(schema, SNDSchema.getInstance().getTableInfoEventData(), cf).init();
+                        if (schema.getContainer().hasPermission(schema.getUser(), AdminPermission.class, schema.getContextualRoles()))
+                        {
+                            return new EventDataTable(schema, SNDSchema.getInstance().getTableInfoEventData(), cf).init();
+                        }
+
+                        return null;
                     }
                 },
         AttributeData
@@ -158,7 +169,12 @@ public class SNDUserSchema extends SimpleUserSchema implements UserSchema.HasCon
                     @Override
                     public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
                     {
-                        return new AttributeDataTable(schema, cf);
+                        if (schema.getContainer().hasPermission(schema.getUser(), AdminPermission.class, schema.getContextualRoles()))
+                        {
+                            return new AttributeDataTable(schema, cf);
+                        }
+
+                        return null;
                     }
                 },
         PackageAttribute
@@ -166,7 +182,12 @@ public class SNDUserSchema extends SimpleUserSchema implements UserSchema.HasCon
                     @Override
                     public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
                     {
-                        return new PackageAttributeTable(schema, cf);
+                        if (schema.getContainer().hasPermission(schema.getUser(), AdminPermission.class, schema.getContextualRoles()))
+                        {
+                            return new PackageAttributeTable(schema, cf);
+                        }
+
+                        return null;
                     }
                 },
         Lookups
@@ -194,7 +215,12 @@ public class SNDUserSchema extends SimpleUserSchema implements UserSchema.HasCon
                     @Override
                     public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
                     {
-                        return new EventsCacheTable(schema, SNDSchema.getInstance().getTableInfoEventsCache(), cf).init();
+                        if (schema.getContainer().hasPermission(schema.getUser(), AdminPermission.class, schema.getContextualRoles()))
+                        {
+                            return new EventsCacheTable(schema, SNDSchema.getInstance().getTableInfoEventsCache(), cf).init();
+                        }
+
+                        return null;
                     }
                 };
 
