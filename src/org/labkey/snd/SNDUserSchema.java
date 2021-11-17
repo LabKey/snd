@@ -15,6 +15,7 @@
  */
 package org.labkey.snd;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.collections.CaseInsensitiveTreeSet;
@@ -26,6 +27,7 @@ import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.SimpleUserSchema;
+import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
 import org.labkey.api.security.roles.Role;
 import org.labkey.snd.query.AttributeDataTable;
@@ -46,7 +48,7 @@ import java.util.Map;
 import java.util.Set;
 
 
-public class SNDUserSchema extends SimpleUserSchema
+public class SNDUserSchema extends SimpleUserSchema implements UserSchema.HasContextualRoles
 {
     private final Role _contextualRole;
 
@@ -62,9 +64,10 @@ public class SNDUserSchema extends SimpleUserSchema
         _contextualRole = contextualRole;
     }
 
-    public Role getContextualRole()
+    @Override
+    public @NotNull Set<Role> getContextualRoles()
     {
-        return _contextualRole;
+        return null != _contextualRole ? Set.of(_contextualRole) : Set.of();
     }
 
     public enum TableType
@@ -139,7 +142,7 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
                     {
-                        return new EventNotesTable(schema, SNDSchema.getInstance().getTableInfoEventNotes(), cf, schema.getContextualRole()).init();
+                        return new EventNotesTable(schema, SNDSchema.getInstance().getTableInfoEventNotes(), cf).init();
                     }
                 },
         EventData
@@ -147,7 +150,7 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
                     {
-                        return new EventDataTable(schema, SNDSchema.getInstance().getTableInfoEventData(), cf, schema.getContextualRole()).init();
+                        return new EventDataTable(schema, SNDSchema.getInstance().getTableInfoEventData(), cf).init();
                     }
                 },
         AttributeData
@@ -155,7 +158,7 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
                     {
-                        return new AttributeDataTable(schema, cf, schema.getContextualRole());
+                        return new AttributeDataTable(schema, cf);
                     }
                 },
         PackageAttribute
@@ -163,7 +166,7 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
                     {
-                        return new PackageAttributeTable(schema, cf, schema.getContextualRole());
+                        return new PackageAttributeTable(schema, cf);
                     }
                 },
         Lookups
@@ -191,7 +194,7 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
                     {
-                        return new EventsCacheTable(schema, SNDSchema.getInstance().getTableInfoEventsCache(), cf, schema.getContextualRole()).init();
+                        return new EventsCacheTable(schema, SNDSchema.getInstance().getTableInfoEventsCache(), cf).init();
                     }
                 };
 

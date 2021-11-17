@@ -39,7 +39,6 @@ import org.labkey.api.security.User;
 import org.labkey.api.security.UserPrincipal;
 import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.Permission;
-import org.labkey.api.security.roles.Role;
 import org.labkey.api.settings.AppProps;
 import org.labkey.api.snd.SNDService;
 import org.labkey.snd.SNDManager;
@@ -54,8 +53,6 @@ import java.util.Set;
 
 public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
 {
-    private final Role _contextualRole;
-
     /**
      * Create the simple table.
      * SimpleTable doesn't add columns until .init() has been called to allow derived classes to fully initialize themselves before adding columns.
@@ -63,21 +60,15 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
      * @param schema
      * @param table
      */
-    public EventDataTable(SNDUserSchema schema, TableInfo table, ContainerFilter cf, Role contextualRole)
+    public EventDataTable(SNDUserSchema schema, TableInfo table, ContainerFilter cf)
     {
         super(schema, table, cf);
-        _contextualRole = contextualRole;
-    }
-
-    public @NotNull Set<Role> getContextualRoles()
-    {
-        return null != _contextualRole ? Set.of(_contextualRole) : Set.of();
     }
 
     @Override
     public boolean hasPermission(@NotNull UserPrincipal user, @NotNull Class<? extends Permission> perm)
     {
-        return getContainer().hasPermission(user, AdminPermission.class, getContextualRoles());
+        return getContainer().hasPermission(user, AdminPermission.class, getUserSchema().getContextualRoles());
     }
 
     @Override

@@ -24,18 +24,14 @@ import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.security.UserPrincipal;
 import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.Permission;
-import org.labkey.api.security.roles.Role;
 import org.labkey.snd.SNDUserSchema;
 import org.labkey.snd.table.PlainTextNarrativeDisplayColumn;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class EventsCacheTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
 {
-    private final Role _contextualRole;
-
     /**
      * Create the simple table.
      * SimpleTable doesn't add columns until .init() has been called to allow derived classes to fully initialize themselves before adding columns.
@@ -43,10 +39,9 @@ public class EventsCacheTable extends SimpleUserSchema.SimpleTable<SNDUserSchema
      * @param schema
      * @param table
      */
-    public EventsCacheTable(SNDUserSchema schema, TableInfo table, ContainerFilter cf, Role contextualRole)
+    public EventsCacheTable(SNDUserSchema schema, TableInfo table, ContainerFilter cf)
     {
         super(schema, table, cf);
-        _contextualRole = contextualRole;
     }
 
     static final List<FieldKey> defaultVisibleColumns = new ArrayList<>();
@@ -58,15 +53,10 @@ public class EventsCacheTable extends SimpleUserSchema.SimpleTable<SNDUserSchema
         defaultVisibleColumns.add(FieldKey.fromParts("Plain Text Narrative"));
     }
 
-    public @NotNull Set<Role> getContextualRoles()
-    {
-        return null != _contextualRole ? Set.of(_contextualRole) : Set.of();
-    }
-
     @Override
     public boolean hasPermission(@NotNull UserPrincipal user, @NotNull Class<? extends Permission> perm)
     {
-        return getContainer().hasPermission(user, AdminPermission.class, getContextualRoles());
+        return getContainer().hasPermission(user, AdminPermission.class, getUserSchema().getContextualRoles());
     }
 
     @Override
