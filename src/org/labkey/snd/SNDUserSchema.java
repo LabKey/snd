@@ -229,7 +229,7 @@ public class SNDUserSchema extends SimpleUserSchema implements UserSchema.HasCon
             @Override
             public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
             {
-                if (!schema.getPermissionCheck() || schema.getContainer().hasPermission(schema.getUser(), AdminPermission.class))
+                if (schema.getContainer().hasPermission(schema.getUser(), AdminPermission.class))
                 {
                     return new DataByCategoryTable(schema, cf);
                 }
