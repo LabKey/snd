@@ -44,6 +44,7 @@ public class PackageAttributeTable extends FilteredTable<SNDUserSchema>
     public PackageAttributeTable(@NotNull SNDUserSchema userSchema, ContainerFilter cf)
     {
         super(OntologyManager.getTinfoPropertyDescriptor(), userSchema, cf);
+
         setName(SNDUserSchema.TableType.PackageAttribute.name());
         setDescription("Package/attributes, one row per package/attribute combination.");
 
@@ -238,7 +239,7 @@ public class PackageAttributeTable extends FilteredTable<SNDUserSchema>
         sql.append(" INNER JOIN ");
         sql.append(OntologyManager.getTinfoPropertyDescriptor(), "pd");
         sql.append(" ON pd.PropertyId = pdom.PropertyId ");
-        sql.append(" INNER JOIN ");
+        sql.append(" LEFT JOIN ");
         sql.append(" exp.PropertyValidator pv");
         sql.append(" ON pd.PropertyId = pv.PropertyId ");
         sql.append(") ");
@@ -250,7 +251,7 @@ public class PackageAttributeTable extends FilteredTable<SNDUserSchema>
     @Override
     public boolean hasPermission(@NotNull UserPrincipal user, @NotNull Class<? extends Permission> perm)
     {
-        return getContainer().hasPermission(user, AdminPermission.class);
+        return getContainer().hasPermission(user, AdminPermission.class, getUserSchema().getContextualRoles());
     }
 
 }

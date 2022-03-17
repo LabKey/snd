@@ -72,6 +72,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
@@ -183,7 +184,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         "            'validators': [{                                           \n" +
         "               'name': 'SNDLength',                                    \n" +
         "               'description': 'This will check the length of the field',\n" +
-        "               'type': 'length',                                       \n" +
+        "               'type': 'textlength',                                       \n" +
         "               'expression': '~gte=1&amp;~lte=400',                    \n" +
         "               'errorMessage': 'This value must be between 1 and 400 characters long'  \n" +
         "           }]                                                          \n" +
@@ -251,7 +252,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         "				'validators': [{                                        \n" +
         "					'name': 'SNDLength',                                \n" +
         "					'description': 'This will check the length of the field',\n" +
-        "					'type': 'length',                                   \n" +
+        "					'type': 'textlength',                                   \n" +
         "					'expression': '~gte=1&amp;~lte=400',                \n" +
         "					'errorMessage': 'This value must be between 1 and 400 characters long'\n" +
         "				}]                                                      \n" +
@@ -330,7 +331,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         "				'validators': [{                                        \n" +
         "					'name': 'SNDLength',                                \n" +
         "					'description': 'This will check the length of the field',\n" +
-        "					'type': 'length',                                   \n" +
+        "					'type': 'textlength',                                   \n" +
         "					'expression': '~gte=1&amp;~lte=400',                \n" +
         "					'errorMessage': 'This value must be between 1 and 400 characters long'\n" +
         "				}]                                                      \n" +
@@ -410,7 +411,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
             "				'validators': [{                                        \n" +
             "					'name': 'SNDLength',                                \n" +
             "					'description': 'This will check the length of the field',\n" +
-            "					'type': 'length',                                   \n" +
+            "					'type': 'textlength',                                   \n" +
             "					'expression': '~gte=1&amp;~lte=400',                \n" +
             "					'errorMessage': 'This value must be between 1 and 400 characters long'\n" +
             "				}]                                                      \n" +
@@ -464,7 +465,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
             "				'validators': [{                                        \n" +
             "					'name': 'SNDLength',                                \n" +
             "					'description': 'This will check the length of the field',\n" +
-            "					'type': 'length',                                   \n" +
+            "					'type': 'textlength',                                   \n" +
             "					'expression': '~gte=1&amp;~lte=400',                \n" +
             "					'errorMessage': 'This value must be between 1 and 400 characters long'\n" +
             "				}]                                                      \n" +
@@ -953,13 +954,17 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         List<Map<String, Object>> lookupSetRows = Arrays.asList(
                 new HashMap<String, Object>(Maps.of("SetName", "SurgeryType",
                         "Label", "Surgery Type",
-                        "Description", "These are surgery types")),
-                new HashMap<String, Object>(Maps.of("SetName", "BloodDrawType")),
+                        "Description", "These are surgery types",
+                        "ObjectId", UUID.randomUUID().toString())),
+                new HashMap<String, Object>(Maps.of("SetName", "BloodDrawType",
+                        "ObjectId", UUID.randomUUID().toString())),
                 new HashMap<String, Object>(Maps.of("SetName", "GenderType",
-                        "Label", "Gender")),
+                        "Label", "Gender",
+                        "ObjectId", UUID.randomUUID().toString())),
                 new HashMap<String, Object>(Maps.of("SetName", "VolumeUnitTypes",
                         "Label", "Volume",
-                        "Description", "Units of volume")));
+                        "Description", "Units of volume",
+                        "ObjectId", UUID.randomUUID().toString())));
 
         command.setRows(lookupSetRows);
 
@@ -976,28 +981,36 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         List<Map<String, Object>> lookupRows = Arrays.asList(
                 new HashMap<>(Maps.of("LookupSetId", data.get(0).get("lookupSetId"),
                         "Value", "Research",
-                        "Displayable", "true")),
+                        "Displayable", "true",
+                        "ObjectId", UUID.randomUUID().toString())),
                 new HashMap<>(Maps.of("LookupSetId", data.get(0).get("lookupSetId"),
                         "Value", "Clinical",
-                        "Displayable", "true")),
+                        "Displayable", "true",
+                        "ObjectId", UUID.randomUUID().toString())),
                 new HashMap<>(Maps.of("LookupSetId", data.get(1).get("lookupSetId"),
                         "Value", "Research Blood Draw",
-                        "Displayable", "true")),
+                        "Displayable", "true",
+                        "ObjectId", UUID.randomUUID().toString())),
                 new HashMap<>(Maps.of("LookupSetId", data.get(1).get("lookupSetId"),
                         "Value", "Clinical Blood Draw",
-                        "Displayable", "true")),
+                        "Displayable", "true",
+                        "ObjectId", UUID.randomUUID().toString())),
                 new HashMap<>(Maps.of("LookupSetId", data.get(2).get("lookupSetId"),
                         "Value", "Male",
-                        "Displayable", "true")),
+                        "Displayable", "true",
+                        "ObjectId", UUID.randomUUID().toString())),
                 new HashMap<>(Maps.of("LookupSetId", data.get(2).get("lookupSetId"),
                         "Value", "Female",
-                        "Displayable", "true")),
+                        "Displayable", "true",
+                        "ObjectId", UUID.randomUUID().toString())),
                 new HashMap<>(Maps.of("LookupSetId", data.get(3).get("lookupSetId"),
                         "Value", "mL",
-                        "Displayable", "true")),
+                        "Displayable", "true",
+                        "ObjectId", UUID.randomUUID().toString())),
                 new HashMap<>(Maps.of("LookupSetId", data.get(3).get("lookupSetId"),
                         "Value", "L",
-                        "Displayable", "true")));
+                        "Displayable", "true",
+                        "ObjectId", UUID.randomUUID().toString())));
 
         command = new InsertRowsCommand("snd", "Lookups");
         command.setRows(lookupRows);

@@ -29,8 +29,10 @@ import org.labkey.api.exp.api.AbstractExperimentDataHandler;
 import org.labkey.api.exp.api.DataType;
 import org.labkey.api.exp.api.ExpData;
 import org.labkey.api.exp.api.ExpRun;
+import org.labkey.api.exp.property.DefaultPropertyValidator;
 import org.labkey.api.gwt.client.model.GWTPropertyDescriptor;
 import org.labkey.api.gwt.client.model.GWTPropertyValidator;
+import org.labkey.api.gwt.client.model.PropertyValidatorType;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.SNDService;
@@ -140,7 +142,7 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
         for (PackageType packageType : packageArray)
         {
             Package pkg = parsePackage(packageType, info); //convert auto-generated objects/tokens to SND's Package objects
-            sndService.savePackage(info.getContainer(), info.getUser(), pkg); //save to db
+            sndService.savePackage(info.getContainer(), info.getUser(), pkg, null,false, true); //save to db
             log.info("Saving package: " + packageType.getId() + "-" + packageType.getDescription());
         }
     }
@@ -265,7 +267,12 @@ public class SNDDataHandler extends AbstractExperimentDataHandler
                     gwtPropertyValidator.setName(validator.getName()); //name
                     gwtPropertyValidator.setExpression(validator.getExpression()); //expression
 
-                    Lsid lsid = new Lsid(validator.getTypeURI());
+                    // Length typeUri has been deprecated, these should be saved as textlength
+                    String typeUri = validator.getTypeURI();
+                    if ("urn:lsid:labkey.com:PropertyValidator:length".equals(typeUri))
+                        typeUri = DefaultPropertyValidator.createValidatorURI(PropertyValidatorType.TextLength).toString();
+
+                    Lsid lsid = new Lsid(typeUri);
                     gwtPropertyValidator.setType(org.labkey.api.gwt.client.model.PropertyValidatorType.getType(lsid.getObjectId()));//typeURI
 
                     gwtPropertyValidatorList.add(gwtPropertyValidator);

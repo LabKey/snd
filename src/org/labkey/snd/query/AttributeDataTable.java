@@ -39,7 +39,6 @@ import org.labkey.api.query.ExprColumn;
 import org.labkey.api.query.FilteredTable;
 import org.labkey.api.query.QueryForeignKey;
 import org.labkey.api.query.QueryUpdateService;
-import org.labkey.api.query.SimpleQueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.query.ValidationException;
@@ -72,6 +71,7 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
     public AttributeDataTable(@NotNull SNDUserSchema userSchema, ContainerFilter cf)
     {
         super(OntologyManager.getTinfoObjectProperty(), userSchema, cf);
+
         setName(SNDUserSchema.TableType.AttributeData.name());
         setDescription("Event/package attribute data, one row per attribute/value combination.");
 
@@ -152,7 +152,7 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
     @Override
     public boolean hasPermission(@NotNull UserPrincipal user, @NotNull Class<? extends Permission> perm)
     {
-        return getContainer().hasPermission(user, AdminPermission.class);
+        return getContainer().hasPermission(user, AdminPermission.class, getUserSchema().getContextualRoles());
     }
 
     @Override
@@ -163,7 +163,7 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
         return new AttributeDataTable.UpdateService(simpleTable);
     }
 
-    protected class UpdateService extends SimpleQueryUpdateService
+    protected class UpdateService extends SNDQueryUpdateService
     {
         private final SNDManager _sndManager = SNDManager.get();
         private final SNDService _sndService = SNDService.get();
