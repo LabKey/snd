@@ -77,6 +77,7 @@ import org.labkey.api.snd.SNDDomainKind;
 import org.labkey.api.snd.SNDSequencer;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.util.DateUtil;
+import org.labkey.api.util.PageFlowUtil;
 import org.labkey.snd.query.PackagesTable;
 import org.labkey.snd.security.QCStateActionEnum;
 import org.labkey.snd.security.SNDSecurityManager;
@@ -2355,9 +2356,7 @@ public class SNDManager
 
             // Get from project items table
             SimpleFilter projectItemsFilter = new SimpleFilter(FieldKey.fromParts("ParentObjectId"), event.getParentObjectId(), CompareType.EQUAL);
-            Set<String> cols = new TreeSet<>();
-            cols.add("SuperPkgId");
-            cols.add("Active");
+            Set<String> cols = PageFlowUtil.set("SuperPkgId", "Active");
             TableSelector projectItemsTs = new TableSelector(projectItemsTable, cols, projectItemsFilter, null);
 
             try (TableResultSet projectItems = projectItemsTs.getResultSet())
