@@ -40,6 +40,7 @@ import org.labkey.snd.SNDUserSchema;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -101,12 +102,11 @@ public class SuperPackagesTable extends SimpleTable<SNDUserSchema>
 
     public boolean isPackageInUse(int superPkgId)
     {
-        Set<String> cols = new HashSet<>();
-        cols.add("HasEvent");
+        Set<String> cols = Collections.singleton("HasEvent");
         TableSelector ts = new TableSelector(this, cols, new SimpleFilter(FieldKey.fromString("SuperPkgId"), superPkgId), null);
-        Map<String, Object> ret = ts.getMap();
+        Map<String, Object> map = ts.getMap();
 
-        return Boolean.parseBoolean((String) ret.get("HasEvent"));
+        return Boolean.parseBoolean((String) map.get("HasEvent"));
     }
 
     @Override
@@ -181,6 +181,7 @@ public class SuperPackagesTable extends SimpleTable<SNDUserSchema>
             if(row == null)  // might have been deleted already due to package/super package cascading deletes
                 return null;
 
+            // TODO: Delete or complete this... TableSelector is unused!
             Set<String> cols = new HashSet<>();
             cols.add("HasEvent");
             cols.add("HasProject");

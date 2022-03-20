@@ -91,7 +91,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -1882,8 +1881,7 @@ public class SNDManager
                     TableInfo eventNotesTable = getTableInfo(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
 
                     // Get from eventNotes table
-                    Set<String> cols = new HashSet<>();
-                    cols.add("Note");
+                    Set<String> cols = Collections.singleton("Note");
                     TableSelector eventNoteTs = new TableSelector(eventNotesTable, cols, eventFilter, null);
 
                     event.setNote(eventNoteTs.getObject(String.class));
@@ -2655,8 +2653,7 @@ public class SNDManager
 
         // Get from eventNotes table
         SimpleFilter eventDataFilter = new SimpleFilter(FieldKey.fromParts("EventId"), eventId, CompareType.EQUAL);
-        Set<String> cols = new HashSet<>();
-        cols.add("ObjectURI");
+        Set<String> cols = Collections.singleton("ObjectURI");
         TableSelector eventDataTs = new TableSelector(eventDataTable, cols, eventDataFilter, null);
 
         List<String> objectURIs = eventDataTs.getArrayList(String.class);
