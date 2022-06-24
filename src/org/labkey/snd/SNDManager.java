@@ -1234,7 +1234,6 @@ public class SNDManager
         // If creating project for first time revNum is zero and not a revision
         boolean validRevision = (project.getRevisionNum() == 0 && !revision), overlap = false;
         Integer rev;
-        String end;
 
         try (TableResultSet rows = selector.getResultSet())
         {
@@ -1257,15 +1256,16 @@ public class SNDManager
 
                 if (revision && rev == project.getRevisionNum())
                 {
-                    end = DateUtil.formatDateISO8601(project.getEndDateRevised());
+                    endDate = project.getEndDateRevised();
                 }
                 else
                 {
-                    end = (String) row.get("EndDate");
+                    // jTDS and MS driver return String and Date, respectively, so handle both
+                    endDate = (Date) ConvertUtils.convert(row.get("EndDate"), Date.class);
                 }
 
                 // Check previous revisions to verify only the latest revision of a project has a null end date
-                if (end == null)
+                if (endDate == null)
                 {
                     if (rev < project.getRevisionNum() || (revision && rev == project.getRevisionNum()))
                     {
@@ -1283,9 +1283,8 @@ public class SNDManager
                 }
 
                 // Verify endDates of previous revisions are before this revision begins
-                if (end != null && (revision || rev < project.getRevisionNum()))
+                if (endDate != null && (revision || rev < project.getRevisionNum()))
                 {
-                    endDate = formatter.parse(end);
                     if (endDate.after(project.getStartDate()))
                     {
                         errors.addRowError(new ValidationException("Start date must be after the end date of previous revisions."));
@@ -1296,7 +1295,7 @@ public class SNDManager
             if (!validRevision)
                 errors.addRowError(new ValidationException("Invalid revision number."));
         }
-        catch (SQLException | ParseException e)
+        catch (SQLException | ConversionException e)
         {
             errors.addRowError(new ValidationException(e.getMessage()));
         }
