@@ -18,6 +18,8 @@ package org.labkey.snd;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.apache.commons.beanutils.ConversionException;
+import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -1076,11 +1078,9 @@ public class SNDManager
         Date rowStart = null, rowEnd = null;
 
         // Check for overlapping dates
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
         try
         {
-            rowStart = formatter.parse((String) row.get("StartDate"));
-            rowEnd = null;
+            rowStart = (Date) ConvertUtils.convert(row.get("StartDate"), Date.class);
 
             // For revisions we get enddate of incoming revised end date if comparing with revised project revision
             if (revision && ((Integer) row.get("RevisionNum") == project.getRevisionNum()))
@@ -1089,10 +1089,10 @@ public class SNDManager
             }
             else if (row.get("EndDate") != null)
             {
-                rowEnd = formatter.parse((String) row.get("EndDate"));
+                rowEnd = (Date) ConvertUtils.convert(row.get("EndDate"), Date.class);
             }
         }
-        catch (ParseException e)
+        catch (ConversionException e)
         {
             errors.addRowError(new ValidationException("Unable to parse date. " + e.getMessage()));
         }
