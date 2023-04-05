@@ -16,8 +16,8 @@
 
 package org.labkey.snd;
 
-import org.json.old.JSONArray;
-import org.json.old.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.labkey.api.action.ApiResponse;
 import org.labkey.api.action.ApiSimpleResponse;
 import org.labkey.api.action.FormHandlerAction;
@@ -157,7 +157,7 @@ public class SNDController extends SpringActionController
         @Override
         public ApiResponse execute(SimpleApiJsonForm form, BindException errors)
         {
-            JSONObject json = form.getJsonObject();
+            JSONObject json = form.getNewJsonObject();
             Package pkg = new Package();
             boolean cloneFlag = json.optBoolean("clone");
             Integer testIdNumberStart = json.optInt("testIdNumberStart", -1);
@@ -467,7 +467,7 @@ public class SNDController extends SpringActionController
         @Override
         public void validateForm(SimpleApiJsonForm form, Errors errors)
         {
-            JSONObject json = form.getJsonObject();
+            JSONObject json = form.getNewJsonObject();
             if (json == null)
             {
                 errors.reject(ERROR_MSG, "Missing json parameter.");
@@ -498,7 +498,7 @@ public class SNDController extends SpringActionController
         @Override
         public ApiResponse execute(SimpleApiJsonForm form, BindException errors)
         {
-            JSONObject json = form.getJsonObject();
+            JSONObject json = form.getNewJsonObject();
             JSONArray pkgIds = json.getJSONArray("packages");
             boolean includeExtraFields = !json.has("excludeExtraFields") || !json.getBoolean("excludeExtraFields");
             boolean includeLookups = !json.has("excludeLookups") || !json.getBoolean("excludeLookups");
@@ -556,7 +556,7 @@ public class SNDController extends SpringActionController
         @Override
         public void validateForm(SimpleApiJsonForm form, Errors errors)
         {
-            JSONObject json = form.getJsonObject();
+            JSONObject json = form.getNewJsonObject();
             if (json == null)
             {
                 errors.reject(ERROR_MSG, "Missing json parameter.");
@@ -651,13 +651,13 @@ public class SNDController extends SpringActionController
                 }
             }
 
-            form.bindProperties(json);
+            form.bindJson(json);
         }
 
         @Override
         public ApiResponse execute(SimpleApiJsonForm form, BindException errors) throws Exception
         {
-            JSONObject json = form.getJsonObject();
+            JSONObject json = form.getNewJsonObject();
 
             int id = json.optInt("projectId", -1);
             Project project = new Project(id, json.optInt("revisionNum", 0), json.getBoolean("isEdit"),
@@ -740,7 +740,7 @@ public class SNDController extends SpringActionController
         @Override
         public void validateForm(SimpleApiJsonForm form, Errors errors)
         {
-            JSONObject json = form.getJsonObject();
+            JSONObject json = form.getNewJsonObject();
             if (json == null)
             {
                 errors.reject(ERROR_MSG, "Missing json parameter.");
@@ -761,7 +761,7 @@ public class SNDController extends SpringActionController
         @Override
         public ApiResponse execute(SimpleApiJsonForm form, BindException errors)
         {
-            JSONObject json = form.getJsonObject();
+            JSONObject json = form.getNewJsonObject();
             ApiSimpleResponse response = new ApiSimpleResponse();
 
             int projectId = json.getInt("projectId");
@@ -796,7 +796,7 @@ public class SNDController extends SpringActionController
         @Override
         public void validateForm(SimpleApiJsonForm form, Errors errors)
         {
-            JSONObject json = form.getJsonObject();
+            JSONObject json = form.getNewJsonObject();
             if (json == null)
             {
                 errors.reject(ERROR_MSG, "Missing json parameter.");
@@ -825,7 +825,7 @@ public class SNDController extends SpringActionController
         public ApiResponse execute(SimpleApiJsonForm form, BindException errors)
         {
             ApiSimpleResponse response = new ApiSimpleResponse();
-            JSONObject json = form.getJsonObject();
+            JSONObject json = form.getNewJsonObject();
 
             int eventId = json.getInt("eventId");
             boolean getTextNarrative = json.optBoolean("getTextNarrative");
@@ -881,7 +881,7 @@ public class SNDController extends SpringActionController
         @Override
         public void validateForm(SimpleApiJsonForm form, Errors errors)
         {
-            JSONObject json = form.getJsonObject();
+            JSONObject json = form.getNewJsonObject();
             if (json == null)
             {
                 errors.reject(ERROR_MSG, "Missing json parameter.");
@@ -980,7 +980,7 @@ public class SNDController extends SpringActionController
         @Override
         public ApiResponse execute(SimpleApiJsonForm form, BindException errors)
         {
-            JSONObject json = form.getJsonObject();
+            JSONObject json = form.getNewJsonObject();
             Integer eventId = json.has("eventId") ? json.getInt("eventId") : null;
             String subjectId = json.getString("subjectId");
             String dateString = json.getString("date");
@@ -1145,8 +1145,8 @@ public class SNDController extends SpringActionController
         @Override
         public Object execute(SimpleApiJsonForm form, BindException errors)
         {
-            JSONObject json = form.getJsonObject();
-            Boolean unregister = (json != null && json.has("unregister") && json.getBoolean("unregister"));
+            JSONObject json = form.getNewJsonObject();
+            boolean unregister = (json != null && json.has("unregister") && json.getBoolean("unregister"));
 
             Module sndModule = null;
             for (Module module : getViewContext().getContainer().getActiveModules())
@@ -1285,7 +1285,7 @@ public class SNDController extends SpringActionController
         @Override
         public Object execute(SimpleApiJsonForm form, BindException errors)
         {
-            JSONObject json = form.getJsonObject();
+            JSONObject json = form.getNewJsonObject();
             Integer categoryId = json.getInt("categoryId");
             String groupName = json.getString("groupName");
             String roleName = json.getString("roleName");
