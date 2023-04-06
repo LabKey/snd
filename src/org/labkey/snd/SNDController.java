@@ -116,7 +116,7 @@ public class SNDController extends SpringActionController
         private GWTPropertyDescriptor convertJsonToPropertyDescriptor(JSONObject json, BindException errors) throws IOException
         {
             String rangeUri = json.getString("rangeURI");
-            String format = json.getString("format");
+            String format = json.optString("format", null);
 
             if (rangeUri.equals(SNDManager.RANGE_PARTICIPANTID))
             {
