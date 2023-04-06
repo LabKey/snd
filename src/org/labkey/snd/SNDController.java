@@ -48,6 +48,7 @@ import org.labkey.api.snd.SNDService;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.util.DateUtil;
 import org.labkey.api.util.GUID;
+import org.labkey.api.util.JsonUtil;
 import org.labkey.api.util.URLHelper;
 import org.labkey.api.view.ActionURL;
 import org.labkey.api.view.JspView;
@@ -160,8 +161,8 @@ public class SNDController extends SpringActionController
             JSONObject json = form.getNewJsonObject();
             Package pkg = new Package();
             boolean cloneFlag = json.optBoolean("clone");
-            Integer testIdNumberStart = json.optInt("testIdNumberStart", -1);
-            Integer pkgId = json.optInt("id", -1);
+            int testIdNumberStart = json.optInt("testIdNumberStart", -1);
+            int pkgId = json.optInt("id", -1);
             pkg.setPkgId(pkgId);
 
             pkg.setDescription(json.getString("description"));
@@ -201,10 +202,9 @@ public class SNDController extends SpringActionController
             if (null != attribs)
             {
                 List<GWTPropertyDescriptor> pds = new ArrayList<>();
-                String name;
-                for (int i = 0; i < attribs.length(); i++)
+                for (JSONObject attrib : JsonUtil.toJSONObjectList(attribs))
                 {
-                    name = attribs.getJSONObject(i).getString("name");
+                    String name = attrib.getString("name");
                     if (attNames.contains(name))
                     {
                         errors.reject(ERROR_MSG, "Attributes must have unique names within a package.");
@@ -213,7 +213,7 @@ public class SNDController extends SpringActionController
                     attNames.add(name);
                     try
                     {
-                        pds.add(convertJsonToPropertyDescriptor(attribs.getJSONObject(i), errors));
+                        pds.add(convertJsonToPropertyDescriptor(attrib, errors));
                     }
                     catch (IOException e)
                     {
@@ -260,9 +260,8 @@ public class SNDController extends SpringActionController
 
                 if (null != jsonSubPackages && jsonSubPackages.length() > 0)
                 {
-                    for (int i = 0; i < jsonSubPackages.length(); i++)
+                    for (JSONObject jsonSubPackage : JsonUtil.toJSONObjectList(jsonSubPackages))
                     {
-                        JSONObject jsonSubPackage = jsonSubPackages.getJSONObject(i);
                         Integer superPkgId = jsonSubPackage.getInt("superPkgId");
 
                         if (SNDManager.get().isDescendent(getContainer(), getUser(), superPkgId, pkgId))
@@ -403,8 +402,7 @@ public class SNDController extends SpringActionController
                         }
 
                         // now that both steps are complete, set subPackages to be all the new or modified super packages and save
-                        ArrayList<SuperPackage> subSuperPackages = new ArrayList<>();
-                        subSuperPackages.addAll(topLevelChildSuperPackages);
+                        ArrayList<SuperPackage> subSuperPackages = new ArrayList<>(topLevelChildSuperPackages);
                         if (regularChildSuperPackages != null)
                             subSuperPackages.addAll(regularChildSuperPackages);
                         pkg.setSubpackages(subSuperPackages);
