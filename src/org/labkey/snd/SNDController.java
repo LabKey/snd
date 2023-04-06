@@ -148,7 +148,7 @@ public class SNDController extends SpringActionController
             json.put("rangeURI", "http://www.w3.org/2001/XMLSchema#" + rangeUri);
             json.put("defaultTypeValue", DefaultValueType.FIXED_EDITABLE.toString());
 
-            String defaultValue = (String) json.get("defaultValue");
+            String defaultValue = json.optString("defaultValue");
             json.put("defaultValue", defaultValue);
 
             return SNDServiceImpl.jsonToPropertyDescriptor(json);
