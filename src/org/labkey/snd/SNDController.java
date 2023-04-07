@@ -149,7 +149,7 @@ public class SNDController extends SpringActionController
             json.put("rangeURI", "http://www.w3.org/2001/XMLSchema#" + rangeUri);
             json.put("defaultTypeValue", DefaultValueType.FIXED_EDITABLE.toString());
 
-            String defaultValue = json.optString("defaultValue");
+            String defaultValue = json.optString("defaultValue", null);
             json.put("defaultValue", defaultValue);
 
             return SNDServiceImpl.jsonToPropertyDescriptor(json);
@@ -627,12 +627,12 @@ public class SNDController extends SpringActionController
                 }
             }
 
-            if (json.has("endDate") && (json.getString("endDate") == null || json.getString("endDate").equals("")))
+            if (json.has("endDate") && (json.isNull("endDate") || json.getString("endDate").equals("")))
             {
                 json.remove("endDate");
             }
 
-            if (json.has("endDate") && json.getString("endDate") != null)
+            if (json.has("endDate") && !json.isNull("endDate"))
             {
                 SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
                 try
@@ -981,8 +981,8 @@ public class SNDController extends SpringActionController
             JSONObject json = form.getJsonObject();
             Integer eventId = json.has("eventId") ? json.getInt("eventId") : null;
             String subjectId = json.getString("subjectId");
-            String dateString = json.getString("date");
-            Boolean validateOnly = (Boolean) json.get("validateOnly");
+            String dateString = json.optString("date", null);
+            Boolean validateOnly = json.optBoolean("validateOnly");
             String qcStateString = json.getString("qcState");
             int qcState = SNDService.get().getQCStateId(getContainer(), getUser(), QCStateEnum.getByName(qcStateString));
             String objectId = json.has("objectId") ? json.getString("objectId") : GUID.makeGUID();
