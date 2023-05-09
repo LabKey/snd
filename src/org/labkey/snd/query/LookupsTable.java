@@ -61,16 +61,22 @@ public class LookupsTable extends SimpleTable<SNDUserSchema>
         super.init();
 
         SQLFragment isInUseQuery = new SQLFragment();
-        isInUseQuery.append("(CASE WHEN EXISTS (SELECT l.value FROM ");
-        isInUseQuery.append(SNDSchema.getInstance().getTableInfoLookupSets(), "ls");
-        isInUseQuery.append(" INNER JOIN ");
+        isInUseQuery.append("(CASE WHEN EXISTS (SELECT l.Value FROM ");
         isInUseQuery.append(SNDSchema.getInstance().getTableInfoLookups(), "l");
+        isInUseQuery.append(" INNER JOIN ");
+        isInUseQuery.append(SNDSchema.getInstance().getTableInfoLookupSets(), "ls");
         isInUseQuery.append(" ON l.LookupSetId = ls.LookupSetId ");
         isInUseQuery.append(" INNER JOIN ");
         isInUseQuery.append(_userSchema.getTable("PackageAttribute").getFromSQL("pa"));
         isInUseQuery.append(" ON ls.SetName = pa.LookupQuery ");
         isInUseQuery.append(" INNER JOIN ");
-        isInUseQuery.append("");
+        isInUseQuery.append(_userSchema.getTable("AttributeData").getFromSQL("ad"));
+        isInUseQuery.append(" ON pa.PropertyId = ad.PropertyId ");
+        isInUseQuery.append(" WHERE CAST(" + ExprColumn.STR_TABLE_ALIAS + ".LookupId AS FLOAT) = ad.FloatValue) ");
+        isInUseQuery.append(" THEN 'true' else 'false' END)");
+        ExprColumn isInUseColumn = new ExprColumn(this, "IsInUse", isInUseQuery, JdbcType.BOOLEAN);
+        addColumn(isInUseColumn);
+
         return this;
     }
 
