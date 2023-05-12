@@ -1,0 +1,1 @@
+EXEC core.fn_dropifexists @objname = 'ObjectProperty',@objschema = 'exp', @objtype = 'INDEX', @subobjname = 'IDX_ObjectProperty_FloatValue';
