@@ -81,17 +81,17 @@ function beforeDelete(row, errors) {
 
         LABKEY.Query.selectRows({
             schemaName: 'snd',
-            queryName: 'PackageAttribute',
-            columns: 'LookupQuery',
+            queryName: 'Lookups',
+            columns: 'IsInUse',
             scope: this,
             filterArray: [
-                LABKEY.Filter.create('LookupQuery', lookupQuery, LABKEY.Filter.Types.EQUAL),
-                LABKEY.Filter.create('LookupSchema', 'snd', LABKEY.Filter.Types.EQUAL)
+                LABKEY.Filter.create('LookupId', row["LookupId"], LABKEY.Filter.Types.EQUAL),
+                LABKEY.Filter.create('IsInUse', 'true', LABKEY.Filter.Types.EQUAL)
 
             ],
             success: function (data) {
                 if (data.rows && data.rows.length) {
-                    errors._form = 'Lookup item cannot be deleted - LookupSet is in use.'
+                    errors._form = 'Lookup item cannot be deleted - Lookup is in use.'
                     return;
                 }
             },
