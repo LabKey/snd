@@ -82,7 +82,7 @@ public class LookupsTable extends SimpleTable<SNDUserSchema>
         addColumn(isInUseColumn);
 
         return this;
-    }
+        }
 
     @Override
     public QueryUpdateService getUpdateService()
