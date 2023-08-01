@@ -2629,7 +2629,6 @@ public class SNDManager
         }
     }
 
-
     /**
      * Returns a map of top level event data Ids to full top level super packages for the passed in event Id
      */
