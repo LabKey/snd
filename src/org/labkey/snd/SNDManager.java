@@ -2844,7 +2844,7 @@ public class SNDManager
     {
         UserSchema sndSchema = getSndUserSchemaAdminRole(c, u);
 
-        SQLFragment eventSql = new SQLFragment("SELECT ev.EventId FROM ");
+        SQLFragment eventSql = new SQLFragment("SELECT top 1000 ev.EventId FROM ");
         eventSql.append(sndSchema.getTable(SNDSchema.EVENTS_TABLE_NAME), "ev");
         eventSql.append(" LEFT JOIN ");
         eventSql.append(sndSchema.getTable(SNDSchema.EVENTSCACHE_TABLE_NAME), "ec");
