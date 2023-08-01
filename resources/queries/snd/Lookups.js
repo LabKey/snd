@@ -45,11 +45,6 @@ function beforeUpdate(row, errors) {
 }
 
 function beforeDelete(row, errors) {
-/*
-    TODO: Need a better way to determine if a lookupset item is in use. Probably need to add the check to
-     the deleteRows method in LookupsTable.java. NOTE: CAMP allows the lookup item to be deleted if it hasn't
-     been assigned as a default value or used in an event. tjh
- */
     if (row.LookupSetId !== undefined) {
 
         let lookupQuery
@@ -92,7 +87,6 @@ function beforeDelete(row, errors) {
             success: function (data) {
                 if (data.rows && data.rows.length) {
                     errors._form = 'Lookup item cannot be deleted - Lookup is in use.'
-                    return;
                 }
             },
             failure: function (error) {
