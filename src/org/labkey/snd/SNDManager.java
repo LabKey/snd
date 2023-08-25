@@ -2775,20 +2775,20 @@ public class SNDManager
             }
             else
             {
-                for (Integer cacheDatum : cacheData)
-                {
-                    row = new HashMap<>();
-                    row.put("EventId", cacheDatum);
-                    rows.add(row);
-                }
-
+//                for (Integer cacheDatum : cacheData)
+//                {
+//                    row = new HashMap<>();
+//                    row.put("EventId", cacheDatum);
+//                    rows.add(row);
+//                }
+                List<Integer> eventIds = new ArrayList<>(cacheData);
                 log.info("Deleting affected narrative cache rows.");
                 deleteNarrativeCacheRows(container, user, rows, errors);
                 //repopulate
                 if (isUpdate)
                 {
                     log.info("Repopulate affected rows in narrative cache.");
-                    populateNarrativeCache(container, user, rows, errors, log);
+                    populateNarrativeCache(container, user, eventIds, errors, log);
                 }
             }
 
@@ -2854,22 +2854,22 @@ public class SNDManager
 
         List<Integer> eventIds = selector.getArrayList(Integer.class);
 
-        Map<String, Object> row;
-        List<Map<String, Object>> rows = new ArrayList<>();
-        for (Integer eventId : eventIds)
-        {
-            row = new HashMap<>();
-            row.put("EventId", eventId);
-            rows.add(row);
-        }
+//        Map<String, Object> row;
+//        List<Map<String, Object>> rows = new ArrayList<>();
+//        for (Integer eventId : eventIds)
+//        {
+//            row = new HashMap<>();
+//            row.put("EventId", eventId);
+//            rows.add(row);
+//        }
 
-        populateNarrativeCache(c, u, rows, errors, logger);
+        populateNarrativeCache(c, u, eventIds, errors, logger);
     }
 
     /**
      * Populate specific event narratives in narrative cache.
      */
-    public void populateNarrativeCache(Container c, User u, List<Map<String, Object>> eventIds, BatchValidationException errors, @Nullable Logger logger)
+    public void populateNarrativeCache(Container c, User u, List<Integer> eventIds, BatchValidationException errors, @Nullable Logger logger)
     {
         UserSchema sndSchema = getSndUserSchemaAdminRole(c, u);
         QueryUpdateService eventsCacheQus = getNewQueryUpdateService(sndSchema, SNDSchema.EVENTSCACHE_TABLE_NAME);
@@ -2884,11 +2884,9 @@ public class SNDManager
         }
 
         int count = 0;
-        Integer eventId;
         Map<String, Object> row;
-        for (Map<String, Object> eventRow : eventIds)
+        for (Integer eventId : eventIds)
         {
-            eventId = (Integer) eventRow.get("EventId");
             if (eventId != null)
             {
                 row = new ArrayListMap<>();
