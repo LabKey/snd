@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.beanutils.ConversionException;
 import org.apache.commons.beanutils.ConvertUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,9 +33,11 @@ import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.DbScope;
+import org.labkey.api.data.Filter;
 import org.labkey.api.data.Results;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
+import org.labkey.api.data.Sort;
 import org.labkey.api.data.SqlExecutor;
 import org.labkey.api.data.SqlSelector;
 import org.labkey.api.data.TableInfo;
@@ -71,6 +74,7 @@ import org.labkey.api.snd.Category;
 import org.labkey.api.snd.Event;
 import org.labkey.api.snd.EventData;
 import org.labkey.api.snd.EventNarrativeOption;
+import org.labkey.api.snd.EventNote;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.snd.Project;
@@ -89,17 +93,21 @@ import org.labkey.snd.trigger.SNDTriggerManager;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static org.labkey.api.snd.EventNarrativeOption.HTML_NARRATIVE;
 import static org.labkey.api.snd.EventNarrativeOption.REDACTED_HTML_NARRATIVE;
@@ -296,8 +304,9 @@ public class SNDManager
     /**
      * Called from SNDService.savePackage when saving updates to an already existing package.
      */
-    public void updatePackage(User u, Container c, @NotNull Package pkg, @Nullable SuperPackage superPkg, BatchValidationException errors) {
-       updatePackage(u, c, pkg, superPkg, errors, false);
+    public void updatePackage(User u, Container c, @NotNull Package pkg, @Nullable SuperPackage superPkg, BatchValidationException errors)
+    {
+        updatePackage(u, c, pkg, superPkg, errors, false);
     }
 
     public void updatePackage(User u, Container c, @NotNull Package pkg, @Nullable SuperPackage superPkg, BatchValidationException errors, boolean isPipelineJob)
@@ -322,7 +331,8 @@ public class SNDManager
             pkgCategoryQus.insertRows(u, c, pkg.getCategoryRows(c), errors, null, null);
             tx.commit();
         }
-        catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException | InvalidKeyException e)
+        catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException |
+               InvalidKeyException e)
         {
             errors.addRowError(new ValidationException(e.getMessage()));
         }
@@ -331,7 +341,7 @@ public class SNDManager
         {
             // If package is in use (either assigned to an event or project) then do not update the domain
             // If pipeline import job is running then always update
-            if (!((PackagesTable) pkgsTable).isPackageInUse(pkg.getPkgId()) || isPipelineJob )
+            if (!((PackagesTable) pkgsTable).isPackageInUse(pkg.getPkgId()) || isPipelineJob)
             {
                 String domainURI = PackageDomainKind.getDomainURI(PackageDomainKind.getPackageSchemaName(), getPackageName(pkg.getPkgId()), c, u);
 
@@ -503,7 +513,8 @@ public class SNDManager
             superPkgQus.updateRows(u, c, updates, null, null, null);
             tx.commit();
         }
-        catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException | InvalidKeyException e)
+        catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException |
+               InvalidKeyException e)
         {
             errors.addRowError(new ValidationException(e.getMessage()));
         }
@@ -838,6 +849,7 @@ public class SNDManager
         selector = new SqlSelector(schema.getDbSchema(), sql);
         return selector.exists();
     }
+
 
     /**
      * Gets the full SuperPackage object for a given super package Id.  Option to include full subpackages as well,
@@ -1453,8 +1465,8 @@ public class SNDManager
             projectRows.add(project.getProjectRow(c));
 
             SimpleFilter filter = new SimpleFilter(FieldKey.fromParts(ProjectItem.PROJECTITEM_PARENTOBJECTID), project.getObjectId(), CompareType.EQUAL);
-            List<ProjectItem> projectItemsFromDb  = new TableSelector(projectItemsTable, filter, null).getArrayList(ProjectItem.class);
-            List<ProjectItem>  projectItemsFromUi = project.getProjectItems();
+            List<ProjectItem> projectItemsFromDb = new TableSelector(projectItemsTable, filter, null).getArrayList(ProjectItem.class);
+            List<ProjectItem> projectItemsFromUi = project.getProjectItems();
 
             try (DbScope.Transaction tx = projectTable.getSchema().getScope().ensureTransaction())
             {
@@ -1465,7 +1477,8 @@ public class SNDManager
                 for (ProjectItem projectItemFromUi : projectItemsFromUi)
                 {
                     // check for insert/update
-                    if (projectItemFromUi.getProjectItemId() == -1) {
+                    if (projectItemFromUi.getProjectItemId() == -1)
+                    {
                         // if projectItemId is -1 - insert
                         Map<String, Object> projectItemValues = new ArrayListMap<>();
                         List<Map<String, Object>> projectItemRow = new ArrayList<>();
@@ -1477,11 +1490,13 @@ public class SNDManager
                         projectItemRow.add(projectItemValues);
                         projectItemsQus.insertRows(u, c, projectItemRow, errors, null, null);
                     }
-                    else {
+                    else
+                    {
                         // update or ignore the row if no changes made
                         for (ProjectItem projectItemFromDb : projectItemsFromDb)
                         {
-                            if (projectItemFromDb.equals(projectItemFromUi)) {
+                            if (projectItemFromDb.equals(projectItemFromUi))
+                            {
                                 //ignore; the items are the same
                                 break;
                             }
@@ -1517,7 +1532,8 @@ public class SNDManager
                             break;
                         }
                     }
-                    if (!found) {
+                    if (!found)
+                    {
                         // delete row
                         Map<String, Object> pkMap = new HashMap<>();
                         List<Map<String, Object>> pkList = new ArrayList<>();
@@ -1530,7 +1546,8 @@ public class SNDManager
                 }
                 tx.commit();
             }
-            catch ( QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException | InvalidKeyException e)
+            catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException |
+                   InvalidKeyException e)
             {
                 errors.addRowError(new ValidationException(e.getMessage()));
             }
@@ -1812,7 +1829,7 @@ public class SNDManager
 
                     if (childSuperPkg.getSuperPkgId().equals(superPkgId))
                     {
-                        foundEventDataId = (Integer)result.get("EventDataId");
+                        foundEventDataId = (Integer) result.get("EventDataId");
                         break;
                     }
                 }
@@ -1843,6 +1860,7 @@ public class SNDManager
         }
         return eventDatas;
     }
+
 
     /**
      * Gets event for a given event Id.  Call from SNDService.getEvent
@@ -1970,7 +1988,8 @@ public class SNDManager
                                 eventsCacheQus.insertRows(u, c, rows, errors, null, null);
                                 tx.commit();
                             }
-                            catch (QueryUpdateServiceException | BatchValidationException | SQLException | DuplicateKeyException e)
+                            catch (QueryUpdateServiceException | BatchValidationException | SQLException |
+                                   DuplicateKeyException e)
                             {
                                 errors.addRowError(new ValidationException(e.getMessage()));
                             }
@@ -2562,7 +2581,8 @@ public class SNDManager
                                     NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), textEventNarrative, event.getQcState(), "Create event");
                                     tx.commit();
                                 }
-                                catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException | SQLException | ValidationException e)
+                                catch (QueryUpdateServiceException | BatchValidationException | DuplicateKeyException |
+                                       SQLException | ValidationException e)
                                 {
                                     event.setException(new ValidationException(e.getMessage(), ValidationException.SEVERITY.ERROR));
                                 }
@@ -2726,7 +2746,8 @@ public class SNDManager
                                     NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), textEventNarrative, event.getQcState(), "Update event");
                                     tx.commit();
                                 }
-                                catch (QueryUpdateServiceException | BatchValidationException | SQLException | InvalidKeyException | DuplicateKeyException | ValidationException e)
+                                catch (QueryUpdateServiceException | BatchValidationException | SQLException |
+                                       InvalidKeyException | DuplicateKeyException | ValidationException e)
                                 {
                                     event.setException(new ValidationException(e.getMessage(), ValidationException.SEVERITY.ERROR));
                                 }
@@ -2752,12 +2773,13 @@ public class SNDManager
     }
 
     // default to isUpdate = true
-    public int updateNarrativeCache(Container container, User user, Set<Integer>cacheData, Logger log)
+    public int updateNarrativeCache(Container container, User user, Set<Integer> cacheData, Logger log)
     {
         return updateNarrativeCache(container, user, cacheData, log, true);
     }
+
     /* deletes and updates cached narratives */
-    public int updateNarrativeCache(Container container, User user, Set<Integer>cacheData, @NotNull Logger log, boolean isUpdate)
+    public int updateNarrativeCache(Container container, User user, Set<Integer> cacheData, @NotNull Logger log, boolean isUpdate)
     {
         if (cacheData.size() > 0)
         {
@@ -2837,90 +2859,6 @@ public class SNDManager
         }
     }
 
-    /**
-     * Called from SNDService to find events missing narratives and populate their narratives in narrative cache.
-     */
-    public void fillInNarrativeCache(Container c, User u, BatchValidationException errors, @Nullable Logger logger)
-    {
-        UserSchema sndSchema = getSndUserSchemaAdminRole(c, u);
-
-        SQLFragment eventSql = new SQLFragment("SELECT top 1000 ev.EventId FROM ");
-        eventSql.append(sndSchema.getTable(SNDSchema.EVENTS_TABLE_NAME), "ev");
-        eventSql.append(" LEFT JOIN ");
-        eventSql.append(sndSchema.getTable(SNDSchema.EVENTSCACHE_TABLE_NAME), "ec");
-        eventSql.append(" ON ev.EventId = ec.EventId");
-        eventSql.append(" WHERE ec.HtmlNarrative IS NULL");
-        SqlSelector selector = new SqlSelector(sndSchema.getDbSchema(), eventSql);
-
-        List<Integer> eventIds = selector.getArrayList(Integer.class);
-
-//        Map<String, Object> row;
-//        List<Map<String, Object>> rows = new ArrayList<>();
-//        for (Integer eventId : eventIds)
-//        {
-//            row = new HashMap<>();
-//            row.put("EventId", eventId);
-//            rows.add(row);
-//        }
-
-        populateNarrativeCache(c, u, eventIds, errors, logger);
-    }
-
-    /**
-     * Populate specific event narratives in narrative cache.
-     */
-    public void populateNarrativeCache(Container c, User u, List<Integer> eventIds, BatchValidationException errors, @Nullable Logger logger)
-    {
-        UserSchema sndSchema = getSndUserSchemaAdminRole(c, u);
-        QueryUpdateService eventsCacheQus = getNewQueryUpdateService(sndSchema, SNDSchema.EVENTSCACHE_TABLE_NAME);
-
-        Map<Integer, SuperPackage> eventDataTopLevelSuperPkgs;
-        List<Map<String, Object>> rows = new ArrayList<>();
-
-        // Logger for pipeline
-        if (logger != null)
-        {
-            logger.info("Generating narratives.");
-        }
-
-        int count = 0;
-        Map<String, Object> row;
-        for (Integer eventId : eventIds)
-        {
-            if (eventId != null)
-            {
-                row = new ArrayListMap<>();
-                eventDataTopLevelSuperPkgs = getTopLevelEventDataSuperPkgs(c, u, eventId, errors);
-                Event event = getEvent(c, u, eventId, null, eventDataTopLevelSuperPkgs, true, errors);  // don't populate narratives or set narrative options, since we're repopulating the narrative cache
-                String eventNarrative = generateEventNarrative(c, u, event, eventDataTopLevelSuperPkgs, true, false);
-                row.put("EventId", eventId);
-                row.put("HtmlNarrative", eventNarrative);
-                row.put("Container", c);
-                rows.add(row);
-                count++;
-
-                if (logger != null && count % 1000 == 0)
-                {
-                    logger.info(count + " narratives generated.");
-                }
-            }
-        }
-
-        if (logger != null)
-        {
-            logger.info("Inserting narratives into cache.");
-        }
-
-        try (DbScope.Transaction tx = sndSchema.getDbSchema().getScope().ensureTransaction())
-        {
-            eventsCacheQus.insertRows(u, c, rows, errors, null, null);
-            tx.commit();
-        }
-        catch (QueryUpdateServiceException | BatchValidationException | SQLException | DuplicateKeyException e)
-        {
-            errors.addRowError(new ValidationException(e.getMessage()));
-        }
-    }
 
     /**
      * Returns a map of top level event data Ids to full top level super packages for the passed in event Id
@@ -3249,7 +3187,7 @@ public class SNDManager
 
     public List<Map<String, Object>> getActiveProjects(Container c, User u, ArrayList<SimpleFilter> filters, Boolean activeProjectItemsOnly)
     {
-       List<Map<String, Object>> projectList = new ArrayList<>();
+        List<Map<String, Object>> projectList = new ArrayList<>();
 
         UserSchema schema = getSndUserSchema(c, u);
         TableInfo projectsTable = getTableInfo(schema, SNDSchema.PROJECTS_TABLE_NAME);
@@ -3259,8 +3197,10 @@ public class SNDManager
         filter.addCondition(FieldKey.fromParts("enddate"), new Date(), CompareType.DATE_GTE);
 
         // apply filters that are passed as an argument
-        if (filters != null) {
-            for (SimpleFilter f: filters) {
+        if (filters != null)
+        {
+            for (SimpleFilter f : filters)
+            {
                 filter.addAllClauses(f);
             }
         }
@@ -3355,7 +3295,8 @@ public class SNDManager
         sql.append(" ON sp.PkgId = p.PkgId");
         sql.append(" WHERE ProjectId = ? AND RevisionNum = ?");
         sql.add(projectId).add(revNum);
-        if (activeProjectItemsOnly) {
+        if (activeProjectItemsOnly)
+        {
             sql.append(" AND pi.Active = ?");
             sql.add(true);
         }
@@ -3378,5 +3319,353 @@ public class SNDManager
 
         return projectItems;
     }
-    
+
+    /**
+     * Called from SNDService to find events missing narratives and populate their narratives in narrative cache.
+     */
+    public void fillInNarrativeCache(Container c, User u, BatchValidationException errors, @Nullable Logger logger)
+    {
+        UserSchema sndSchema = getSndUserSchemaAdminRole(c, u);
+
+        SQLFragment eventSql = new SQLFragment("SELECT ev.EventId FROM ");
+        eventSql.append(sndSchema.getTable(SNDSchema.EVENTS_TABLE_NAME), "ev");
+        eventSql.append(" LEFT JOIN ");
+        eventSql.append(sndSchema.getTable(SNDSchema.EVENTSCACHE_TABLE_NAME), "ec");
+        eventSql.append(" ON ev.EventId = ec.EventId");
+        eventSql.append(" WHERE ec.HtmlNarrative IS NULL");
+        eventSql.append(" ORDER BY ev.EventId ");
+        SqlSelector selector = new SqlSelector(sndSchema.getDbSchema(), eventSql);
+
+        List<Integer> eventIds = selector.getArrayList(Integer.class);
+
+        populateNarrativeCache(c, u, eventIds, errors, logger);
+    }
+
+    /**
+     * Populate specific event narratives in narrative cache.
+     */
+    public void populateNarrativeCache(Container c, User u, List<Integer> eventIds, BatchValidationException errors, @Nullable Logger logger)
+    {
+        UserSchema sndSchema = getSndUserSchemaAdminRole(c, u);
+        QueryUpdateService eventsCacheQus = getNewQueryUpdateService(sndSchema, SNDSchema.EVENTSCACHE_TABLE_NAME);
+
+        // Logger for pipeline
+        if (logger != null)
+        {
+            logger.info("Generating narratives.");
+        }
+
+        AtomicInteger count = new AtomicInteger(0);
+
+        List<List<Integer>> eventIdsPartitioned = ListUtils.partition(eventIds, 2000);
+
+        eventIdsPartitioned.forEach(partition -> {
+            List<Map<String, Object>> rows = new ArrayList<>();
+            Map<Integer, Map<Integer, SuperPackage>> eventDataTopLevelSuperPkgs = getTopLevelEventDataSuperPkgs(c, u, partition, errors);
+            Map<Integer, Event> events = getEvents(c, u, partition, null, eventDataTopLevelSuperPkgs, true, errors);
+            partition.forEach(eventId -> {
+                Map<String, Object> row = new ArrayListMap<>();
+                Event event = events.get(eventId);
+                String eventNarrative = generateEventNarrative(c, u, event, eventDataTopLevelSuperPkgs.get(eventId), true, false);
+                row.put("EventId", eventId);
+                row.put("HtmlNarrative", eventNarrative);
+                row.put("Container", c);
+                rows.add(row);
+                count.getAndIncrement();
+                if (logger != null && count.get() % 1000 == 0)
+                {
+                    logger.info(count.get() + " narratives generated.");
+                }
+            });
+            try (DbScope.Transaction tx = sndSchema.getDbSchema().getScope().ensureTransaction())
+            {
+                eventsCacheQus.insertRows(u, c, rows, errors, null, null);
+                tx.commit();
+            }
+            catch (QueryUpdateServiceException | BatchValidationException | SQLException | DuplicateKeyException e)
+            {
+                errors.addRowError(new ValidationException(e.getMessage()));
+            }
+        });
+    }
+
+    /**
+     * Query the SuperPackages table and retrieve all rows for a set of superPkgIds
+     * @param c
+     * @param u
+     * @param superPkgIds
+     * @param errors
+     * @return
+     */
+    @Nullable
+    private Map<Integer, SuperPackage> getAllFullSuperPackages(Container c, User u, Deque<Integer> superPkgIds, BatchValidationException errors)
+    {
+        UserSchema schema = getSndUserSchema(c, u);
+
+        SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.PkgId, sp.SortOrder, sp.Required, pkg.PkgId, pkg.Description, pkg.Active, pkg.Narrative, pkg.Repeatable FROM ");
+        sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
+        sql.append(" JOIN " + SNDSchema.NAME + "." + SNDSchema.PKGS_TABLE_NAME + " pkg");
+        sql.append(" ON sp.PkgId = pkg.PkgId ");
+        sql.append(" WHERE sp.SuperPkgId IN ( ");
+        while (superPkgIds.size() > 1)
+        {
+            sql.append(" ?, ").add(superPkgIds.pop());
+        }
+        sql.append(" ? )").add(superPkgIds.pop());
+        sql.append(" ORDER BY sp.SuperPkgId ");
+
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+        List<SuperPackage> superPackages = selector.getArrayList(SuperPackage.class);
+
+        return superPackages.stream().collect(Collectors.toMap(
+                        SuperPackage::getSuperPkgId,
+                        superPackage -> {
+                            List<Integer> pkgIds = new ArrayList<>();
+                            pkgIds.add(superPackage.getPkgId());
+                            List<Package> packages = getPackages(c, u, pkgIds, true, true, true, errors);
+                            if (packages.size() > 0)
+                                superPackage.setPkg(packages.get(0));
+                            if (superPackage.getPkgId() != null)
+                                superPackage.setChildPackages(getAllChildSuperPkgs(c, u, superPackage.getPkgId(), true, errors));
+                            return superPackage;
+                        }
+                )
+        );
+    }
+
+    /**
+     * Query the EventData table and create a Map of all top level SuperPackages for a set of eventIds
+     * @param c
+     * @param u
+     * @param eventIds
+     * @param errors
+     * @return
+     */
+    private Map<Integer, Map<Integer, SuperPackage>> getTopLevelEventDataSuperPkgs(Container c, User u, List<Integer> eventIds, BatchValidationException errors)
+    {
+        List<EventData> eventData = getTableSelectorFromInts(c, u, eventIds,
+                SNDSchema.EVENTDATA_TABLE_NAME, "EventId", true, "ParentEventDataId")
+                .getArrayList(EventData.class);
+
+        Deque<Integer> superPkgIds = new ArrayDeque<>(eventData.stream().map(EventData::getSuperPkgId).toList());
+
+        Map<Integer, SuperPackage> superPackages = getAllFullSuperPackages(c, u, superPkgIds, errors);
+
+        return eventData.stream()
+                .collect(
+                        Collectors.groupingBy(
+                                EventData::getEventId,
+                                Collectors.toMap(
+                                        EventData::getEventDataId,
+                                        e -> superPackages.get(e.getSuperPkgId())
+                                )
+                        )
+                );
+
+    }
+
+    /**
+     * Query EventData table and populate attribute data for a set of top level SuperPackages
+     * @param c
+     * @param u
+     * @param topLevelSuperPkgs
+     * @return
+     */
+    private Map<Integer, List<EventData>> getAllEventData(Container c, User u, Map<Integer, Map<Integer, SuperPackage>> topLevelSuperPkgs)
+    {
+        List<Integer> eventDataIds = topLevelSuperPkgs.values().stream().flatMap(mp -> mp.keySet().stream()).collect(Collectors.toList());
+
+        TableSelector eventDataSelector = getTableSelectorFromInts(c, u, eventDataIds,
+                SNDSchema.EVENTDATA_TABLE_NAME, "EventDataId", false, null);
+
+        List<EventData> eventData = eventDataSelector.getArrayList(EventData.class);
+        Collection<Map<String, Object>> eventDataMap = eventDataSelector.getMapCollection();
+
+        return eventData
+                .stream()
+                .map(e -> {
+                    List<AttributeData> attributeData = topLevelSuperPkgs
+                            .get(e.getEventId()).get(e.getEventDataId())
+                            .getPkg()
+                            .getAttributes()
+                            .stream()
+                            .map(a -> {
+                                Map<String, ObjectProperty> properties = OntologyManager.getPropertyObjects(c, e.getObjectURI());
+                                Object property;
+                                AttributeData attribute = new AttributeData();
+                                attribute.setPropertyName(a.getName());
+                                attribute.setPropertyDescriptor(a);
+                                attribute.setPropertyId(a.getPropertyId());
+                                if (properties.get(a.getPropertyURI()) != null)
+                                {
+                                    property = properties.get(a.getPropertyURI()).value();
+                                    if (property != null)
+                                    {
+                                        if (PropertyType.getFromURI(null, a.getRangeURI()).equals(PropertyType.DATE))
+                                        {
+                                            property = DateUtil.formatDateTime((Date) property, AttributeData.DATE_FORMAT);
+                                        }
+                                        else if (PropertyType.getFromURI(null, a.getRangeURI()).equals(PropertyType.DATE_TIME))
+                                        {
+                                            property = DateUtil.formatDateTime((Date) property, AttributeData.DATE_TIME_FORMAT);
+                                        }
+                                        attribute.setValue(property.toString());
+                                    }
+                                }
+                                return attribute;
+                            })
+                            .toList();
+                    e.setAttributes(attributeData);
+                    e.setNarrativeTemplate(topLevelSuperPkgs.get(e.getEventId()).get(e.getEventDataId()).getNarrative());
+                    Map<String, Object> extraFields =
+                            eventDataMap.stream().
+                                    filter(map -> e.getEventDataId().equals(map.get("eventDataId"))
+                                    ).findFirst().get();
+
+                    addExtraFieldsToEventData(c, u, e, extraFields);
+                    return e;
+                }).toList()
+                .stream()
+                .collect(Collectors.groupingBy(EventData::getEventId));
+    }
+
+    /**
+     * Query EventNotes table for set of eventIds
+     * @param c
+     * @param u
+     * @param eventIds
+     * @return
+     */
+    public Map<Integer, String> getEventNotes(Container c, User u, List<Integer> eventIds)
+    {
+        List<EventNote> eventNotes = getTableSelectorFromInts(c, u, eventIds,
+                SNDSchema.EVENTNOTES_TABLE_NAME, "EventId", false, null)
+                .getArrayList(EventNote.class);
+
+        return eventNotes.stream().collect(
+                Collectors.toMap(
+                        EventNote::getEventId, EventNote::getNote
+                )
+        );
+    }
+
+    /**
+     * Query the Projects table and retrieve the ID concatenated with RevisionNum for a set of objectIds
+     * @param c
+     * @param u
+     * @param objectIds
+     * @return
+     */
+    private Map<String, String> getProjectIdRevs(Container c, User u, List<String> objectIds)
+    {
+        List<Project> projects = getTableSelectorFromStrings(c, u, objectIds,
+                SNDSchema.PROJECTS_TABLE_NAME, "ObjectId", false, null)
+                .getArrayList(Project.class);
+
+        return projects.stream().collect(
+                Collectors.toMap(
+                        Project::getObjectId, p -> p.getProjectId() + "|" + p.getRevisionNum()
+                )
+        );
+
+    }
+
+    /**
+     * Query the Event table and retrieve rows for a set of eventIds and populate data/create narratives
+     * @param c
+     * @param u
+     * @param eventIds
+     * @param narrativeOptions
+     * @param topLevelEventDataSuperPkgs
+     * @param skipPermissionCheck
+     * @param errors
+     * @return
+     */
+    @Nullable
+    public Map<Integer, Event> getEvents(Container c, User u, List<Integer> eventIds, Set<EventNarrativeOption> narrativeOptions, @Nullable Map<Integer, Map<Integer, SuperPackage>> topLevelEventDataSuperPkgs, boolean skipPermissionCheck, BatchValidationException errors)
+    {
+        TableSelector selector = getTableSelectorFromInts(c, u, eventIds,
+                SNDSchema.EVENTS_TABLE_NAME, "EventId", false, null);
+
+        List<Event> events = selector.getArrayList(Event.class);
+        Collection<Map<String, Object>> eventsMap = selector.getMapCollection();
+
+        Map<Integer, String> eventNotes = getEventNotes(c, u, eventIds);
+
+        Map<String, String> projectIdRevs = getProjectIdRevs(c, u,
+                events.stream().map(Event::getParentObjectId).collect(Collectors.toList()));
+
+        Map<Integer, List<EventData>> eventData = getAllEventData(c, u, topLevelEventDataSuperPkgs);
+
+        return events.stream().collect(Collectors.toMap(
+                Event::getEventId,
+                event -> {
+                    boolean hasPermission = true;
+                    Map<String, Object> extraFields =
+                            eventsMap.stream().
+                                    filter(map -> event.getEventId().equals(map.get("eventId"))
+                                    ).findFirst().get();
+                    if (!skipPermissionCheck)
+                        hasPermission = SNDSecurityManager.get().hasPermissionForTopLevelSuperPkgs(c, u, topLevelEventDataSuperPkgs.get(event.getEventId()), event, QCStateActionEnum.READ);
+                    if (!event.hasErrors() && hasPermission)
+                    {
+                        event.setNote(eventNotes.get(event.getEventId()));
+                        event.setProjectIdRev(projectIdRevs.get(event.getParentObjectId()));
+                        event.setEventData(eventData.get(event.getEventId()));
+                        addExtraFieldsToEvent(c, u, event, extraFields);
+                    }
+                    if (narrativeOptions != null && !narrativeOptions.isEmpty())
+                    {
+                        Map<EventNarrativeOption, String> narratives = getNarratives(c, u, narrativeOptions, topLevelEventDataSuperPkgs.get(event.getEventId()), event, errors);
+                        if (narratives != null)
+                            event.setNarratives(narratives);
+                    }
+                    return event;
+                })
+        );
+
+    }
+
+    /**
+     * Create a TableSelector object to query a table
+     * @param c
+     * @param u
+     * @param filterValues
+     * @param tableName
+     * @param filterColumn
+     * @param isSorted
+     * @param isNullField
+     * @return
+     */
+    public TableSelector getTableSelectorFromInts (Container c, User u, List<Integer> filterValues,
+                                                   String tableName, String filterColumn, boolean isSorted, String isNullField) {
+
+        UserSchema schema = getSndUserSchemaAdminRole(c, u);
+
+        Sort sort = new Sort();
+        sort.insertSortColumn(FieldKey.fromParts(filterColumn));
+
+        TableInfo tableInfo = getTableInfo(schema, tableName);
+        SimpleFilter filter = new SimpleFilter().addInClause(FieldKey.fromParts(filterColumn), filterValues);
+        if (isNullField != null) {
+            filter.addCondition(FieldKey.fromParts(isNullField), null, CompareType.ISBLANK);
+        }
+        return new TableSelector(tableInfo, filter, isSorted ? sort : null);
+    }
+
+    public TableSelector getTableSelectorFromStrings (Container c, User u, List<String> filterValues,
+                                                      String tableName, String filterColumn, boolean isSorted, String isNullField) {
+
+        UserSchema schema = getSndUserSchemaAdminRole(c, u);
+
+        Sort sort = new Sort();
+        sort.insertSortColumn(FieldKey.fromParts(filterColumn));
+
+        TableInfo tableInfo = getTableInfo(schema, tableName);
+        SimpleFilter filter = new SimpleFilter().addInClause(FieldKey.fromParts(filterColumn), filterValues);
+        if (isNullField != null) {
+            filter.addCondition(FieldKey.fromParts(isNullField), null, CompareType.ISBLANK);
+        }
+        return new TableSelector(tableInfo, filter, isSorted ? sort : null);
+    }
 }
