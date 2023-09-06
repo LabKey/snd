@@ -2797,12 +2797,6 @@ public class SNDManager
             }
             else
             {
-//                for (Integer cacheDatum : cacheData)
-//                {
-//                    row = new HashMap<>();
-//                    row.put("EventId", cacheDatum);
-//                    rows.add(row);
-//                }
                 List<Integer> eventIds = new ArrayList<>(cacheData);
                 log.info("Deleting affected narrative cache rows.");
                 deleteNarrativeCacheRows(container, user, rows, errors);
@@ -3357,7 +3351,7 @@ public class SNDManager
 
         AtomicInteger count = new AtomicInteger(0);
 
-        List<List<Integer>> eventIdsPartitioned = ListUtils.partition(eventIds, 2000);
+        List<List<Integer>> eventIdsPartitioned = ListUtils.partition(eventIds, 2100);
 
         eventIdsPartitioned.forEach(partition -> {
             List<Map<String, Object>> rows = new ArrayList<>();
@@ -3447,7 +3441,7 @@ public class SNDManager
                 SNDSchema.EVENTDATA_TABLE_NAME, "EventId", true, "ParentEventDataId")
                 .getArrayList(EventData.class);
 
-        Deque<Integer> superPkgIds = new ArrayDeque<>(eventData.stream().map(EventData::getSuperPkgId).toList());
+        Deque<Integer> superPkgIds = new ArrayDeque<>(eventData.stream().map(EventData::getSuperPkgId).distinct().toList());
 
         Map<Integer, SuperPackage> superPackages = getAllFullSuperPackages(c, u, superPkgIds, errors);
 
@@ -3484,13 +3478,13 @@ public class SNDManager
         return eventData
                 .stream()
                 .map(e -> {
+                    Map<String, ObjectProperty> properties = OntologyManager.getPropertyObjects(c, e.getObjectURI());
                     List<AttributeData> attributeData = topLevelSuperPkgs
                             .get(e.getEventId()).get(e.getEventDataId())
                             .getPkg()
                             .getAttributes()
                             .stream()
                             .map(a -> {
-                                Map<String, ObjectProperty> properties = OntologyManager.getPropertyObjects(c, e.getObjectURI());
                                 Object property;
                                 AttributeData attribute = new AttributeData();
                                 attribute.setPropertyName(a.getName());
