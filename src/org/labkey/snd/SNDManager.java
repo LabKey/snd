@@ -102,6 +102,7 @@ import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -3327,7 +3328,8 @@ public class SNDManager
         eventSql.append(sndSchema.getTable(SNDSchema.EVENTSCACHE_TABLE_NAME), "ec");
         eventSql.append(" ON ev.EventId = ec.EventId");
         eventSql.append(" WHERE ec.HtmlNarrative IS NULL");
-        eventSql.append(" ORDER BY ev.EventId ");
+
+        eventSql.append(" AND SubjectId = '32870'");
         SqlSelector selector = new SqlSelector(sndSchema.getDbSchema(), eventSql);
 
         List<Integer> eventIds = selector.getArrayList(Integer.class);
@@ -3438,7 +3440,7 @@ public class SNDManager
     private Map<Integer, Map<Integer, SuperPackage>> getTopLevelEventDataSuperPkgs(Container c, User u, List<Integer> eventIds, BatchValidationException errors)
     {
         List<EventData> eventData = getTableSelectorFromInts(c, u, eventIds,
-                SNDSchema.EVENTDATA_TABLE_NAME, "EventId", true, "ParentEventDataId")
+                SNDSchema.EVENTDATA_TABLE_NAME, "EventId", "EventDataId", "ParentEventDataId")
                 .getArrayList(EventData.class);
 
         Deque<Integer> superPkgIds = new ArrayDeque<>(eventData.stream().map(EventData::getSuperPkgId).distinct().toList());
@@ -3452,7 +3454,7 @@ public class SNDManager
                                 Collectors.toMap(
                                         EventData::getEventDataId,
                                         e -> superPackages.get(e.getSuperPkgId())
-                                )
+                            )
                         )
                 );
 
@@ -3470,7 +3472,7 @@ public class SNDManager
         List<Integer> eventDataIds = topLevelSuperPkgs.values().stream().flatMap(mp -> mp.keySet().stream()).collect(Collectors.toList());
 
         TableSelector eventDataSelector = getTableSelectorFromInts(c, u, eventDataIds,
-                SNDSchema.EVENTDATA_TABLE_NAME, "EventDataId", false, null);
+                SNDSchema.EVENTDATA_TABLE_NAME, "EventDataId", null, null);
 
         List<EventData> eventData = eventDataSelector.getArrayList(EventData.class);
         Collection<Map<String, Object>> eventDataMap = eventDataSelector.getMapCollection();
@@ -3533,7 +3535,7 @@ public class SNDManager
     public Map<Integer, String> getEventNotes(Container c, User u, List<Integer> eventIds)
     {
         List<EventNote> eventNotes = getTableSelectorFromInts(c, u, eventIds,
-                SNDSchema.EVENTNOTES_TABLE_NAME, "EventId", false, null)
+                SNDSchema.EVENTNOTES_TABLE_NAME, "EventId", null, null)
                 .getArrayList(EventNote.class);
 
         return eventNotes.stream().collect(
@@ -3553,7 +3555,7 @@ public class SNDManager
     private Map<String, String> getProjectIdRevs(Container c, User u, List<String> objectIds)
     {
         List<Project> projects = getTableSelectorFromStrings(c, u, objectIds,
-                SNDSchema.PROJECTS_TABLE_NAME, "ObjectId", false, null)
+                SNDSchema.PROJECTS_TABLE_NAME, "ObjectId", null, null)
                 .getArrayList(Project.class);
 
         return projects.stream().collect(
@@ -3579,7 +3581,7 @@ public class SNDManager
     public Map<Integer, Event> getEvents(Container c, User u, List<Integer> eventIds, Set<EventNarrativeOption> narrativeOptions, @Nullable Map<Integer, Map<Integer, SuperPackage>> topLevelEventDataSuperPkgs, boolean skipPermissionCheck, BatchValidationException errors)
     {
         TableSelector selector = getTableSelectorFromInts(c, u, eventIds,
-                SNDSchema.EVENTS_TABLE_NAME, "EventId", false, null);
+                SNDSchema.EVENTS_TABLE_NAME, "EventId", null, null);
 
         List<Event> events = selector.getArrayList(Event.class);
         Collection<Map<String, Object>> eventsMap = selector.getMapCollection();
@@ -3627,39 +3629,45 @@ public class SNDManager
      * @param filterValues
      * @param tableName
      * @param filterColumn
-     * @param isSorted
-     * @param isNullField
+     * @param sortColumn
+     * @param isNullColumn
      * @return
      */
     public TableSelector getTableSelectorFromInts (Container c, User u, List<Integer> filterValues,
-                                                   String tableName, String filterColumn, boolean isSorted, String isNullField) {
+                                                   String tableName, String filterColumn, String sortColumn, String isNullColumn) {
 
         UserSchema schema = getSndUserSchemaAdminRole(c, u);
 
         Sort sort = new Sort();
-        sort.insertSortColumn(FieldKey.fromParts(filterColumn));
+        if (sortColumn != null)
+        {
+            sort.insertSortColumn(FieldKey.fromParts(sortColumn));
+        }
 
         TableInfo tableInfo = getTableInfo(schema, tableName);
         SimpleFilter filter = new SimpleFilter().addInClause(FieldKey.fromParts(filterColumn), filterValues);
-        if (isNullField != null) {
-            filter.addCondition(FieldKey.fromParts(isNullField), null, CompareType.ISBLANK);
+        if (isNullColumn != null) {
+            filter.addCondition(FieldKey.fromParts(isNullColumn), null, CompareType.ISBLANK);
         }
-        return new TableSelector(tableInfo, filter, isSorted ? sort : null);
+        return new TableSelector(tableInfo, filter, sortColumn != null ? sort : null);
     }
 
     public TableSelector getTableSelectorFromStrings (Container c, User u, List<String> filterValues,
-                                                      String tableName, String filterColumn, boolean isSorted, String isNullField) {
+                                                      String tableName, String filterColumn, String sortColumn, String isNullColumn) {
 
         UserSchema schema = getSndUserSchemaAdminRole(c, u);
 
         Sort sort = new Sort();
-        sort.insertSortColumn(FieldKey.fromParts(filterColumn));
+        if (sortColumn != null)
+        {
+            sort.insertSortColumn(FieldKey.fromParts(sortColumn));
+        }
 
         TableInfo tableInfo = getTableInfo(schema, tableName);
         SimpleFilter filter = new SimpleFilter().addInClause(FieldKey.fromParts(filterColumn), filterValues);
-        if (isNullField != null) {
-            filter.addCondition(FieldKey.fromParts(isNullField), null, CompareType.ISBLANK);
+        if (isNullColumn != null) {
+            filter.addCondition(FieldKey.fromParts(isNullColumn), null, CompareType.ISBLANK);
         }
-        return new TableSelector(tableInfo, filter, isSorted ? sort : null);
+        return new TableSelector(tableInfo, filter, sortColumn != null ? sort : null);
     }
 }
