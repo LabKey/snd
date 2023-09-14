@@ -1065,8 +1065,16 @@ public class SNDController extends SpringActionController
                     JSONObject eventDatumJson = (JSONObject) eventDataJson.get(i);
 
                     Integer eventDataId = eventDatumJson.has(EventData.EVENT_DATA_ID) ? eventDatumJson.getInt(EventData.EVENT_DATA_ID) : null;
-                    int superPackageId = eventDatumJson.getInt(EventData.EVENT_DATA_SUPER_PACKAGE_ID);
                     Integer sortOrder = eventDatumJson.has(EventData.EVENT_DATA_SORT_ORDER) ? eventDatumJson.getInt(EventData.EVENT_DATA_SORT_ORDER) : null;
+                    int superPackageId;
+                    try
+                    {
+                        superPackageId = eventDatumJson.getInt(EventData.EVENT_DATA_SUPER_PACKAGE_ID);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new IOException("eventDataId " + (eventDataId == null ? 0 : eventDataId) + " is missing required json parameter: superPackageId");
+                    }
 
                     List<EventData> eventDataChildren;
                     JSONArray eventDataChildrenJson = eventDatumJson.has(EventData.EVENT_DATA_SUB_PACKAGES) ? eventDatumJson.getJSONArray(EventData.EVENT_DATA_SUB_PACKAGES) : null;
