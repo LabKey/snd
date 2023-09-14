@@ -21,6 +21,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.beanutils.ConversionException;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -150,7 +151,7 @@ public class SNDManager
         return new SNDUserSchema(SNDSchema.NAME, null, u, c, SNDSchema.getInstance().getSchema(), RoleManager.getRole(FolderAdminRole.class));
     }
 
-    public static int MAX_MERGE_ROWS = 100000;
+    public static int MAX_MERGE_ROWS = 0;
 
     public static Logger getLogger(Map<Enum, Object> configParameters, Class<?> clazz)
     {
@@ -2974,6 +2975,13 @@ public class SNDManager
     private String generateEventDataNarrative(Container c, User u, Event event, EventData eventData, SuperPackage superPackage, int tabIndex, boolean genHtml, boolean genRedacted)
     {
         StringBuilder eventDataNarrative = new StringBuilder();
+
+        if (tabIndex == 0) {
+            eventDataNarrative.append("** ");
+        } else {
+            eventDataNarrative.append("-- ");
+        }
+
         if (superPackage.getNarrative() != null)
         {
             eventDataNarrative.append(superPackage.getNarrative());
@@ -2983,17 +2991,15 @@ public class SNDManager
         {
             eventDataNarrative.insert(0, "<div class='" + EventData.EVENT_DATA_CSS_CLASS + "'>");
         }
-        else
-        {
-            // plain text indenting
-            StringBuilder tabs = new StringBuilder("\n");
-            for (int t = 0; t < tabIndex; t++)
-            {
-                tabs.append("\t");
-            }
 
-            eventDataNarrative.insert(0, tabs);
+        // plain text indenting
+        StringBuilder tabs = new StringBuilder("\n");
+        for (int t = 0; t < tabIndex; t++)
+        {
+            tabs.append("\t");
         }
+        eventDataNarrative.insert(0, tabs);
+
 
         if (superPackage.getPkg() != null)
         {
@@ -3119,6 +3125,16 @@ public class SNDManager
             }
         }
 
+        if (event.getNote() != null) {
+            if (genHtml)
+            {
+                narrative.append("<div class='" + Event.SND_EVENT_NOTE_CSS_CLASS + "'>Procedure Note: ").append(event.getNote()).append("</div>\n");
+            }
+            else
+            {
+                narrative.append("Procedure Note: \n").append(event.getNote()).append("\n");
+            }
+        }
         return narrative.toString();
     }
 
@@ -3329,7 +3345,7 @@ public class SNDManager
         eventSql.append(" ON ev.EventId = ec.EventId");
         eventSql.append(" WHERE ec.HtmlNarrative IS NULL");
 
-        eventSql.append(" AND SubjectId = '32870'");
+        //eventSql.append(" AND SubjectId = '32870'");
         SqlSelector selector = new SqlSelector(sndSchema.getDbSchema(), eventSql);
 
         List<Integer> eventIds = selector.getArrayList(Integer.class);
@@ -3469,62 +3485,126 @@ public class SNDManager
      */
     private Map<Integer, List<EventData>> getAllEventData(Container c, User u, Map<Integer, Map<Integer, SuperPackage>> topLevelSuperPkgs)
     {
-        List<Integer> eventDataIds = topLevelSuperPkgs.values().stream().flatMap(mp -> mp.keySet().stream()).collect(Collectors.toList());
+        if (topLevelSuperPkgs != null)
+        {
+            List<Integer> eventDataIds = topLevelSuperPkgs.values().stream().flatMap(mp -> mp.keySet().stream()).collect(Collectors.toList());
 
-        TableSelector eventDataSelector = getTableSelectorFromInts(c, u, eventDataIds,
-                SNDSchema.EVENTDATA_TABLE_NAME, "EventDataId", null, null);
+            TableSelector eventDataSelector = getTableSelectorFromInts(c, u, eventDataIds,
+                    SNDSchema.EVENTDATA_TABLE_NAME, "EventDataId", null, null);
 
-        List<EventData> eventData = eventDataSelector.getArrayList(EventData.class);
-        Collection<Map<String, Object>> eventDataMap = eventDataSelector.getMapCollection();
+            List<EventData> eventData = eventDataSelector.getArrayList(EventData.class);
+            Collection<Map<String, Object>> eventDataMapCollection = eventDataSelector.getMapCollection();
 
-        return eventData
-                .stream()
-                .map(e -> {
-                    Map<String, ObjectProperty> properties = OntologyManager.getPropertyObjects(c, e.getObjectURI());
-                    List<AttributeData> attributeData = topLevelSuperPkgs
-                            .get(e.getEventId()).get(e.getEventDataId())
-                            .getPkg()
-                            .getAttributes()
-                            .stream()
-                            .map(a -> {
-                                Object property;
-                                AttributeData attribute = new AttributeData();
-                                attribute.setPropertyName(a.getName());
-                                attribute.setPropertyDescriptor(a);
-                                attribute.setPropertyId(a.getPropertyId());
-                                if (properties.get(a.getPropertyURI()) != null)
-                                {
-                                    property = properties.get(a.getPropertyURI()).value();
-                                    if (property != null)
-                                    {
-                                        if (PropertyType.getFromURI(null, a.getRangeURI()).equals(PropertyType.DATE))
-                                        {
-                                            property = DateUtil.formatDateTime((Date) property, AttributeData.DATE_FORMAT);
-                                        }
-                                        else if (PropertyType.getFromURI(null, a.getRangeURI()).equals(PropertyType.DATE_TIME))
-                                        {
-                                            property = DateUtil.formatDateTime((Date) property, AttributeData.DATE_TIME_FORMAT);
-                                        }
-                                        attribute.setValue(property.toString());
-                                    }
-                                }
-                                return attribute;
-                            })
-                            .toList();
-                    e.setAttributes(attributeData);
-                    e.setNarrativeTemplate(topLevelSuperPkgs.get(e.getEventId()).get(e.getEventDataId()).getNarrative());
-                    Map<String, Object> extraFields =
-                            eventDataMap.stream().
-                                    filter(map -> e.getEventDataId().equals(map.get("eventDataId"))
-                                    ).findFirst().get();
+            Map<Integer, List<EventData>> childEventData = getChildEventData(c, u, eventDataIds);
 
-                    addExtraFieldsToEventData(c, u, e, extraFields);
-                    return e;
-                }).toList()
-                .stream()
-                .collect(Collectors.groupingBy(EventData::getEventId));
+            return eventData
+                    .stream()
+                    .map(e -> {
+                        Map<String, ObjectProperty> properties = OntologyManager.getPropertyObjects(c, e.getObjectURI());
+                        if (topLevelSuperPkgs.get(e.getEventId()).containsKey(e.getEventDataId()))
+                        {
+                            List<AttributeData> attributeData = topLevelSuperPkgs
+                                    .get(e.getEventId()).get(e.getEventDataId())
+                                    .getPkg()
+                                    .getAttributes()
+                                    .stream()
+                                    .map(propertyDescriptor -> getAttributeData(propertyDescriptor, properties))
+                                    .toList();
+                            e.setAttributes(attributeData);
+                            e.setNarrativeTemplate(topLevelSuperPkgs.get(e.getEventId()).get(e.getEventDataId()).getNarrative());
+                            Map<String, Object> extraFields =
+                                    eventDataMapCollection.stream().
+                                            filter(map -> e.getEventDataId().equals(map.get("eventDataId"))
+                                            ).findFirst().get();
+
+                            addExtraFieldsToEventData(c, u, e, extraFields);
+                        }
+
+                        Map<Integer, List<EventData>> subEventData = getAllEventData(c, u,
+                                getNextLevelEventDataSuperPkgs(e, childEventData, topLevelSuperPkgs));
+
+                        if (subEventData != null)
+                        {
+                            e.setSubPackages(subEventData.get(e.getEventId()));
+                        }
+
+                        return e;
+                    }).toList()
+                    .stream()
+                    .collect(Collectors.groupingBy(EventData::getEventId));
+        }
+        return null;
     }
 
+    /**
+     * Get the attribute data for a given PropertyDescriptor object
+     * @param propertyDescriptor
+     * @param properties
+     * @return
+     */
+    private AttributeData getAttributeData(GWTPropertyDescriptor propertyDescriptor, Map<String, ObjectProperty> properties) {
+        Object property;
+        AttributeData attribute = new AttributeData();
+        attribute.setPropertyName(propertyDescriptor.getName());
+        attribute.setPropertyDescriptor(propertyDescriptor);
+        attribute.setPropertyId(propertyDescriptor.getPropertyId());
+        if (properties.get(propertyDescriptor.getPropertyURI()) != null)
+        {
+            property = properties.get(propertyDescriptor.getPropertyURI()).value();
+            if (property != null)
+            {
+                if (PropertyType.getFromURI(null, propertyDescriptor.getRangeURI()).equals(PropertyType.DATE))
+                {
+                    property = DateUtil.formatDateTime((Date) property, AttributeData.DATE_FORMAT);
+                }
+                else if (PropertyType.getFromURI(null, propertyDescriptor.getRangeURI()).equals(PropertyType.DATE_TIME))
+                {
+                    property = DateUtil.formatDateTime((Date) property, AttributeData.DATE_TIME_FORMAT);
+                }
+                attribute.setValue(property.toString());
+            }
+        }
+        return attribute;
+    }
+
+    /**
+     * Get the next child level of SuperPackages for a given map of top level SuperPackages
+     * @param eventData
+     * @param childEventData
+     * @param topLevelSuperPkgs
+     * @return
+     */
+    private Map<Integer, Map<Integer, SuperPackage>> getNextLevelEventDataSuperPkgs(EventData eventData,
+                                                                                    Map<Integer, List<EventData>> childEventData,
+                                                                                    Map<Integer, Map<Integer, SuperPackage>> topLevelSuperPkgs) {
+
+        Map<Integer, SuperPackage> fullChildSuperPkgs = topLevelSuperPkgs
+                .get(eventData.getEventId())
+                .get(eventData.getEventDataId())
+                .getChildPackages()
+                .stream()
+                .sorted(Comparator.comparing(SuperPackage::getSortOrder).thenComparing(SuperPackage::getSuperPkgId))
+                .collect(Collectors.toMap(
+                        SuperPackage::getSuperPkgId,
+                        s -> s
+                ));
+
+        if (childEventData.containsKey(eventData.getEventId())) {
+            return childEventData.get(eventData.getEventId())
+                    .stream()
+                    .filter(child -> fullChildSuperPkgs.containsKey(child.getSuperPkgId()))
+                    .collect(
+                            Collectors.groupingBy(
+                                    EventData::getEventId,
+                                    Collectors.toMap(
+                                            EventData::getEventDataId,
+                                            child -> fullChildSuperPkgs.get(child.getSuperPkgId())
+                                    )
+                            )
+                    );
+        }
+        return null;
+    }
     /**
      * Query EventNotes table for set of eventIds
      * @param c
@@ -3541,6 +3621,28 @@ public class SNDManager
         return eventNotes.stream().collect(
                 Collectors.toMap(
                         EventNote::getEventId, EventNote::getNote
+                )
+        );
+    }
+
+    /**
+     * Get EventData objects for a list of ParentEventIds
+     * @param c
+     * @param u
+     * @param parentEventDataIds
+     * @return
+     */
+    public Map<Integer, List<EventData>> getChildEventData(Container c, User u, List<Integer> parentEventDataIds) {
+
+        List<EventData> childEventData = getTableSelectorFromInts(c, u, parentEventDataIds,
+                SNDSchema.EVENTDATA_TABLE_NAME, "ParentEventDataId", null, null).getArrayList(EventData.class);
+
+        return childEventData.stream().collect(
+                Collectors.groupingBy(
+                        EventData::getEventId,
+                        Collectors.mapping(
+                             e -> e, Collectors.toList()
+                        )
                 )
         );
     }
@@ -3584,7 +3686,7 @@ public class SNDManager
                 SNDSchema.EVENTS_TABLE_NAME, "EventId", null, null);
 
         List<Event> events = selector.getArrayList(Event.class);
-        Collection<Map<String, Object>> eventsMap = selector.getMapCollection();
+        Collection<Map<String, Object>> eventMapCollection = selector.getMapCollection();
 
         Map<Integer, String> eventNotes = getEventNotes(c, u, eventIds);
 
@@ -3598,7 +3700,7 @@ public class SNDManager
                 event -> {
                     boolean hasPermission = true;
                     Map<String, Object> extraFields =
-                            eventsMap.stream().
+                            eventMapCollection.stream().
                                     filter(map -> event.getEventId().equals(map.get("eventId"))
                                     ).findFirst().get();
                     if (!skipPermissionCheck)
