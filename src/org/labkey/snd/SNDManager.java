@@ -3350,8 +3350,8 @@ public class SNDManager
                                     Map<Integer, List<EventData>> subEventData = getAllEventData(c, u, nextLevelSuperPkgs);
                                     if (subEventData != null) {
                                         List<EventData> sorted = subEventData.get(eventData.getEventId()).stream().sorted(Comparator.comparing(
-                                                        (EventData child) ->
-                                                                nextLevelSuperPkgs.get(child.getEventId()).get(child.getEventDataId()).getTreePath())).collect(
+                                                (EventData child) ->
+                                                        nextLevelSuperPkgs.get(child.getEventId()).get(child.getEventDataId()).getTreePath())).collect(
                                                 Collectors.toList());
                                         eventData.setSubPackages(sorted);
                                     }
