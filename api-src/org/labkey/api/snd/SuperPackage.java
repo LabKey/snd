@@ -42,6 +42,7 @@ public class SuperPackage
     private Integer _pkgId;
     private Package _pkg;
     private String _superPkgPath;
+    private String _treePath;
     private Integer _parentSuperPkgId;
     private String _description; // From referenced package
     private String _narrative; // From referenced package
@@ -58,6 +59,7 @@ public class SuperPackage
     public static final String SUPERPKG_ORDER = "sortOrder";
     public static final String SUPERPKG_REPEATABLE = "repeatable";
     public static final String SUPERPKG_PATH = "superPkgPath";
+    public static final String SUPERPKG_TREEPATH = "treePath";
     public static final String SUPERPKG_REQUIRED = "required";
 
     public SuperPackage()
@@ -158,6 +160,11 @@ public class SuperPackage
     }
 
     @Nullable
+    public String getTreePath() { return _treePath; }
+
+    public void setTreePath(String treePath) { _treePath = treePath; }
+
+    @Nullable
     public Integer getSuperPkgId()
     {
         return _superPkgId;
@@ -212,6 +219,7 @@ public class SuperPackage
         superPkgValues.put("container", c);
         superPkgValues.put(SUPERPKG_PATH, getSuperPkgPath());
         superPkgValues.put(SUPERPKG_REQUIRED, getRequired());
+        superPkgValues.put(SUPERPKG_TREEPATH, getTreePath());
 
         return superPkgValues;
     }
