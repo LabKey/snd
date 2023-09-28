@@ -61,6 +61,8 @@ public class SuperPackage
     public static final String SUPERPKG_PATH = "superPkgPath";
     public static final String SUPERPKG_TREEPATH = "treePath";
     public static final String SUPERPKG_REQUIRED = "required";
+    public static final String SUPERPKG_PKGID_CSS_CLASS = "snd-superpkg-pkg-id";
+
 
     public SuperPackage()
     {

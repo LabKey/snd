@@ -2733,9 +2733,6 @@ public class SNDManager
 
         if (tabIndex == 0) {
             eventDataNarrative.append("** ");
-            if (genHtml) {
-
-            }
         } else {
             eventDataNarrative.append("-- ");
         }
@@ -2806,6 +2803,10 @@ public class SNDManager
                     eventDataNarrative = new StringBuilder(
                             eventDataNarrative.toString().replace("{" + pd.getName() + "}", value));
                 }
+            }
+
+            if (genHtml) {
+                eventDataNarrative.append("<span class='" + SuperPackage.SUPERPKG_PKGID_CSS_CLASS + "'> (" + superPackage.getPkgId() + ") </span>");
             }
 
             if (genHtml) {
@@ -3063,9 +3064,9 @@ public class SNDManager
         eventSql.append(sndSchema.getTable(SNDSchema.EVENTSCACHE_TABLE_NAME), "ec");
         eventSql.append(" ON ev.EventId = ec.EventId");
         eventSql.append(" WHERE ec.HtmlNarrative IS NULL ");
-        eventSql.append(" ORDER BY EventId desc ");
+        //eventSql.append(" ORDER BY EventId desc ");
 
-        //eventSql.append(" AND SubjectId = '38618'");
+        eventSql.append(" AND SubjectId = '38618'");
         SqlSelector selector = new SqlSelector(sndSchema.getDbSchema(), eventSql);
 
         List<Integer> eventIds = selector.getArrayList(Integer.class);
@@ -3359,8 +3360,6 @@ public class SNDManager
 
                                 return eventData;
                             })
-                    .toList()
-                    .stream()
                     .collect(Collectors.groupingBy(EventData::getEventId));
         }
         return null;
