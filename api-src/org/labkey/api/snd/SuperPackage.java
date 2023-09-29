@@ -44,6 +44,7 @@ public class SuperPackage
     private String _superPkgPath;
     private String _treePath;
     private Integer _parentSuperPkgId;
+    private Integer _topLevelPkgId;
     private String _description; // From referenced package
     private String _narrative; // From referenced package
     private Integer _sortOrder;
@@ -53,6 +54,7 @@ public class SuperPackage
 
     public static final String SUPERPKG_ID = "superPkgId";
     public static final String SUPERPKG_PARENTID = "parentSuperPkgId";
+    public static final String SUPERPKG_TOP_LEVEL_PKGID = "topLevelPkgId";
     public static final String SUPERPKG_PKGID = "pkgId";
     public static final String SUPERPKG_DESCRIPTION = "description";
     public static final String SUPERPKG_NARRATIVE = "narrative";
@@ -62,7 +64,6 @@ public class SuperPackage
     public static final String SUPERPKG_TREEPATH = "treePath";
     public static final String SUPERPKG_REQUIRED = "required";
     public static final String SUPERPKG_PKGID_CSS_CLASS = "snd-superpkg-pkg-id";
-
 
     public SuperPackage()
     {
@@ -100,6 +101,11 @@ public class SuperPackage
     {
         _parentSuperPkgId = parentSuperPkgId;
     }
+
+    @Nullable
+    public Integer getTopLevelPkgId() { return _topLevelPkgId; }
+
+    public void setTopLevelPkgId(Integer topLevelPkgId) { _topLevelPkgId = topLevelPkgId; }
 
     @Nullable
     public List<SuperPackage> getChildPackages()
@@ -222,6 +228,7 @@ public class SuperPackage
         superPkgValues.put(SUPERPKG_PATH, getSuperPkgPath());
         superPkgValues.put(SUPERPKG_REQUIRED, getRequired());
         superPkgValues.put(SUPERPKG_TREEPATH, getTreePath());
+        superPkgValues.put(SUPERPKG_TOP_LEVEL_PKGID, getTopLevelPkgId());
 
         return superPkgValues;
     }
