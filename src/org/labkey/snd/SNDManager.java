@@ -952,7 +952,7 @@ public class SNDManager
      * all attributes for sub packages.
      */
     public List<Package> getPackages(Container c, User u, List<Integer> pkgIds, boolean includeExtraFields, boolean includeLookups,
-            boolean includeFullSubpackages, BatchValidationException errors) {
+                                     boolean includeFullSubpackages, BatchValidationException errors) {
         UserSchema schema = getSndUserSchema(c, u);
 
         TableInfo pkgsTable = getTableInfo(schema, SNDSchema.PKGS_TABLE_NAME);
@@ -3060,7 +3060,7 @@ public class SNDManager
         eventSql.append(sndSchema.getTable(SNDSchema.EVENTSCACHE_TABLE_NAME), "ec");
         eventSql.append(" ON ev.EventId = ec.EventId");
         eventSql.append(" WHERE ec.HtmlNarrative IS NULL ");
-        eventSql.append(" ORDER BY EventId desc ");
+        //eventSql.append(" ORDER BY EventId desc ");
 
         //eventSql.append(" AND SubjectId = '38618'");
         SqlSelector selector = new SqlSelector(sndSchema.getDbSchema(), eventSql);
@@ -3162,7 +3162,7 @@ public class SNDManager
      */
     @Nullable
     public Map<Integer, Event> getAllEvents(Container c, User u, List<Integer> eventIds, Set<EventNarrativeOption> narrativeOptions,
-            @Nullable Map<Integer, Map<Integer, SuperPackage>> topLevelSuperPkgs, boolean skipPermissionCheck, BatchValidationException errors) {
+                                            @Nullable Map<Integer, Map<Integer, SuperPackage>> topLevelSuperPkgs, boolean skipPermissionCheck, BatchValidationException errors) {
 
         // SELECT * FROM Events WHERE EventId IN {eventIds}
         TableSelector eventSelector = getTableSelector(c, u, eventIds, SNDSchema.EVENTS_TABLE_NAME, "EventId", null, null);
@@ -3356,7 +3356,7 @@ public class SNDManager
                 Map<Integer, List<EventData>> subEventData = getAllEventData(c, u, nextLevelSuperPkgs);
                 if (subEventData != null) {
                     List<EventData> sorted = subEventData.get(eventData.getEventId()).stream().sorted(Comparator.comparing(
-                            (EventData child) -> nextLevelSuperPkgs.get(child.getEventId()).get(child.getEventDataId()).getTreePath()))
+                                    (EventData child) -> nextLevelSuperPkgs.get(child.getEventId()).get(child.getEventDataId()).getTreePath()))
                             .collect(Collectors.toList());
                     eventData.setSubPackages(sorted);
                 }
@@ -3433,8 +3433,8 @@ public class SNDManager
      * @param currentLevelSuperPkgs
      * @return
      */
-    private Map<Integer, Map<Integer, SuperPackage>> getNextLevelEventDataSuperPkgs(EventData eventData,
-            Map<Integer, List<EventData>> childEventData, Map<Integer, Map<Integer, SuperPackage>> currentLevelSuperPkgs) {
+    private Map<Integer, Map<Integer, SuperPackage>> getNextLevelEventDataSuperPkgs(EventData eventData, Map<Integer,
+            List<EventData>> childEventData, Map<Integer, Map<Integer, SuperPackage>> currentLevelSuperPkgs) {
 
         if (!childEventData.containsKey(eventData.getEventId())) {
             return null;
