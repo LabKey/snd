@@ -802,7 +802,7 @@
                                             "<span class='snd-attribute-data'>Carbon Dioxide (CO2) Colorimetric Detection Kit</span><span class='snd-superpkg-pkg-id'>(812)</span></div>\n<div class='snd-event-data'>" +
                                             "-- &emsp;&emsp;Chloride: <span class='snd-attribute-data'>112</span> <span class='snd-attribute-data'>mEq/L</span> measured using " +
                                             "<span class='snd-attribute-data'>Chloride Blood Detection Kit</span><span class='snd-superpkg-pkg-id'>(813)</span>" +
-                                            "<br><div class='snd-even-note'>Procedure Note: <br>Note for narrative generation sample JSON</div>\n",
+                                            "<br><div class='snd-event-note'>Procedure Note: <br>Note for narrative generation sample JSON</div>\n",
                     redactedTextNarrative: "2018-02-26 17:51\nSubject Id: 2\n** Electrolytes" +
                                             "-- Potassium: Redacted Value mEq/L measured using Potassium Detection Kit" +
                                             "-- Sodium: 100 mEq/L measured using Sodium Colorimetric Detection Kit" +
@@ -819,7 +819,7 @@
                             "<span class='snd-attribute-data'>Carbon Dioxide (CO2) Colorimetric Detection Kit</span><span class='snd-superpkg-pkg-id'>(812)</span></div>\n<div class='snd-event-data'>" +
                             "-- &emsp;&emsp;Chloride: <span class='snd-attribute-data'>112</span> <span class='snd-attribute-data'>mEq/L</span> measured using " +
                             "<span class='snd-attribute-data'>Chloride Blood Detection Kit</span><span class='snd-superpkg-pkg-id'>(813)</span>" +
-                            "<br><div class='snd-even-note'>Procedure Note: <br>Note for narrative generation sample JSON</div>\n",
+                            "<br><div class='snd-event-note'>Procedure Note: <br>Note for narrative generation sample JSON</div>\n",
                     eventData: [
                         {
                             superPkgId: LABKEY.SND_PKG_CACHE['814'][0]['superPkgId'],
