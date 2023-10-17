@@ -2154,11 +2154,55 @@ public class SNDManager
     }
 
     /**
+     * Add extensible columns to an event.
+     */
+    public Event addExtraFieldsToEvent(Event event, List<GWTPropertyDescriptor> extraFields, @Nullable Map<String, Object> row)
+    {
+        Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
+        for (GWTPropertyDescriptor extraField : extraFields)
+        {
+            if (row == null)
+            {
+                extras.put(extraField, "");
+            }
+            else
+            {
+                extras.put(extraField, row.get(extraField.getName()));
+            }
+        }
+        event.setExtraFields(extras);
+
+        return event;
+    }
+
+    /**
      * Add extensible columns to event data.
      */
     private EventData addExtraFieldsToEventData(Container c, User u, EventData eventData, @Nullable Map<String, Object> row)
     {
         List<GWTPropertyDescriptor> extraFields = getExtraFields(c, u, SNDSchema.EVENTDATA_TABLE_NAME);
+        Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
+        for (GWTPropertyDescriptor extraField : extraFields)
+        {
+            if (row == null)
+            {
+                extras.put(extraField, null);
+            }
+            else
+            {
+                extras.put(extraField, row.get(extraField.getName()));
+            }
+        }
+        eventData.setExtraFields(extras);
+
+        return eventData;
+    }
+
+    /**
+     * Add extensible columns to event data.
+     */
+    private EventData addExtraFieldsToEventData(EventData eventData, List<GWTPropertyDescriptor> extraFields, @Nullable Map<String, Object> row)
+    {
         Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
         for (GWTPropertyDescriptor extraField : extraFields)
         {
@@ -2871,6 +2915,9 @@ public class SNDManager
         UserSchema sndSchema = getSndUserSchemaAdminRole(c, u);
         QueryUpdateService eventsCacheQus = getNewQueryUpdateService(sndSchema, SNDSchema.EVENTSCACHE_TABLE_NAME);
 
+        List<GWTPropertyDescriptor> eventExtraFields = getExtraFields(c, u, SNDSchema.EVENTS_TABLE_NAME);
+        List<GWTPropertyDescriptor> eventDataExtraFields = getExtraFields(c, u, SNDSchema.EVENTDATA_TABLE_NAME);
+
         // Logger for pipeline
         if (logger != null)
         {
@@ -2891,7 +2938,7 @@ public class SNDManager
             Map<Integer, Map<Integer, SuperPackage>> topLevelSuperPkgs = getAllTopLevelEventDataSuperPkgs(c, u, partitionEventIds, superPackages);
 
             //Events grouped by EventId
-            Map<Integer, Event> events = getAllEvents(c, u, partitionEventIds, null, topLevelSuperPkgs, true, errors);
+            Map<Integer, Event> events = getAllEvents(c, u, partitionEventIds, null, topLevelSuperPkgs, true, errors, eventExtraFields, eventDataExtraFields);
 
             partitionEventIds.forEach((Integer eventId) -> {
                 Map<String, Object> row = new ArrayListMap<>();
@@ -3451,7 +3498,8 @@ public class SNDManager
      */
     @Nullable
     public Map<Integer, Event> getAllEvents(Container c, User u, List<Integer> eventIds, Set<EventNarrativeOption> narrativeOptions,
-                                            @Nullable Map<Integer, Map<Integer, SuperPackage>> topLevelSuperPkgs, boolean skipPermissionCheck, BatchValidationException errors) {
+                                            @Nullable Map<Integer, Map<Integer, SuperPackage>> topLevelSuperPkgs, boolean skipPermissionCheck, BatchValidationException errors,
+                                            List<GWTPropertyDescriptor> eventExtraFields, List<GWTPropertyDescriptor> eventDataExtraFields) {
 
         // Events from query - SELECT * FROM Events WHERE EventId IN {eventIds}
         TableSelector eventSelector = getTableSelector(c, u, eventIds, SNDSchema.EVENTS_TABLE_NAME, "EventId", null, null);
@@ -3465,7 +3513,7 @@ public class SNDManager
         Map<String, String> projectIdRevs = getProjectIdRevs(c, u, events.stream().map(Event::getParentObjectId).collect(Collectors.toList()));
 
         //EventData grouped by EventId
-        Map<Integer, List<EventData>> eventData = getAllEventData(c, u, topLevelSuperPkgs);
+        Map<Integer, List<EventData>> eventData = getAllEventData(c, u, topLevelSuperPkgs, eventDataExtraFields);
 
         // Build events from eventData, eventNotes, and project data and group by EventId
         Map<Integer, Event> eventsById = events.stream().collect(Collectors.toMap(Event::getEventId, (Event event) -> {
@@ -3490,7 +3538,7 @@ public class SNDManager
                     event.setEventData(sortedEventData);
                 }
 
-                addExtraFieldsToEvent(c, u, event, extraFields);
+                addExtraFieldsToEvent(event, eventExtraFields, extraFields);
             }
             if (narrativeOptions != null && !narrativeOptions.isEmpty()) {
                 Map<EventNarrativeOption, String> narratives = getNarratives(c, u, narrativeOptions,
@@ -3601,7 +3649,7 @@ public class SNDManager
      * @param currentLevelSuperPkgs
      * @return
      */
-    private Map<Integer, List<EventData>> getAllEventData(Container c, User u, Map<Integer, Map<Integer, SuperPackage>> currentLevelSuperPkgs) {
+    private Map<Integer, List<EventData>> getAllEventData(Container c, User u, Map<Integer, Map<Integer, SuperPackage>> currentLevelSuperPkgs, List<GWTPropertyDescriptor> eventDataExtraFields) {
 
         if (currentLevelSuperPkgs == null) {
             return null;
@@ -3644,13 +3692,13 @@ public class SNDManager
                     .findFirst()
                     .orElse(Collections.emptyMap());
 
-            addExtraFieldsToEventData(c, u, eventData, extraFields);
+            addExtraFieldsToEventData(eventData, eventDataExtraFields, extraFields);
 
             Map<Integer, Map<Integer, SuperPackage>> nextLevelSuperPkgs = getNextLevelEventDataSuperPkgs(eventData, childEventData, currentLevelSuperPkgs);
 
             if (nextLevelSuperPkgs != null && !nextLevelSuperPkgs.isEmpty()) {
                 // Recursion for next child level of sub packages
-                Map<Integer, List<EventData>> subEventData = getAllEventData(c, u, nextLevelSuperPkgs);
+                Map<Integer, List<EventData>> subEventData = getAllEventData(c, u, nextLevelSuperPkgs, eventDataExtraFields);
                 if (subEventData != null) {
                     List<EventData> sorted = subEventData.get(eventData.getEventId()).stream().sorted(Comparator.comparing(
                                     (EventData child) -> nextLevelSuperPkgs.get(child.getEventId()).get(child.getEventDataId()).getTreePath()))
