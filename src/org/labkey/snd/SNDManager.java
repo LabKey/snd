@@ -2887,7 +2887,10 @@ public class SNDManager
         eventIdsPartitioned.forEach((List<Integer> partitionEventIds) -> {
             List<Map<String, Object>> rows = new ArrayList<>();
 
+            //Top Level SuperPkgs grouped by EventDataId and grouped by EventId
             Map<Integer, Map<Integer, SuperPackage>> topLevelSuperPkgs = getAllTopLevelEventDataSuperPkgs(c, u, partitionEventIds, superPackages);
+
+            //Events grouped by EventId
             Map<Integer, Event> events = getAllEvents(c, u, partitionEventIds, null, topLevelSuperPkgs, true, errors);
 
             partitionEventIds.forEach((Integer eventId) -> {
@@ -2898,9 +2901,9 @@ public class SNDManager
                 row.put("HtmlNarrative", eventNarrative);
                 row.put("Container", c);
                 rows.add(row);
-                int currencount = count.incrementAndGet();
-                if (logger != null && currencount % 1000 == 0) {
-                    logger.info(currencount + " narratives generated.");
+                int currentCount = count.incrementAndGet();
+                if (logger != null && currentCount % 1000 == 0) {
+                    logger.info(currentCount + " narratives generated.");
                 }
             });
             try (DbScope.Transaction tx = sndSchema.getDbSchema().getScope().ensureTransaction()) {
@@ -3023,7 +3026,7 @@ public class SNDManager
 
         return result;
     }
-    
+
     /**
      * Recursive function building up the narrative.  Iterates through the event datas filling in the tokens in the template
      * with real values.  Formats based on html or plain text and creates redacted or non-redacted version. Called from
@@ -3450,15 +3453,18 @@ public class SNDManager
     public Map<Integer, Event> getAllEvents(Container c, User u, List<Integer> eventIds, Set<EventNarrativeOption> narrativeOptions,
                                             @Nullable Map<Integer, Map<Integer, SuperPackage>> topLevelSuperPkgs, boolean skipPermissionCheck, BatchValidationException errors) {
 
-        // SELECT * FROM Events WHERE EventId IN {eventIds}
+        // Events from query - SELECT * FROM Events WHERE EventId IN {eventIds}
         TableSelector eventSelector = getTableSelector(c, u, eventIds, SNDSchema.EVENTS_TABLE_NAME, "EventId", null, null);
         List<Event> events = eventSelector.getArrayList(Event.class);
         Collection<Map<String, Object>> eventsExtensibleFields = eventSelector.getMapCollection();
 
+        //EventNotes grouped by EventId
         Map<Integer, String> eventNotes = getEventNotes(c, u, eventIds);
 
+        //ProjectIdRev strings grouped by Event ObjectId
         Map<String, String> projectIdRevs = getProjectIdRevs(c, u, events.stream().map(Event::getParentObjectId).collect(Collectors.toList()));
 
+        //EventData grouped by EventId
         Map<Integer, List<EventData>> eventData = getAllEventData(c, u, topLevelSuperPkgs);
 
         // Build events from eventData, eventNotes, and project data and group by EventId
@@ -3512,6 +3518,7 @@ public class SNDManager
 
         UserSchema schema = getSndUserSchema(c, u);
 
+        // Get All SuperPkg objects from database
         SQLFragment sql = new SQLFragment(
                 "SELECT sp.SuperPkgId, sp.PkgId, sp.SortOrder, sp.Required, pkg.PkgId, pkg.Description, pkg.Active, pkg.Narrative, pkg.Repeatable FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
@@ -3522,8 +3529,10 @@ public class SNDManager
         SqlSelector superPkgSelector = new SqlSelector(schema.getDbSchema(), sql);
         List<SuperPackage> superPackages = superPkgSelector.getArrayList(SuperPackage.class);
 
+        // Group All SuperPkgs by SuperPkgId
         Map<Integer, SuperPackage> superPackagesById = superPackages.stream().collect(Collectors.toMap(SuperPackage::getSuperPkgId, superPackage -> superPackage));
 
+        // All Child SuperPkgs grouped by TopLevelPkgId
         Map<Integer, List<SuperPackage>> childSuperPackages = getAllFullChildSuperPkgs(c, u, true, errors);
 
         superPackagesById.forEach((superPkgId, superPackage) -> {
@@ -3555,6 +3564,7 @@ public class SNDManager
         SqlSelector selector = new SqlSelector(schema.getDbSchema(), childSql);
         List<SuperPackage> allSuperPackages = selector.getArrayList(SuperPackage.class);
 
+        // Group results of TopLevelSuperPkgs by TopLevelPkgId
         Map<Integer, List<SuperPackage>> superPackagesByTopLevelPkgId = allSuperPackages.stream().collect(Collectors.groupingBy(SuperPackage::getTopLevelPkgId));
 
         superPackagesByTopLevelPkgId.forEach((topLevelPkgId, superPackages) -> {
@@ -3602,11 +3612,12 @@ public class SNDManager
                 .flatMap((Map<Integer, SuperPackage> map) -> map.keySet().stream())
                 .collect(Collectors.toList());
 
-        // SELECT * FROM EventData WHERE EventDataId IN {eventDataIds}
+        // EventData from query - SELECT * FROM EventData WHERE EventDataId IN {eventDataIds}
         TableSelector eventDataSelector = getTableSelector(c, u, eventDataIds, SNDSchema.EVENTDATA_TABLE_NAME, "EventDataId", null, null);
         List<EventData> allEventData = eventDataSelector.getArrayList(EventData.class);
         Collection<Map<String, Object>> eventDataExtensibleFields = eventDataSelector.getMapCollection();
 
+        // Child EventData grouped by EventId
         Map<Integer, List<EventData>> childEventData = getChildEventData(c, u, eventDataIds);
 
         // Build eventData from attributes and superPkgs and group by eventId
@@ -3669,7 +3680,7 @@ public class SNDManager
             return Collections.emptyMap();
         }
 
-        // SELECT * FROM EventData WHERE ParentEventDataId IN {parentEventDataIds}
+        // EventData from query - SELECT * FROM EventData WHERE ParentEventDataId IN {parentEventDataIds}
         TableSelector eventDataSelector = getTableSelector(c, u, parentEventDataIds, SNDSchema.EVENTDATA_TABLE_NAME, "ParentEventDataId", null, null);
         List<EventData> childEventData = eventDataSelector.getArrayList(EventData.class);
 
@@ -3764,7 +3775,7 @@ public class SNDManager
      */
     private Map<Integer, String> getEventNotes(Container c, User u, List<Integer> eventIds) {
 
-        // SELECT * FROM EventNotes WHERE EventId IN {eventIds}
+        // EventNotes from query - SELECT * FROM EventNotes WHERE EventId IN {eventIds}
         TableSelector eventNoteSelector = getTableSelector(c, u, eventIds, SNDSchema.EVENTNOTES_TABLE_NAME, "EventId", null, null);
         List<EventNote> eventNotes = eventNoteSelector.getArrayList(EventNote.class);
 
@@ -3788,11 +3799,11 @@ public class SNDManager
      */
     private Map<String, String> getProjectIdRevs(Container c, User u, List<String> objectIds) {
 
-        // SELECT * FROM Projects WHERE ObjectId IN {objectIds}
+        // Projects from query - SELECT * FROM Projects WHERE ObjectId IN {objectIds}
         TableSelector projectSelector = getTableSelector(c, u, objectIds, SNDSchema.PROJECTS_TABLE_NAME, "ObjectId", null, null);
         List<Project> projects = projectSelector.getArrayList(Project.class);
 
-        // Group by ObjectId
+        // Concat string of ProjectId + RevisionNum and Group by ObjectId
         Map<String, String> projectIdRevs = projects.stream().collect(
                 Collectors.toMap(
                         Project::getObjectId,
