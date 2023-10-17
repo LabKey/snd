@@ -3176,7 +3176,7 @@ public class SNDManager
 
             if (genHtml)
             {
-                eventDataNarrative.append("<span class='" + SuperPackage.SUPERPKG_PKGID_CSS_CLASS + "'> (" + superPackage.getPkgId() + ") </span>");
+                eventDataNarrative.append("<span class='" + SuperPackage.SUPERPKG_PKGID_CSS_CLASS + "'> (" + superPackage.getPkgId() + ") </span></div>");
             }
 
             if (genHtml)
