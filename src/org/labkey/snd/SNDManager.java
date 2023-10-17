@@ -3023,6 +3023,7 @@ public class SNDManager
 
         return result;
     }
+    
     /**
      * Recursive function building up the narrative.  Iterates through the event datas filling in the tokens in the template
      * with real values.  Formats based on html or plain text and creates redacted or non-redacted version. Called from
@@ -3209,6 +3210,7 @@ public class SNDManager
                 narrative.append("Procedure Note: ").append(event.getNote()).append("\n");
             }
         }
+
         return narrative.toString();
     }
 
@@ -3401,6 +3403,7 @@ public class SNDManager
 
         return projectItems;
     }
+
 
     /**
      * Query the EventData table and create a Map of all top level SuperPackages for a set of eventIds
