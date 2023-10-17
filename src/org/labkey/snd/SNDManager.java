@@ -2848,7 +2848,6 @@ public class SNDManager
      */
     public void fillInNarrativeCache(Container c, User u, BatchValidationException errors, @Nullable Logger logger)
     {
-
         UserSchema sndSchema = getSndUserSchemaAdminRole(c, u);
 
         SQLFragment eventSql = new SQLFragment("SELECT ev.EventId FROM ");
@@ -2869,7 +2868,6 @@ public class SNDManager
      */
     public void populateNarrativeCache(Container c, User u, List<Integer> eventIds, BatchValidationException errors, @Nullable Logger logger)
     {
-
         UserSchema sndSchema = getSndUserSchemaAdminRole(c, u);
         QueryUpdateService eventsCacheQus = getNewQueryUpdateService(sndSchema, SNDSchema.EVENTSCACHE_TABLE_NAME);
 
@@ -3156,9 +3154,9 @@ public class SNDManager
     private String generateEventNarrative(Container c, User u, Event event, Map<Integer, SuperPackage> topLevelEventDataSuperPkgs, boolean genHtml, boolean genRedacted)
     {
         StringBuilder narrative = new StringBuilder();
-        if (event.getDate() != null) {
-            String dateValue = DateUtil.formatDateTime(event.getDate(),
-                    LookAndFeelProperties.getInstance(c).getDefaultDateTimeFormat());
+        if (event.getDate() != null)
+        {
+            String dateValue = DateUtil.formatDateTime(event.getDate(), LookAndFeelProperties.getInstance(c).getDefaultDateTimeFormat());
 
             if (genHtml)
             {
