@@ -591,8 +591,11 @@
                     }
                 }
             }
-        },{
-
+        },
+        /*{
+            // This test is commented out because it is not currently valid:
+            // allow basic submitters to read, update, insert, and delete completed data
+            // This is needed uptil SNPRC releases the new QC workflow
             name: 'Get Event: Invalid permission. Basic submitter reading completed data.',
             roles: ['org.labkey.api.security.roles.ReaderRole',
                 'org.labkey.api.security.roles.EditorRole',
@@ -607,8 +610,8 @@
                     expectedFailure : 'You do not have permission to Read event data for QC state Completed for these super packages.'
                 }
             }
-        },{
-
+        }, */
+        {
             name: 'Get Event: Valid permission. Data reviewer reading completed data.',
             roles: ['org.labkey.api.security.roles.ReaderRole',
                 'org.labkey.api.security.roles.EditorRole',
