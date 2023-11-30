@@ -411,7 +411,7 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
 
             //Deleting event narrative cache
             log.info("Clearing event narrative cache.");
-            _sndService.clearNarrativeCache(container, user);
+            //_sndService.clearNarrativeCache(container, user);
             OntologyManager.clearCaches();
 
             return numDeletedRows;
