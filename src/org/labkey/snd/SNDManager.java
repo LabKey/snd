@@ -3322,7 +3322,7 @@ public class SNDManager
      * Returns a list of active projects with a list of project items
      */
 
-    public List<Map<String, Object>> getActiveProjects(Container c, User u, ArrayList<SimpleFilter> filters, Boolean activeProjectItemsOnly)
+    public List<Map<String, Object>> getActiveProjects(Container c, User u, ArrayList<SimpleFilter> filters, Boolean activeProjectItemsOnly, Date eventDate)
     {
         List<Map<String, Object>> projectList = new ArrayList<>();
 
@@ -3398,8 +3398,13 @@ public class SNDManager
                 }
             }
 
+            boolean isActive = activeProjectItemsOnly;
+            if (eventDate != null && (eventDate.before(project.getEndDate()) && eventDate.after(project.getStartDate()))) {
+                isActive = false;
+            }
+
             // add projectItems
-            List<Map<String, Object>> pItems = getProjectItemsList(c, u, project.getProjectId(), project.getRevisionNum(), activeProjectItemsOnly);
+            List<Map<String, Object>> pItems = getProjectItemsList(c, u, project.getProjectId(), project.getRevisionNum(), isActive);
 
             if (pItems.size() > 0)
             {
