@@ -564,6 +564,12 @@ public class SNDServiceImpl implements SNDService
     public List<Map<String, Object>> getActiveProjects(Container c, User u, ArrayList<SimpleFilter> filters, Boolean activeProjectItemsOnly, Date eventDate) {
         return SNDManager.get().getActiveProjects(c, u, filters, activeProjectItemsOnly, eventDate);
     }
+
+    @Override
+    public List<Map<String, Object>> getActiveProjects(Container c, User u, ArrayList<SimpleFilter> filters, Boolean activeProjectItemsOnly) {
+        return SNDManager.get().getActiveProjects(c, u, filters, activeProjectItemsOnly, null);
+    }
+
     @Override
     public List<Map<String, Object>> getActiveProjects(Container c, User u, ArrayList<SimpleFilter> filters) {
         return SNDManager.get().getActiveProjects(c, u, filters, true, null);

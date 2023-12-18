@@ -72,5 +72,6 @@ public interface SNDService
     Integer getQCStateId(Container c, User u, QCStateEnum qcState);
     QCStateEnum getQCState(Container c, User u, int qcStateId);
     List<Map<String, Object>> getActiveProjects(Container c, User u, ArrayList<SimpleFilter> filters, Boolean activeProjectItemsOnly, Date eventDate);
+    List<Map<String, Object>> getActiveProjects(Container c, User u, ArrayList<SimpleFilter> filters, Boolean activeProjectItemsOnly);
     List<Map<String, Object>> getActiveProjects(Container c, User u, ArrayList<SimpleFilter> filters);
 }
