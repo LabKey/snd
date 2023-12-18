@@ -3403,7 +3403,7 @@ public class SNDManager
             }
 
             boolean isActive = activeProjectItemsOnly;
-            if (eventDate != null && (eventDate.before(project.getEndDate()) && eventDate.after(project.getStartDate()))) {
+            if (eventDate != null && !eventDate.before(project.getStartDate()) && !eventDate.after(project.getEndDate())) {
                 isActive = false;
             }
 
