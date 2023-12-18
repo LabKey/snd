@@ -3330,8 +3330,12 @@ public class SNDManager
         TableInfo projectsTable = getTableInfo(schema, SNDSchema.PROJECTS_TABLE_NAME);
 
         // Get from projects table
-        SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("Active"), true, CompareType.EQUAL);
-        filter.addCondition(FieldKey.fromParts("enddate"), new Date(), CompareType.DATE_GTE);
+        SimpleFilter filter = new SimpleFilter();
+        if (eventDate == null)
+        {
+            filter.addCondition(FieldKey.fromParts("Active"), true, CompareType.EQUAL);
+            filter.addCondition(FieldKey.fromParts("enddate"), new Date(), CompareType.DATE_GTE);
+        }
 
         // apply filters that are passed as an argument
         if (filters != null) {
