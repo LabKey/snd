@@ -239,7 +239,7 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             OntologyManager.clearCaches();
 
             BatchValidationException errors = new BatchValidationException();
-            SNDManager.get().clearNarrativeCache(container, user, errors);
+            //SNDManager.get().clearNarrativeCache(container, user, errors);
 
             if (errors.hasErrors())
                 throw errors;

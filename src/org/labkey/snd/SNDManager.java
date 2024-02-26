@@ -2817,8 +2817,8 @@ public class SNDManager
 
             if (cacheData.size() > MAX_MERGE_ROWS)
             {
-                log.info("More than " + MAX_MERGE_ROWS + " rows. Truncating narrative cache");
-                clearNarrativeCache(container, user, errors);
+                log.info("More than " + MAX_MERGE_ROWS + " rows. Narrative cache will not be updated");
+                //clearNarrativeCache(container, user, errors);
                 if (isUpdate)
                     log.info("Not automatically populating narrative cache. Must refresh manually.");
             }

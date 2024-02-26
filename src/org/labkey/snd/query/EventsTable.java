@@ -108,7 +108,7 @@ public class EventsTable extends SimpleTable<SNDUserSchema>
         public int truncateRows(User user, Container container, @Nullable Map<Enum, Object> configParameters, @Nullable Map<String, Object> extraScriptContext)
                 throws BatchValidationException, QueryUpdateServiceException, SQLException
         {
-            _sndService.clearNarrativeCache(container, user);
+            //_sndService.clearNarrativeCache(container, user);
             return super.truncateRows(user, container, configParameters, extraScriptContext);
         }
 
