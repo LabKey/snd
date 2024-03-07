@@ -206,7 +206,7 @@
                                         <a id='setAllInGroup<%=id%>'>None</a>
                                     </li>
                                     <% for (Role role : roles.values()) {
-                                        <% addHandler("setAllInGroup" + id++, "click", "return setAllInGroup(" + g.getUserId() + ", " + q(role.getName()) + ")"); %>
+                                        addHandler("setAllInGroup" + id++, "click", "return setAllInGroup(" + g.getUserId() + ", " + q(role.getName()) + ")");
                                     %><li>
                                         <a id='setAllInGroup<%=id%>'><%=h(role.getName())%></a>
                                 </li><%
