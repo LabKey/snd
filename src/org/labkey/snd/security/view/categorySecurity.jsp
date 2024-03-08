@@ -202,13 +202,13 @@
                                 <span class="caret"></span></a>
                                 <ul class="dropdown-menu">
                                     <li>
-                                        <% addHandler("setAllInGroup" + id++, "click", "return setAllInGroup(" + g.getUserId() + ", 'None')"); %>
-                                        <a id='setAllInGroup<%=id%>'>None</a>
+                                        <% addHandler("setAllInGroup" + id, "click", "return setAllInGroup(" + g.getUserId() + ", 'None')"); %>
+                                        <a id='setAllInGroup<%=id++%>'>None</a>
                                     </li>
                                     <% for (Role role : roles.values()) {
-                                        addHandler("setAllInGroup" + id++, "click", "return setAllInGroup(" + g.getUserId() + ", " + q(role.getName()) + ")");
+                                        addHandler("setAllInGroup" + id, "click", "return setAllInGroup(" + g.getUserId() + ", " + q(role.getName()) + ")");
                                     %><li>
-                                        <a id='setAllInGroup<%=id%>'><%=h(role.getName())%></a>
+                                        <a id='setAllInGroup<%=id++%>'><%=h(role.getName())%></a>
                                 </li><%
                                 }
                             %></ul></div></td>
@@ -229,13 +229,13 @@
                                     <span class="caret"></span></a>
                                 <ul class="dropdown-menu">
                                     <li>
-                                        <% addHandler("setRole" + id++, "click", "return setRole(" + group.getUserId() + ", " + category.getCategoryId() + ", 'None')"); %>
-                                        <a id='setRole<%=id%>'>None</a>
+                                        <% addHandler("setRole" + id, "click", "return setRole(" + group.getUserId() + ", " + category.getCategoryId() + ", 'None')"); %>
+                                        <a id='setRole<%=id++%>'>None</a>
                                     </li>
                                 <% for (Role role : roles.values()) {
-                                    addHandler("setRole" + id++, "click", "return setRole(" + group.getUserId() + ", " + category.getCategoryId() + ", " + q(role.getName()) + ")");
+                                    addHandler("setRole" + id, "click", "return setRole(" + group.getUserId() + ", " + category.getCategoryId() + ", " + q(role.getName()) + ")");
                                     %><li>
-                                        <a id='setRole<%=id%>'><%=h(role.getName())%></a>
+                                        <a id='setRole<%=id++%>'><%=h(role.getName())%></a>
                                     </li><%
                                 }
                                 %></ul></div></td><%
