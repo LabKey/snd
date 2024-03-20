@@ -2327,6 +2327,11 @@ public class SNDManager
                     OntologyManager.insertProperties(c, u, null, objectProperty);
                 }
             }
+            else
+            {
+                // property descriptor not found
+                throw new ValidationException("Property descriptor not found for attribute: " + attributeData.getPropertyName());
+            }
         }
 
         return objectURI;
