@@ -40,6 +40,7 @@ public class EventData
 {
     private Integer _eventDataId;
     private int _superPkgId;
+    private int _pkgId;
     private int _eventId;
     private Integer _parentEventDataId;
     private Integer _sortOrder;
