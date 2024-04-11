@@ -1142,10 +1142,11 @@ public class SNDManager
      * Gets a list of full packages given a list of package Ids. Options to include extensible columns, lookup values and
      * all attributes for sub packages.
      */
-    public List<Package> getPackages(Container c, User u, List<Integer> pkgIds,  boolean includeExtraFields, boolean includeLookups,
+    public List<Package> getPackages(Container c, User u, List<Integer> pkgIds, boolean includeExtraFields, boolean includeLookups,
                                      boolean includeFullSubpackages, BatchValidationException errors)
     {
         UserSchema schema = getSndUserSchema(c, u);
+
         TableInfo pkgsTable = getTableInfo(schema, SNDSchema.PKGS_TABLE_NAME);
         QueryUpdateService pkgQus = getQueryUpdateService(pkgsTable);
 
@@ -3855,7 +3856,7 @@ public class SNDManager
         } else {
             pkgCategoriesByPkgId = new HashMap<>();
         }
-        
+
         Map<Integer, List<SuperPackage>> childrenByParentId = fullTreeSuperPkgs.stream().filter(sp -> sp.getParentSuperPkgId() != null).collect(Collectors.groupingBy(SuperPackage::getParentSuperPkgId));
 
         Map<Integer, SuperPackage> superPackagesById = superPackages.stream().collect(Collectors.toMap(
