@@ -3663,6 +3663,7 @@ public class SNDManager
 
     /**
      * Query the EventData table and create a Map of all top level SuperPackages for a set of eventIds
+     *
      * @param c
      * @param u
      * @param eventIds
@@ -3724,6 +3725,7 @@ public class SNDManager
 
     /**
      * Query the Event table and retrieve rows for a set of eventIds and populate data/create narratives
+     *
      * @param c
      * @param u
      * @param eventIds
@@ -3795,7 +3797,6 @@ public class SNDManager
 
         return eventsById;
     }
-
 
     /**
      * Return a cached map of SuperPackage objects by superPkgId
@@ -3880,9 +3881,9 @@ public class SNDManager
         });
 
         return superPackagesById;
+
     }
-
-
+    
     /**
      * Retrieve the child SuperPackage objects for a list of SuperPackages
      * @param c
