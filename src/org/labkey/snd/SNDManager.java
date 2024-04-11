@@ -570,7 +570,14 @@ public class SNDManager
     }
 
     /**
-     * Gets the category ids for a list of pkgIds
+     * Return a cached map of Package Categories by PkgId
+     * If pkgIds is not null, get for list of pkgIds, else get for entire database.
+     *
+     * @param c
+     * @param u
+     * @param pkgIds
+     * @param errors
+     * @return
      */
     private Map<Integer, Map<Integer, String>> getAllPackageCategories(Container c, User u, @Nullable List<Integer> pkgIds, BatchValidationException errors)
     {
@@ -593,24 +600,22 @@ public class SNDManager
 
         Map<Integer, Map<Integer, String>> pkgCategoriesByPkgId = new HashMap<>();
 
-        try (TableResultSet rs = selector.getResultSet())
+        try (TableResultSet resultSet = selector.getResultSet())
         {
-            for (Map<String, Object> r : rs)
-            {
-                Integer pkgId = (Integer) r.get("PkgId");
-                Integer categoryId = (Integer) r.get("CategoryId");
-                String description = (String) r.get ("Description");
+            resultSet.forEach(row -> {
+                Integer pkgId = (Integer) row.get("PkgId");
+                Integer categoryId = (Integer) row.get("CategoryId");
+                String description = (String) row.get ("Description");
                 if (!pkgCategoriesByPkgId.containsKey(pkgId)) {
                     pkgCategoriesByPkgId.put(pkgId, new HashMap<>());
                 }
                 pkgCategoriesByPkgId.get(pkgId).put(categoryId, description);
-            }
+            });
         }
         catch (SQLException e)
         {
             errors.addRowError(new ValidationException(e.getMessage()));
         }
-
         return pkgCategoriesByPkgId;
     }
 
@@ -651,7 +656,11 @@ public class SNDManager
     }
 
     /**
-     * Add extensible fields to the package object when getting the package for an API
+     * Retrieve extensible fields as an argument and add them as extraFields to pkg object
+     * @param pkg
+     * @param extraFields
+     * @param row
+     * @return
      */
     public Package addExtraFieldsToPackage(Package pkg, List<GWTPropertyDescriptor> extraFields, @Nullable Map<String, Object> row)
     {
@@ -1073,8 +1082,19 @@ public class SNDManager
     }
 
     /**
-     * Given a row from the snd.Pkgs table, this creates the Package object.  Options to include extensible columns, lookup values
-     * and attributes of subpackages
+     * Does same as createPackage but retrieves superPackage and package info from cached map objects from arguments instead of database queries
+     * @param c
+     * @param u
+     * @param row
+     * @param packageExtraFields
+     * @param superPackages
+     * @param childrenByParentId
+     * @param pkgCategoriesByPkgId
+     * @param includeExtraFields
+     * @param includeLookups
+     * @param includeFullSubpackages
+     * @param errors
+     * @return
      */
     private Package getFullPackage(Container c, User u, Map<String, Object> row, List<GWTPropertyDescriptor> packageExtraFields,
                                  List<SuperPackage> superPackages, Map<Integer, List<SuperPackage>> childrenByParentId,
@@ -1116,46 +1136,7 @@ public class SNDManager
 
         return pkg;
     }
-    /**
-     * Gets a list of full packages given a list of package Ids. Options to include extensible columns, lookup values and
-     * all attributes for sub packages.
-     */
-    public List<Package> getFullPackages(Container c, User u, List<Integer> pkgIds, QueryUpdateService pkgQus,
-                                     List<GWTPropertyDescriptor> packageExtraFields, List<SuperPackage> superPackages,
-                                         Map<Integer, List<SuperPackage>> childrenByParentId,
-                                         Map<Integer, Map<Integer, String>> pkgCategoriesByPkgId,
-                                     boolean includeExtraFields, boolean includeLookups, boolean includeFullSubpackages, BatchValidationException errors)
-    {
-        List<Map<String, Object>> rows = null;
-        List<Map<String, Object>> keys = new ArrayList<>();
-        Map<String, Object> key;
-        for (Integer pkgId : pkgIds)
-        {
-            key = new HashMap<>();
-            key.put("PkgId", pkgId);
-            keys.add(key);
-        }
 
-        List<Package> packages = new ArrayList<>();
-        try
-        {
-            rows = pkgQus.getRows(u, c, keys);
-        }
-        catch (InvalidKeyException | QueryUpdateServiceException | SQLException e)
-        {
-            errors.addRowError(new ValidationException(e.getMessage()));
-        }
-
-        if (!errors.hasErrors() && rows != null && !rows.isEmpty())
-        {
-            for (Map<String, Object> row : rows)
-            {
-                packages.add(getFullPackage(c, u, row, packageExtraFields, superPackages, childrenByParentId, pkgCategoriesByPkgId, includeExtraFields, includeLookups, includeFullSubpackages, errors));
-            }
-        }
-
-        return packages;
-    }
 
     /**
      * Gets a list of full packages given a list of package Ids. Options to include extensible columns, lookup values and
@@ -1193,6 +1174,59 @@ public class SNDManager
             for (Map<String, Object> row : rows)
             {
                 packages.add(createPackage(c, u, row, includeExtraFields, includeLookups, includeFullSubpackages, errors));
+            }
+        }
+
+        return packages;
+    }
+
+    /**
+     * Does same as getPackages but retrieves the superPackage and package info from cached object maps instead of database queries
+     * @param c
+     * @param u
+     * @param pkgIds
+     * @param pkgQus
+     * @param packageExtraFields
+     * @param superPackages
+     * @param childrenByParentId
+     * @param pkgCategoriesByPkgId
+     * @param includeExtraFields
+     * @param includeLookups
+     * @param includeFullSubpackages
+     * @param errors
+     * @return
+     */
+    public List<Package> getFullPackages(Container c, User u, List<Integer> pkgIds, QueryUpdateService pkgQus,
+                                         List<GWTPropertyDescriptor> packageExtraFields, List<SuperPackage> superPackages,
+                                         Map<Integer, List<SuperPackage>> childrenByParentId,
+                                         Map<Integer, Map<Integer, String>> pkgCategoriesByPkgId,
+                                         boolean includeExtraFields, boolean includeLookups, boolean includeFullSubpackages, BatchValidationException errors)
+    {
+        List<Map<String, Object>> rows = null;
+        List<Map<String, Object>> keys = new ArrayList<>();
+        Map<String, Object> key;
+        for (Integer pkgId : pkgIds)
+        {
+            key = new HashMap<>();
+            key.put("PkgId", pkgId);
+            keys.add(key);
+        }
+
+        List<Package> packages = new ArrayList<>();
+        try
+        {
+            rows = pkgQus.getRows(u, c, keys);
+        }
+        catch (InvalidKeyException | QueryUpdateServiceException | SQLException e)
+        {
+            errors.addRowError(new ValidationException(e.getMessage()));
+        }
+
+        if (!errors.hasErrors() && rows != null && !rows.isEmpty())
+        {
+            for (Map<String, Object> row : rows)
+            {
+                packages.add(getFullPackage(c, u, row, packageExtraFields, superPackages, childrenByParentId, pkgCategoriesByPkgId, includeExtraFields, includeLookups, includeFullSubpackages, errors));
             }
         }
 
@@ -3628,10 +3662,10 @@ public class SNDManager
 
     /**
      * Query the EventData table and create a Map of all top level SuperPackages for a set of eventIds
-     *
      * @param c
      * @param u
      * @param eventIds
+     * @param superPackages
      * @return
      */
     private Map<Integer, Map<Integer, SuperPackage>> getAllTopLevelEventDataSuperPkgs(Container c, User u, List<Integer> eventIds, Map<Integer, SuperPackage> superPackages) {
@@ -3655,6 +3689,16 @@ public class SNDManager
 
     }
 
+    /**
+     * getEvent method that uses cache-optimized methods for bulk loading to more quickly build a single event
+     * @param c
+     * @param u
+     * @param eventId
+     * @param narrativeOptions
+     * @param skipPermissionCheck
+     * @param errors
+     * @return
+     */
     @Nullable
     public Event getEvent(Container c, User u, int eventId, Set<EventNarrativeOption> narrativeOptions, boolean skipPermissionCheck, BatchValidationException errors) {
 
@@ -3679,7 +3723,6 @@ public class SNDManager
 
     /**
      * Query the Event table and retrieve rows for a set of eventIds and populate data/create narratives
-     *
      * @param c
      * @param u
      * @param eventIds
@@ -3687,6 +3730,8 @@ public class SNDManager
      * @param topLevelSuperPkgs
      * @param skipPermissionCheck
      * @param errors
+     * @param eventExtraFields
+     * @param eventDataExtraFields
      * @return
      */
     @Nullable
@@ -3752,7 +3797,16 @@ public class SNDManager
 
 
     /**
-     * Recursively get all children for the super package which corresponds to pkgId
+     * Return a cached map of SuperPackage objects by superPkgId
+     * Builds each underlying SuperPackage object with child superPackages
+     * Retrieves SuperPackages for an eventId if it is not null, else retrieves SuperPackages for entire database
+     * @param c
+     * @param u
+     * @param packageExtraFields
+     * @param pkgQus
+     * @param eventId
+     * @param errors
+     * @return
      */
     private Map<Integer, SuperPackage> getAllFullSuperPkgs(Container c, User u, List<GWTPropertyDescriptor> packageExtraFields, QueryUpdateService pkgQus, @Nullable Integer eventId, BatchValidationException errors) {
 
@@ -3801,11 +3855,14 @@ public class SNDManager
         } else {
             pkgCategoriesByPkgId = new HashMap<>();
         }
-
-
+        
         Map<Integer, List<SuperPackage>> childrenByParentId = fullTreeSuperPkgs.stream().filter(sp -> sp.getParentSuperPkgId() != null).collect(Collectors.groupingBy(SuperPackage::getParentSuperPkgId));
 
-        Map<Integer, SuperPackage> superPackagesById = superPackages.stream().filter(distinctByKey(sp -> sp.getSuperPkgId())).collect(Collectors.toMap(SuperPackage::getSuperPkgId, superPackage -> superPackage));
+        Map<Integer, SuperPackage> superPackagesById = superPackages.stream().collect(Collectors.toMap(
+                SuperPackage::getSuperPkgId,
+                (SuperPackage superPackage) -> superPackage,
+                (s1, s2) -> s1
+        ));
 
         Map<Integer, List<SuperPackage>> childrenByTopLevelPkgId = getChildSuperPkgs(c, u, fullTreeSuperPkgs, childrenByParentId, pkgCategoriesByPkgId, packageExtraFields, pkgQus, true, errors);
 
@@ -3824,13 +3881,20 @@ public class SNDManager
         return superPackagesById;
     }
 
-    public static <T> Predicate<T> distinctByKey(
-            Function<? super T, ?> keyExtractor) {
 
-        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
-        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
-    }
-
+    /**
+     * Retrieve the child SuperPackage objects for a list of SuperPackages
+     * @param c
+     * @param u
+     * @param allSuperPackages
+     * @param childrenByParentId
+     * @param pkgCategoriesByPkgId
+     * @param packageExtraFields
+     * @param pkgQus
+     * @param includeFullSubpackages
+     * @param errors
+     * @return
+     */
     private Map<Integer, List<SuperPackage>> getChildSuperPkgs (Container c, User u, List<SuperPackage> allSuperPackages,
                                     Map<Integer, List<SuperPackage>> childrenByParentId,
                                     Map<Integer, Map<Integer, String>> pkgCategoriesByPkgId,
@@ -3864,13 +3928,13 @@ public class SNDManager
     }
 
 
-
-
     /**
-     * Query EventData table and populate attribute data for a set of top level SuperPackages
-     *
+     * Populate eventData and attribute data for a set of top level SuperPackages
      * @param c
      * @param currentLevelSuperPkgs
+     * @param allEventData
+     * @param eventDataExtensibleFields
+     * @param eventDataExtraFields
      * @return
      */
     private Map<Integer, List<EventData>> getAllEventData(Container c, Map<Integer, Map<Integer, SuperPackage>> currentLevelSuperPkgs, List<EventData> allEventData, Collection<Map<String, Object>> eventDataExtensibleFields, List<GWTPropertyDescriptor> eventDataExtraFields) {
@@ -3936,7 +4000,7 @@ public class SNDManager
 
     /**
      * Get EventData objects for a list of ParentEventIds
-     *
+     * @param allEventData
      * @param parentEventDataIds
      * @return
      */
