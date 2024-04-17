@@ -1044,6 +1044,38 @@ public class SNDManager
     }
 
     /**
+     * Retrieve lookups for packages. Separates this logic out of being called for every single package
+     */
+    public Map<String, String> getLookups(Container c, User u) {
+        UserSchema schema = getSndUserSchema(c, u);
+        Map<String, Map<String, Object>> sndLookups = ((SNDUserSchema) schema).getLookupSets();
+        Map<String, String> lookups = new TreeMap<>(Comparator.comparing((String o) -> o.split("\\.")[1]));
+
+        String key, label;
+        for (String sndLookup : sndLookups.keySet())
+        {
+            key = "snd." + sndLookup;
+            label = ((String) sndLookups.get(sndLookup).get("Label"));
+            if (label != null)
+            {
+                lookups.put(key, label);
+            }
+            else
+            {
+                lookups.put(key, sndLookup);
+            }
+        }
+
+        for (TableInfo ti : _attributeLookups)
+        {
+            key = ti.getSchema().getName() + "." + ti.getName();
+            lookups.put(key, ti.getTitle());
+        }
+
+        return lookups;
+    }
+
+    /**
      * Given a row from the snd.Pkgs table, this creates the Package object.  Options to include extensible columns, lookup values
      * and attributes of subpackages
      */
@@ -1087,6 +1119,7 @@ public class SNDManager
      * @param superPackages
      * @param childrenByParentId
      * @param pkgCategoriesByPkgId
+     * @param lookups
      * @param includeExtraFields
      * @param includeLookups
      * @param includeFullSubpackages
@@ -1095,7 +1128,7 @@ public class SNDManager
      */
     private Package getBulkPackage(Container c, User u, Map<String, Object> row, List<GWTPropertyDescriptor> packageExtraFields,
                                  List<SuperPackage> superPackages, Map<Integer, List<SuperPackage>> childrenByParentId,
-                                   Map<Integer, Map<Integer, String>> pkgCategoriesByPkgId, boolean includeExtraFields,
+                                   Map<Integer, Map<Integer, String>> pkgCategoriesByPkgId, Map<String, String> lookups, boolean includeExtraFields,
                                   boolean includeLookups, boolean includeFullSubpackages, BatchValidationException errors)
     {
         Package pkg = new Package();
@@ -1128,7 +1161,7 @@ public class SNDManager
             if (includeExtraFields)
                 addExtraFieldsToPackage(pkg, packageExtraFields, row);
             if (includeLookups)
-                addLookupsToPkg(c, u, pkg);
+                pkg.setLookups(lookups);
         }
 
         return pkg;
@@ -1188,6 +1221,7 @@ public class SNDManager
      * @param superPackages
      * @param childrenByParentId
      * @param pkgCategoriesByPkgId
+     * @param lookups
      * @param includeExtraFields
      * @param includeLookups
      * @param includeFullSubpackages
@@ -1198,6 +1232,7 @@ public class SNDManager
                                          List<GWTPropertyDescriptor> packageExtraFields, List<SuperPackage> superPackages,
                                          Map<Integer, List<SuperPackage>> childrenByParentId,
                                          Map<Integer, Map<Integer, String>> pkgCategoriesByPkgId,
+                                         Map<String, String> lookups,
                                          boolean includeExtraFields, boolean includeLookups, boolean includeFullSubpackages, BatchValidationException errors)
     {
         List<Map<String, Object>> rows = null;
@@ -1224,7 +1259,7 @@ public class SNDManager
         {
             for (Map<String, Object> row : rows)
             {
-                packages.add(getBulkPackage(c, u, row, packageExtraFields, superPackages, childrenByParentId, pkgCategoriesByPkgId, includeExtraFields, includeLookups, includeFullSubpackages, errors));
+                packages.add(getBulkPackage(c, u, row, packageExtraFields, superPackages, childrenByParentId, pkgCategoriesByPkgId, lookups, includeExtraFields, includeLookups, includeFullSubpackages, errors));
             }
         }
 
@@ -3117,13 +3152,15 @@ public class SNDManager
         List<GWTPropertyDescriptor> eventDataExtraFields = getExtraFields(c, u, SNDSchema.EVENTDATA_TABLE_NAME);
         List<GWTPropertyDescriptor> packageExtraFields = getExtraFields(c, u, SNDSchema.PKGS_TABLE_NAME);
 
+        Map<String, String> lookups = getLookups(c, u);
+
         // Logger for pipeline
         if (logger != null)
         {
             logger.info("Generating narratives.");
         }
 
-        Map<Integer, SuperPackage> superPackages = getBulkSuperPkgs(c, u, packageExtraFields, pkgQus, null, errors);
+        Map<Integer, SuperPackage> superPackages = getBulkSuperPkgs(c, u, packageExtraFields, pkgQus, null, lookups, errors);
 
         AtomicInteger count = new AtomicInteger(0);
 
@@ -3703,6 +3740,8 @@ public class SNDManager
 
         UserSchema schema = getSndUserSchema(c, u);
 
+        Map<String, String> lookups = getLookups(c, u);
+
         TableInfo pkgsTable = getTableInfo(schema, SNDSchema.PKGS_TABLE_NAME);
         QueryUpdateService pkgQus = getQueryUpdateService(pkgsTable);
 
@@ -3710,7 +3749,7 @@ public class SNDManager
         List<GWTPropertyDescriptor> eventDataExtraFields = getExtraFields(c, u, SNDSchema.EVENTDATA_TABLE_NAME);
         List<GWTPropertyDescriptor> packageExtraFields = getExtraFields(c, u, SNDSchema.PKGS_TABLE_NAME);
 
-        Map<Integer, SuperPackage> superPackages = getBulkSuperPkgs(c, u, packageExtraFields, pkgQus, eventId, errors);
+        Map<Integer, SuperPackage> superPackages = getBulkSuperPkgs(c, u, packageExtraFields, pkgQus, eventId, lookups, errors);
 
         Map<Integer, Map<Integer, SuperPackage>> topLevelEventDataSuperPkgs = getBulkTopLevelEventDataSuperPkgs(c, u, Collections.singletonList(eventId), superPackages);
 
@@ -3804,10 +3843,12 @@ public class SNDManager
      * @param packageExtraFields
      * @param pkgQus
      * @param eventId
+     * @param lookups
      * @param errors
      * @return
      */
-    private Map<Integer, SuperPackage> getBulkSuperPkgs(Container c, User u, List<GWTPropertyDescriptor> packageExtraFields, QueryUpdateService pkgQus, @Nullable Integer eventId, BatchValidationException errors) {
+    private Map<Integer, SuperPackage> getBulkSuperPkgs(Container c, User u, List<GWTPropertyDescriptor> packageExtraFields, QueryUpdateService pkgQus, @Nullable Integer eventId,
+                                                        Map<String, String> lookups, BatchValidationException errors) {
 
         UserSchema schema = getSndUserSchema(c, u);
 
@@ -3863,13 +3904,13 @@ public class SNDManager
                 (s1, s2) -> s1
         ));
 
-        Map<Integer, List<SuperPackage>> childrenByTopLevelPkgId = getBulkChildSuperPkgs(c, u, fullTreeSuperPkgs, childrenByParentId, pkgCategoriesByPkgId, packageExtraFields, pkgQus, true, errors);
+        Map<Integer, List<SuperPackage>> childrenByTopLevelPkgId = getBulkChildSuperPkgs(c, u, fullTreeSuperPkgs, childrenByParentId, pkgCategoriesByPkgId, packageExtraFields, pkgQus, lookups, true, errors);
 
         superPackagesById.forEach((superPkgId, superPackage) -> {
             Integer pkgId = superPackage.getPkgId();
             if (pkgId != null) {
                 List<Integer> packageIds = Collections.singletonList(pkgId);
-                List<Package> packages = getBulkPackages(c, u, packageIds, pkgQus, packageExtraFields, fullTreeSuperPkgs, childrenByParentId, pkgCategoriesByPkgId, true, true, true, errors);
+                List<Package> packages = getBulkPackages(c, u, packageIds, pkgQus, packageExtraFields, fullTreeSuperPkgs, childrenByParentId, pkgCategoriesByPkgId, lookups, true, true, true, errors);
                 if (!packages.isEmpty()) {
                     superPackage.setPkg(packages.get(0));
                 }
@@ -3890,6 +3931,7 @@ public class SNDManager
      * @param pkgCategoriesByPkgId
      * @param packageExtraFields
      * @param pkgQus
+     * @param lookups
      * @param includeFullSubpackages
      * @param errors
      * @return
@@ -3898,6 +3940,7 @@ public class SNDManager
                                     Map<Integer, List<SuperPackage>> childrenByParentId,
                                     Map<Integer, Map<Integer, String>> pkgCategoriesByPkgId,
                                     List<GWTPropertyDescriptor> packageExtraFields, QueryUpdateService pkgQus,
+                                    Map<String, String> lookups,
                                     boolean includeFullSubpackages, BatchValidationException errors) {
 
         Map<Integer, List<SuperPackage>> superPackagesByTopLevelPkgId = allSuperPackages.stream().collect(Collectors.groupingBy(SuperPackage::getTopLevelPkgId));
@@ -3912,7 +3955,7 @@ public class SNDManager
                         .forEach((SuperPackage superPackage) -> {
                             if (includeFullSubpackages) {
                                 List<Integer> packageIds = Collections.singletonList(superPackage.getPkgId());
-                                superPackage.setPkg(getBulkPackages(c, u, packageIds, pkgQus, packageExtraFields, allSuperPackages, childrenByParentId, pkgCategoriesByPkgId, true, true, true, errors).get(0));
+                                superPackage.setPkg(getBulkPackages(c, u, packageIds, pkgQus, packageExtraFields, allSuperPackages, childrenByParentId, pkgCategoriesByPkgId, lookups, true, true, true, errors).get(0));
                             }
                             if (superPackage.getParentSuperPkgId().intValue() == root.getSuperPkgId().intValue()) {
                                 children.add(addChildren(superPackage, superPackages));
@@ -3936,7 +3979,9 @@ public class SNDManager
      * @param eventDataExtraFields
      * @return
      */
-    private Map<Integer, List<EventData>> getBulkEventData(Container c, Map<Integer, Map<Integer, SuperPackage>> currentLevelSuperPkgs, List<EventData> allEventData, Collection<Map<String, Object>> eventDataExtensibleFields, List<GWTPropertyDescriptor> eventDataExtraFields) {
+    private Map<Integer, List<EventData>> getBulkEventData(Container c, Map<Integer, Map<Integer, SuperPackage>> currentLevelSuperPkgs,
+                                                           List<EventData> allEventData, Collection<Map<String, Object>> eventDataExtensibleFields,
+                                                           List<GWTPropertyDescriptor> eventDataExtraFields) {
 
         if (currentLevelSuperPkgs == null) {
             return null;
