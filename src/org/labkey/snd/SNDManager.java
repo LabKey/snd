@@ -3707,7 +3707,7 @@ public class SNDManager
     private Map<Integer, Map<Integer, SuperPackage>> getBulkTopLevelEventDataSuperPkgs(Container c, User u, List<Integer> eventIds, Map<Integer, SuperPackage> superPackages) {
 
         // EventData from query - SELECT * FROM EventData WHERE EventId IN {eventIds} AND ParentEventId IS NULL ORDER BY EventDataId
-        TableSelector eventDataSelector = getTableSelector(c, u, eventIds, SNDSchema.EVENTDATA_TABLE_NAME, "EventId", "EventDataId", "ParentEventDataId");
+        TableSelector eventDataSelector = getTableSelector(c, u, eventIds, SNDSchema.EVENTDATA_TABLE_NAME, Event.EVENT_ID, EventData.EVENT_DATA_ID, EventData.EVENT_DATA_PARENT_EVENTDATAID);
         List<EventData> allEventData = eventDataSelector.getArrayList(EventData.class);
 
         // Get SuperPackages for eventData and group by EventId
@@ -3779,11 +3779,11 @@ public class SNDManager
                                             List<GWTPropertyDescriptor> eventExtraFields, List<GWTPropertyDescriptor> eventDataExtraFields) {
 
         // Events from query - SELECT * FROM Events WHERE EventId IN {eventIds}
-        TableSelector eventSelector = getTableSelector(c, u, eventIds, SNDSchema.EVENTS_TABLE_NAME, "EventId", null, null);
+        TableSelector eventSelector = getTableSelector(c, u, eventIds, SNDSchema.EVENTS_TABLE_NAME, Event.EVENT_ID, null, null);
         List<Event> events = eventSelector.getArrayList(Event.class);
         Collection<Map<String, Object>> eventsExtensibleFields = eventSelector.getMapCollection();
 
-        TableSelector eventDataSelector = getTableSelector(c, u, eventIds, SNDSchema.EVENTDATA_TABLE_NAME, "EventId", null, null);
+        TableSelector eventDataSelector = getTableSelector(c, u, eventIds, SNDSchema.EVENTDATA_TABLE_NAME, Event.EVENT_ID, null, null);
         List<EventData> rawEventData = eventDataSelector.getArrayList(EventData.class);
         Collection<Map<String, Object>> eventDataExtensibleFields = eventDataSelector.getMapCollection();
 
@@ -3803,7 +3803,7 @@ public class SNDManager
 
             Map<String, Object> extraFields = eventsExtensibleFields
                     .stream()
-                    .filter((Map<String, Object> map) -> event.getEventId().equals(map.get("eventId")))
+                    .filter((Map<String, Object> map) -> event.getEventId().equals(map.get(Event.EVENT_ID)))
                     .findFirst()
                     .orElse(Collections.emptyMap());
 
@@ -4016,7 +4016,7 @@ public class SNDManager
 
             Map<String, Object> extraFields = eventDataExtensibleFields
                     .stream()
-                    .filter((Map<String, Object> map) -> eventData.getEventDataId().equals(map.get("eventDataId")))
+                    .filter((Map<String, Object> map) -> eventData.getEventDataId().equals(map.get(EventData.EVENT_DATA_ID)))
                     .findFirst()
                     .orElse(Collections.emptyMap());
 
@@ -4149,7 +4149,7 @@ public class SNDManager
     private Map<Integer, String> getBulkEventNotes(Container c, User u, List<Integer> eventIds) {
 
         // EventNotes from query - SELECT * FROM EventNotes WHERE EventId IN {eventIds}
-        TableSelector eventNoteSelector = getTableSelector(c, u, eventIds, SNDSchema.EVENTNOTES_TABLE_NAME, "EventId", null, null);
+        TableSelector eventNoteSelector = getTableSelector(c, u, eventIds, SNDSchema.EVENTNOTES_TABLE_NAME, Event.EVENT_ID, null, null);
         List<EventNote> eventNotes = eventNoteSelector.getArrayList(EventNote.class);
 
         // Group eventNotes by eventId
@@ -4173,7 +4173,7 @@ public class SNDManager
     private Map<String, String> getBulkProjectIdRevs(Container c, User u, List<String> objectIds) {
 
         // Projects from query - SELECT * FROM Projects WHERE ObjectId IN {objectIds}
-        TableSelector projectSelector = getTableSelector(c, u, objectIds, SNDSchema.PROJECTS_TABLE_NAME, "ObjectId", null, null);
+        TableSelector projectSelector = getTableSelector(c, u, objectIds, SNDSchema.PROJECTS_TABLE_NAME, Project.PROJECT_OBJECTID, null, null);
         List<Project> projects = projectSelector.getArrayList(Project.class);
 
         // Concat string of ProjectId + RevisionNum and Group by ObjectId
