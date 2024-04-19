@@ -3425,8 +3425,10 @@ public class SNDManager
                 tabIndex++;
                 for (EventData data : eventData.getSubPackages())
                 {
-                    eventDataNarrative.append(generateEventDataNarrative(c, u, event, data,
-                            getSuperPackage(data.getSuperPkgId(), superPackage.getChildPackages()), tabIndex, genHtml, genRedacted));
+                    if (data.getEventDataId() != null) {
+                        eventDataNarrative.append(generateEventDataNarrative(c, u, event, data,
+                                getSuperPackage(data.getSuperPkgId(), superPackage.getChildPackages()), tabIndex, genHtml, genRedacted));
+                    }
                 }
             }
         }
@@ -3474,8 +3476,11 @@ public class SNDManager
         {
             for (EventData eventData : event.getEventData())
             {
-                narrative.append(generateEventDataNarrative(c, u, event, eventData,
-                        topLevelEventDataSuperPkgs.get(eventData.getEventDataId()), 0, genHtml, genRedacted));
+                if (eventData.getEventDataId() != null)
+                {
+                    narrative.append(generateEventDataNarrative(c, u, event, eventData,
+                            topLevelEventDataSuperPkgs.get(eventData.getEventDataId()), 0, genHtml, genRedacted));
+                }
             }
         }
 
