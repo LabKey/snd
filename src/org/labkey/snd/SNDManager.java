@@ -2814,9 +2814,7 @@ public class SNDManager
                                 QueryUpdateService eventQus = getQueryUpdateService(eventTable);
                                 QueryUpdateService eventsCacheQus = getNewQueryUpdateService(schema, SNDSchema.EVENTSCACHE_TABLE_NAME);
 
-                                String htmlEventNarrative = generateEventNarrative(c, u, event, topLevelEventDataPkgs, true, false);
-                                Map<String, Object> eventsCacheRow = getEventsCacheRow(c, u, event.getEventId(), htmlEventNarrative);
-                                String textEventNarrative = PlainTextNarrativeDisplayColumn.removeHtmlTagsFromNarrative(htmlEventNarrative);
+
                                 BatchValidationException errors = new BatchValidationException();
 
                                 QueryUpdateService eventNotesQus = null;
@@ -2836,8 +2834,10 @@ public class SNDManager
                                     }
 
                                     insertEventDatas(c, u, event, errors);
+                                    String htmlEventNarrative = generateEventNarrative(c, u, event, topLevelEventDataPkgs, true, false);
+                                    Map<String, Object> eventsCacheRow = getEventsCacheRow(c, u, event.getEventId(), htmlEventNarrative);
+                                    String textEventNarrative = PlainTextNarrativeDisplayColumn.removeHtmlTagsFromNarrative(htmlEventNarrative);
                                     eventsCacheQus.insertRows(u, c, Collections.singletonList(eventsCacheRow), errors, null, null);
-                                    generateEventNarrative(c, u, event, topLevelEventDataPkgs, true, false);
                                     NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), textEventNarrative, event.getQcState(), "Create event");
                                     tx.commit();
                                 }
@@ -3425,10 +3425,12 @@ public class SNDManager
                 tabIndex++;
                 for (EventData data : eventData.getSubPackages())
                 {
-                    if (data.getEventDataId() != null) {
+                    if (data.getEventDataId() != null)
+                    {
                         eventDataNarrative.append(generateEventDataNarrative(c, u, event, data,
                                 getSuperPackage(data.getSuperPkgId(), superPackage.getChildPackages()), tabIndex, genHtml, genRedacted));
                     }
+
                 }
             }
         }
@@ -3476,11 +3478,8 @@ public class SNDManager
         {
             for (EventData eventData : event.getEventData())
             {
-                if (eventData.getEventDataId() != null)
-                {
-                    narrative.append(generateEventDataNarrative(c, u, event, eventData,
-                            topLevelEventDataSuperPkgs.get(eventData.getEventDataId()), 0, genHtml, genRedacted));
-                }
+                narrative.append(generateEventDataNarrative(c, u, event, eventData,
+                        topLevelEventDataSuperPkgs.get(eventData.getEventDataId()), 0, genHtml, genRedacted));
             }
         }
 
