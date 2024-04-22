@@ -3174,7 +3174,7 @@ public class SNDManager
             Map<Integer, Map<Integer, SuperPackage>> topLevelSuperPkgs = getBulkTopLevelEventDataSuperPkgs(c, u, partitionEventIds, superPackages);
 
             //Events grouped by EventId
-            Map<Integer, Event> events = getBulkEvents(c, u, partitionEventIds, null, topLevelSuperPkgs, true, errors, eventExtraFields, eventDataExtraFields);
+            Map<Integer, Event> events = getBulkEvents(c, u, partitionEventIds, null, topLevelSuperPkgs, true, errors, eventExtraFields, eventDataExtraFields, false);
 
             partitionEventIds.forEach((Integer eventId) -> {
                 Map<String, Object> row = new ArrayListMap<>();
@@ -3425,11 +3425,8 @@ public class SNDManager
                 tabIndex++;
                 for (EventData data : eventData.getSubPackages())
                 {
-                    if (data.getEventDataId() != null)
-                    {
-                        eventDataNarrative.append(generateEventDataNarrative(c, u, event, data,
-                                getSuperPackage(data.getSuperPkgId(), superPackage.getChildPackages()), tabIndex, genHtml, genRedacted));
-                    }
+                    eventDataNarrative.append(generateEventDataNarrative(c, u, event, data,
+                            getSuperPackage(data.getSuperPkgId(), superPackage.getChildPackages()), tabIndex, genHtml, genRedacted));
 
                 }
             }
@@ -3757,7 +3754,7 @@ public class SNDManager
 
         Map<Integer, Map<Integer, SuperPackage>> topLevelEventDataSuperPkgs = getBulkTopLevelEventDataSuperPkgs(c, u, Collections.singletonList(eventId), superPackages);
 
-        Event event = getBulkEvents(c, u, Collections.singletonList(eventId), narrativeOptions, topLevelEventDataSuperPkgs, skipPermissionCheck, errors, eventExtraFields, eventDataExtraFields).get(eventId);
+        Event event = getBulkEvents(c, u, Collections.singletonList(eventId), narrativeOptions, topLevelEventDataSuperPkgs, skipPermissionCheck, errors, eventExtraFields, eventDataExtraFields, true).get(eventId);
 
         return event;
 
@@ -3780,7 +3777,8 @@ public class SNDManager
     @Nullable
     public Map<Integer, Event> getBulkEvents(Container c, User u, List<Integer> eventIds, Set<EventNarrativeOption> narrativeOptions,
                                             @Nullable Map<Integer, Map<Integer, SuperPackage>> topLevelSuperPkgs, boolean skipPermissionCheck, BatchValidationException errors,
-                                            List<GWTPropertyDescriptor> eventExtraFields, List<GWTPropertyDescriptor> eventDataExtraFields) {
+                                            List<GWTPropertyDescriptor> eventExtraFields, List<GWTPropertyDescriptor> eventDataExtraFields,
+                                             boolean includeEmptySubPackges) {
 
         // Events from query - SELECT * FROM Events WHERE EventId IN {eventIds}
         TableSelector eventSelector = getTableSelector(c, u, eventIds, SNDSchema.EVENTS_TABLE_NAME, Event.EVENT_ID, null, null);
@@ -3798,7 +3796,7 @@ public class SNDManager
         Map<String, String> projectIdRevs = getBulkProjectIdRevs(c, u, events.stream().map(Event::getParentObjectId).collect(Collectors.toList()));
 
         //EventData grouped by EventId
-        Map<Integer, List<EventData>> eventData = getBulkEventData(c, topLevelSuperPkgs, rawEventData, eventDataExtensibleFields, eventDataExtraFields);
+        Map<Integer, List<EventData>> eventData = getBulkEventData(c, topLevelSuperPkgs, rawEventData, eventDataExtensibleFields, eventDataExtraFields, includeEmptySubPackges);
 
         // Build events from eventData, eventNotes, and project data and group by EventId
         Map<Integer, Event> eventsById = events.stream().collect(Collectors.toMap(Event::getEventId, (Event event) -> {
@@ -3978,14 +3976,14 @@ public class SNDManager
      * Populate eventData and attribute data for a set of top level SuperPackages
      * @param c
      * @param currentLevelSuperPkgs
-     * @param allEventData
+     * @param currentEventData
      * @param eventDataExtensibleFields
      * @param eventDataExtraFields
      * @return
      */
     private Map<Integer, List<EventData>> getBulkEventData(Container c, Map<Integer, Map<Integer, SuperPackage>> currentLevelSuperPkgs,
-                                                           List<EventData> allEventData, Collection<Map<String, Object>> eventDataExtensibleFields,
-                                                           List<GWTPropertyDescriptor> eventDataExtraFields) {
+                                                           List<EventData> currentEventData, Collection<Map<String, Object>> eventDataExtensibleFields,
+                                                           List<GWTPropertyDescriptor> eventDataExtraFields, boolean includeEmptySubPackages) {
 
         if (currentLevelSuperPkgs == null) {
             return null;
@@ -3996,28 +3994,32 @@ public class SNDManager
                 .flatMap((Map<Integer, SuperPackage> map) -> map.keySet().stream())
                 .collect(Collectors.toList());
 
-        List<Integer> originalEventDataIds = allEventData.stream().filter(e -> e.getEventDataId() != null).map(EventData::getEventDataId).toList();
+        List<Integer> originalEventDataIds = currentEventData.stream().filter(e -> e.getEventDataId() != null).map(EventData::getEventDataId).toList();
 
-        List<EventData> emptyEventData = currentLevelSuperPkgs.entrySet().stream()
-                .flatMap(outerEntry -> outerEntry.getValue().entrySet().stream().map(innerEntry -> Map.entry(outerEntry.getKey(), innerEntry)))
-                .filter(entry -> !originalEventDataIds.contains(entry.getValue().getKey()))
-                .map(entry -> {
-                    EventData eventData = new EventData();
-                    eventData.setEventDataId(entry.getValue().getKey());
-                    eventData.setEventId(entry.getKey());
-                    eventData.setSuperPkgId(entry.getValue().getValue().getSuperPkgId());
-                    return eventData;
-                })
-                .toList();
+        List<EventData> allEventData = new ArrayList<>(currentEventData);
 
-        List<EventData> eventDataWithEmpties = new ArrayList<>(allEventData);
-        eventDataWithEmpties.addAll(emptyEventData);
+        if (includeEmptySubPackages) {
+            List<EventData> emptyEventData = currentLevelSuperPkgs.entrySet().stream()
+                    .flatMap(outerEntry -> outerEntry.getValue().entrySet().stream().map(innerEntry -> Map.entry(outerEntry.getKey(), innerEntry)))
+                    .filter(entry -> !originalEventDataIds.contains(entry.getValue().getKey()))
+                    .map(entry -> {
+                        EventData eventData = new EventData();
+                        eventData.setEventDataId(entry.getValue().getKey());
+                        eventData.setEventId(entry.getKey());
+                        eventData.setSuperPkgId(entry.getValue().getValue().getSuperPkgId());
+                        return eventData;
+                    })
+                    .toList();
+
+
+            allEventData.addAll(emptyEventData);
+        }
 
         // Child EventData grouped by EventId
-        Map<Integer, List<EventData>> childEventData = getBulkChildEventData(eventDataWithEmpties, eventDataIds);
+        Map<Integer, List<EventData>> childEventData = getBulkChildEventData(allEventData, eventDataIds);
 
         // Build eventData from attributes and superPkgs and group by eventId
-        Map<Integer, List<EventData>> eventDataByEventId = eventDataWithEmpties.stream().filter(e -> eventDataIds.contains(e.getEventDataId())).map((EventData eventData) -> {
+        Map<Integer, List<EventData>> eventDataByEventId = allEventData.stream().filter(e -> eventDataIds.contains(e.getEventDataId())).map((EventData eventData) -> {
 
             Map<String, ObjectProperty> properties = OntologyManager.getPropertyObjects(c, eventData.getObjectURI());
             Map<Integer, SuperPackage> superPackagesByEventDataId = currentLevelSuperPkgs.get(eventData.getEventId());
@@ -4043,15 +4045,17 @@ public class SNDManager
             addExtraFieldsToEventData(eventData, eventDataExtraFields, extraFields);
 
             boolean isEmptyEventDataAndHasChildPackages =
+                    includeEmptySubPackages
+                    &&
                     !originalEventDataIds.contains(eventData.getEventDataId())
                     &&
                     !superPackagesByEventDataId.get(eventData.getEventDataId()).getChildPackages().isEmpty();
 
-            Map<Integer, Map<Integer, SuperPackage>> nextLevelSuperPkgs = getNextLevelEventDataSuperPkgs(eventData, childEventData, currentLevelSuperPkgs, isEmptyEventDataAndHasChildPackages);
+            Map<Integer, Map<Integer, SuperPackage>> nextLevelSuperPkgs = getNextLevelEventDataSuperPkgs(eventData, childEventData, currentLevelSuperPkgs, includeEmptySubPackages, isEmptyEventDataAndHasChildPackages);
 
             if (nextLevelSuperPkgs != null && !nextLevelSuperPkgs.isEmpty()) {
                 // Recursion for next child level of sub packages
-                Map<Integer, List<EventData>> subEventData = getBulkEventData(c, nextLevelSuperPkgs, allEventData, eventDataExtensibleFields, eventDataExtraFields);
+                Map<Integer, List<EventData>> subEventData = getBulkEventData(c, nextLevelSuperPkgs, currentEventData, eventDataExtensibleFields, eventDataExtraFields, includeEmptySubPackages);
                 if (subEventData != null) {
                     List<EventData> sorted = subEventData.get(eventData.getEventId()).stream().sorted(Comparator.comparing(
                                     (EventData child) -> nextLevelSuperPkgs.get(child.getEventId()).get(child.getEventDataId()).getTreePath()))
@@ -4135,7 +4139,8 @@ public class SNDManager
      * @return
      */
     private Map<Integer, Map<Integer, SuperPackage>> getNextLevelEventDataSuperPkgs(EventData eventData, Map<Integer,
-            List<EventData>> childEventData, Map<Integer, Map<Integer, SuperPackage>> currentLevelSuperPkgs, boolean hasChildPackages) {
+            List<EventData>> childEventData, Map<Integer, Map<Integer, SuperPackage>> currentLevelSuperPkgs,
+                                                                                    boolean includeEmptySubPackages, boolean hasChildPackages) {
 
         if (!childEventData.containsKey(eventData.getEventId()) && !hasChildPackages) {
             return null;
@@ -4184,7 +4189,7 @@ public class SNDManager
 
         AtomicInteger emptyEventDataId = new AtomicInteger(0);
 
-        if (nextLevelEventDataSuperPkgs.containsKey(eventData.getEventId())) {
+        if (includeEmptySubPackages && nextLevelEventDataSuperPkgs.containsKey(eventData.getEventId())) {
             childSuperPkgs.values().stream()
                     .filter(superPkg -> !eventDataSuperPkgIds.contains(superPkg.getSuperPkgId()))
                     .forEach(spkg -> {
