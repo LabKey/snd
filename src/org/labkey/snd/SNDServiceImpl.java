@@ -56,8 +56,6 @@ import org.labkey.api.snd.SNDSequencer;
 import org.labkey.api.snd.SNDService;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.util.JsonUtil;
-import org.labkey.snd.query.AttributeDataTable;
-import org.labkey.snd.query.LookupsTable;
 import org.labkey.snd.security.SNDSecurityManager;
 import org.labkey.snd.trigger.SNDTriggerManager;
 
