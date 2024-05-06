@@ -56,6 +56,8 @@ import org.labkey.api.snd.SNDSequencer;
 import org.labkey.api.snd.SNDService;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.util.JsonUtil;
+import org.labkey.snd.query.AttributeDataTable;
+import org.labkey.snd.query.LookupsTable;
 import org.labkey.snd.security.SNDSecurityManager;
 import org.labkey.snd.trigger.SNDTriggerManager;
 
@@ -421,7 +423,6 @@ public class SNDServiceImpl implements SNDService
     private JSONArray lookupValuesToJson(Container c, User u, String schema, String query)
     {
         JSONArray array = new JSONArray();
-        JSONObject jsonObject;
 
         UserSchema userSchema = QueryService.get().getUserSchema(u, c, schema);
         TableInfo table = userSchema.getTable(query);
@@ -431,6 +432,7 @@ public class SNDServiceImpl implements SNDService
             // Use the title column for the actual lookup value
             String title = table.getTitleColumn();
             String pk = null;
+
             if (!table.getPkColumnNames().isEmpty())
             {
                 pk = table.getPkColumnNames().get(0);
@@ -448,18 +450,22 @@ public class SNDServiceImpl implements SNDService
             {
                 TableSelector ts = new TableSelector(table);
 
-                Object label;
-                Object value;
                 try (ResultSet rs = ts.getResultSet())
                 {
                     while (rs.next())
                     {
-                        value = rs.getObject(pk);
-                        label = rs.getObject(title);
+                        Object value = rs.getObject(pk);
+                        Object label = rs.getObject(title);
 
-                        jsonObject = new JSONObject();
+                        JSONObject jsonObject = new JSONObject();
                         jsonObject.put("value", value);
                         jsonObject.put("label", label);
+
+                        Set<String> colNames = table.getColumnNameSet();
+                        if (colNames.contains("displayable")) {
+                            Object displayable = rs.getObject("displayable");
+                            jsonObject.put("displayable",displayable);
+                        }
 
                         array.put(jsonObject);
                     }
