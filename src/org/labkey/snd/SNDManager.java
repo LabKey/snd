@@ -2567,10 +2567,7 @@ public class SNDManager
      */
     private void getEventDataRows(Container c, User u, Event event, EventData eventData, List<Map<String, Object>> eventDataRows) throws ValidationException
     {
-        if (eventData.getEventDataId() == null)
-        {
-            eventData.setEventDataId(SNDSequencer.EVENTDATAID.ensureId(c, null));
-        }
+        eventData.setEventDataId(SNDSequencer.EVENTDATAID.ensureId(c, null));
 
         String objectURI = insertExpObjectProperties(c, u, event, eventData);
         eventData.setObjectURI(objectURI);
