@@ -35,6 +35,8 @@ import org.labkey.api.security.SecurityManager;
 import org.labkey.api.security.SecurityPolicy;
 import org.labkey.api.security.SecurityPolicyManager;
 import org.labkey.api.security.User;
+import org.labkey.api.security.impersonation.ImpersonationContext;
+import org.labkey.api.security.impersonation.RoleImpersonationContextFactory;
 import org.labkey.api.security.permissions.Permission;
 import org.labkey.api.security.roles.Role;
 import org.labkey.api.snd.Category;
@@ -44,6 +46,7 @@ import org.labkey.api.snd.SNDService;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.view.NotFoundException;
 import org.labkey.snd.SNDManager;
+import org.labkey.snd.security.roles.SNDRoleImpersonationContext;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -206,6 +209,17 @@ public class SNDSecurityManager
     private boolean hasPermission(User u, Category category, QCStateActionEnum action, QCStateEnum qcState)
     {
         Permission perm = action.getPermission(qcState);
+
+        // SND has permissions bound to categories which can be assigned to packages (domains). Impersonating roles is used
+        // in automated and manual testing to verify this behavior. The behavior of role impersonation was changed in core
+        // labkey to only check for roles related to containers. This is a workaround to go back to checking all roles.
+        ImpersonationContext impersonationContext = u.getImpersonationContext();
+        if (impersonationContext instanceof RoleImpersonationContextFactory.RoleImpersonationContext context)
+        {
+            ImpersonationContext sndContext = new SNDRoleImpersonationContext(context.getImpersonationProject(), context.getAdminUser(), context.getRoles(), context.getFactory(), context.getCacheKey());
+            u.setImpersonationContext(sndContext);
+        }
+
         return perm != null && category.hasPermission(u, perm.getClass());
 
     }
