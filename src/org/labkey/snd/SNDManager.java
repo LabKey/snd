@@ -4137,7 +4137,7 @@ public class SNDManager
             List<EventData>> childEventData, Map<Integer, Map<Integer, SuperPackage>> currentLevelSuperPkgs,
                                                                                     boolean includeEmptySubPackages, boolean hasSubpackages) {
 
-        if (!childEventData.containsKey(eventData.getEventId()) && !(includeEmptySubPackages && hasSubpackages)) {
+        if ((!includeEmptySubPackages && !childEventData.containsKey(eventData.getEventId())) || (includeEmptySubPackages && !hasSubpackages)) {
             return null;
         }
 
