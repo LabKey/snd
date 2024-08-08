@@ -4044,12 +4044,9 @@ public class SNDManager
 
             addExtraFieldsToEventData(eventData, eventDataExtraFields, extraFields);
 
-            boolean hasEmptySubpackages =
-                    includeEmptySubPackages
-                    &&
-                    !superPackagesByEventDataId.get(eventData.getEventDataId()).getChildPackages().isEmpty();
+            boolean hasSubpackages = !superPackagesByEventDataId.get(eventData.getEventDataId()).getChildPackages().isEmpty();
 
-            Map<Integer, Map<Integer, SuperPackage>> nextLevelSuperPkgs = getNextLevelEventDataSuperPkgs(eventData, childEventData, currentLevelSuperPkgs, includeEmptySubPackages, hasEmptySubpackages);
+            Map<Integer, Map<Integer, SuperPackage>> nextLevelSuperPkgs = getNextLevelEventDataSuperPkgs(eventData, childEventData, currentLevelSuperPkgs, includeEmptySubPackages, hasSubpackages);
 
             if (nextLevelSuperPkgs != null && !nextLevelSuperPkgs.isEmpty()) {
                 // Recursion for next child level of sub packages
@@ -4138,9 +4135,9 @@ public class SNDManager
      */
     private Map<Integer, Map<Integer, SuperPackage>> getNextLevelEventDataSuperPkgs(EventData eventData, Map<Integer,
             List<EventData>> childEventData, Map<Integer, Map<Integer, SuperPackage>> currentLevelSuperPkgs,
-                                                                                    boolean includeEmptySubPackages, boolean hasChildPackages) {
+                                                                                    boolean includeEmptySubPackages, boolean hasSubpackages) {
 
-        if (!childEventData.containsKey(eventData.getEventId()) && !hasChildPackages) {
+        if (!childEventData.containsKey(eventData.getEventId()) || !hasSubpackages) {
             return null;
         }
 
@@ -4157,10 +4154,10 @@ public class SNDManager
                 ));
 
         // Get superPkg for eventData and group by eventId and then by eventId
-        Map<Integer, Map<Integer, SuperPackage>> nextLevelEventDataSuperPkgs;
-        List<Integer> eventDataSuperPkgIds;
+        Map<Integer, Map<Integer, SuperPackage>> nextLevelEventDataSuperPkgs = new HashMap<>();
+        nextLevelEventDataSuperPkgs.put(eventData.getEventId(), new HashMap<>());
 
-        if (!childEventData.isEmpty()) {
+        if (!childSuperPkgs.isEmpty()) {
             Map<Integer, SuperPackage> children = childSuperPkgs;
             nextLevelEventDataSuperPkgs = childEventData.get(eventData.getEventId())
                     .stream()
@@ -4174,24 +4171,24 @@ public class SNDManager
                                     )
                             )
                     );
-            eventDataSuperPkgIds = nextLevelEventDataSuperPkgs.containsKey(eventData.getEventId())
-                    ? nextLevelEventDataSuperPkgs.get(eventData.getEventId()).values().stream().map(SuperPackage::getSuperPkgId).toList()
-                    : new ArrayList<>();
         }
-        else
-        {
-            nextLevelEventDataSuperPkgs = new HashMap<>();
+
+        if (!nextLevelEventDataSuperPkgs.containsKey(eventData.getEventId())) {
             nextLevelEventDataSuperPkgs.put(eventData.getEventId(), new HashMap<>());
-            eventDataSuperPkgIds = new ArrayList<>();
         }
+
+        List<Integer> eventDataSuperPkgIds = !nextLevelEventDataSuperPkgs.get(eventData.getEventId()).isEmpty()
+                ? nextLevelEventDataSuperPkgs.get(eventData.getEventId()).values().stream().map(SuperPackage::getSuperPkgId).toList()
+                : new ArrayList<>();
 
         AtomicInteger emptyEventDataId = new AtomicInteger(0); 
 
-        if (includeEmptySubPackages && nextLevelEventDataSuperPkgs.containsKey(eventData.getEventId())) {
+        if (includeEmptySubPackages) {
+            Map<Integer, Map<Integer, SuperPackage>> eventDataSuperPkgs = nextLevelEventDataSuperPkgs;
             childSuperPkgs.values().stream()
                     .filter(superPkg -> !eventDataSuperPkgIds.contains(superPkg.getSuperPkgId()))
                     .forEach(spkg -> {
-                        nextLevelEventDataSuperPkgs.get(eventData.getEventId()).put(emptyEventDataId.getAndAdd(1), spkg);
+                        eventDataSuperPkgs.get(eventData.getEventId()).put(emptyEventDataId.getAndAdd(1), spkg);
                     });
         }
 
