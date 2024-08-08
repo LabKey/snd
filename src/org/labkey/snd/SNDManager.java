@@ -4178,7 +4178,7 @@ public class SNDManager
         }
 
         if (includeEmptySubPackages) {
-            
+
             List<Integer> eventDataSuperPkgIds = !nextLevelEventDataSuperPkgs.get(eventData.getEventId()).isEmpty()
                     ? nextLevelEventDataSuperPkgs.get(eventData.getEventId()).values().stream().map(SuperPackage::getSuperPkgId).toList()
                     : new ArrayList<>();
