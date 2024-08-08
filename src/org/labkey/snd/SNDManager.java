@@ -4137,7 +4137,7 @@ public class SNDManager
             List<EventData>> childEventData, Map<Integer, Map<Integer, SuperPackage>> currentLevelSuperPkgs,
                                                                                     boolean includeEmptySubPackages, boolean hasSubpackages) {
 
-        if (!childEventData.containsKey(eventData.getEventId()) || !hasSubpackages) {
+        if (!childEventData.containsKey(eventData.getEventId()) && !(includeEmptySubPackages && hasSubpackages)) {
             return null;
         }
 
@@ -4157,7 +4157,7 @@ public class SNDManager
         Map<Integer, Map<Integer, SuperPackage>> nextLevelEventDataSuperPkgs = new HashMap<>();
         nextLevelEventDataSuperPkgs.put(eventData.getEventId(), new HashMap<>());
 
-        if (!childSuperPkgs.isEmpty()) {
+        if (!childSuperPkgs.isEmpty() && !childEventData.isEmpty()) {
             Map<Integer, SuperPackage> children = childSuperPkgs;
             nextLevelEventDataSuperPkgs = childEventData.get(eventData.getEventId())
                     .stream()
