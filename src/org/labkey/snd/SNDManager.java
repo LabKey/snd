@@ -4177,13 +4177,14 @@ public class SNDManager
             nextLevelEventDataSuperPkgs.put(eventData.getEventId(), new HashMap<>());
         }
 
-        List<Integer> eventDataSuperPkgIds = !nextLevelEventDataSuperPkgs.get(eventData.getEventId()).isEmpty()
-                ? nextLevelEventDataSuperPkgs.get(eventData.getEventId()).values().stream().map(SuperPackage::getSuperPkgId).toList()
-                : new ArrayList<>();
-
-        AtomicInteger emptyEventDataId = new AtomicInteger(0); 
 
         if (includeEmptySubPackages) {
+            
+            List<Integer> eventDataSuperPkgIds = !nextLevelEventDataSuperPkgs.get(eventData.getEventId()).isEmpty()
+                    ? nextLevelEventDataSuperPkgs.get(eventData.getEventId()).values().stream().map(SuperPackage::getSuperPkgId).toList()
+                    : new ArrayList<>();
+
+            AtomicInteger emptyEventDataId = new AtomicInteger(0);
             Map<Integer, Map<Integer, SuperPackage>> eventDataSuperPkgs = nextLevelEventDataSuperPkgs;
             childSuperPkgs.values().stream()
                     .filter(superPkg -> !eventDataSuperPkgIds.contains(superPkg.getSuperPkgId()))
