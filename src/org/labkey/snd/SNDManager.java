@@ -4177,7 +4177,6 @@ public class SNDManager
             nextLevelEventDataSuperPkgs.put(eventData.getEventId(), new HashMap<>());
         }
 
-
         if (includeEmptySubPackages) {
 
             List<Integer> eventDataSuperPkgIds = !nextLevelEventDataSuperPkgs.get(eventData.getEventId()).isEmpty()
@@ -4185,6 +4184,7 @@ public class SNDManager
                     : new ArrayList<>();
 
             AtomicInteger emptyEventDataId = new AtomicInteger(0);
+
             Map<Integer, Map<Integer, SuperPackage>> eventDataSuperPkgs = nextLevelEventDataSuperPkgs;
             childSuperPkgs.values().stream()
                     .filter(superPkg -> !eventDataSuperPkgIds.contains(superPkg.getSuperPkgId()))
