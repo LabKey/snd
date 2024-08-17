@@ -29,6 +29,7 @@ import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
+import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.roles.Role;
 import org.labkey.snd.query.AttributeDataTable;
 import org.labkey.snd.query.CategoriesTable;
