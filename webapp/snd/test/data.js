@@ -464,7 +464,7 @@
                 name: 'Valid Save Event: Use Property Names',
                 jsonData: {
                     eventId: 1800000,
-                    subjectId: 1,
+                    subjectId: "1",
                     date: "2018-02-26T17:51:20",
                     note: "This is a test event note.",
                     projectIdRev: '60|0',
@@ -560,10 +560,11 @@
                 name: 'Valid Save Event with super package and trigger unit type conversion',
                 roles: ['org.labkey.api.security.roles.ReaderRole',
                     'org.labkey.api.security.roles.EditorRole',
-                    'org.labkey.snd.security.roles.SNDBasicSubmitterRole'],
+                    'org.labkey.snd.security.roles.SNDBasicSubmitterRole',
+                    'org.labkey.snd.security.roles.SNDEditorRole'],
                 jsonData: {
                     eventId: 1800001,
-                    subjectId: 2,
+                    subjectId: "2",
                     date: "2018-02-26T17:51:20",
                     note: "Note for event attribute data sample JSON",
                     projectIdRev: '61|0',
@@ -577,7 +578,7 @@
                                 attributes: [
                                     {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810'][0]['attributes'], 'amount')['propertyId'],
-                                        value: 100
+                                        value: "100"
                                     }, {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810'][0]['attributes'], 'units')['propertyId'],
                                         value: "mEq/L"
@@ -591,7 +592,7 @@
                                 attributes: [
                                     {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811'][0]['attributes'], 'amount')['propertyId'],
-                                        value: 200
+                                        value: "200"
                                     }, {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811'][0]['attributes'], 'units')['propertyId'],
                                         value: "mEq/L"
@@ -605,7 +606,7 @@
                                 attributes: [
                                     {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['812'][0]['attributes'], 'amount')['propertyId'],
-                                        value: 300
+                                        value: "300"
                                     }, {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['812'][0]['attributes'], 'units')['propertyId'],
                                         value: "mEq/L"
@@ -619,7 +620,7 @@
                                 attributes: [
                                     {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813'][0]['attributes'], 'amount')['propertyId'],
-                                        value: 400
+                                        value: "400"
                                     }, {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813'][0]['attributes'], 'units')['propertyId'],
                                         value: "mg/dL"
@@ -711,7 +712,7 @@
                 },
                 jsonData: {
                     eventId: 1800003,
-                    subjectId: 2,
+                    subjectId: "2",
                     date: "2018-02-26T17:51:20",
                     note: "Note for narrative generation sample JSON",
                     projectIdRev: '61|0',
@@ -725,7 +726,7 @@
                                 attributes: [
                                     {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810'][0]['attributes'], 'amount')['propertyId'],
-                                        value: 100
+                                        value: "100"
                                     }, {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['810'][0]['attributes'], 'units')['propertyId'],
                                         value: "mEq/L"
@@ -739,7 +740,7 @@
                                 attributes: [
                                     {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811'][0]['attributes'], 'amount')['propertyId'],
-                                        value: 200
+                                        value: "200"
                                     }, {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['811'][0]['attributes'], 'units')['propertyId'],
                                         value: "mEq/L"
@@ -753,7 +754,7 @@
                                 attributes: [
                                     {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['812'][0]['attributes'], 'amount')['propertyId'],
-                                        value: 300
+                                        value: "300"
                                     }, {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['812'][0]['attributes'], 'units')['propertyId'],
                                         value: "mEq/L"
@@ -767,7 +768,7 @@
                                 attributes: [
                                     {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813'][0]['attributes'], 'amount')['propertyId'],
-                                        value: 400
+                                        value: "400"
                                     }, {
                                         propertyId: LABKEY.getAttributeByName(LABKEY.SND_PKG_CACHE['813'][0]['attributes'], 'units')['propertyId'],
                                         value: "mg/dL"
@@ -786,36 +787,28 @@
                     note: "Note for narrative generation sample JSON",
                     projectIdRev: '61|0',
                     qcState: 'Completed',
-                    textNarrative: "2018-02-26 17:51\nSubject Id: 2\n\n" +
-                                    "Electrolytes\n\tPotassium: 200 mEq/L measured using Potassium Detection Kit\n\t" +
-                                    "Sodium: 100 mEq/L measured using Sodium Colorimetric Detection Kit\n\t" +
-                                    "Bicarbonate: 300 mEq/L measured using Carbon Dioxide (CO2) Colorimetric Detection Kit\n\t" +
-                                    "Chloride: 112 mEq/L measured using Chloride Blood Detection Kit",
-                    redactedHtmlNarrative: "<div class='snd-event-date'>2018-02-26 17:51</div>\n<div class='snd-event-subject'>" +
-                                            "Subject Id: 2</div>\n<br><div class='snd-event-data'>Electrolytes<div class='snd-event-data'>" +
-                                            "Potassium: <span class='snd-attribute-data'>Redacted Value</span> <span class='snd-attribute-data'>mEq/L</span> measured using " +
-                                            "<span class='snd-attribute-data'>Potassium Detection Kit</span></div>\n<div class='snd-event-data'>" +
-                                            "Sodium: <span class='snd-attribute-data'>100</span> <span class='snd-attribute-data'>mEq/L</span> measured using " +
-                                            "<span class='snd-attribute-data'>Sodium Colorimetric Detection Kit</span></div>\n<div class='snd-event-data'>" +
-                                            "Bicarbonate: <span class='snd-attribute-data'>300</span> <span class='snd-attribute-data'>mEq/L</span> measured using " +
-                                            "<span class='snd-attribute-data'>Carbon Dioxide (CO2) Colorimetric Detection Kit</span></div>\n<div class='snd-event-data'>" +
-                                            "Chloride: <span class='snd-attribute-data'>112</span> <span class='snd-attribute-data'>mEq/L</span> measured using " +
-                                            "<span class='snd-attribute-data'>Chloride Blood Detection Kit</span></div>\n</div>\n",
-                    redactedTextNarrative: "2018-02-26 17:51\nSubject Id: 2\n\nElectrolytes\n\t" +
-                                            "Potassium: Redacted Value mEq/L measured using Potassium Detection Kit\n\t" +
-                                            "Sodium: 100 mEq/L measured using Sodium Colorimetric Detection Kit\n\t" +
-                                            "Bicarbonate: 300 mEq/L measured using Carbon Dioxide (CO2) Colorimetric Detection Kit\n\t" +
-                                            "Chloride: 112 mEq/L measured using Chloride Blood Detection Kit",
-                    htmlNarrative: "<div class='snd-event-date'>2018-02-26 17:51</div>\n<div class='snd-event-subject'>" +
-                                        "Subject Id: 2</div>\n<br><div class='snd-event-data'>Electrolytes<div class='snd-event-data'>" +
-                                        "Sodium: <span class='snd-attribute-data'>100</span> <span class='snd-attribute-data'>mEq/L</span> measured using " +
-                                        "<span class='snd-attribute-data'>Sodium Colorimetric Detection Kit</span></div>\n<div class='snd-event-data'>" +
-                                        "Potassium: <span class='snd-attribute-data'>200</span> <span class='snd-attribute-data'>mEq/L</span> measured using " +
-                                        "<span class='snd-attribute-data'>Potassium Detection Kit</span></div>\n<div class='snd-event-data'>" +
-                                        "Bicarbonate: <span class='snd-attribute-data'>300</span> <span class='snd-attribute-data'>mEq/L</span> measured using " +
-                                        "<span class='snd-attribute-data'>Carbon Dioxide (CO2) Colorimetric Detection Kit</span></div>\n<div class='snd-event-data'>" +
-                                        "Chloride: <span class='snd-attribute-data'>112.67605633802818</span> <span class='snd-attribute-data'>mEq/L</span> measured using " +
-                                        "<span class='snd-attribute-data'>Chloride Blood Detection Kit</span></div>\n</div>\n",
+                    textNarrative: "2018-02-26 17:51\n" +
+                            "Subject Id: 2\n" +
+                            "** Electrolytes-- Potassium: 200 mEq/L measured using Potassium Detection Kit-- Sodium: 100 mEq/L measured using Sodium Colorimetric Detection Kit-- Bicarbonate: 300 mEq/L measured using Carbon Dioxide (CO2) Colorimetric Detection Kit-- Chloride: 112 mEq/L measured using Chloride Blood Detection KitProcedure Note: Note for narrative generation sample JSON\n",
+                    redactedHtmlNarrative: "<div class='snd-event-date'>2018-02-26 17:51</div>\n" +
+                            "<div class='snd-event-subject'>Subject Id: 2</div>\n" +
+                            "<div class='snd-event-data'>** &emsp;Electrolytes<span class='snd-superpkg-pkg-id'> (814) </span></div>\n" +
+                            "<div class='snd-event-data'>-- &emsp;&emsp;Potassium: <span class='snd-attribute-data'>Redacted Value</span> <span class='snd-attribute-data'>mEq/L</span> measured using <span class='snd-attribute-data'>Potassium Detection Kit</span><span class='snd-superpkg-pkg-id'> (811) </span></div>\n" +
+                            "<div class='snd-event-data'>-- &emsp;&emsp;Sodium: <span class='snd-attribute-data'>100</span> <span class='snd-attribute-data'>mEq/L</span> measured using <span class='snd-attribute-data'>Sodium Colorimetric Detection Kit</span><span class='snd-superpkg-pkg-id'> (810) </span></div>\n" +
+                            "<div class='snd-event-data'>-- &emsp;&emsp;Bicarbonate: <span class='snd-attribute-data'>300</span> <span class='snd-attribute-data'>mEq/L</span> measured using <span class='snd-attribute-data'>Carbon Dioxide (CO2) Colorimetric Detection Kit</span><span class='snd-superpkg-pkg-id'> (812) </span></div>\n" +
+                            "<div class='snd-event-data'>-- &emsp;&emsp;Chloride: <span class='snd-attribute-data'>112</span> <span class='snd-attribute-data'>mEq/L</span> measured using <span class='snd-attribute-data'>Chloride Blood Detection Kit</span><span class='snd-superpkg-pkg-id'> (813) </span></div>\n" +
+                            "<br><div class='snd-event-note'>Procedure Note: <br>Note for narrative generation sample JSON</div>\n",
+                    redactedTextNarrative: "2018-02-26 17:51\n" +
+                            "Subject Id: 2\n" +
+                            "** Electrolytes-- Potassium: Redacted Value mEq/L measured using Potassium Detection Kit-- Sodium: 100 mEq/L measured using Sodium Colorimetric Detection Kit-- Bicarbonate: 300 mEq/L measured using Carbon Dioxide (CO2) Colorimetric Detection Kit-- Chloride: 112 mEq/L measured using Chloride Blood Detection KitProcedure Note: Note for narrative generation sample JSON\n",
+                    htmlNarrative: "<div class='snd-event-date'>2018-02-26 17:51</div>\n" +
+                            "<div class='snd-event-subject'>Subject Id: 2</div>\n" +
+                            "<div class='snd-event-data'>** &emsp;Electrolytes<span class='snd-superpkg-pkg-id'> (814) </span></div>\n" +
+                            "<div class='snd-event-data'>-- &emsp;&emsp;Sodium: <span class='snd-attribute-data'>100</span> <span class='snd-attribute-data'>mEq/L</span> measured using <span class='snd-attribute-data'>Sodium Colorimetric Detection Kit</span><span class='snd-superpkg-pkg-id'> (810) </span></div>\n" +
+                            "<div class='snd-event-data'>-- &emsp;&emsp;Potassium: <span class='snd-attribute-data'>200</span> <span class='snd-attribute-data'>mEq/L</span> measured using <span class='snd-attribute-data'>Potassium Detection Kit</span><span class='snd-superpkg-pkg-id'> (811) </span></div>\n" +
+                            "<div class='snd-event-data'>-- &emsp;&emsp;Bicarbonate: <span class='snd-attribute-data'>300</span> <span class='snd-attribute-data'>mEq/L</span> measured using <span class='snd-attribute-data'>Carbon Dioxide (CO2) Colorimetric Detection Kit</span><span class='snd-superpkg-pkg-id'> (812) </span></div>\n" +
+                            "<div class='snd-event-data'>-- &emsp;&emsp;Chloride: <span class='snd-attribute-data'>112.67605633802818</span> <span class='snd-attribute-data'>mEq/L</span> measured using <span class='snd-attribute-data'>Chloride Blood Detection Kit</span><span class='snd-superpkg-pkg-id'> (813) </span></div>\n" +
+                            "<br><div class='snd-event-note'>Procedure Note: <br>Note for narrative generation sample JSON</div>",
                     eventData: [
                         {
                             superPkgId: LABKEY.SND_PKG_CACHE['814'][0]['superPkgId'],
@@ -883,7 +876,7 @@
                 name: 'Valid Save Event: Fill in empty packages',
                 jsonData: {
                     eventId: 1800009,
-                    subjectId: 1,
+                    subjectId: "1",
                     date: "2018-02-26T17:51:20",
                     note: "Fill in empty packages and attributes",
                     projectIdRev: '60|0',
@@ -910,7 +903,7 @@
                                     superPkgId: LABKEY.SND_PKG_CACHE['816'][1]['superPkgId'],
                                     attributes: [{
                                         propertyName: 'amount',
-                                        value: 90
+                                        value: "90"
                                     }, {
                                         propertyName: 'units',
                                         value: "mg/dL"
@@ -1089,7 +1082,7 @@
                 name: 'Failed Save Event: Trigger error on unit check',
                 jsonData: {
                     eventId: 1800002,
-                    subjectId: 2,
+                    subjectId: "2",
                     date: "2018-02-26T17:51:20",
                     note: "Note for Save Event: Out of range attribute",
                     projectIdRev: '61|0',
@@ -1103,7 +1096,7 @@
                                 attributes: [
                                     {
                                         propertyName: 'amount',
-                                        value: 200
+                                        value: "200"
                                     }, {
                                         propertyName: 'units',
                                         value: "mEq/L"
@@ -1117,7 +1110,7 @@
                                 attributes: [
                                     {
                                         propertyName: 'amount',
-                                        value: 200
+                                        value: "200"
                                     }, {
                                         propertyName: 'units',
                                         value: "mEq/L"
@@ -1131,7 +1124,7 @@
                                 attributes: [
                                     {
                                         propertyName: 'amount',
-                                        value: 300
+                                        value: "300"
                                     }, {
                                         propertyName: 'units',
                                         value: "mEq/L"
@@ -1145,7 +1138,7 @@
                                 attributes: [
                                     {
                                         propertyName: 'amount',
-                                        value: 112
+                                        value: "112"
                                     }, {
                                         propertyName: 'units',
                                         value: "L"
@@ -1361,7 +1354,7 @@
                 name: 'Failed Save Event: Out of range value',
                 jsonData: {
                     eventId: 1800004,
-                    subjectId: 25,
+                    subjectId: "25",
                     date: "2017-05-25T17:51:20",
                     note: "Note for Save Event: Out of range attribute",
                     projectIdRev: '61|0',
@@ -1375,7 +1368,7 @@
                                 attributes: [
                                     {
                                         propertyName: 'amount',
-                                        value: 600
+                                        value: "600"
                                     }, {
                                         propertyName: 'units',
                                         value: "mEq/L"
@@ -1389,7 +1382,7 @@
                                 attributes: [
                                     {
                                         propertyName: 'amount',
-                                        value: 200
+                                        value: "200"
                                     }, {
                                         propertyName: 'units',
                                         value: "mEq/L"
@@ -1403,7 +1396,7 @@
                                 attributes: [
                                     {
                                         propertyName: 'amount',
-                                        value: 300
+                                        value: "300"
                                     }, {
                                         propertyName: 'units',
                                         value: "mEq/L"
@@ -1417,7 +1410,7 @@
                                 attributes: [
                                     {
                                         propertyName: 'amount',
-                                        value: 112
+                                        value: "112"
                                     }, {
                                         propertyName: 'units',
                                         value: "mEq/L"
@@ -1512,7 +1505,7 @@
                 name: 'Failed Save Event: Trigger warning',
                 jsonData: {
                     eventId: 1800005,
-                    subjectId: 25,
+                    subjectId: "25",
                     date: "2017-05-25T17:51:20",
                     note: "Note for Save Event: Trigger warning",
                     projectIdRev: '61|0',
@@ -1522,7 +1515,7 @@
                             superPkgId: LABKEY.SND_PKG_CACHE['816'][0]['superPkgId'],
                             attributes: [{
                                 propertyName: 'amount',
-                                value: 401
+                                value: "401"
 
                             }, {
                                 propertyName: 'units',
@@ -1572,7 +1565,7 @@
                 name: 'Failed Save Event: Missing attribute. EventData error',
                 jsonData: {
                     eventId: 1800006,
-                    subjectId: 25,
+                    subjectId: "25",
                     date: "2017-05-25T17:51:20",
                     note: "Note for Save Event: Missing attribute. EventData warning",
                     projectIdRev: '61|0',
@@ -1625,7 +1618,7 @@
                 name: 'Failed Save Event: Trigger info',
                 jsonData: {
                     eventId: 1800007,
-                    subjectId: 25,
+                    subjectId: "25",
                     date: "2017-05-25T17:51:20",
                     note: "Note for Save Event: Trigger info",
                     projectIdRev: '61|0',
@@ -1635,7 +1628,7 @@
                             superPkgId: LABKEY.SND_PKG_CACHE['816'][0]['superPkgId'],
                             attributes: [{
                                 propertyName: 'amount',
-                                value: 99
+                                value: "99"
 
                             }, {
                                 propertyName: 'units',
@@ -1685,10 +1678,11 @@
                 name: 'Failed Insert Event: Wrong permissions. Reader inserting Completed event.',
                 roles: ['org.labkey.api.security.roles.ReaderRole',
                     'org.labkey.api.security.roles.EditorRole',
-                    'org.labkey.snd.security.roles.SNDReaderRole'],
+                    'org.labkey.snd.security.roles.SNDReaderRole',
+                    'org.labkey.snd.security.roles.SNDEditorRole'],
                 jsonData: {
                     eventId: 1800007,
-                    subjectId: 25,
+                    subjectId: "25",
                     date: "2017-05-25T17:51:20",
                     note: "Note for Save Event",
                     projectIdRev: '61|0',
@@ -1698,7 +1692,7 @@
                             superPkgId: LABKEY.SND_PKG_CACHE['816'][0]['superPkgId'],
                             attributes: [{
                                 propertyName: 'amount',
-                                value: 99
+                                value: "99"
 
                             }, {
                                 propertyName: 'units',
@@ -1722,10 +1716,11 @@
                 name: 'Failed Update Event: Wrong permission. Basic submitter updating to rejected',
                 roles: ['org.labkey.api.security.roles.ReaderRole',
                     'org.labkey.api.security.roles.EditorRole',
-                    'org.labkey.snd.security.roles.SNDBasicSubmitterRole'],
+                    'org.labkey.snd.security.roles.SNDBasicSubmitterRole',
+                    'org.labkey.snd.security.roles.SNDEditorRole'],
                 jsonData: {
                     eventId: 1800008,
-                    subjectId: 25,
+                    subjectId: "25",
                     date: "2017-05-25T17:51:20",
                     note: "Note for Save Event",
                     projectIdRev: '61|0',
@@ -1735,7 +1730,7 @@
                             superPkgId: LABKEY.SND_PKG_CACHE['816'][0]['superPkgId'],
                             attributes: [{
                                 propertyName: 'amount',
-                                value: 99
+                                value: "99"
 
                             }, {
                                 propertyName: 'units',
@@ -1759,10 +1754,11 @@
                 name: 'Failed Insert Event: Wrong permission. Reviewer inserting In Progress data.',
                 roles: ['org.labkey.api.security.roles.ReaderRole',
                     'org.labkey.api.security.roles.EditorRole',
-                    'org.labkey.snd.security.roles.SNDDataReviewerRole'],
+                    'org.labkey.snd.security.roles.SNDDataReviewerRole',
+                    'org.labkey.snd.security.roles.SNDEditorRole'],
                 jsonData: {
                     eventId: 1800008,
-                    subjectId: 25,
+                    subjectId: "25",
                     date: "2017-05-25T17:51:20",
                     note: "Note for Save Event",
                     projectIdRev: '61|0',
@@ -1772,7 +1768,7 @@
                             superPkgId: LABKEY.SND_PKG_CACHE['816'][0]['superPkgId'],
                             attributes: [{
                                 propertyName: 'amount',
-                                value: 99
+                                value: "99"
 
                             }, {
                                 propertyName: 'units',

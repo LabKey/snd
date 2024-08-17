@@ -24,6 +24,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.labkey.api.action.ApiUsageException;
 import org.labkey.api.data.Container;
+import org.labkey.api.data.ContainerManager;
 import org.labkey.api.data.DbScope;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TableInfo;
@@ -62,6 +63,7 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -80,6 +82,7 @@ public class SNDServiceImpl implements SNDService
 
     private SNDServiceImpl()
     {
+        ContainerManager.addSecurableResourceProvider((c, u) -> getAllCategories(c, u).values());
     }
 
     private static void configureObjectMapper(ObjectMapper om)
@@ -333,7 +336,7 @@ public class SNDServiceImpl implements SNDService
     {
         BatchValidationException errors = new BatchValidationException();
 
-        Event event = SNDManager.get().getEvent(c, u, eventId, narrativeOptions, null, false, errors);
+        Event event = SNDManager.get().getEvent(c, u, eventId, narrativeOptions, false, errors);
 
         if (errors.hasErrors())
             throw new ApiUsageException(errors);
@@ -418,7 +421,6 @@ public class SNDServiceImpl implements SNDService
     private JSONArray lookupValuesToJson(Container c, User u, String schema, String query)
     {
         JSONArray array = new JSONArray();
-        JSONObject jsonObject;
 
         UserSchema userSchema = QueryService.get().getUserSchema(u, c, schema);
         TableInfo table = userSchema.getTable(query);
@@ -428,6 +430,7 @@ public class SNDServiceImpl implements SNDService
             // Use the title column for the actual lookup value
             String title = table.getTitleColumn();
             String pk = null;
+
             if (!table.getPkColumnNames().isEmpty())
             {
                 pk = table.getPkColumnNames().get(0);
@@ -445,18 +448,22 @@ public class SNDServiceImpl implements SNDService
             {
                 TableSelector ts = new TableSelector(table);
 
-                Object label;
-                Object value;
                 try (ResultSet rs = ts.getResultSet())
                 {
                     while (rs.next())
                     {
-                        value = rs.getObject(pk);
-                        label = rs.getObject(title);
+                        Object value = rs.getObject(pk);
+                        Object label = rs.getObject(title);
 
-                        jsonObject = new JSONObject();
+                        JSONObject jsonObject = new JSONObject();
                         jsonObject.put("value", value);
                         jsonObject.put("label", label);
+
+                        Set<String> colNames = table.getColumnNameSet();
+                        if (colNames.contains("displayable")) {
+                            Object displayable = rs.getObject("displayable");
+                            jsonObject.put("displayable",displayable);
+                        }
 
                         array.put(jsonObject);
                     }
@@ -541,7 +548,7 @@ public class SNDServiceImpl implements SNDService
     }
 
     @Override
-    public void populateNarrativeCache(Container c, User u, List<Map<String, Object>> eventIds, Logger logger)
+    public void populateNarrativeCache(Container c, User u, List<Integer> eventIds, Logger logger)
     {
         BatchValidationException errors = new BatchValidationException();
 
@@ -558,11 +565,17 @@ public class SNDServiceImpl implements SNDService
     }
 
     @Override
-    public List<Map<String, Object>> getActiveProjects(Container c, User u, ArrayList<SimpleFilter> filters, Boolean activeProjectItemsOnly) {
-        return SNDManager.get().getActiveProjects(c, u, filters, activeProjectItemsOnly);
+    public List<Map<String, Object>> getActiveProjects(Container c, User u, ArrayList<SimpleFilter> filters, Boolean activeProjectItemsOnly, Date eventDate) {
+        return SNDManager.get().getActiveProjects(c, u, filters, activeProjectItemsOnly, eventDate);
     }
+
+    @Override
+    public List<Map<String, Object>> getActiveProjects(Container c, User u, ArrayList<SimpleFilter> filters, Boolean activeProjectItemsOnly) {
+        return SNDManager.get().getActiveProjects(c, u, filters, activeProjectItemsOnly, null);
+    }
+
     @Override
     public List<Map<String, Object>> getActiveProjects(Container c, User u, ArrayList<SimpleFilter> filters) {
-        return SNDManager.get().getActiveProjects(c, u, filters, true);
+        return SNDManager.get().getActiveProjects(c, u, filters, true, null);
     }
 }

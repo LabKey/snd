@@ -74,7 +74,7 @@
                         url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
                         jsonData:{
                             eventId: 1800001,
-                            subjectId: 1,
+                            subjectId: "1",
                             date: "2018-02-26T17:51:20",
                             note: "This is a test event note.",
                             projectIdRev: '60|0',
@@ -107,7 +107,7 @@
                         url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
                         jsonData:{
                             eventId: 1800001,
-                            subjectId: 1,
+                            subjectId: "1",
                             date: "2018-02-26T17:51:20",
                             note: "This is a test event note.",
                             projectIdRev: '60|0',
@@ -141,7 +141,7 @@
                         url: LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
                         jsonData :{
                             eventId: 1800001,
-                            subjectId: 2,
+                            subjectId: "2",
                             date: "2018-02-26T17:51:20",
                             note: "Note for event attribute data sample JSON",
                             projectIdRev: '61|0',
@@ -220,7 +220,7 @@
                         url: LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
                         jsonData :{
                             eventId: 1800001,
-                            subjectId: 2,
+                            subjectId: "2",
                             date: "2018-02-26T17:51:20",
                             note: "Note for event attribute data sample JSON",
                             projectIdRev: '61|0',
@@ -303,7 +303,7 @@
                         url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
                         jsonData:{
                             eventId: 1800002,
-                            subjectId: 1,
+                            subjectId: "1",
                             date: "2018-02-26T17:51:20",
                             note: "This is a test event note.",
                             projectIdRev: '60|0',
@@ -348,7 +348,7 @@
                             return true;
                         }
 
-                        LABKEY.handleFailure(response, name + " - Stack Trace");
+                        LABKEY.handleSndFailure(response, name + " - Stack Trace");
                         return false;
                     }
                 }
@@ -365,7 +365,7 @@
                         url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
                         jsonData:{
                             eventId: "1800001-1",
-                            subjectId : 1,
+                            subjectId : "1",
                             date: "2018-02-26T17:51:20",
                             note: "This is a test event note.",
                             projectIdRev: '60|0',
@@ -400,7 +400,7 @@
                         url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
                         jsonData:{
                             eventId: 1800001,
-                            subjectId:1,
+                            subjectId: "1",
                             date: "2018-02-26T17:51:20",
                             note: "Note for Save Event with Missing Project ID",
                             qcState: 'Completed',
@@ -435,7 +435,7 @@
                         url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
                         jsonData:{
                             eventId : 1800002,
-                            subjectId : 1,
+                            subjectId : "1",
                             date : "2018-03-03T17:21:22",
                             projectIdRev : "61",
                             note : "Note for Save Event with Missing Revision number for project Id",
@@ -470,7 +470,7 @@
                         url:LABKEY.SND_TEST_URLS.SAVE_EVENT_URL,
                         jsonData:{
                             eventId : 1800002,
-                            subjectId : 1,
+                            subjectId : "1",
                             date : "2018-03-03T17:21:22",
                             projectIdRev : "64|0",
                             note : "Note for Save Event with Invalid project Id",
@@ -507,7 +507,7 @@
                         jsonData: {
                             eventId: 1700007,
                             date: "xx",
-                            subjectId: 1,
+                            subjectId: "1",
                             projectIdRev: "60|0",
                             note: "Note for Save Event with Invalid date",
                             qcState: 'Completed',
@@ -563,7 +563,7 @@
                             return true;
                         }
 
-                        LABKEY.handleFailure(response, name + " - Stack Trace");
+                        LABKEY.handleSndFailure(response, name + " - Stack Trace");
                         return false;
                     }
                 }
@@ -586,29 +586,32 @@
                             return true;
                         }
 
-                        LABKEY.handleFailure(response, name + " - Stack Trace");
+                        LABKEY.handleSndFailure(response, name + " - Stack Trace");
                         return false;
                     }
                 }
             }
-        },{
-
-            name: 'Get Event: Invalid permission. Basic submitter reading completed data.',
-            roles: ['org.labkey.api.security.roles.ReaderRole',
-                'org.labkey.api.security.roles.EditorRole',
-                'org.labkey.snd.security.roles.SNDBasicSubmitterRole'],
-            run : function()
-            {
-                return{
-                    request:{
-                        url:LABKEY.SND_TEST_URLS.GET_EVENT_URL,
-                        jsonData:{"eventId": "1800002"}
-                    },
-                    expectedFailure : 'You do not have permission to Read event data for QC state Completed for these super packages.'
-                }
-            }
-        },{
-
+        },
+        //{
+        //     // This test is commented out because it is not currently valid:
+        //     // allow basic submitters to read, update, insert, and delete completed data
+        //     // This is needed uptil SNPRC releases the new QC workflow
+        //     name: 'Get Event: Invalid permission. Basic submitter reading completed data.',
+        //     roles: ['org.labkey.api.security.roles.ReaderRole',
+        //         'org.labkey.api.security.roles.EditorRole',
+        //         'org.labkey.snd.security.roles.SNDBasicSubmitterRole'],
+        //     run : function()
+        //     {
+        //         return{
+        //             request:{
+        //                 url:LABKEY.SND_TEST_URLS.GET_EVENT_URL,
+        //                 jsonData:{"eventId": "1800002"}
+        //             },
+        //             expectedFailure : 'You do not have permission to Read event data for QC state Completed for these super packages.'
+        //         }
+        //     }
+        // },
+        {
             name: 'Get Event: Valid permission. Data reviewer reading completed data.',
             roles: ['org.labkey.api.security.roles.ReaderRole',
                 'org.labkey.api.security.roles.EditorRole',
@@ -627,7 +630,7 @@
                             return true;
                         }
 
-                        LABKEY.handleFailure(response, name + " - Stack Trace");
+                        LABKEY.handleSndFailure(response, name + " - Stack Trace");
                         return false;
                     }
                 }
@@ -652,39 +655,45 @@
                             return true;
                         }
 
-                        LABKEY.handleFailure(response, name + " - Stack Trace");
+                        LABKEY.handleSndFailure(response, name + " - Stack Trace");
                         return false;
                     }
                 }
             }
-        }, {
-
-            name: 'Delete Event: Invalid permission. Basic submitter role cannot delete completed data.',
-            roles: ['org.labkey.api.security.roles.ReaderRole',
-                'org.labkey.api.security.roles.EditorRole',
-                'org.labkey.snd.security.roles.SNDBasicSubmitterRole'],
-            run : function()
-            {
-                return{
-                    request:{
-                        url:LABKEY.SND_TEST_URLS.DELETE_EVENT_URL,
-                        jsonData: {
-                            schemaName: 'snd',
-                            queryName: 'Events',
-                            rows: [{
-                                EventId: 1800002
-                            }]
-                        }
-                    },
-                    expectedFailure : 'You do not have permission to Delete event data for QC state Completed for these super packages.'
-                }
-            }
-        },{
+        },
+        //     // This test is commented out because it is not currently valid:
+        //     // allow basic submitters to read, update, insert, and delete completed data
+        //     // This is needed uptil SNPRC releases the new QC workflow
+        // {
+        //
+        //     name: 'Delete Event: Invalid permission. Basic submitter role cannot delete completed data.',
+        //     roles: ['org.labkey.api.security.roles.ReaderRole',
+        //         'org.labkey.api.security.roles.EditorRole',
+        //         'org.labkey.snd.security.roles.SNDBasicSubmitterRole'],
+        //     run : function()
+        //     {
+        //         return{
+        //             request:{
+        //                 url:LABKEY.SND_TEST_URLS.DELETE_EVENT_URL,
+        //                 jsonData: {
+        //                     schemaName: 'snd',
+        //                     queryName: 'Events',
+        //                     rows: [{
+        //                         EventId: 1800002
+        //                     }]
+        //                 }
+        //             },
+        //             expectedFailure : 'You do not have permission to Delete event data for QC state Completed for these super packages.'
+        //         }
+        //     }
+        // },
+        {
 
             name: 'Delete Event: Correct permission. Data admin role.',
             roles: ['org.labkey.api.security.roles.ReaderRole',
                 'org.labkey.api.security.roles.EditorRole',
-                'org.labkey.snd.security.roles.SNDDataAdminRole'],
+                'org.labkey.snd.security.roles.SNDDataAdminRole',
+                'org.labkey.snd.security.roles.SNDViewerRole'],
             run : function()
             {
                 return{
@@ -705,7 +714,7 @@
                             return true;
                         }
 
-                        LABKEY.handleFailure(response, name + " - Stack Trace");
+                        LABKEY.handleSndFailure(response, name + " - Stack Trace");
                         return false;
                     }
                 }
@@ -774,7 +783,7 @@
                             return true;
                         }
 
-                        LABKEY.handleFailure(response, test + " - Stack Trace");
+                        LABKEY.handleSndFailure(response, test + " - Stack Trace");
                         return false;
                     }
                 };
