@@ -83,6 +83,12 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
         ExprColumn eventDataAndName = new ExprColumn(this, "EventDataAndName", new SQLFragment(ExprColumn.STR_TABLE_ALIAS + ".EventDataAndName"), JdbcType.VARCHAR);
         addColumn(eventDataAndName);
 
+        ExprColumn attributeName = new ExprColumn(this, "AttributeName", new SQLFragment(ExprColumn.STR_TABLE_ALIAS + ".AttributeName"), JdbcType.VARCHAR);
+        addColumn(attributeName);
+
+        ExprColumn studyLSID = new ExprColumn(this, "StudyLSID", new SQLFragment(ExprColumn.STR_TABLE_ALIAS + ".StudyLSID"), JdbcType.VARCHAR);
+        addColumn(studyLSID);
+
         // Inject a lookup to the EventData table
         ExprColumn eventDataCol = new ExprColumn(this, "EventData", new SQLFragment(ExprColumn.STR_TABLE_ALIAS + ".EventDataId"), JdbcType.VARCHAR);
         addColumn(eventDataCol);
@@ -111,26 +117,34 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
     @NotNull
     public SQLFragment getFromSQL(String alias)
     {
+        // Need to mock up a study LSID here
+        String mockLsidPrefix = "'urn:lsid:" + AppProps.getInstance().getDefaultLsidAuthority() + ":Study.Data-'";
+        String mockLsid = getRealTable().getSqlDialect().concatenate(mockLsidPrefix,
+                "CAST(X.ObjectId AS VARCHAR) as StudyLSID");
+
         // Flatten data from primary base table (exp.ObjectProperty), exp.Object, and snd.EventData
-        SQLFragment sql = new SQLFragment("(SELECT X.*, o.Container, o.ObjectURI, ed.EventDataId, CONCAT(ed.EventDataId,'-', pd.Name) as EventDataAndName FROM ");
+        SQLFragment sql = new SQLFragment("(SELECT X.*, " + mockLsid + ", o.Container, o.ObjectURI, ed.EventDataId, CONCAT(ed.EventDataId,'-', pd.Name) as EventDataAndName, pd.Name as AttributeName FROM ");
         sql.append(super.getFromSQL("X"));
         sql.append(" INNER JOIN ");
         sql.append(OntologyManager.getTinfoObject(), "o");
         sql.append(" ON x.ObjectId = o.ObjectId AND ");
+
         // Apply the container filter
         sql.append(getContainerFilter().getSQLFragment(getSchema(), new SQLFragment("o.Container")));
         sql.append(" INNER JOIN ");
         sql.append(OntologyManager.getTinfoPropertyDescriptor(), "pd");
+
         // Filter to include only properties associated with packages
-        sql.append(" ON x.PropertyId = pd.PropertyId AND pd.PropertyURI LIKE ? INNER JOIN ");
+        // Note - this must be kept in sync with the PropertyURIs generated for the packages
+        String lsidPrefix = "urn:lsid:" + AppProps.getInstance().getDefaultLsidAuthority() + ":package-snd.Folder-%";
+        // Do not use jdbc parameter for lsidPrefix as it changes the query plan
+        sql.append(" ON x.PropertyId = pd.PropertyId AND pd.PropertyURI LIKE '" + lsidPrefix + "' INNER JOIN ");
+
         // Filter to include only values associated with EventDatas
         sql.append(SNDSchema.getInstance().getTableInfoEventData(), "ed");
         sql.append(" ON ed.ObjectURI = o.ObjectURI ");
         sql.append(") ");
         sql.append(alias);
-
-        // Note - this must be kept in sync with the PropertyURIs generated for the packages
-        sql.add("urn:lsid:" + AppProps.getInstance().getDefaultLsidAuthority() + ":package-snd.Folder-%");
 
         return sql;
     }
