@@ -127,7 +127,9 @@ public class AttributeData
         if (getPropertyDescriptor() != null)
             json.put(ATTRIBUTE_DATA_PROPERTY_DESCRIPTOR, SNDService.get().convertPropertyDescriptorToJson(c, u, getPropertyDescriptor(), true));
 
-        json.put(ATTRIBUTE_DATA_VALUE, getValue());
+        // We want to ensure the attribute is returned even if null
+        json.put(ATTRIBUTE_DATA_VALUE, getValue() == null ? JSONObject.NULL : getValue());
+
         if (_exception != null)
         {
             JSONObject jsonException = new JSONObject();

@@ -15,6 +15,7 @@
  */
 package org.labkey.snd;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.collections.CaseInsensitiveTreeSet;
@@ -26,8 +27,9 @@ import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.query.FieldKey;
 import org.labkey.api.query.SimpleUserSchema;
+import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
-import org.labkey.api.security.permissions.AdminPermission;
+import org.labkey.api.security.roles.Role;
 import org.labkey.snd.query.AttributeDataTable;
 import org.labkey.snd.query.CategoriesTable;
 import org.labkey.snd.query.EventDataTable;
@@ -35,34 +37,39 @@ import org.labkey.snd.query.EventNotesTable;
 import org.labkey.snd.query.EventsCacheTable;
 import org.labkey.snd.query.EventsTable;
 import org.labkey.snd.query.LookupSetsTable;
+import org.labkey.snd.query.LookupSetsVirtualTable;
 import org.labkey.snd.query.LookupsTable;
+import org.labkey.snd.query.PackageAttributeTable;
 import org.labkey.snd.query.PackagesTable;
 import org.labkey.snd.query.ProjectsTable;
 import org.labkey.snd.query.SuperPackagesTable;
+import org.labkey.snd.security.permissions.SNDViewerPermission;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
 
-public class SNDUserSchema extends SimpleUserSchema
+public class SNDUserSchema extends SimpleUserSchema implements UserSchema.HasContextualRoles
 {
-    private boolean _permissionCheck = true;
+    private final Role _contextualRole;
 
     public SNDUserSchema(String name, @Nullable String description, User user, Container container, DbSchema dbschema)
     {
         super(name, description, user, container, dbschema);
+        _contextualRole = null;
     }
 
-    public SNDUserSchema(String name, @Nullable String description, User user, Container container, DbSchema dbschema, boolean permissionCheck)
+    public SNDUserSchema(String name, @Nullable String description, User user, Container container, DbSchema dbschema, Role contextualRole)
     {
         super(name, description, user, container, dbschema);
-        _permissionCheck = permissionCheck;
+        _contextualRole = contextualRole;
     }
 
-    public boolean getPermissionCheck()
+    @Override
+    public @NotNull Set<Role> getContextualRoles()
     {
-        return _permissionCheck;
+        return null != _contextualRole ? Set.of(_contextualRole) : Set.of();
     }
 
     public enum TableType
@@ -129,7 +136,11 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
                     {
-                        return new EventsTable(schema, SNDSchema.getInstance().getTableInfoEvents(), cf).init();
+                        if (schema.getContainer().hasPermission(schema.getUser(), SNDViewerPermission.class, schema.getContextualRoles()))
+                        {
+                            return new EventsTable(schema, SNDSchema.getInstance().getTableInfoEvents(), cf).init();
+                        }
+                        return null;
                     }
                 },
         EventNotes
@@ -137,7 +148,7 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
                     {
-                        if (!schema.getPermissionCheck() || schema.getContainer().hasPermission(schema.getUser(), AdminPermission.class))
+                        if (schema.getContainer().hasPermission(schema.getUser(), SNDViewerPermission.class, schema.getContextualRoles()))
                         {
                             return new EventNotesTable(schema, SNDSchema.getInstance().getTableInfoEventNotes(), cf).init();
                         }
@@ -150,7 +161,7 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
                     {
-                        if (!schema.getPermissionCheck() || schema.getContainer().hasPermission(schema.getUser(), AdminPermission.class))
+                        if (schema.getContainer().hasPermission(schema.getUser(), SNDViewerPermission.class, schema.getContextualRoles()))
                         {
                             return new EventDataTable(schema, SNDSchema.getInstance().getTableInfoEventData(), cf).init();
                         }
@@ -163,9 +174,22 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
                     {
-                        if (!schema.getPermissionCheck() || schema.getContainer().hasPermission(schema.getUser(), AdminPermission.class))
+                        if (schema.getContainer().hasPermission(schema.getUser(), SNDViewerPermission.class, schema.getContextualRoles()))
                         {
                             return new AttributeDataTable(schema, cf);
+                        }
+
+                        return null;
+                    }
+                },
+        PackageAttribute
+                {
+                    @Override
+                    public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
+                    {
+                        if (schema.getContainer().hasPermission(schema.getUser(), SNDViewerPermission.class, schema.getContextualRoles()))
+                        {
+                            return new PackageAttributeTable(schema, cf);
                         }
 
                         return null;
@@ -184,11 +208,7 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
                     {
-                        SimpleUserSchema.SimpleTable<SNDUserSchema> table =
-                                new SimpleUserSchema.SimpleTable<>(
-                                        schema, SNDSchema.getInstance().getTableInfoLookupSets(), cf).init();
-
-                        return table;
+                        return new LookupSetsTable(schema, SNDSchema.getInstance().getTableInfoLookupSets(), cf).init();
                     }
                 },
         EventsCache
@@ -196,7 +216,7 @@ public class SNDUserSchema extends SimpleUserSchema
                     @Override
                     public TableInfo createTable(SNDUserSchema schema, ContainerFilter cf)
                     {
-                        if (!schema.getPermissionCheck() || schema.getContainer().hasPermission(schema.getUser(), AdminPermission.class))
+                        if (schema.getContainer().hasPermission(schema.getUser(), SNDViewerPermission.class, schema.getContextualRoles()))
                         {
                             return new EventsCacheTable(schema, SNDSchema.getInstance().getTableInfoEventsCache(), cf).init();
                         }
@@ -235,7 +255,7 @@ public class SNDUserSchema extends SimpleUserSchema
                 if (nameMap.containsKey(name))
                 {
                     TableInfo table = SNDSchema.getInstance().getTableInfoLookups();
-                    return new LookupSetsTable(this, table, name, nameMap.get(name), cf).init();
+                    return new LookupSetsVirtualTable(this, table, name, nameMap.get(name), cf).init();
                 }
             }
         }
@@ -244,7 +264,7 @@ public class SNDUserSchema extends SimpleUserSchema
 
     public Map<String, Map<String, Object>> getLookupSets()
     {
-        Map<String, Map<String, Object>> nameMap = SNDManager.get().getCache().get(LookupSetsTable.getCacheKey(getContainer()));
+        Map<String, Map<String, Object>> nameMap = SNDManager.get().getCache().get(LookupSetsVirtualTable.getCacheKey(getContainer()));
         if (nameMap != null)
             return nameMap;
 
@@ -264,7 +284,7 @@ public class SNDUserSchema extends SimpleUserSchema
         }
 
         nameMap = Collections.unmodifiableMap(nameMap);
-        SNDManager.get().getCache().put(LookupSetsTable.getCacheKey(getContainer()), nameMap);
+        SNDManager.get().getCache().put(LookupSetsVirtualTable.getCacheKey(getContainer()), nameMap);
 
         return nameMap;
     }

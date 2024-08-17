@@ -39,13 +39,11 @@ import org.labkey.api.query.ExprColumn;
 import org.labkey.api.query.FilteredTable;
 import org.labkey.api.query.QueryForeignKey;
 import org.labkey.api.query.QueryUpdateService;
-import org.labkey.api.query.SimpleQueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
 import org.labkey.api.security.UserPrincipal;
-import org.labkey.api.security.permissions.AdminPermission;
 import org.labkey.api.security.permissions.Permission;
 import org.labkey.api.settings.AppProps;
 import org.labkey.api.snd.SNDService;
@@ -53,6 +51,7 @@ import org.labkey.api.util.UnexpectedException;
 import org.labkey.snd.SNDManager;
 import org.labkey.snd.SNDSchema;
 import org.labkey.snd.SNDUserSchema;
+import org.labkey.snd.security.permissions.SNDViewerPermission;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -72,6 +71,7 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
     public AttributeDataTable(@NotNull SNDUserSchema userSchema, ContainerFilter cf)
     {
         super(OntologyManager.getTinfoObjectProperty(), userSchema, cf);
+
         setName(SNDUserSchema.TableType.AttributeData.name());
         setDescription("Event/package attribute data, one row per attribute/value combination.");
 
@@ -130,7 +130,7 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
         sql.append(" ON x.ObjectId = o.ObjectId AND ");
 
         // Apply the container filter
-        sql.append(getContainerFilter().getSQLFragment(getSchema(), new SQLFragment("o.Container"), getContainer()));
+        sql.append(getContainerFilter().getSQLFragment(getSchema(), new SQLFragment("o.Container")));
         sql.append(" INNER JOIN ");
         sql.append(OntologyManager.getTinfoPropertyDescriptor(), "pd");
 
@@ -152,7 +152,7 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
     @Override
     public boolean hasPermission(@NotNull UserPrincipal user, @NotNull Class<? extends Permission> perm)
     {
-        return getContainer().hasPermission(user, AdminPermission.class);
+        return getContainer().hasPermission(user, SNDViewerPermission.class, getUserSchema().getContextualRoles());
     }
 
     @Override
@@ -163,7 +163,7 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
         return new AttributeDataTable.UpdateService(simpleTable);
     }
 
-    protected class UpdateService extends SimpleQueryUpdateService
+    protected class UpdateService extends SNDQueryUpdateService
     {
         private final SNDManager _sndManager = SNDManager.get();
         private final SNDService _sndService = SNDService.get();
@@ -348,12 +348,12 @@ public class AttributeDataTable extends FilteredTable<SNDUserSchema>
                     }
                     if (!found)
                     {
-                        logger.info("Attribute metadata not found for key: '" + key + "' in package: " + pkgId);
+                        throw new RuntimeException("Attribute metadata not found for key: '" + key + "' in package: " + pkgId);
                     }
                 }
                 else
                 {
-                    logger.info("Package metadata not found for package id: " + pkgId);
+                    throw new RuntimeException("Package metadata not found for package id: " + pkgId);
                 }
             }
 

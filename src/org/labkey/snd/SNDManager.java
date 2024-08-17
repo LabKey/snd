@@ -18,6 +18,9 @@ package org.labkey.snd;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.apache.commons.beanutils.ConversionException;
+import org.apache.commons.beanutils.ConvertUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,6 +36,7 @@ import org.labkey.api.data.DbScope;
 import org.labkey.api.data.Results;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
+import org.labkey.api.data.Sort;
 import org.labkey.api.data.SqlExecutor;
 import org.labkey.api.data.SqlSelector;
 import org.labkey.api.data.TableInfo;
@@ -61,12 +65,15 @@ import org.labkey.api.query.UserSchema;
 import org.labkey.api.query.ValidationError;
 import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
+import org.labkey.api.security.roles.FolderAdminRole;
+import org.labkey.api.security.roles.RoleManager;
 import org.labkey.api.settings.LookAndFeelProperties;
 import org.labkey.api.snd.AttributeData;
 import org.labkey.api.snd.Category;
 import org.labkey.api.snd.Event;
 import org.labkey.api.snd.EventData;
 import org.labkey.api.snd.EventNarrativeOption;
+import org.labkey.api.snd.EventNote;
 import org.labkey.api.snd.Package;
 import org.labkey.api.snd.PackageDomainKind;
 import org.labkey.api.snd.Project;
@@ -75,27 +82,31 @@ import org.labkey.api.snd.SNDDomainKind;
 import org.labkey.api.snd.SNDSequencer;
 import org.labkey.api.snd.SuperPackage;
 import org.labkey.api.util.DateUtil;
+import org.labkey.api.util.PageFlowUtil;
 import org.labkey.snd.query.PackagesTable;
 import org.labkey.snd.security.QCStateActionEnum;
 import org.labkey.snd.security.SNDSecurityManager;
-import org.labkey.snd.table.PlainTextNarrativeDisplayColumn;
+import org.labkey.api.snd.PlainTextNarrativeDisplayColumn;
 import org.labkey.snd.trigger.SNDTriggerManager;
 
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static org.labkey.api.snd.EventNarrativeOption.HTML_NARRATIVE;
 import static org.labkey.api.snd.EventNarrativeOption.REDACTED_HTML_NARRATIVE;
@@ -129,7 +140,12 @@ public class SNDManager
 
     public static UserSchema getSndUserSchema(Container c, User u)
     {
-        return new SNDUserSchema(SNDSchema.NAME, null, u, c, SNDSchema.getInstance().getSchema(), false);
+        return new SNDUserSchema(SNDSchema.NAME, null, u, c, SNDSchema.getInstance().getSchema());
+    }
+
+    public static UserSchema getSndUserSchemaAdminRole(Container c, User u)
+    {
+        return new SNDUserSchema(SNDSchema.NAME, null, u, c, SNDSchema.getInstance().getSchema(), RoleManager.getRole(FolderAdminRole.class));
     }
 
     public static int MAX_MERGE_ROWS = 100000;
@@ -287,7 +303,11 @@ public class SNDManager
     /**
      * Called from SNDService.savePackage when saving updates to an already existing package.
      */
-    public void updatePackage(User u, Container c, @NotNull Package pkg, @Nullable SuperPackage superPkg, BatchValidationException errors)
+    public void updatePackage(User u, Container c, @NotNull Package pkg, @Nullable SuperPackage superPkg, BatchValidationException errors) {
+        updatePackage(u, c, pkg, superPkg, errors, false);
+    }
+
+    public void updatePackage(User u, Container c, @NotNull Package pkg, @Nullable SuperPackage superPkg, BatchValidationException errors, boolean isPipelineJob)
     {
         UserSchema schema = getSndUserSchema(c, u);
 
@@ -317,7 +337,8 @@ public class SNDManager
         if (!errors.hasErrors())
         {
             // If package is in use (either assigned to an event or project) then do not update the domain
-            if (!((PackagesTable) pkgsTable).isPackageInUse(pkg.getPkgId()))
+            // If pipeline import job is running then always update
+            if (!((PackagesTable) pkgsTable).isPackageInUse(pkg.getPkgId()) || isPipelineJob )
             {
                 String domainURI = PackageDomainKind.getDomainURI(PackageDomainKind.getPackageSchemaName(), getPackageName(pkg.getPkgId()), c, u);
 
@@ -546,9 +567,59 @@ public class SNDManager
     }
 
     /**
+     * Return a cached map of Package Categories by PkgId
+     * If pkgIds is not null, get for list of pkgIds, else get for entire database.
+     *
+     * @param c
+     * @param u
+     * @param pkgIds
+     * @param errors
+     * @return
+     */
+    private Map<Integer, Map<Integer, String>> getBulkPackageCategories(Container c, User u, @Nullable List<Integer> pkgIds, BatchValidationException errors)
+    {
+        UserSchema schema = getSndUserSchema(c, u);
+
+        SQLFragment sql = new SQLFragment("SELECT cj.CategoryId, ca.Description, PkgId FROM ");
+        sql.append(schema.getTable(SNDSchema.PKGCATEGORYJUNCTION_TABLE_NAME), "cj");
+        sql.append(" JOIN ");
+        sql.append(schema.getTable(SNDSchema.PKGCATEGORIES__TABLE_NAME), "ca");
+        sql.append(" ON cj.CategoryId = ca.CategoryId");
+        if (pkgIds != null) {
+            sql.append(" WHERE PkgId IN ( ");
+            ArrayDeque<Integer> pkgIdsQueue = new ArrayDeque<>(pkgIds);
+            while (pkgIdsQueue.size() > 1) {
+                sql.append("?, ").add(pkgIdsQueue.pop());
+            }
+            sql.append("?) ").add(pkgIdsQueue.pop());
+        }
+        SqlSelector selector = new SqlSelector(schema.getDbSchema(), sql);
+
+        Map<Integer, Map<Integer, String>> pkgCategoriesByPkgId = new HashMap<>();
+
+        try (TableResultSet resultSet = selector.getResultSet())
+        {
+            resultSet.forEach(row -> {
+                Integer pkgId = (Integer) row.get("PkgId");
+                Integer categoryId = (Integer) row.get("CategoryId");
+                String description = (String) row.get ("Description");
+                if (!pkgCategoriesByPkgId.containsKey(pkgId)) {
+                    pkgCategoriesByPkgId.put(pkgId, new HashMap<>());
+                }
+                pkgCategoriesByPkgId.get(pkgId).put(categoryId, description);
+            });
+        }
+        catch (SQLException e)
+        {
+            errors.addRowError(new ValidationException(e.getMessage()));
+        }
+        return pkgCategoriesByPkgId;
+    }
+
+    /**
      * Gets the extensible fields for a given table
      */
-    private List<GWTPropertyDescriptor> getExtraFields(Container c, User u, String tableName)
+    public static List<GWTPropertyDescriptor> getExtraFields(Container c, User u, String tableName)
     {
         String uri = SNDDomainKind.getDomainURI(SNDSchema.NAME, tableName, c, u);
         GWTDomain<GWTPropertyDescriptor> domain = DomainUtil.getDomainDescriptor(u, uri, c);
@@ -563,7 +634,33 @@ public class SNDManager
      */
     public Package addExtraFieldsToPackage(Container c, User u, Package pkg, @Nullable Map<String, Object> row)
     {
-        List<GWTPropertyDescriptor> extraFields = getExtraFields(c, u, SNDSchema.PKGS_TABLE_NAME);
+        List<GWTPropertyDescriptor> extraFields = SNDManager.getExtraFields(c, u, SNDSchema.PKGS_TABLE_NAME);
+        Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
+        for (GWTPropertyDescriptor extraField : extraFields)
+        {
+            if (row == null)
+            {
+                extras.put(extraField, "");
+            }
+            else
+            {
+                extras.put(extraField, row.get(extraField.getName()));
+            }
+        }
+        pkg.setExtraFields(extras);
+
+        return pkg;
+    }
+
+    /**
+     * Retrieve extensible fields as an argument and add them as extraFields to pkg object
+     * @param pkg
+     * @param extraFields
+     * @param row
+     * @return
+     */
+    public Package addExtraFieldsToPackage(Package pkg, List<GWTPropertyDescriptor> extraFields, @Nullable Map<String, Object> row)
+    {
         Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
         for (GWTPropertyDescriptor extraField : extraFields)
         {
@@ -834,6 +931,9 @@ public class SNDManager
     {
         UserSchema schema = getSndUserSchema(c, u);
 
+        TableInfo pkgsTable = getTableInfo(schema, SNDSchema.PKGS_TABLE_NAME);
+        QueryUpdateService pkgQus = getQueryUpdateService(pkgsTable);
+
         SQLFragment sql = new SQLFragment("SELECT sp.SuperPkgId, sp.PkgId, sp.SortOrder, sp.Required, pkg.PkgId, pkg.Description, pkg.Active, pkg.Narrative, pkg.Repeatable FROM ");
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" JOIN " + SNDSchema.NAME + "." + SNDSchema.PKGS_TABLE_NAME + " pkg");
@@ -944,6 +1044,38 @@ public class SNDManager
     }
 
     /**
+     * Retrieve lookups for packages. Separates this logic out of being called for every single package
+     */
+    public Map<String, String> getLookups(Container c, User u) {
+        UserSchema schema = getSndUserSchema(c, u);
+        Map<String, Map<String, Object>> sndLookups = ((SNDUserSchema) schema).getLookupSets();
+        Map<String, String> lookups = new TreeMap<>(Comparator.comparing((String o) -> o.split("\\.")[1]));
+
+        String key, label;
+        for (String sndLookup : sndLookups.keySet())
+        {
+            key = "snd." + sndLookup;
+            label = ((String) sndLookups.get(sndLookup).get("Label"));
+            if (label != null)
+            {
+                lookups.put(key, label);
+            }
+            else
+            {
+                lookups.put(key, sndLookup);
+            }
+        }
+
+        for (TableInfo ti : _attributeLookups)
+        {
+            key = ti.getSchema().getName() + "." + ti.getName();
+            lookups.put(key, ti.getTitle());
+        }
+
+        return lookups;
+    }
+
+    /**
      * Given a row from the snd.Pkgs table, this creates the Package object.  Options to include extensible columns, lookup values
      * and attributes of subpackages
      */
@@ -977,6 +1109,64 @@ public class SNDManager
 
         return pkg;
     }
+
+    /**
+     * Does same as createPackage but retrieves superPackage and package info from cached map objects from arguments instead of database queries
+     * @param c
+     * @param u
+     * @param row
+     * @param packageExtraFields
+     * @param superPackages
+     * @param childrenByParentId
+     * @param pkgCategoriesByPkgId
+     * @param lookups
+     * @param includeExtraFields
+     * @param includeLookups
+     * @param includeFullSubpackages
+     * @param errors
+     * @return
+     */
+    private Package getBulkPackage(Container c, User u, Map<String, Object> row, List<GWTPropertyDescriptor> packageExtraFields,
+                                 List<SuperPackage> superPackages, Map<Integer, List<SuperPackage>> childrenByParentId,
+                                   Map<Integer, Map<Integer, String>> pkgCategoriesByPkgId, Map<String, String> lookups, boolean includeExtraFields,
+                                  boolean includeLookups, boolean includeFullSubpackages, BatchValidationException errors)
+    {
+        Package pkg = new Package();
+        if (row != null)
+        {
+            pkg.setPkgId((Integer) row.get(Package.PKG_ID));
+            pkg.setDescription((String) row.get(Package.PKG_DESCRIPTION));
+            pkg.setActive((boolean) row.get(Package.PKG_ACTIVE));
+            pkg.setRepeatable((boolean) row.get(Package.PKG_REPEATABLE));
+            pkg.setNarrative((String) row.get(Package.PKG_NARRATIVE));
+            pkg.setQcState((Integer) row.get(Package.PKG_QCSTATE));
+            pkg.setHasEvent((boolean) row.get(Package.PKG_HASEVENT));
+            pkg.setHasProject((boolean) row.get(Package.PKG_HASPROJECT));
+            pkg.setModified((Date) row.get(Package.PKG_MODIFIED));
+            pkg.setCategories(pkgCategoriesByPkgId.get(pkg.getPkgId()));
+            pkg.setAttributes(getPackageAttributes(c, u, pkg.getPkgId()));
+
+            Optional<SuperPackage> topLevelSuperPkg = superPackages.stream().filter(s -> s.getPkgId().equals(pkg.getPkgId()) && s.getParentSuperPkgId() == null)
+                    .findFirst();
+
+            topLevelSuperPkg.ifPresent(superPackage -> pkg.setTopLevelSuperPkgId(superPackage.getSuperPkgId()));
+
+            if(includeFullSubpackages) {
+                Integer superPkgId = superPackages.stream().filter(s -> s.getPkgId().equals(pkg.getPkgId()))
+                        .findFirst().get().getSuperPkgId();
+                List<SuperPackage> subPackages = childrenByParentId.getOrDefault(superPkgId, new ArrayList<>());
+                pkg.setSubpackages(subPackages);
+            }
+
+            if (includeExtraFields)
+                addExtraFieldsToPackage(pkg, packageExtraFields, row);
+            if (includeLookups)
+                pkg.setLookups(lookups);
+        }
+
+        return pkg;
+    }
+
 
     /**
      * Gets a list of full packages given a list of package Ids. Options to include extensible columns, lookup values and
@@ -1015,6 +1205,61 @@ public class SNDManager
             for (Map<String, Object> row : rows)
             {
                 packages.add(createPackage(c, u, row, includeExtraFields, includeLookups, includeFullSubpackages, errors));
+            }
+        }
+
+        return packages;
+    }
+
+    /**
+     * Does same as getPackages but retrieves the superPackage and package info from cached object maps instead of database queries
+     * @param c
+     * @param u
+     * @param pkgIds
+     * @param pkgQus
+     * @param packageExtraFields
+     * @param superPackages
+     * @param childrenByParentId
+     * @param pkgCategoriesByPkgId
+     * @param lookups
+     * @param includeExtraFields
+     * @param includeLookups
+     * @param includeFullSubpackages
+     * @param errors
+     * @return
+     */
+    public List<Package> getBulkPackages(Container c, User u, List<Integer> pkgIds, QueryUpdateService pkgQus,
+                                         List<GWTPropertyDescriptor> packageExtraFields, List<SuperPackage> superPackages,
+                                         Map<Integer, List<SuperPackage>> childrenByParentId,
+                                         Map<Integer, Map<Integer, String>> pkgCategoriesByPkgId,
+                                         Map<String, String> lookups,
+                                         boolean includeExtraFields, boolean includeLookups, boolean includeFullSubpackages, BatchValidationException errors)
+    {
+        List<Map<String, Object>> rows = null;
+        List<Map<String, Object>> keys = new ArrayList<>();
+        Map<String, Object> key;
+        for (Integer pkgId : pkgIds)
+        {
+            key = new HashMap<>();
+            key.put("PkgId", pkgId);
+            keys.add(key);
+        }
+
+        List<Package> packages = new ArrayList<>();
+        try
+        {
+            rows = pkgQus.getRows(u, c, keys);
+        }
+        catch (InvalidKeyException | QueryUpdateServiceException | SQLException e)
+        {
+            errors.addRowError(new ValidationException(e.getMessage()));
+        }
+
+        if (!errors.hasErrors() && rows != null && !rows.isEmpty())
+        {
+            for (Map<String, Object> row : rows)
+            {
+                packages.add(getBulkPackage(c, u, row, packageExtraFields, superPackages, childrenByParentId, pkgCategoriesByPkgId, lookups, includeExtraFields, includeLookups, includeFullSubpackages, errors));
             }
         }
 
@@ -1064,11 +1309,9 @@ public class SNDManager
         Date rowStart = null, rowEnd = null;
 
         // Check for overlapping dates
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
         try
         {
-            rowStart = formatter.parse((String) row.get("StartDate"));
-            rowEnd = null;
+            rowStart = (Date) ConvertUtils.convert(row.get("StartDate"), Date.class);
 
             // For revisions we get enddate of incoming revised end date if comparing with revised project revision
             if (revision && ((Integer) row.get("RevisionNum") == project.getRevisionNum()))
@@ -1077,10 +1320,10 @@ public class SNDManager
             }
             else if (row.get("EndDate") != null)
             {
-                rowEnd = formatter.parse((String) row.get("EndDate"));
+                rowEnd = (Date) ConvertUtils.convert(row.get("EndDate"), Date.class);
             }
         }
-        catch (ParseException e)
+        catch (ConversionException e)
         {
             errors.addRowError(new ValidationException("Unable to parse date. " + e.getMessage()));
         }
@@ -1222,7 +1465,6 @@ public class SNDManager
         // If creating project for first time revNum is zero and not a revision
         boolean validRevision = (project.getRevisionNum() == 0 && !revision), overlap = false;
         Integer rev;
-        String end;
 
         try (TableResultSet rows = selector.getResultSet())
         {
@@ -1245,15 +1487,16 @@ public class SNDManager
 
                 if (revision && rev == project.getRevisionNum())
                 {
-                    end = DateUtil.formatDateISO8601(project.getEndDateRevised());
+                    endDate = project.getEndDateRevised();
                 }
                 else
                 {
-                    end = (String) row.get("EndDate");
+                    // jTDS and MS driver return String and Date, respectively, so handle both
+                    endDate = (Date) ConvertUtils.convert(row.get("EndDate"), Date.class);
                 }
 
                 // Check previous revisions to verify only the latest revision of a project has a null end date
-                if (end == null)
+                if (endDate == null)
                 {
                     if (rev < project.getRevisionNum() || (revision && rev == project.getRevisionNum()))
                     {
@@ -1271,9 +1514,8 @@ public class SNDManager
                 }
 
                 // Verify endDates of previous revisions are before this revision begins
-                if (end != null && (revision || rev < project.getRevisionNum()))
+                if (endDate != null && (revision || rev < project.getRevisionNum()))
                 {
-                    endDate = formatter.parse(end);
                     if (endDate.after(project.getStartDate()))
                     {
                         errors.addRowError(new ValidationException("Start date must be after the end date of previous revisions."));
@@ -1284,7 +1526,7 @@ public class SNDManager
             if (!validRevision)
                 errors.addRowError(new ValidationException("Invalid revision number."));
         }
-        catch (SQLException | ParseException e)
+        catch (SQLException | ConversionException e)
         {
             errors.addRowError(new ValidationException(e.getMessage()));
         }
@@ -1705,7 +1947,7 @@ public class SNDManager
      */
     private EventData getEventData(Container c, User u, @Nullable Integer eventDataId, @NotNull SuperPackage superPackage, BatchValidationException errors)
     {
-        UserSchema schema = getSndUserSchema(c, u);
+        UserSchema schema = getSndUserSchemaAdminRole(c, u);
         TableInfo eventDataTable = getTableInfo(schema, SNDSchema.EVENTDATA_TABLE_NAME);
 
         Map<String, ObjectProperty> properties = null;
@@ -1740,18 +1982,20 @@ public class SNDManager
             {
                 //TODO: Add redacted here
                 propValue = properties.get(gwtPropertyDescriptor.getPropertyURI()).value();
-
-                // Convert dates to ISO8601 format
-                if (PropertyType.getFromURI(null, gwtPropertyDescriptor.getRangeURI()).equals(PropertyType.DATE))
+                if (propValue != null)
                 {
-                    propValue = DateUtil.formatDateTime((Date) propValue, AttributeData.DATE_FORMAT);
-                }
-                else if (PropertyType.getFromURI(null, gwtPropertyDescriptor.getRangeURI()).equals(PropertyType.DATE_TIME))
-                {
-                    propValue = DateUtil.formatDateTime((Date) propValue, AttributeData.DATE_TIME_FORMAT);
-                }
+                    // Convert dates to ISO8601 format
+                    if (PropertyType.getFromURI(null, gwtPropertyDescriptor.getRangeURI()).equals(PropertyType.DATE))
+                    {
+                        propValue = DateUtil.formatDateTime((Date) propValue, AttributeData.DATE_FORMAT);
+                    }
+                    else if (PropertyType.getFromURI(null, gwtPropertyDescriptor.getRangeURI()).equals(PropertyType.DATE_TIME))
+                    {
+                        propValue = DateUtil.formatDateTime((Date) propValue, AttributeData.DATE_TIME_FORMAT);
+                    }
 
-                attribute.setValue(propValue.toString());
+                    attribute.setValue(propValue.toString());
+                }
             }
 
             attributeDatas.add(attribute);
@@ -1837,7 +2081,7 @@ public class SNDManager
     @Nullable
     public Event getEvent(Container c, User u, int eventId, Set<EventNarrativeOption> narrativeOptions, @Nullable Map<Integer, SuperPackage> topLevelEventDataSuperPkgs, boolean skipPermissionCheck, BatchValidationException errors)
     {
-        UserSchema schema = getSndUserSchema(c, u);
+        UserSchema schema = getSndUserSchemaAdminRole(c, u);
 
         TableInfo eventsTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
 
@@ -1868,8 +2112,7 @@ public class SNDManager
                     TableInfo eventNotesTable = getTableInfo(schema, SNDSchema.EVENTNOTES_TABLE_NAME);
 
                     // Get from eventNotes table
-                    Set<String> cols = new HashSet<>();
-                    cols.add("Note");
+                    Set<String> cols = Collections.singleton("Note");
                     TableSelector eventNoteTs = new TableSelector(eventNotesTable, cols, eventFilter, null);
 
                     event.setNote(eventNoteTs.getObject(String.class));
@@ -1901,7 +2144,7 @@ public class SNDManager
     private Map<EventNarrativeOption, String> getNarratives(Container c, User u, Set<EventNarrativeOption> narrativeOptions, Map<Integer, SuperPackage> topLevelEventDataSuperPkgs, Event event, BatchValidationException errors)
     {
         Map<EventNarrativeOption, String> narratives = null;
-        UserSchema schema = getSndUserSchema(c, u);
+        UserSchema schema = getSndUserSchemaAdminRole(c, u);
         SimpleFilter eventFilter = new SimpleFilter(FieldKey.fromParts("EventId"), event.getEventId(), CompareType.EQUAL);
 
         if (narrativeOptions != null)
@@ -2089,7 +2332,7 @@ public class SNDManager
      */
     public void deleteEventNotes(Container c, User u, int eventId) throws SQLException, QueryUpdateServiceException, BatchValidationException, InvalidKeyException
     {
-        UserSchema schema = getSndUserSchema(c, u);
+        UserSchema schema = getSndUserSchemaAdminRole(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT EventNoteId FROM ");
         sql.append(schema.getTable(SNDSchema.EVENTNOTES_TABLE_NAME), "en");
@@ -2137,11 +2380,55 @@ public class SNDManager
     }
 
     /**
+     * Add extensible columns to an event.
+     */
+    public Event addExtraFieldsToEvent(Event event, List<GWTPropertyDescriptor> extraFields, @Nullable Map<String, Object> row)
+    {
+        Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
+        for (GWTPropertyDescriptor extraField : extraFields)
+        {
+            if (row == null)
+            {
+                extras.put(extraField, "");
+            }
+            else
+            {
+                extras.put(extraField, row.get(extraField.getName()));
+            }
+        }
+        event.setExtraFields(extras);
+
+        return event;
+    }
+
+    /**
      * Add extensible columns to event data.
      */
     private EventData addExtraFieldsToEventData(Container c, User u, EventData eventData, @Nullable Map<String, Object> row)
     {
         List<GWTPropertyDescriptor> extraFields = getExtraFields(c, u, SNDSchema.EVENTDATA_TABLE_NAME);
+        Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
+        for (GWTPropertyDescriptor extraField : extraFields)
+        {
+            if (row == null)
+            {
+                extras.put(extraField, null);
+            }
+            else
+            {
+                extras.put(extraField, row.get(extraField.getName()));
+            }
+        }
+        eventData.setExtraFields(extras);
+
+        return eventData;
+    }
+
+    /**
+     * Add extensible columns to event data.
+     */
+    private EventData addExtraFieldsToEventData(EventData eventData, List<GWTPropertyDescriptor> extraFields, @Nullable Map<String, Object> row)
+    {
         Map<GWTPropertyDescriptor, Object> extras = new HashMap<>();
         for (GWTPropertyDescriptor extraField : extraFields)
         {
@@ -2239,14 +2526,13 @@ public class SNDManager
 
         for (AttributeData attributeData : eventData.getAttributes())
         {
-            if (attributeData.getPropertyName() != null)
+            propertyDescriptor = OntologyManager.getPropertyDescriptor(attributeData.getPropertyId());
+
+            if (propertyDescriptor == null)
             {
-                propertyDescriptor = OntologyManager.getPropertyDescriptor(PackageDomainKind.getDomainURI(
-                        SNDSchema.NAME, PackageDomainKind.getPackageKindName(), c, u) + "-" + pkgId + "#" + attributeData.getPropertyName(), c);
-            }
-            else
-            {
-                propertyDescriptor = OntologyManager.getPropertyDescriptor(attributeData.getPropertyId());
+               propertyDescriptor = OntologyManager.getPropertyDescriptor(PackageDomainKind.getDomainURI(
+                        SNDSchema.NAME, PackageDomainKind.getPackageKindName(), c, u) + "-" + pkgId + "#" +
+                        Lsid.encodePart(attributeData.getPropertyName()), c);
             }
 
             if (propertyDescriptor != null)
@@ -2265,6 +2551,11 @@ public class SNDManager
                 {
                     OntologyManager.insertProperties(c, u, null, objectProperty);
                 }
+            }
+            else
+            {
+                // property descriptor not found
+                throw new ValidationException("Property descriptor not found for attribute: " + attributeData.getPropertyName());
             }
         }
 
@@ -2303,7 +2594,7 @@ public class SNDManager
      */
     private void insertEventDatas(Container c, User u, Event event, BatchValidationException errors) throws ValidationException, SQLException, QueryUpdateServiceException, BatchValidationException, DuplicateKeyException
     {
-        UserSchema schema = getSndUserSchema(c, u);
+        UserSchema schema = getSndUserSchemaAdminRole(c, u);
         TableInfo eventDataTable = getTableInfo(schema, SNDSchema.EVENTDATA_TABLE_NAME);
 
         QueryUpdateService eventDataQus = getNewQueryUpdateService(schema, SNDSchema.EVENTDATA_TABLE_NAME);
@@ -2343,9 +2634,7 @@ public class SNDManager
 
             // Get from project items table
             SimpleFilter projectItemsFilter = new SimpleFilter(FieldKey.fromParts("ParentObjectId"), event.getParentObjectId(), CompareType.EQUAL);
-            Set<String> cols = new TreeSet<>();
-            cols.add("SuperPkgId");
-            cols.add("Active");
+            Set<String> cols = PageFlowUtil.set("SuperPkgId", "Active");
             TableSelector projectItemsTs = new TableSelector(projectItemsTable, cols, projectItemsFilter, null);
 
             try (TableResultSet projectItems = projectItemsTs.getResultSet())
@@ -2520,14 +2809,12 @@ public class SNDManager
 
                             if (!event.hasErrors() && !validateOnly)
                             {
-                                UserSchema schema = getSndUserSchema(c, u);
+                                UserSchema schema = getSndUserSchemaAdminRole(c, u);
                                 TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
                                 QueryUpdateService eventQus = getQueryUpdateService(eventTable);
                                 QueryUpdateService eventsCacheQus = getNewQueryUpdateService(schema, SNDSchema.EVENTSCACHE_TABLE_NAME);
 
-                                String htmlEventNarrative = generateEventNarrative(c, u, event, topLevelEventDataPkgs, true, false);
-                                Map<String, Object> eventsCacheRow = getEventsCacheRow(c, u, event.getEventId(), htmlEventNarrative);
-                                String textEventNarrative = PlainTextNarrativeDisplayColumn.removeHtmlTagsFromNarrative(htmlEventNarrative);
+
                                 BatchValidationException errors = new BatchValidationException();
 
                                 QueryUpdateService eventNotesQus = null;
@@ -2547,8 +2834,10 @@ public class SNDManager
                                     }
 
                                     insertEventDatas(c, u, event, errors);
+                                    String htmlEventNarrative = generateEventNarrative(c, u, event, topLevelEventDataPkgs, true, false);
+                                    Map<String, Object> eventsCacheRow = getEventsCacheRow(c, u, event.getEventId(), htmlEventNarrative);
+                                    String textEventNarrative = PlainTextNarrativeDisplayColumn.removeHtmlTagsFromNarrative(htmlEventNarrative);
                                     eventsCacheQus.insertRows(u, c, Collections.singletonList(eventsCacheRow), errors, null, null);
-                                    generateEventNarrative(c, u, event, topLevelEventDataPkgs, true, false);
                                     NarrativeAuditProvider.addAuditEntry(c, u, event.getEventId(), event.getSubjectId(), event.getDate(), textEventNarrative, event.getQcState(), "Create event");
                                     tx.commit();
                                 }
@@ -2591,7 +2880,7 @@ public class SNDManager
      */
     public void deleteEventsCache(Container c, User u, int eventId) throws SQLException, QueryUpdateServiceException, BatchValidationException, InvalidKeyException
     {
-        UserSchema schema = getSndUserSchema(c, u);
+        UserSchema schema = getSndUserSchemaAdminRole(c, u);
 
         QueryUpdateService eventsCacheQus = getNewQueryUpdateService(schema, SNDSchema.EVENTSCACHE_TABLE_NAME);
 
@@ -2606,7 +2895,7 @@ public class SNDManager
      */
     public void deleteEventDatas(Container c, User u, int eventId) throws SQLException, QueryUpdateServiceException, BatchValidationException, InvalidKeyException
     {
-        UserSchema schema = getSndUserSchema(c, u);
+        UserSchema schema = getSndUserSchemaAdminRole(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT EventDataId FROM ");
         sql.append(schema.getTable(SNDSchema.EVENTDATA_TABLE_NAME), "ed");
@@ -2636,13 +2925,12 @@ public class SNDManager
      */
     private void deleteExpObjects(Container c, User u, int eventId)
     {
-        UserSchema schema = getSndUserSchema(c, u);
+        UserSchema schema = getSndUserSchemaAdminRole(c, u);
         TableInfo eventDataTable = getTableInfo(schema, SNDSchema.EVENTDATA_TABLE_NAME);
 
         // Get from eventNotes table
         SimpleFilter eventDataFilter = new SimpleFilter(FieldKey.fromParts("EventId"), eventId, CompareType.EQUAL);
-        Set<String> cols = new HashSet<>();
-        cols.add("ObjectURI");
+        Set<String> cols = Collections.singleton("ObjectURI");
         TableSelector eventDataTs = new TableSelector(eventDataTable, cols, eventDataFilter, null);
 
         List<String> objectURIs = eventDataTs.getArrayList(String.class);
@@ -2684,7 +2972,7 @@ public class SNDManager
 
                             if (!event.hasErrors() && !validateOnly)
                             {
-                                UserSchema schema = getSndUserSchema(c, u);
+                                UserSchema schema = getSndUserSchemaAdminRole(c, u);
                                 TableInfo eventTable = getTableInfo(schema, SNDSchema.EVENTS_TABLE_NAME);
                                 QueryUpdateService eventQus = getQueryUpdateService(eventTable);
                                 QueryUpdateService eventNotesQus = null;
@@ -2766,10 +3054,11 @@ public class SNDManager
             }
             else
             {
-                for (Integer cacheDatum : cacheData)
+                List<Integer> eventIds = new ArrayList<>(cacheData);
+                for (Integer eventId : eventIds)
                 {
                     row = new HashMap<>();
-                    row.put("EventId", cacheDatum);
+                    row.put("EventId", eventId);
                     rows.add(row);
                 }
 
@@ -2779,7 +3068,7 @@ public class SNDManager
                 if (isUpdate)
                 {
                     log.info("Repopulate affected rows in narrative cache.");
-                    populateNarrativeCache(container, user, rows, errors, log);
+                    populateNarrativeCache(container, user, eventIds, errors, log);
                 }
             }
 
@@ -2796,7 +3085,7 @@ public class SNDManager
      */
     public void deleteNarrativeCacheRows(Container c, User u, List<Map<String, Object>> eventIds, BatchValidationException errors)
     {
-        UserSchema sndSchema = getSndUserSchema(c, u);
+        UserSchema sndSchema = getSndUserSchemaAdminRole(c, u);
         QueryUpdateService eventsCacheQus = getNewQueryUpdateService(sndSchema, SNDSchema.EVENTSCACHE_TABLE_NAME);
 
         try
@@ -2814,7 +3103,7 @@ public class SNDManager
      */
     public void clearNarrativeCache(Container c, User u, BatchValidationException errors)
     {
-        UserSchema sndSchema = getSndUserSchema(c, u);
+        UserSchema sndSchema = getSndUserSchemaAdminRole(c, u);
         QueryUpdateService eventsCacheQus = getNewQueryUpdateService(sndSchema, SNDSchema.EVENTSCACHE_TABLE_NAME);
 
         try (DbScope.Transaction tx = sndSchema.getDbSchema().getScope().ensureTransaction())
@@ -2833,7 +3122,7 @@ public class SNDManager
      */
     public void fillInNarrativeCache(Container c, User u, BatchValidationException errors, @Nullable Logger logger)
     {
-        UserSchema sndSchema = getSndUserSchema(c, u);
+        UserSchema sndSchema = getSndUserSchemaAdminRole(c, u);
 
         SQLFragment eventSql = new SQLFragment("SELECT ev.EventId FROM ");
         eventSql.append(sndSchema.getTable(SNDSchema.EVENTS_TABLE_NAME), "ev");
@@ -2845,28 +3134,25 @@ public class SNDManager
 
         List<Integer> eventIds = selector.getArrayList(Integer.class);
 
-        Map<String, Object> row;
-        List<Map<String, Object>> rows = new ArrayList<>();
-        for (Integer eventId : eventIds)
-        {
-            row = new HashMap<>();
-            row.put("EventId", eventId);
-            rows.add(row);
-        }
-
-        populateNarrativeCache(c, u, rows, errors, logger);
+        populateNarrativeCache(c, u, eventIds, errors, logger);
     }
 
     /**
      * Populate specific event narratives in narrative cache.
      */
-    public void populateNarrativeCache(Container c, User u, List<Map<String, Object>> eventIds, BatchValidationException errors, @Nullable Logger logger)
+    public void populateNarrativeCache(Container c, User u, List<Integer> eventIds, BatchValidationException errors, @Nullable Logger logger)
     {
-        UserSchema sndSchema = getSndUserSchema(c, u);
+        UserSchema sndSchema = getSndUserSchemaAdminRole(c, u);
         QueryUpdateService eventsCacheQus = getNewQueryUpdateService(sndSchema, SNDSchema.EVENTSCACHE_TABLE_NAME);
 
-        Map<Integer, SuperPackage> eventDataTopLevelSuperPkgs;
-        List<Map<String, Object>> rows = new ArrayList<>();
+        TableInfo pkgsTable = getTableInfo(sndSchema, SNDSchema.PKGS_TABLE_NAME);
+        QueryUpdateService pkgQus = getQueryUpdateService(pkgsTable);
+
+        List<GWTPropertyDescriptor> eventExtraFields = getExtraFields(c, u, SNDSchema.EVENTS_TABLE_NAME);
+        List<GWTPropertyDescriptor> eventDataExtraFields = getExtraFields(c, u, SNDSchema.EVENTDATA_TABLE_NAME);
+        List<GWTPropertyDescriptor> packageExtraFields = getExtraFields(c, u, SNDSchema.PKGS_TABLE_NAME);
+
+        Map<String, String> lookups = getLookups(c, u);
 
         // Logger for pipeline
         if (logger != null)
@@ -2874,45 +3160,43 @@ public class SNDManager
             logger.info("Generating narratives.");
         }
 
-        int count = 0;
-        Integer eventId;
-        Map<String, Object> row;
-        for (Map<String, Object> eventRow : eventIds)
-        {
-            eventId = (Integer) eventRow.get("EventId");
-            if (eventId != null)
-            {
-                row = new ArrayListMap<>();
-                eventDataTopLevelSuperPkgs = getTopLevelEventDataSuperPkgs(c, u, eventId, errors);
-                Event event = getEvent(c, u, eventId, null, eventDataTopLevelSuperPkgs, true, errors);  // don't populate narratives or set narrative options, since we're repopulating the narrative cache
-                String eventNarrative = generateEventNarrative(c, u, event, eventDataTopLevelSuperPkgs, true, false);
+        Map<Integer, SuperPackage> superPackages = getBulkSuperPkgs(c, u, packageExtraFields, pkgQus, null, lookups, errors);
+
+        AtomicInteger count = new AtomicInteger(0);
+
+        // Partition eventIds for batching
+        List<List<Integer>> eventIdsPartitioned = ListUtils.partition(eventIds, 2100);
+
+        eventIdsPartitioned.forEach((List<Integer> partitionEventIds) -> {
+            List<Map<String, Object>> rows = new ArrayList<>();
+
+            //Top Level SuperPkgs grouped by EventDataId and grouped by EventId
+            Map<Integer, Map<Integer, SuperPackage>> topLevelSuperPkgs = getBulkTopLevelEventDataSuperPkgs(c, u, partitionEventIds, superPackages);
+
+            //Events grouped by EventId
+            Map<Integer, Event> events = getBulkEvents(c, u, partitionEventIds, null, topLevelSuperPkgs, true, errors, eventExtraFields, eventDataExtraFields, false);
+
+            partitionEventIds.forEach((Integer eventId) -> {
+                Map<String, Object> row = new ArrayListMap<>();
+                Event event = events.get(eventId);
+                String eventNarrative = generateEventNarrative(c, u, event, topLevelSuperPkgs.get(eventId), true, false);
                 row.put("EventId", eventId);
                 row.put("HtmlNarrative", eventNarrative);
                 row.put("Container", c);
                 rows.add(row);
-                count++;
-
-                if (logger != null && count % 1000 == 0)
-                {
-                    logger.info(count + " narratives generated.");
+                int currentCount = count.incrementAndGet();
+                if (logger != null && currentCount % 1000 == 0) {
+                    logger.info(currentCount + " narratives generated.");
                 }
+            });
+            try (DbScope.Transaction tx = sndSchema.getDbSchema().getScope().ensureTransaction()) {
+                eventsCacheQus.insertRows(u, c, rows, errors, null, null);
+                tx.commit();
             }
-        }
-
-        if (logger != null)
-        {
-            logger.info("Inserting narratives into cache.");
-        }
-
-        try (DbScope.Transaction tx = sndSchema.getDbSchema().getScope().ensureTransaction())
-        {
-            eventsCacheQus.insertRows(u, c, rows, errors, null, null);
-            tx.commit();
-        }
-        catch (QueryUpdateServiceException | BatchValidationException | SQLException | DuplicateKeyException e)
-        {
-            errors.addRowError(new ValidationException(e.getMessage()));
-        }
+            catch (QueryUpdateServiceException | BatchValidationException | SQLException | DuplicateKeyException e) {
+                errors.addRowError(new ValidationException(e.getMessage()));
+            }
+        });
     }
 
     /**
@@ -2920,7 +3204,7 @@ public class SNDManager
      */
     private Map<Integer, SuperPackage> getTopLevelEventDataSuperPkgs(Container c, User u, int eventId, BatchValidationException errors)
     {
-        UserSchema schema = getSndUserSchema(c, u);
+        UserSchema schema = getSndUserSchemaAdminRole(c, u);
 
         SQLFragment sql = new SQLFragment("SELECT SuperPkgId, EventDataId FROM ");
         sql.append(schema.getTable(SNDSchema.EVENTDATA_TABLE_NAME), "ed");
@@ -3034,6 +3318,24 @@ public class SNDManager
     private String generateEventDataNarrative(Container c, User u, Event event, EventData eventData, SuperPackage superPackage, int tabIndex, boolean genHtml, boolean genRedacted)
     {
         StringBuilder eventDataNarrative = new StringBuilder();
+
+        if (tabIndex == 0)
+        {
+            eventDataNarrative.append("** ");
+        }
+        else
+        {
+            eventDataNarrative.append("-- ");
+        }
+
+        if (genHtml)
+        {
+            for (int i = 0; i <= tabIndex; i++)
+            {
+                eventDataNarrative.append("&emsp;");
+            }
+        }
+
         if (superPackage.getNarrative() != null)
         {
             eventDataNarrative.append(superPackage.getNarrative());
@@ -3042,17 +3344,6 @@ public class SNDManager
         if (genHtml)
         {
             eventDataNarrative.insert(0, "<div class='" + EventData.EVENT_DATA_CSS_CLASS + "'>");
-        }
-        else
-        {
-            // plain text indenting
-            StringBuilder tabs = new StringBuilder("\n");
-            for (int t = 0; t < tabIndex; t++)
-            {
-                tabs.append("\t");
-            }
-
-            eventDataNarrative.insert(0, tabs);
         }
 
         if (superPackage.getPkg() != null)
@@ -3079,7 +3370,9 @@ public class SNDManager
                 }
 
                 if (pd == null)
+                {
                     continue;
+                }
 
                 if (genRedacted)
                 {
@@ -3109,10 +3402,22 @@ public class SNDManager
                 if (value != null)
                 {
                     if (genHtml)
+                    {
                         value = "<span class='" + AttributeData.ATTRIBUTE_DATA_CSS_CLASS + "'>" + value + "</span>";
+                    }
 
                     eventDataNarrative = new StringBuilder(eventDataNarrative.toString().replace("{" + pd.getName() + "}", value));
                 }
+            }
+
+            if (genHtml)
+            {
+                eventDataNarrative.append("<span class='" + SuperPackage.SUPERPKG_PKGID_CSS_CLASS + "'> (" + superPackage.getPkgId() + ") </span></div>");
+            }
+
+            if (genHtml)
+            {
+                eventDataNarrative.append("\n");
             }
 
             if (eventData.getSubPackages() != null)
@@ -3120,14 +3425,11 @@ public class SNDManager
                 tabIndex++;
                 for (EventData data : eventData.getSubPackages())
                 {
-                    eventDataNarrative.append(generateEventDataNarrative(c, u, event, data, getSuperPackage(data.getSuperPkgId(), superPackage.getChildPackages()), tabIndex, genHtml, genRedacted));
+                    eventDataNarrative.append(generateEventDataNarrative(c, u, event, data,
+                            getSuperPackage(data.getSuperPkgId(), superPackage.getChildPackages()), tabIndex, genHtml, genRedacted));
+
                 }
             }
-        }
-
-        if (genHtml)
-        {
-            eventDataNarrative.append("</div>\n");
         }
 
         return eventDataNarrative.toString();
@@ -3146,7 +3448,8 @@ public class SNDManager
 
             if (genHtml)
             {
-                narrative.append("<div class='" + Event.SND_EVENT_DATE_CSS_CLASS + "'>").append(dateValue).append("</div>\n");
+                narrative.append("<div class='" + Event.SND_EVENT_DATE_CSS_CLASS + "'>").append(dateValue)
+                        .append("</div>\n");
             }
             else
             {
@@ -3158,11 +3461,22 @@ public class SNDManager
         {
             if (genHtml)
             {
-                narrative.append("<div class='" + Event.SND_EVENT_SUBJECT_CSS_CLASS + "'>Subject Id: ").append(event.getSubjectId()).append("</div>\n");
+                narrative.append("<div class='" + Event.SND_EVENT_SUBJECT_CSS_CLASS + "'>Subject Id: ")
+                        .append(event.getSubjectId()).append("</div>\n");
             }
             else
             {
                 narrative.append("Subject Id: ").append(event.getSubjectId()).append("\n");
+            }
+        }
+
+
+        if (event.getEventData() != null)
+        {
+            for (EventData eventData : event.getEventData())
+            {
+                narrative.append(generateEventDataNarrative(c, u, event, eventData,
+                        topLevelEventDataSuperPkgs.get(eventData.getEventDataId()), 0, genHtml, genRedacted));
             }
         }
 
@@ -3171,11 +3485,16 @@ public class SNDManager
             narrative.append("<br>");
         }
 
-        if (event.getEventData() != null)
+        if (event.getNote() != null)
         {
-            for (EventData eventData : event.getEventData())
+            if (genHtml)
             {
-                narrative.append(generateEventDataNarrative(c, u, event, eventData, topLevelEventDataSuperPkgs.get(eventData.getEventDataId()), 0, genHtml, genRedacted));
+                narrative.append("<div class='" + Event.SND_EVENT_NOTE_CSS_CLASS + "'>Procedure Note: <br>")
+                        .append(event.getNote()).append("</div>\n");
+            }
+            else
+            {
+                narrative.append("Procedure Note: ").append(event.getNote()).append("\n");
             }
         }
 
@@ -3240,16 +3559,20 @@ public class SNDManager
      * Returns a list of active projects with a list of project items
      */
 
-    public List<Map<String, Object>> getActiveProjects(Container c, User u, ArrayList<SimpleFilter> filters, Boolean activeProjectItemsOnly)
+    public List<Map<String, Object>> getActiveProjects(Container c, User u, ArrayList<SimpleFilter> filters, Boolean activeProjectItemsOnly, Date eventDate)
     {
-       List<Map<String, Object>> projectList = new ArrayList<>();
+        List<Map<String, Object>> projectList = new ArrayList<>();
 
         UserSchema schema = getSndUserSchema(c, u);
         TableInfo projectsTable = getTableInfo(schema, SNDSchema.PROJECTS_TABLE_NAME);
 
         // Get from projects table
-        SimpleFilter filter = new SimpleFilter(FieldKey.fromParts("Active"), true, CompareType.EQUAL);
-        filter.addCondition(FieldKey.fromParts("enddate"), new Date(), CompareType.DATE_GTE);
+        SimpleFilter filter = new SimpleFilter();
+        if (eventDate == null)
+        {
+            filter.addCondition(FieldKey.fromParts("Active"), true, CompareType.EQUAL);
+            filter.addCondition(FieldKey.fromParts("enddate"), new Date(), CompareType.DATE_GTE);
+        }
 
         // apply filters that are passed as an argument
         if (filters != null) {
@@ -3317,7 +3640,7 @@ public class SNDManager
             }
 
             // add projectItems
-            List<Map<String, Object>> pItems = getProjectItemsList(c, u, project.getProjectId(), project.getRevisionNum(), activeProjectItemsOnly);
+            List<Map<String, Object>> pItems = getProjectItemsList(c, u, project.getProjectId(), project.getRevisionNum(), eventDate == null ? activeProjectItemsOnly : false);
 
             if (pItems.size() > 0)
             {
@@ -3335,7 +3658,7 @@ public class SNDManager
     {
         UserSchema schema = getSndUserSchema(c, u);
 
-        SQLFragment sql = new SQLFragment("SELECT pi.ProjectItemId, pi.superPkgId, p.pkgId, p.description, p.modified FROM ");
+        SQLFragment sql = new SQLFragment("SELECT pi.ProjectItemId, pi.superPkgId, pi.Active, p.pkgId, p.description, p.modified, p.narrative FROM ");
         sql.append(schema.getTable(SNDSchema.PROJECTITEMS_TABLE_NAME, null, true, false), "pi");
         sql.append(" JOIN ");
         sql.append(schema.getTable(SNDSchema.PROJECTS_TABLE_NAME, null, true, false), "pr");
@@ -3372,4 +3695,586 @@ public class SNDManager
         return projectItems;
     }
 
+
+    /**
+     * Query the EventData table and create a Map of all top level SuperPackages for a set of eventIds
+     *
+     * @param c
+     * @param u
+     * @param eventIds
+     * @param superPackages
+     * @return
+     */
+    private Map<Integer, Map<Integer, SuperPackage>> getBulkTopLevelEventDataSuperPkgs(Container c, User u, List<Integer> eventIds, Map<Integer, SuperPackage> superPackages) {
+
+        // EventData from query - SELECT * FROM EventData WHERE EventId IN {eventIds} AND ParentEventId IS NULL ORDER BY EventDataId
+        TableSelector eventDataSelector = getTableSelector(c, u, eventIds, SNDSchema.EVENTDATA_TABLE_NAME, Event.EVENT_ID, EventData.EVENT_DATA_ID, EventData.EVENT_DATA_PARENT_EVENTDATAID);
+        List<EventData> allEventData = eventDataSelector.getArrayList(EventData.class);
+
+        // Get SuperPackages for eventData and group by EventId
+        Map<Integer, Map<Integer, SuperPackage>> topLevelEventDataSuperPkgs = allEventData.stream().collect(
+                Collectors.groupingBy(
+                        EventData::getEventId,
+                        Collectors.toMap(
+                                EventData::getEventDataId,
+                                (EventData eventData) -> superPackages.get(eventData.getSuperPkgId())
+                        )
+                )
+        );
+
+        return topLevelEventDataSuperPkgs;
+
+    }
+
+    /**
+     * getEvent method that uses cache-optimized methods for bulk loading to more quickly build a single event
+     * @param c
+     * @param u
+     * @param eventId
+     * @param narrativeOptions
+     * @param skipPermissionCheck
+     * @param errors
+     * @return
+     */
+    @Nullable
+    public Event getEvent(Container c, User u, int eventId, Set<EventNarrativeOption> narrativeOptions, boolean skipPermissionCheck, BatchValidationException errors) {
+
+        UserSchema schema = getSndUserSchema(c, u);
+
+        Map<String, String> lookups = getLookups(c, u);
+
+        TableInfo pkgsTable = getTableInfo(schema, SNDSchema.PKGS_TABLE_NAME);
+        QueryUpdateService pkgQus = getQueryUpdateService(pkgsTable);
+
+        List<GWTPropertyDescriptor> eventExtraFields = getExtraFields(c, u, SNDSchema.EVENTS_TABLE_NAME);
+        List<GWTPropertyDescriptor> eventDataExtraFields = getExtraFields(c, u, SNDSchema.EVENTDATA_TABLE_NAME);
+        List<GWTPropertyDescriptor> packageExtraFields = getExtraFields(c, u, SNDSchema.PKGS_TABLE_NAME);
+
+        Map<Integer, SuperPackage> superPackages = getBulkSuperPkgs(c, u, packageExtraFields, pkgQus, eventId, lookups, errors);
+
+        Map<Integer, Map<Integer, SuperPackage>> topLevelEventDataSuperPkgs = getBulkTopLevelEventDataSuperPkgs(c, u, Collections.singletonList(eventId), superPackages);
+
+        Event event = getBulkEvents(c, u, Collections.singletonList(eventId), narrativeOptions, topLevelEventDataSuperPkgs, skipPermissionCheck, errors, eventExtraFields, eventDataExtraFields, true).get(eventId);
+
+        return event;
+
+    }
+
+    /**
+     * Query the Event table and retrieve rows for a set of eventIds and populate data/create narratives
+     *
+     * @param c
+     * @param u
+     * @param eventIds
+     * @param narrativeOptions
+     * @param topLevelSuperPkgs
+     * @param skipPermissionCheck
+     * @param errors
+     * @param eventExtraFields
+     * @param eventDataExtraFields
+     * @return
+     */
+    @Nullable
+    public Map<Integer, Event> getBulkEvents(Container c, User u, List<Integer> eventIds, Set<EventNarrativeOption> narrativeOptions,
+                                            @Nullable Map<Integer, Map<Integer, SuperPackage>> topLevelSuperPkgs, boolean skipPermissionCheck, BatchValidationException errors,
+                                            List<GWTPropertyDescriptor> eventExtraFields, List<GWTPropertyDescriptor> eventDataExtraFields,
+                                             boolean includeEmptySubPackges) {
+
+        // Events from query - SELECT * FROM Events WHERE EventId IN {eventIds}
+        TableSelector eventSelector = getTableSelector(c, u, eventIds, SNDSchema.EVENTS_TABLE_NAME, Event.EVENT_ID, null, null);
+        List<Event> events = eventSelector.getArrayList(Event.class);
+        Collection<Map<String, Object>> eventsExtensibleFields = eventSelector.getMapCollection();
+
+        TableSelector eventDataSelector = getTableSelector(c, u, eventIds, SNDSchema.EVENTDATA_TABLE_NAME, Event.EVENT_ID, null, null);
+        List<EventData> rawEventData = eventDataSelector.getArrayList(EventData.class);
+        Collection<Map<String, Object>> eventDataExtensibleFields = eventDataSelector.getMapCollection();
+
+        //EventNotes grouped by EventId
+        Map<Integer, String> eventNotes = getBulkEventNotes(c, u, eventIds);
+
+        //ProjectIdRev strings grouped by Event ObjectId
+        Map<String, String> projectIdRevs = getBulkProjectIdRevs(c, u, events.stream().map(Event::getParentObjectId).collect(Collectors.toList()));
+
+        //EventData grouped by EventId
+        Map<Integer, List<EventData>> eventData = getBulkEventData(c, topLevelSuperPkgs, rawEventData, eventDataExtensibleFields, eventDataExtraFields, includeEmptySubPackges);
+
+        // Build events from eventData, eventNotes, and project data and group by EventId
+        Map<Integer, Event> eventsById = events.stream().collect(Collectors.toMap(Event::getEventId, (Event event) -> {
+            boolean hasPermission = skipPermissionCheck ||
+                    SNDSecurityManager.get().hasPermissionForTopLevelSuperPkgs(c, u, topLevelSuperPkgs.get(event.getEventId()), event, QCStateActionEnum.READ);
+
+            Map<String, Object> extraFields = eventsExtensibleFields
+                    .stream()
+                    .filter((Map<String, Object> map) -> event.getEventId().equals(map.get(Event.EVENT_ID)))
+                    .findFirst()
+                    .orElse(Collections.emptyMap());
+
+            if (!event.hasErrors() && hasPermission) {
+                event.setNote(eventNotes.get(event.getEventId()));
+                event.setProjectIdRev(projectIdRevs.get(event.getParentObjectId()));
+
+                if (eventData.containsKey(event.getEventId())) {
+                    List<EventData> sortedEventData = eventData
+                            .get(event.getEventId())
+                            .stream()
+                            .sorted(Comparator.comparing((EventData e) -> Integer.toString(e.getSuperPkgId()))).collect(Collectors.toList());
+                    event.setEventData(sortedEventData);
+                }
+
+                addExtraFieldsToEvent(event, eventExtraFields, extraFields);
+            }
+            if (narrativeOptions != null && !narrativeOptions.isEmpty()) {
+                Map<EventNarrativeOption, String> narratives = getNarratives(c, u, narrativeOptions,
+                        topLevelSuperPkgs.get(event.getEventId()), event, errors);
+                if (narratives != null) {
+                    event.setNarratives(narratives);
+                }
+            }
+            return event;
+        }));
+
+        return eventsById;
+    }
+
+    /**
+     * Return a cached map of SuperPackage objects by superPkgId
+     * Builds each underlying SuperPackage object with child superPackages
+     * Retrieves SuperPackages for an eventId if it is not null, else retrieves SuperPackages for entire database
+     * @param c
+     * @param u
+     * @param packageExtraFields
+     * @param pkgQus
+     * @param eventId
+     * @param lookups
+     * @param errors
+     * @return
+     */
+    private Map<Integer, SuperPackage> getBulkSuperPkgs(Container c, User u, List<GWTPropertyDescriptor> packageExtraFields, QueryUpdateService pkgQus, @Nullable Integer eventId,
+                                                        Map<String, String> lookups, BatchValidationException errors) {
+
+        UserSchema schema = getSndUserSchema(c, u);
+
+        // Get All SuperPkg objects from database
+        SQLFragment sql = new SQLFragment(
+                "SELECT sp.SuperPkgId, sp.PkgId, sp.SortOrder, sp.Required, pkg.PkgId, pkg.Description, pkg.Active, pkg.Narrative, pkg.Repeatable FROM ");
+        sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
+        sql.append(" JOIN " + SNDSchema.NAME + "." + SNDSchema.PKGS_TABLE_NAME + " pkg");
+        sql.append(" ON sp.PkgId = pkg.PkgId ");
+        if (eventId != null) {
+            sql.append(" INNER JOIN " + SNDSchema.NAME + "." + SNDSchema.EVENTDATA_TABLE_NAME + " ed");
+            sql.append(" ON ed.SuperPkgId = sp.SuperPkgId ");
+            sql.append(" WHERE ed.EventId = ? ").add(eventId);
+        }
+        sql.append(" ORDER BY sp.SuperPkgId ");
+
+        SqlSelector superPkgSelector = new SqlSelector(schema.getDbSchema(), sql);
+        List<SuperPackage> superPackages = superPkgSelector.getArrayList(SuperPackage.class);
+
+        List<Integer> pkgIds = superPackages.stream().map(SuperPackage::getPkgId).toList();
+
+        List<SuperPackage> fullTreeSuperPkgs;
+
+        if (eventId != null) {
+            fullTreeSuperPkgs = new ArrayList<SuperPackage>();
+            pkgIds.forEach(pkgId -> {
+                SQLFragment packageSql = new SQLFragment("SELECT * FROM ");
+                packageSql.append(SNDSchema.NAME + "." + SNDSchema.SUPERPKGS_FUNCTION_NAME + "(?)").add(pkgId);
+                SqlSelector childSuperPkgSelector = new SqlSelector(schema.getDbSchema(), packageSql);
+                fullTreeSuperPkgs.addAll(childSuperPkgSelector.getArrayList(SuperPackage.class));
+            });
+
+        } else {
+            SQLFragment superPkgSql = new SQLFragment("SELECT * FROM ");
+            superPkgSql.append(SNDSchema.NAME + "." + SNDSchema.ALL_SUPERPKGS_FUNCTION_NAME + "()");
+            SqlSelector childSuperPkgSelector = new SqlSelector(schema.getDbSchema(), superPkgSql);
+            fullTreeSuperPkgs = childSuperPkgSelector.getArrayList(SuperPackage.class);
+            pkgIds = null;
+        }
+
+        Map<Integer, Map<Integer, String>> pkgCategoriesByPkgId;
+        if (pkgIds == null || !pkgIds.isEmpty()) {
+            pkgCategoriesByPkgId = getBulkPackageCategories(c, u, pkgIds, errors);
+        } else {
+            pkgCategoriesByPkgId = new HashMap<>();
+        }
+
+        Map<Integer, List<SuperPackage>> childrenByParentId = fullTreeSuperPkgs.stream().filter(sp -> sp.getParentSuperPkgId() != null).collect(Collectors.groupingBy(SuperPackage::getParentSuperPkgId));
+
+        Map<Integer, SuperPackage> superPackagesById = superPackages.stream().collect(Collectors.toMap(
+                SuperPackage::getSuperPkgId,
+                (SuperPackage superPackage) -> superPackage,
+                (s1, s2) -> s1
+        ));
+
+        Map<Integer, List<SuperPackage>> childrenByTopLevelPkgId = getBulkChildSuperPkgs(c, u, fullTreeSuperPkgs, childrenByParentId, pkgCategoriesByPkgId, packageExtraFields, pkgQus, lookups, true, errors);
+
+        superPackagesById.forEach((superPkgId, superPackage) -> {
+            Integer pkgId = superPackage.getPkgId();
+            if (pkgId != null) {
+                List<Integer> packageIds = Collections.singletonList(pkgId);
+                List<Package> packages = getBulkPackages(c, u, packageIds, pkgQus, packageExtraFields, fullTreeSuperPkgs, childrenByParentId, pkgCategoriesByPkgId, lookups, true, true, true, errors);
+                if (!packages.isEmpty()) {
+                    superPackage.setPkg(packages.get(0));
+                }
+                superPackage.setChildPackages(childrenByTopLevelPkgId.get(pkgId));
+            }
+        });
+
+        return superPackagesById;
+
+    }
+
+    /**
+     * Retrieve the child SuperPackage objects for a list of SuperPackages
+     * @param c
+     * @param u
+     * @param allSuperPackages
+     * @param childrenByParentId
+     * @param pkgCategoriesByPkgId
+     * @param packageExtraFields
+     * @param pkgQus
+     * @param lookups
+     * @param includeFullSubpackages
+     * @param errors
+     * @return
+     */
+    private Map<Integer, List<SuperPackage>> getBulkChildSuperPkgs (Container c, User u, List<SuperPackage> allSuperPackages,
+                                    Map<Integer, List<SuperPackage>> childrenByParentId,
+                                    Map<Integer, Map<Integer, String>> pkgCategoriesByPkgId,
+                                    List<GWTPropertyDescriptor> packageExtraFields, QueryUpdateService pkgQus,
+                                    Map<String, String> lookups,
+                                    boolean includeFullSubpackages, BatchValidationException errors) {
+
+        Map<Integer, List<SuperPackage>> superPackagesByTopLevelPkgId = allSuperPackages.stream().collect(Collectors.groupingBy(SuperPackage::getTopLevelPkgId));
+
+        superPackagesByTopLevelPkgId.forEach((topLevelPkgId, superPackages) -> {
+            SuperPackage root = superPackages.stream().filter(sp -> sp.getParentSuperPkgId() == null).findFirst().orElse(null);
+
+            List<SuperPackage> children = new ArrayList<>();
+            if (root != null) {
+                superPackages.stream()
+                        .filter(sp -> sp.getParentSuperPkgId() != null)
+                        .forEach((SuperPackage superPackage) -> {
+                            if (includeFullSubpackages) {
+                                List<Integer> packageIds = Collections.singletonList(superPackage.getPkgId());
+                                superPackage.setPkg(getBulkPackages(c, u, packageIds, pkgQus, packageExtraFields, allSuperPackages, childrenByParentId, pkgCategoriesByPkgId, lookups, true, true, true, errors).get(0));
+                            }
+                            if (superPackage.getParentSuperPkgId().intValue() == root.getSuperPkgId().intValue()) {
+                                children.add(addChildren(superPackage, superPackages));
+                            }
+                        });
+            }
+            superPackages.clear();
+            superPackages.addAll(children);
+        });
+
+        return superPackagesByTopLevelPkgId;
+    }
+
+
+    /**
+     * Populate eventData and attribute data for a set of top level SuperPackages
+     * @param c
+     * @param currentLevelSuperPkgs
+     * @param currentEventData
+     * @param eventDataExtensibleFields
+     * @param eventDataExtraFields
+     * @return
+     */
+    private Map<Integer, List<EventData>> getBulkEventData(Container c, Map<Integer, Map<Integer, SuperPackage>> currentLevelSuperPkgs,
+                                                           List<EventData> currentEventData, Collection<Map<String, Object>> eventDataExtensibleFields,
+                                                           List<GWTPropertyDescriptor> eventDataExtraFields, boolean includeEmptySubPackages) {
+
+        if (currentLevelSuperPkgs == null) {
+            return null;
+        }
+
+        List<Integer> eventDataIds = currentLevelSuperPkgs.values()
+                .stream()
+                .flatMap((Map<Integer, SuperPackage> map) -> map.keySet().stream())
+                .collect(Collectors.toList());
+
+        List<Integer> originalEventDataIds = currentEventData.stream().filter(e -> e.getEventDataId() != null).map(EventData::getEventDataId).toList();
+
+        List<EventData> allEventData = new ArrayList<>(currentEventData);
+
+        if (includeEmptySubPackages) {
+            List<EventData> emptyEventData = currentLevelSuperPkgs.entrySet().stream()
+                    .flatMap(outerEntry -> outerEntry.getValue().entrySet().stream().map(innerEntry -> Map.entry(outerEntry.getKey(), innerEntry)))
+                    .filter(entry -> !originalEventDataIds.contains(entry.getValue().getKey()))
+                    .map(entry -> {
+                        EventData eventData = new EventData();
+                        eventData.setEventDataId(entry.getValue().getKey());
+                        eventData.setEventId(entry.getKey());
+                        eventData.setSuperPkgId(entry.getValue().getValue().getSuperPkgId());
+                        return eventData;
+                    })
+                    .toList();
+
+
+            allEventData.addAll(emptyEventData);
+        }
+
+        // Child EventData grouped by EventId
+        Map<Integer, List<EventData>> childEventData = getBulkChildEventData(allEventData, eventDataIds);
+
+        // Build eventData from attributes and superPkgs and group by eventId
+        Map<Integer, List<EventData>> eventDataByEventId = allEventData.stream().filter(e -> eventDataIds.contains(e.getEventDataId())).map((EventData eventData) -> {
+
+            Map<String, ObjectProperty> properties = OntologyManager.getPropertyObjects(c, eventData.getObjectURI());
+            Map<Integer, SuperPackage> superPackagesByEventDataId = currentLevelSuperPkgs.get(eventData.getEventId());
+            SuperPackage superPackage = superPackagesByEventDataId.get(eventData.getEventDataId());
+
+            if (superPackage != null) {
+                List<AttributeData> attributeData = superPackage.getPkg().getAttributes()
+                        .stream()
+                        .map((GWTPropertyDescriptor propertyDescriptor) -> getAttributeData(propertyDescriptor, properties))
+                        .toList();
+
+                eventData.setAttributes(attributeData);
+                eventData.setNarrativeTemplate(superPackage.getNarrative());
+
+            }
+
+            Map<String, Object> extraFields = eventDataExtensibleFields
+                    .stream()
+                    .filter((Map<String, Object> map) -> eventData.getEventDataId().equals(map.get(EventData.EVENT_DATA_ID)))
+                    .findFirst()
+                    .orElse(Collections.emptyMap());
+
+            addExtraFieldsToEventData(eventData, eventDataExtraFields, extraFields);
+
+            boolean hasEmptySubpackages =
+                    includeEmptySubPackages
+                    &&
+                    !superPackagesByEventDataId.get(eventData.getEventDataId()).getChildPackages().isEmpty();
+
+            Map<Integer, Map<Integer, SuperPackage>> nextLevelSuperPkgs = getNextLevelEventDataSuperPkgs(eventData, childEventData, currentLevelSuperPkgs, includeEmptySubPackages, hasEmptySubpackages);
+
+            if (nextLevelSuperPkgs != null && !nextLevelSuperPkgs.isEmpty()) {
+                // Recursion for next child level of sub packages
+                Map<Integer, List<EventData>> subEventData = getBulkEventData(c, nextLevelSuperPkgs, currentEventData, eventDataExtensibleFields, eventDataExtraFields, includeEmptySubPackages);
+                if (subEventData != null) {
+                    List<EventData> sorted = subEventData.get(eventData.getEventId()).stream().sorted(Comparator.comparing(
+                                    (EventData child) -> nextLevelSuperPkgs.get(child.getEventId()).get(child.getEventDataId()).getTreePath()))
+                            .filter(ed -> ed.getParentEventDataId() == null || ed.getParentEventDataId().equals(eventData.getEventDataId()))
+                            .map(ed -> {
+                                if (!originalEventDataIds.contains(ed.getEventDataId())) {
+                                    ed.setEventId(0);
+                                    ed.setEventDataId(null);
+                                }
+                                return ed;
+                            })
+                            .collect(Collectors.toList());
+                    eventData.setSubPackages(sorted);
+                }
+            }
+
+            return eventData;
+
+        }).collect(Collectors.groupingBy(EventData::getEventId));
+
+        return eventDataByEventId;
+    }
+
+    /**
+     * Get EventData objects for a list of ParentEventIds
+     * @param allEventData
+     * @param parentEventDataIds
+     * @return
+     */
+    private Map<Integer, List<EventData>> getBulkChildEventData(List<EventData> allEventData, List<Integer> parentEventDataIds) {
+
+        if (parentEventDataIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<EventData> childEventData = allEventData.stream().filter(e -> parentEventDataIds.contains(e.getParentEventDataId())).toList();
+
+        // Group childEventData by eventId
+        Map<Integer, List<EventData>> childEventDataByEventId = childEventData.stream().collect(Collectors.groupingBy(EventData::getEventId));
+
+        return childEventDataByEventId;
+    }
+
+    /**
+     * Get the attribute data for a given PropertyDescriptor object
+     *
+     * @param propertyDescriptor
+     * @param properties
+     * @return
+     */
+    private AttributeData getAttributeData(GWTPropertyDescriptor propertyDescriptor, Map<String, ObjectProperty> properties) {
+
+        Object property;
+        AttributeData attribute = new AttributeData();
+        attribute.setPropertyName(propertyDescriptor.getName());
+        attribute.setPropertyDescriptor(propertyDescriptor);
+        attribute.setPropertyId(propertyDescriptor.getPropertyId());
+        if (properties.get(propertyDescriptor.getPropertyURI()) != null) {
+            property = properties.get(propertyDescriptor.getPropertyURI()).value();
+            if (property != null) {
+                if (PropertyType.getFromURI(null, propertyDescriptor.getRangeURI()).equals(PropertyType.DATE)) {
+                    property = DateUtil.formatDateTime((Date) property, AttributeData.DATE_FORMAT);
+                } else {
+                    if (PropertyType.getFromURI(null, propertyDescriptor.getRangeURI())
+                            .equals(PropertyType.DATE_TIME)) {
+                        property = DateUtil.formatDateTime((Date) property, AttributeData.DATE_TIME_FORMAT);
+                    }
+                }
+                attribute.setValue(property.toString());
+            }
+        }
+        return attribute;
+    }
+
+    /**
+     * Get the next child level of SuperPackages for a given map of top level SuperPackages
+     *
+     * @param eventData
+     * @param childEventData
+     * @param currentLevelSuperPkgs
+     * @return
+     */
+    private Map<Integer, Map<Integer, SuperPackage>> getNextLevelEventDataSuperPkgs(EventData eventData, Map<Integer,
+            List<EventData>> childEventData, Map<Integer, Map<Integer, SuperPackage>> currentLevelSuperPkgs,
+                                                                                    boolean includeEmptySubPackages, boolean hasChildPackages) {
+
+        if (!childEventData.containsKey(eventData.getEventId()) && !hasChildPackages) {
+            return null;
+        }
+
+        // Get child packages from Current level of SuperPackages
+        Map<Integer, SuperPackage> childSuperPkgs = currentLevelSuperPkgs
+                .getOrDefault(eventData.getEventId(), Collections.emptyMap())
+                .get(eventData.getEventDataId())
+                .getChildPackages()
+                .stream()
+                .collect(Collectors.toMap(
+                        SuperPackage::getSuperPkgId,
+                        (SuperPackage superPackage) -> superPackage,
+                        (s1, s2) -> s1
+                ));
+
+        // Get superPkg for eventData and group by eventId and then by eventId
+        Map<Integer, Map<Integer, SuperPackage>> nextLevelEventDataSuperPkgs;
+        List<Integer> eventDataSuperPkgIds;
+
+        if (!childEventData.isEmpty()) {
+            Map<Integer, SuperPackage> children = childSuperPkgs;
+            nextLevelEventDataSuperPkgs = childEventData.get(eventData.getEventId())
+                    .stream()
+                    .filter((EventData child) -> children.containsKey(child.getSuperPkgId()))
+                    .collect(
+                            Collectors.groupingBy(
+                                    EventData::getEventId,
+                                    Collectors.toMap(
+                                            EventData::getEventDataId,
+                                            (EventData child) -> children.get(child.getSuperPkgId())
+                                    )
+                            )
+                    );
+            eventDataSuperPkgIds = nextLevelEventDataSuperPkgs.containsKey(eventData.getEventId())
+                    ? nextLevelEventDataSuperPkgs.get(eventData.getEventId()).values().stream().map(SuperPackage::getSuperPkgId).toList()
+                    : new ArrayList<>();
+        }
+        else
+        {
+            nextLevelEventDataSuperPkgs = new HashMap<>();
+            nextLevelEventDataSuperPkgs.put(eventData.getEventId(), new HashMap<>());
+            eventDataSuperPkgIds = new ArrayList<>();
+        }
+
+        AtomicInteger emptyEventDataId = new AtomicInteger(0); 
+
+        if (includeEmptySubPackages && nextLevelEventDataSuperPkgs.containsKey(eventData.getEventId())) {
+            childSuperPkgs.values().stream()
+                    .filter(superPkg -> !eventDataSuperPkgIds.contains(superPkg.getSuperPkgId()))
+                    .forEach(spkg -> {
+                        nextLevelEventDataSuperPkgs.get(eventData.getEventId()).put(emptyEventDataId.getAndAdd(1), spkg);
+                    });
+        }
+
+        return nextLevelEventDataSuperPkgs;
+    }
+
+    /**
+     * Query EventNotes table for set of eventIds
+     *
+     * @param c
+     * @param u
+     * @param eventIds
+     * @return
+     */
+    private Map<Integer, String> getBulkEventNotes(Container c, User u, List<Integer> eventIds) {
+
+        // EventNotes from query - SELECT * FROM EventNotes WHERE EventId IN {eventIds}
+        TableSelector eventNoteSelector = getTableSelector(c, u, eventIds, SNDSchema.EVENTNOTES_TABLE_NAME, Event.EVENT_ID, null, null);
+        List<EventNote> eventNotes = eventNoteSelector.getArrayList(EventNote.class);
+
+        // Group eventNotes by eventId
+        Map<Integer, String> eventNotesById = eventNotes.stream().collect(
+                Collectors.toMap(
+                        EventNote::getEventId, EventNote::getNote
+                )
+        );
+
+        return eventNotesById;
+    }
+
+    /**
+     * Query the Projects table and retrieve the ID concatenated with RevisionNum for a set of objectIds
+     *
+     * @param c
+     * @param u
+     * @param objectIds
+     * @return
+     */
+    private Map<String, String> getBulkProjectIdRevs(Container c, User u, List<String> objectIds) {
+
+        // Projects from query - SELECT * FROM Projects WHERE ObjectId IN {objectIds}
+        TableSelector projectSelector = getTableSelector(c, u, objectIds, SNDSchema.PROJECTS_TABLE_NAME, Project.PROJECT_OBJECTID, null, null);
+        List<Project> projects = projectSelector.getArrayList(Project.class);
+
+        // Concat string of ProjectId + RevisionNum and Group by ObjectId
+        Map<String, String> projectIdRevs = projects.stream().collect(
+                Collectors.toMap(
+                        Project::getObjectId,
+                        (Project project) -> project.getProjectId() + "|" + project.getRevisionNum()
+                )
+        );
+
+        return projectIdRevs;
+
+    }
+
+    /**
+     * Create a TableSelector object to query a table
+     *
+     * @param c
+     * @param u
+     * @param filterValues
+     * @param tableName
+     * @param filterColumn
+     * @param sortColumn
+     * @param isNullColumn
+     * @return
+     */
+    public <T> TableSelector getTableSelector(Container c, User u, List<T> filterValues, String tableName, String filterColumn, String sortColumn, String isNullColumn) {
+
+        UserSchema schema = getSndUserSchemaAdminRole(c, u);
+
+        Sort sort = null;
+        if (sortColumn != null) {
+            sort = new Sort();
+            sort.insertSortColumn(FieldKey.fromParts(sortColumn));
+        }
+
+        TableInfo tableInfo = getTableInfo(schema, tableName);
+        SimpleFilter filter = new SimpleFilter().addInClause(FieldKey.fromParts(filterColumn), filterValues);
+        if (isNullColumn != null) {
+            filter.addCondition(FieldKey.fromParts(isNullColumn), null, CompareType.ISBLANK);
+        }
+        return new TableSelector(tableInfo, filter, sort);
+    }
 }

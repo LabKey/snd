@@ -16,6 +16,7 @@
 package org.labkey.snd.query;
 
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerFilter;
@@ -27,10 +28,11 @@ import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.InvalidKeyException;
 import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.QueryUpdateServiceException;
-import org.labkey.api.query.SimpleQueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema.SimpleTable;
 import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
+import org.labkey.api.security.UserPrincipal;
+import org.labkey.api.security.permissions.Permission;
 import org.labkey.api.snd.Event;
 import org.labkey.api.snd.SNDService;
 import org.labkey.snd.NarrativeAuditProvider;
@@ -39,6 +41,7 @@ import org.labkey.snd.SNDSchema;
 import org.labkey.snd.SNDUserSchema;
 import org.labkey.snd.security.QCStateActionEnum;
 import org.labkey.snd.security.SNDSecurityManager;
+import org.labkey.snd.security.permissions.SNDViewerPermission;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -72,7 +75,7 @@ public class EventsTable extends SimpleTable<SNDUserSchema>
         return new EventsTable.UpdateService(this);
     }
 
-    protected class UpdateService extends SimpleQueryUpdateService
+    protected class UpdateService extends SNDQueryUpdateService
     {
         public UpdateService(SimpleTable ti)
         {
@@ -209,5 +212,10 @@ public class EventsTable extends SimpleTable<SNDUserSchema>
 
             return result;
         }
+    }
+    @Override
+    public boolean hasPermission(@NotNull UserPrincipal user, @NotNull Class<? extends Permission> perm)
+    {
+        return getContainer().hasPermission(user, SNDViewerPermission.class, getUserSchema().getContextualRoles());
     }
 }

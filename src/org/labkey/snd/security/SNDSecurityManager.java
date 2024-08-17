@@ -19,7 +19,7 @@ package org.labkey.snd.security;
 import org.labkey.api.collections.CaseInsensitiveHashMap;
 import org.labkey.api.data.CompareType;
 import org.labkey.api.data.Container;
-import org.labkey.api.data.DbSchema;
+import org.labkey.api.data.CoreSchema;
 import org.labkey.api.data.DbScope;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.Table;
@@ -35,6 +35,8 @@ import org.labkey.api.security.SecurityManager;
 import org.labkey.api.security.SecurityPolicy;
 import org.labkey.api.security.SecurityPolicyManager;
 import org.labkey.api.security.User;
+import org.labkey.api.security.impersonation.ImpersonationContext;
+import org.labkey.api.security.impersonation.RoleImpersonationContextFactory;
 import org.labkey.api.security.permissions.Permission;
 import org.labkey.api.security.roles.Role;
 import org.labkey.api.snd.Category;
@@ -49,7 +51,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -71,7 +72,7 @@ public class SNDSecurityManager
 
         List<Category> categories = SNDManager.get().getCategories(c, u, categoryIds);
         Category category;
-        if (categories != null && categories.size() > 0)
+        if (categories != null && !categories.isEmpty())
         {
             category = categories.get(0);
             Group group = SecurityManager.getGroup(SecurityManager.getGroupId(c, groupName));
@@ -96,20 +97,14 @@ public class SNDSecurityManager
                 }
 
                 // Clear role first
-                if (role != null || roleName.equals("None"))
-                {
-                    policy.clearAssignedRoles(group);
-                }
+                policy.clearAssignedRoles(group);
 
                 if (role != null)
                 {
                     policy.addRoleAssignment(group, role);
                 }
 
-                if (role != null || roleName.equals("None"))
-                {
-                    SecurityPolicyManager.savePolicy(policy);
-                }
+                SecurityPolicyManager.savePolicy(policy, u);
             }
             else
             {
@@ -195,7 +190,7 @@ public class SNDSecurityManager
         // save all policies
         for (MutableSecurityPolicy savedPolicy : policyMap.values())
         {
-            SecurityPolicyManager.savePolicy(savedPolicy);
+            SecurityPolicyManager.savePolicy(savedPolicy, u);
         }
     }
 
@@ -213,7 +208,24 @@ public class SNDSecurityManager
     private boolean hasPermission(User u, Category category, QCStateActionEnum action, QCStateEnum qcState)
     {
         Permission perm = action.getPermission(qcState);
-        return perm != null && category.hasPermission(u, perm.getClass());
+        if (perm == null)
+        {
+            return false;
+        }
+
+        Set<Role> roles = Set.of();
+
+        // SND has permissions bound to SND categories which can be assigned to packages (domains). Impersonating roles is used
+        // in automated and manual testing to verify this behavior. The behavior of role impersonation was changed in core
+        // labkey to only check for roles related to containers. This is a workaround to go back to checking all roles.
+        ImpersonationContext impersonationContext = u.getImpersonationContext();
+        if (impersonationContext instanceof RoleImpersonationContextFactory.RoleImpersonationContext context)
+        {
+            roles = context.getRoles().getRoles();
+        }
+
+        return SecurityManager.hasAllPermissions(this.getClass().getName() + ":" + category.getResourceName(),
+                category, u, Set.of(perm.getClass()), roles);
 
     }
 
@@ -301,14 +313,12 @@ public class SNDSecurityManager
 
     public Integer getQCStateId(Container c, User u, QCStateEnum qcState)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, "core");
-        TableInfo qcStateTable = SNDManager.get().getTableInfo(schema, "QCState");
+        TableInfo qcStateTable = CoreSchema.getInstance().getTableInfoDataStates();
 
-        SimpleFilter qcFilter = new SimpleFilter(FieldKey.fromParts("Label"), qcState.getName(), CompareType.EQUAL);
+        SimpleFilter qcFilter = SimpleFilter.createContainerFilter(c).addCondition(FieldKey.fromParts("Label"), qcState.getName(), CompareType.EQUAL);
 
         // Get from eventNotes table
-        Set<String> cols = new HashSet<>();
-        cols.add("RowId");
+        Set<String> cols = Collections.singleton("RowId");
         TableSelector qcStateTs = new TableSelector(qcStateTable, cols, qcFilter, null);
 
         return qcStateTs.getObject(Integer.class);
@@ -316,14 +326,12 @@ public class SNDSecurityManager
 
     public QCStateEnum getQCState(Container c, User u, int qcStateId)
     {
-        UserSchema schema = QueryService.get().getUserSchema(u, c, "core");
-        TableInfo qcStateTable = SNDManager.get().getTableInfo(schema, "QCState");
+        TableInfo qcStateTable = CoreSchema.getInstance().getTableInfoDataStates();
 
-        SimpleFilter qcFilter = new SimpleFilter(FieldKey.fromParts("RowId"), qcStateId, CompareType.EQUAL);
+        SimpleFilter qcFilter = SimpleFilter.createContainerFilter(c).addCondition(FieldKey.fromParts("RowId"), qcStateId, CompareType.EQUAL);
 
         // Get from eventNotes table
-        Set<String> cols = new HashSet<>();
-        cols.add("Label");
+        Set<String> cols = Collections.singleton("Label");
         TableSelector qcStateTs = new TableSelector(qcStateTable, cols, qcFilter, null);
 
         String qcStateName = qcStateTs.getObject(String.class);
@@ -334,8 +342,7 @@ public class SNDSecurityManager
     public void populateQCStates(Container c, User u)
     {
         UserSchema coreSchema = QueryService.get().getUserSchema(u, c, "core");
-        DbSchema coreDbSchema = coreSchema.getDbSchema();
-        TableInfo qcStateTi = coreDbSchema.getTable("QCState");
+        TableInfo qcStateTi = CoreSchema.getInstance().getTableInfoDataStates();
 
         Object[][] states = EnumSet.allOf(QCStateEnum.class).stream().map(qcStateEnum -> new Object[]{qcStateEnum.getName(), qcStateEnum.getDescription(), qcStateEnum.isPublicData()}).toArray(Object[][]::new);
 
@@ -344,7 +351,9 @@ public class SNDSecurityManager
             // check if QCStates exist, if not insert them
             for (Object[] qc : states)
             {
-                SimpleFilter filter = new SimpleFilter(FieldKey.fromString("Label"), qc[0]);
+                SimpleFilter filter = SimpleFilter.createContainerFilter(c);
+                filter.addCondition(FieldKey.fromString("Label"), qc[0]);
+
                 TableSelector ts = new TableSelector(qcStateTi, Collections.singleton("RowId"), filter, null);
                 Integer[] rowIds = ts.getArray(Integer.class);
 
