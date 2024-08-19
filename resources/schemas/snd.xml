@@ -350,4 +350,29 @@
             <column columnName="Container"/>
         </columns>
     </table>
+    <table tableName="mv_dataByCategory" tableDbType="VIEW">
+        <insertUrl></insertUrl>
+        <updateUrl></updateUrl>
+        <importUrl></importUrl>
+        <deleteUrl></deleteUrl>
+        <columns>
+            <column columnName="SubjectId"/>
+            <column columnName="Date"/>
+            <column columnName="QcState"/>
+            <column columnName="EventId"/>
+            <column columnName="ParentObjectId"/>
+            <column columnName="EventDataId"/>
+            <column columnName="AttributeName"/>
+            <column columnName="PropertyId"/>
+            <column columnName="DateTimeValue"/>
+            <column columnName="FloatValue"/>
+            <column columnName="StringValue"/>
+            <column columnName="TypeTag"/>
+            <column columnName="CategoryId"/>
+            <column columnName="CategoryName"/>
+            <column columnName="Container"/>
+            <column columnName="ObjectURI"/>
+            <column columnName="ObjectId"/>
+        </columns>
+    </table>
 </tables>
