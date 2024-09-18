@@ -3848,7 +3848,7 @@ public class SNDManager
 
         /*
         Transform top-level SuperPackages map to have the object structure for processing repeated top-level SuperPkgIds,
-        SuperPackage object will now be stored as a Pair<SuperPackage, Integer> where Integer is the associated ParentEventDataId
+        The value of the HashMap will now be stored as a Pair<SuperPackage, Integer> where Integer is the associated ParentEventDataId
          */
         Map<Integer, Map<Integer, Pair<SuperPackage, Integer>>> transformedTopLevelSuperPkgs = topLevelSuperPkgs.entrySet().stream()
                 .collect(Collectors.toMap(
@@ -3903,24 +3903,26 @@ public class SNDManager
     }
 
     /**
-     * Return a cached map of SuperPackage objects by superPkgId
-     * Builds each underlying SuperPackage object with child superPackages
-     * Retrieves SuperPackages for an eventId if it is not null, else retrieves SuperPackages for entire database
-     * @param c
-     * @param u
-     * @param packageExtraFields
-     * @param pkgQus
-     * @param eventId
-     * @param lookups
-     * @param errors
-     * @return
+     * Return a cached map of SuperPackage objects by superPkgId.
+     * Builds each underlying SuperPackage object, including child superPackages.
+     * Retrieves SuperPackages for a specific eventId if provided, otherwise retrieves SuperPackages for the entire database.
+     *
+     * @param c Container object representing the context of the request.
+     * @param u User object representing the current user.
+     * @param packageExtraFields Extra fields related to the SuperPackage that need to be included in the response.
+     * @param pkgQus QueryUpdateService for handling SuperPackage updates.
+     * @param eventId The ID of the event for which SuperPackages should be retrieved. Can be null to retrieve all SuperPackages.
+     * @param lookups Map for additional lookup criteria or filtering, used to retrieve SuperPackages.
+     * @param errors BatchValidationException object used to accumulate any errors encountered during the process.
+     *
+     * @return A map of SuperPackage objects, keyed by SuperPkgId.
      */
     private Map<Integer, SuperPackage> getBulkSuperPkgs(Container c, User u, List<GWTPropertyDescriptor> packageExtraFields, QueryUpdateService pkgQus, @Nullable Integer eventId,
                                                         Map<String, String> lookups, BatchValidationException errors) {
 
         UserSchema schema = getSndUserSchema(c, u);
 
-        // Get All SuperPkg objects from database
+        // Query database for SuperPackages for an eventId if it exists, otherwise for all SuperPackages
         SQLFragment sql = new SQLFragment(
                 "SELECT DISTINCT sp.SuperPkgId, sp.ParentSuperPkgId, sp.PkgId, sp.SortOrder, sp.Required, " +
                         "pkg.PkgId, pkg.Description, pkg.Active, pkg.Narrative, pkg.Repeatable FROM ");
@@ -3992,18 +3994,22 @@ public class SNDManager
     }
 
     /**
-     * Retrieve the child SuperPackage objects for a list of SuperPackages
-     * @param c
-     * @param u
-     * @param allSuperPackages
-     * @param childrenByParentId
-     * @param pkgCategoriesByPkgId
-     * @param packageExtraFields
-     * @param pkgQus
-     * @param lookups
-     * @param includeFullSubpackages
-     * @param errors
-     * @return
+     * Retrieve the child SuperPackage objects for a list of SuperPackages.
+     * This method organizes the SuperPackage objects into a hierarchy by linking
+     * child SuperPackages to their respective parent SuperPackages.
+     *
+     * @param c Container object representing the current context.
+     * @param u User object representing the current user.
+     * @param allSuperPackages List of all SuperPackages to be processed.
+     * @param childrenByParentId A map of SuperPackages grouped by their parent SuperPkgId.
+     * @param pkgCategoriesByPkgId A map linking package IDs to their associated categories.
+     * @param packageExtraFields ExtraFields list for package objects.
+     * @param pkgQus QueryUpdateService for handling package updates.
+     * @param lookups A map for additional lookup criteria or filtering.
+     * @param includeFullSubpackages Flag indicating whether to include full subpackages in the result.
+     * @param errors A BatchValidationException object to capture any validation errors encountered during the process.
+     *
+     * @return A map of SuperPackage objects, grouped by their top-level package ID.
      */
     private Map<Integer, List<SuperPackage>> getBulkChildSuperPkgs (Container c, User u, List<SuperPackage> allSuperPackages,
                                     Map<Integer, List<SuperPackage>> childrenByParentId,
@@ -4083,7 +4089,6 @@ public class SNDManager
                     })
                     .toList();
 
-
             allEventData.addAll(emptyEventData);
         }
 
@@ -4148,7 +4153,7 @@ public class SNDManager
     }
 
     /**
-     * Retrieve EventData objects for the specified ParentEventIds.
+     * Retrieve child EventData objects for the specified ParentEventIds.
      *
      * @param allEventData List of all EventData objects.
      * @param parentEventDataIds List of ParentEventDataIds to retrieve child EventData for.
@@ -4201,12 +4206,15 @@ public class SNDManager
     }
 
     /**
-     * Get the next child level of SuperPackages for a given map of top level SuperPackages
+     * Retrieves the next level of child SuperPackages for a given map of current level SuperPackages by EventDataId.
      *
-     * @param eventData
-     * @param childEventData
-     * @param currentLevelSuperPkgs
-     * @return
+     * @param eventData The current eventData object being processed
+     * @param childEventData A map of current level child event data keyed by the event ID.
+     * @param currentLevelSuperPkgs A map containing the current level of SuperPackages, grouped by event ID and event data ID.
+     * @param includeEmptySubPackages Boolean flag indicating whether empty subpackages should be included.
+     * @param hasSubpackages Boolean flag to check if there are any subpackages associated with the eventData.
+     *
+     * @return A map of the next level SuperPackages grouped by event ID and event data ID.
      */
     private Map<Integer, Map<Integer, Pair<SuperPackage, Integer>>> getNextLevelEventDataSuperPkgs(EventData eventData, Map<Integer,
             List<EventData>> childEventData, Map<Integer, Map<Integer, Pair<SuperPackage, Integer>>> currentLevelSuperPkgs,
@@ -4225,15 +4233,16 @@ public class SNDManager
                 .getChildPackages()
                 .stream()
                 .collect(Collectors.toMap(
-                        SuperPackage::getSuperPkgId,
-                        (SuperPackage superPackage) -> superPackage,
-                        (s1, s2) -> s1
+                        SuperPackage::getSuperPkgId,    // Key by SuperPkgId
+                        (SuperPackage superPackage) -> superPackage,    // Value is SuperPackage object
+                        (s1, s2) -> s1  // Keep first key in case of duplicates (there should not be more than one SuperPkg per EventDataId)
                 ));
 
-        // Get superPkg for eventData and group by eventId and then by eventId
+        // Prepare a map for the next level of SuperPackages
         Map<Integer, Map<Integer, Pair<SuperPackage, Integer>>> nextLevelEventDataSuperPkgs = new HashMap<>();
         nextLevelEventDataSuperPkgs.put(eventData.getEventId(), new HashMap<>());
 
+        // Iterate over child event data and link it to the corresponding child SuperPackage
         childEventData.getOrDefault(eventData.getEventId(), Collections.emptyList()).stream()
                 .filter(child -> childSuperPkgs.containsKey(child.getSuperPkgId()))  // Only include subpackages from the specific SuperPkg structure
                 .forEach(child -> {
@@ -4245,43 +4254,49 @@ public class SNDManager
         nextLevelEventDataSuperPkgs.computeIfAbsent(eventData.getEventId(), k -> new HashMap<>());
 
         if (includeEmptySubPackages) {
+            // Collect the SuperPackage IDs from the current level
             List<Integer> currentLevelSuperPkgIds = currentLevelSuperPkgs.get(eventData.getEventId())
                     .values()
                     .stream()
                     .map(pair -> pair.getLeft().getSuperPkgId()).toList();
 
+            // Identify repeated SuperPackage IDs
             Set<Integer> uniqueIds = new HashSet<>();
             List<Integer> repeatedIds = currentLevelSuperPkgIds
                     .stream()
                     .filter(superPkgId -> !uniqueIds.add(superPkgId))
                     .toList();
 
+            // Handle next level logic for repeated IDs and empty subpackages
             List<Integer> nextLevelSuperPkgIds = nextLevelEventDataSuperPkgs.get(eventData.getEventId())
                     .values()
                     .stream()
                     .map(pair -> pair.getLeft().getSuperPkgId()).toList();
 
-            AtomicInteger emptyEventDataId = new AtomicInteger(0);
+            AtomicInteger missingEventDataId = new AtomicInteger(0);
 
             if (!repeatedIds.isEmpty()) {
-                Map<Integer, List<Integer>> repeatedIdsByParentEventDataId = childEventData.get(eventData.getEventId()).stream()
+                // Group subpackage superPkgIds for the repeated parent superPkgs by their parentEventDataId
+                Map<Integer, List<Integer>> childSuperPkgIdsByParentEventDataId = childEventData.get(eventData.getEventId()).stream()
                         .filter(e -> e.getParentEventDataId() != null
                                 && repeatedIds.contains(nextLevelEventDataSuperPkgs.get(eventData.getEventId()).get(e.getEventDataId()).getLeft().getParentSuperPkgId()))  // Ensure parentEventDataId exists
                         .collect(Collectors.groupingBy(
                                 EventData::getParentEventDataId,  // Group by parentEventDataId
                                 Collectors.mapping(EventData::getSuperPkgId, Collectors.toList())  // Collect superPackageId in a list
                         ));
-                repeatedIdsByParentEventDataId.entrySet().forEach(entry -> {
+                // Add the missing SuperPackages for the next level for each Grouped set of child SuperPkgIds
+                childSuperPkgIdsByParentEventDataId.entrySet().forEach(entry -> {
                     childSuperPkgs.values().stream()
                             .filter(spkg -> !entry.getValue().contains(spkg.getSuperPkgId()))
-                            .forEach(spkg -> nextLevelEventDataSuperPkgs.get(eventData.getEventId()).put(emptyEventDataId.getAndIncrement(),
+                            .forEach(spkg -> nextLevelEventDataSuperPkgs.get(eventData.getEventId()).put(missingEventDataId.getAndIncrement(),
                                     Pair.of(spkg, entry.getKey())));
                 });
             }
 
+            // Add any remaining missing SuperPackages that are not part of the repeated IDs
             childSuperPkgs.values().stream()
                     .filter(superPkg -> !nextLevelSuperPkgIds.contains(superPkg.getSuperPkgId()) && !repeatedIds.contains(superPkg.getParentSuperPkgId()))
-                    .forEach(spkg -> nextLevelEventDataSuperPkgs.get(eventData.getEventId()).put(emptyEventDataId.getAndIncrement(),
+                    .forEach(spkg -> nextLevelEventDataSuperPkgs.get(eventData.getEventId()).put(missingEventDataId.getAndIncrement(),
                             Pair.of(spkg, null)));
         }
 
