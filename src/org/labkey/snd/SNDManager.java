@@ -4279,6 +4279,7 @@ public class SNDManager
                 // Group subpackage superPkgIds for the repeated parent superPkgs by their parentEventDataId
                 Map<Integer, List<Integer>> childSuperPkgIdsByParentEventDataId = childEventData.get(eventData.getEventId()).stream()
                         .filter(e -> e.getParentEventDataId() != null
+                                && nextLevelEventDataSuperPkgs.get(eventData.getEventId()).containsKey(e.getEventDataId())
                                 && repeatedIds.contains(nextLevelEventDataSuperPkgs.get(eventData.getEventId()).get(e.getEventDataId()).getLeft().getParentSuperPkgId()))  // Ensure parentEventDataId exists
                         .collect(Collectors.groupingBy(
                                 EventData::getParentEventDataId,  // Group by parentEventDataId
