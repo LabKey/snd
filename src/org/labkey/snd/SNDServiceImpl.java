@@ -558,11 +558,11 @@ public class SNDServiceImpl implements SNDService
     }
 
     @Override
-    public void populateNarrativeCache(Container c, User u, List<Integer> eventIds, Logger logger)
+    public void populateNarrativeCache(Container c, User u, List<Integer> eventIds, Logger logger, boolean isUpdate)
     {
         BatchValidationException errors = new BatchValidationException();
 
-        SNDManager.get().populateNarrativeCache(c, u, eventIds, errors, logger);
+        SNDManager.get().populateNarrativeCache(c, u, eventIds, errors, logger, isUpdate);
 
         if (errors.hasErrors())
             throw new ApiUsageException(errors);

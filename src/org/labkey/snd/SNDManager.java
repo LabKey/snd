@@ -3116,7 +3116,7 @@ public class SNDManager
                 if (isUpdate)
                 {
                     log.info("Repopulate affected rows in narrative cache.");
-                    populateNarrativeCache(container, user, eventIds, errors, log);
+                    populateNarrativeCache(container, user, eventIds, errors, log, isUpdate);
                 }
             }
 
@@ -3182,13 +3182,13 @@ public class SNDManager
 
         List<Integer> eventIds = selector.getArrayList(Integer.class);
 
-        populateNarrativeCache(c, u, eventIds, errors, logger);
+        populateNarrativeCache(c, u, eventIds, errors, logger, false);
     }
 
     /**
      * Populate specific event narratives in narrative cache.
      */
-    public void populateNarrativeCache(Container c, User u, List<Integer> eventIds, BatchValidationException errors, @Nullable Logger logger)
+    public void populateNarrativeCache(Container c, User u, List<Integer> eventIds, BatchValidationException errors, @Nullable Logger logger, boolean isUpdate)
     {
         UserSchema sndSchema = getSndUserSchemaAdminRole(c, u);
         QueryUpdateService eventsCacheQus = getNewQueryUpdateService(sndSchema, SNDSchema.EVENTSCACHE_TABLE_NAME);
@@ -3208,7 +3208,7 @@ public class SNDManager
             logger.info("Generating narratives.");
         }
 
-        Map<Integer, SuperPackage> superPackages = getBulkSuperPkgs(c, u, packageExtraFields, pkgQus, null, lookups, errors);
+        Map<Integer, SuperPackage> superPackages = getBulkSuperPkgs(c, u, packageExtraFields, pkgQus, isUpdate ? eventIds : null, lookups, errors, true);
 
         AtomicInteger count = new AtomicInteger(0);
 
@@ -3801,7 +3801,7 @@ public class SNDManager
         List<GWTPropertyDescriptor> packageExtraFields = getExtraFields(c, u, SNDSchema.PKGS_TABLE_NAME);
 
         // Retrieve all SuperPackages associated with a single event
-        Map<Integer, SuperPackage> superPackages = getBulkSuperPkgs(c, u, packageExtraFields, pkgQus, eventId, lookups, errors);
+        Map<Integer, SuperPackage> superPackages = getBulkSuperPkgs(c, u, packageExtraFields, pkgQus, Collections.singletonList(eventId), lookups, errors, false);
 
         // Map top-level EventDataIds to associated SuperPackage objects and group by EventId
         Map<Integer, Map<Integer, SuperPackage>> topLevelEventDataSuperPkgs = getBulkTopLevelEventDataSuperPkgs(c, u, Collections.singletonList(eventId), superPackages);
@@ -3917,8 +3917,8 @@ public class SNDManager
      *
      * @return A map of SuperPackage objects, keyed by SuperPkgId.
      */
-    private Map<Integer, SuperPackage> getBulkSuperPkgs(Container c, User u, List<GWTPropertyDescriptor> packageExtraFields, QueryUpdateService pkgQus, @Nullable Integer eventId,
-                                                        Map<String, String> lookups, BatchValidationException errors) {
+    private Map<Integer, SuperPackage> getBulkSuperPkgs(Container c, User u, List<GWTPropertyDescriptor> packageExtraFields, QueryUpdateService pkgQus, @Nullable List<Integer> eventIds,
+                                                        Map<String, String> lookups, BatchValidationException errors, boolean isNarrativeUpdate) {
 
         UserSchema schema = getSndUserSchema(c, u);
 
@@ -3929,10 +3929,15 @@ public class SNDManager
         sql.append(schema.getTable(SNDSchema.SUPERPKGS_TABLE_NAME), "sp");
         sql.append(" JOIN " + SNDSchema.NAME + "." + SNDSchema.PKGS_TABLE_NAME + " pkg");
         sql.append(" ON sp.PkgId = pkg.PkgId ");
-        if (eventId != null) {
+        if (eventIds != null) {
             sql.append(" INNER JOIN " + SNDSchema.NAME + "." + SNDSchema.EVENTDATA_TABLE_NAME + " ed");
             sql.append(" ON ed.SuperPkgId = sp.SuperPkgId ");
-            sql.append(" WHERE ed.EventId = ? ").add(eventId);
+            sql.append(" WHERE ed.EventId IN ( ");
+            ArrayDeque<Integer> eventIdsQueue = new ArrayDeque<>(eventIds);
+            while (eventIdsQueue.size() > 1) {
+                sql.append("?, ").add(eventIdsQueue.pop());
+            }
+            sql.append("?) ").add(eventIdsQueue.pop());
         }
         sql.append(" ORDER BY sp.SuperPkgId ");
 
@@ -3943,7 +3948,7 @@ public class SNDManager
 
         List<SuperPackage> fullTreeSuperPkgs;
 
-        if (eventId != null) {
+        if (!isNarrativeUpdate) {
             fullTreeSuperPkgs = new ArrayList<SuperPackage>();
             pkgIds.forEach(pkgId -> {
                 SQLFragment packageSql = new SQLFragment("SELECT * FROM ");
