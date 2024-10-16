@@ -53,7 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class EventsTable extends SimpleTable<SNDUserSchema>
+public class  EventsTable extends SimpleTable<SNDUserSchema>
 {
     /**
      * Create the simple table.
