@@ -21,8 +21,10 @@ import org.jetbrains.annotations.Nullable;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerFilter;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.dataiterator.DataIterator;
 import org.labkey.api.dataiterator.DataIteratorBuilder;
 import org.labkey.api.dataiterator.DataIteratorContext;
+import org.labkey.api.dataiterator.ListofMapsDataIterator;
 import org.labkey.api.query.BatchValidationException;
 import org.labkey.api.query.QueryUpdateService;
 import org.labkey.api.query.SimpleUserSchema;
@@ -30,6 +32,8 @@ import org.labkey.api.query.ValidationException;
 import org.labkey.api.security.User;
 import org.labkey.api.security.UserPrincipal;
 import org.labkey.api.security.permissions.Permission;
+import org.labkey.api.snd.Event;
+import org.labkey.api.snd.EventNote;
 import org.labkey.api.snd.SNDService;
 import org.labkey.snd.SNDManager;
 import org.labkey.snd.SNDUserSchema;
@@ -38,6 +42,8 @@ import org.labkey.snd.security.permissions.SNDViewerPermission;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class EventNotesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
 {
@@ -67,6 +73,7 @@ public class EventNotesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
         }
 
         private final SNDService _sndService = SNDService.get();
+        private final SNDManager _sndManager = SNDManager.get();
 
         private int getRowCount(DataIteratorBuilder rows, @Nullable Map<Enum,Object> configParameters, BatchValidationException errors)
         {
@@ -103,7 +110,41 @@ public class EventNotesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             else
             {
                 log.info("Merging rows.");
-                result = super.mergeRows(user, container, rows, errors, configParameters, extraScriptContext);
+
+                DataIteratorContext context = getDataIteratorContext(errors, QueryUpdateService.InsertOption.MERGE, configParameters);
+
+                List<Map<String, Object>> rowsWithEventNoteId = rows.getDataIterator(context).stream().map(row -> {
+                            EventNote eventNote = _sndManager.getEventNote(container, user, (int) row.get("eventId"));
+                            if (eventNote != null) {
+                                row.put("eventNoteId", eventNote.getEventNoteId());
+                            }
+                            return row;
+                        }
+                ).toList();
+
+                Set<Integer> eventIds = rows.getDataIterator(context).stream()
+                        .filter(row -> row.containsKey("eventId"))
+                        .map(row -> (Integer) row.get("eventId"))
+                        .collect(Collectors.toSet());
+
+                Map<Boolean, List<Map<String, Object>>> partitionedMaps = rowsWithEventNoteId.stream().collect(Collectors.partitioningBy(row -> row.containsKey("eventNoteId") && row.get("eventNoteId") != null));
+
+                List<Map<String, Object>> mapsWithEventNoteId = partitionedMaps.get(true);
+                List<Map<String, Object>> mapsWithoutEventNoteId = partitionedMaps.get(false);
+
+                DataIteratorBuilder iteratorWithEventNoteId;
+                DataIteratorBuilder iteratorWithoutEventNoteId;
+
+                if (!mapsWithoutEventNoteId.isEmpty()) {
+                    iteratorWithoutEventNoteId = new ListofMapsDataIterator.Builder(mapsWithoutEventNoteId.get(0).keySet(), mapsWithoutEventNoteId);
+                    result += super.importRows(user, container, iteratorWithoutEventNoteId, errors, configParameters, extraScriptContext);
+                }
+                if (!mapsWithEventNoteId.isEmpty()) {
+                    iteratorWithEventNoteId = new ListofMapsDataIterator.Builder(mapsWithEventNoteId.get(0).keySet(), mapsWithEventNoteId);
+                    result += _importRowsUsingDIB(user, container, iteratorWithEventNoteId, null, context, extraScriptContext);
+                }
+
+                _sndManager.updateNarrativeCache(container, user, eventIds, log);
             }
             return result;
         }

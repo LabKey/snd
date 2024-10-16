@@ -4328,6 +4328,7 @@ public class SNDManager
         return eventNotesById;
     }
 
+
     /**
      * Query the Projects table and retrieve the ID concatenated with RevisionNum for a set of objectIds
      *
@@ -4382,5 +4383,15 @@ public class SNDManager
             filter.addCondition(FieldKey.fromParts(isNullColumn), null, CompareType.ISBLANK);
         }
         return new TableSelector(tableInfo, filter, sort);
+    }
+
+    public EventNote getEventNote(Container c, User u, int eventId) {
+        TableSelector eventNoteSelector = getTableSelector(c, u, Collections.singletonList(eventId), SNDSchema.EVENTNOTES_TABLE_NAME, Event.EVENT_ID, null, null);
+        List<EventNote> eventNotes = eventNoteSelector.getArrayList(EventNote.class);
+        if (!eventNotes.isEmpty()) {
+            return eventNotes.get(0);
+        } else {
+            return null;
+        }
     }
 }
