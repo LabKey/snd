@@ -3113,7 +3113,7 @@ public class SNDManager
                 log.info("Deleting affected narrative cache rows.");
                 deleteNarrativeCacheRows(container, user, rows, errors);
                 //repopulate
-                if (isUpdate)
+                if (!errors.hasErrors() && isUpdate)
                 {
                     log.info("Repopulate affected rows in narrative cache.");
                     populateNarrativeCache(container, user, eventIds, errors, log);
@@ -3142,7 +3142,7 @@ public class SNDManager
         }
         catch (InvalidKeyException | BatchValidationException | QueryUpdateServiceException | SQLException e)
         {
-            e.printStackTrace();
+            errors.addRowError(new ValidationException(e.getMessage()));
         }
     }
 
