@@ -36,6 +36,7 @@ import org.labkey.snd.SNDUserSchema;
 import org.labkey.snd.security.permissions.SNDViewerPermission;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -108,6 +109,14 @@ public class EventNotesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             return result;
         }
 
+        @Override
+        public void configureDataIteratorContext(DataIteratorContext context)
+        {
+            if (context.getInsertOption() == QueryUpdateService.InsertOption.MERGE)
+            {
+                context.addAlternateKeys(Collections.singleton("EventId"));
+            }
+        }
     }
 
     @Override
