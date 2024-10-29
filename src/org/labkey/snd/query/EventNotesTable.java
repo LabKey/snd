@@ -136,13 +136,14 @@ public class EventNotesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
                 DataIteratorBuilder iteratorWithEventNoteId;
                 DataIteratorBuilder iteratorWithoutEventNoteId;
 
-                if (!mapsWithoutEventNoteId.isEmpty()) {
-                    iteratorWithoutEventNoteId = new ListofMapsDataIterator.Builder(mapsWithoutEventNoteId.get(0).keySet(), mapsWithoutEventNoteId);
-                    result += super.importRows(user, container, iteratorWithoutEventNoteId, errors, configParameters, extraScriptContext);
-                }
                 if (!mapsWithEventNoteId.isEmpty()) {
                     iteratorWithEventNoteId = new ListofMapsDataIterator.Builder(mapsWithEventNoteId.get(0).keySet(), mapsWithEventNoteId);
                     result += _importRowsUsingDIB(user, container, iteratorWithEventNoteId, null, context, extraScriptContext);
+                }
+
+                if (!mapsWithoutEventNoteId.isEmpty()) {
+                    iteratorWithoutEventNoteId = new ListofMapsDataIterator.Builder(mapsWithoutEventNoteId.get(0).keySet(), mapsWithoutEventNoteId);
+                    result += super.importRows(user, container, iteratorWithoutEventNoteId, errors, configParameters, extraScriptContext);
                 }
 
                 _sndManager.updateNarrativeCache(container, user, eventIds, log);
