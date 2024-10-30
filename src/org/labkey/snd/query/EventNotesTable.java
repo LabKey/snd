@@ -39,8 +39,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class EventNotesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
 {
@@ -98,7 +96,7 @@ public class EventNotesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
         {
             Logger log = SNDManager.getLogger(configParameters, EventNotesTable.class);
             // Large merge triggers importRows path
-            int result = 0;
+            int result;
             if (getRowCount(rows, configParameters, errors) > SNDManager.MAX_MERGE_ROWS)
             {
                 log.info("More than " + SNDManager.MAX_MERGE_ROWS + " rows. using importRows method.");
@@ -107,17 +105,9 @@ public class EventNotesTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
             else
             {
                 log.info("Merging rows.");
+                DataIteratorBuilder dib = new EventNotesDataIteratorBuilder(rows, user, container);
 
-                DataIteratorContext context = getDataIteratorContext(errors, QueryUpdateService.InsertOption.MERGE, configParameters);
-
-                Set<Integer> eventIds = rows.getDataIterator(context).stream()
-                        .filter(row -> row.containsKey("eventId"))
-                        .map(row -> (Integer) row.get("eventId"))
-                        .collect(Collectors.toSet());
-
-                result = super.mergeRows(user, container, rows, errors, configParameters, extraScriptContext);
-
-                _sndManager.updateNarrativeCache(container, user, eventIds, log);
+                result = super.mergeRows(user, container, dib, errors, configParameters, extraScriptContext);
             }
             return result;
         }
