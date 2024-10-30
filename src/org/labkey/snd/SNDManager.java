@@ -4389,14 +4389,4 @@ public class SNDManager
         }
         return new TableSelector(tableInfo, filter, sort);
     }
-
-    public EventNote getEventNote(Container c, User u, int eventId) {
-        TableSelector eventNoteSelector = getTableSelector(c, u, Collections.singletonList(eventId), SNDSchema.EVENTNOTES_TABLE_NAME, Event.EVENT_ID, null, null);
-        List<EventNote> eventNotes = eventNoteSelector.getArrayList(EventNote.class);
-        if (!eventNotes.isEmpty()) {
-            return eventNotes.get(0);
-        } else {
-            return null;
-        }
-    }
 }
