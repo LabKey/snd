@@ -22,7 +22,6 @@ public class EventNotesDataIterator extends AbstractDataIterator
 {
     private static final SNDManager _sndManager = SNDManager.get();
     private static final String EVENT_ID_COL = "eventId";
-    private static final String EVENT_NOTE_ID_COL = "eventNoteId";
     private User _user;
     private Container _container;
     private int _eventIdColIndex;
