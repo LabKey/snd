@@ -39,6 +39,7 @@ import org.labkey.api.security.User;
 import org.labkey.api.security.UserPrincipal;
 import org.labkey.api.security.permissions.Permission;
 import org.labkey.api.settings.AppProps;
+import org.labkey.api.snd.SNDDomainKind;
 import org.labkey.api.snd.SNDService;
 import org.labkey.snd.SNDManager;
 import org.labkey.snd.SNDUserSchema;
@@ -257,9 +258,9 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
                 SqlExecutor executor = new SqlExecutor(_expSchema);
                 SQLFragment truncObjProp = new SQLFragment("delete from " + _expSchema.getName() + ".ObjectProperty\n");
                 truncObjProp.append("where objectId in\n");
-                truncObjProp.append("(select objectId from exp.object where objectURI like '%urn:lsid:"+ defaultLsidAuthority +":SND.EventData.Folder%')\n");
+                truncObjProp.append("(select objectId from exp.object where objectURI like ").appendValue("%urn:lsid:"+ defaultLsidAuthority +":SND.EventData.Folder%").append("\n");
                 truncObjProp.append("and propertyId in\n");
-                truncObjProp.append("(select propertyId from exp.propertyDescriptor where PropertyURI like '%urn:lsid:"+ defaultLsidAuthority +":package-snd.Folder%')");
+                truncObjProp.append("(select propertyId from exp.propertyDescriptor where PropertyURI ").append(SNDDomainKind.likeSndDomainURI(null,null));
                 numDeletedRows = executor.execute(truncObjProp);
                 tx.commit();
             }

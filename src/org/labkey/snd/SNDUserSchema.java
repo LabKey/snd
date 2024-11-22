@@ -26,6 +26,7 @@ import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.TableInfo;
 import org.labkey.api.data.TableSelector;
 import org.labkey.api.query.FieldKey;
+import org.labkey.api.query.QuerySchema;
 import org.labkey.api.query.SimpleUserSchema;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
@@ -64,6 +65,24 @@ public class SNDUserSchema extends SimpleUserSchema implements UserSchema.HasCon
     {
         super(name, description, user, container, dbschema);
         _contextualRole = contextualRole;
+    }
+
+    @Override
+    public Set<String> getSchemaNames()
+    {
+        if (_restricted)
+            return Set.of();
+        return Set.of(PackageUserSchema.SCHEMA_NAME);
+    }
+
+    @Override
+    public QuerySchema getSchema(String name)
+    {
+        if (_restricted)
+            return null;
+        if ("Packages".equalsIgnoreCase(name))
+            return new PackageUserSchema(this);
+        return super.getSchema(name);
     }
 
     @Override
