@@ -1,32 +1,41 @@
 package org.labkey.snd;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.labkey.api.collections.CaseInsensitiveHashSet;
 import org.labkey.api.collections.CaseInsensitiveTreeSet;
 import org.labkey.api.data.ColumnInfo;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerFilter;
+import org.labkey.api.data.JdbcType;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SimpleFilter;
 import org.labkey.api.data.SqlSelector;
 import org.labkey.api.data.TableInfo;
+import org.labkey.api.data.dialect.SqlDialect;
 import org.labkey.api.exp.PropertyColumn;
 import org.labkey.api.exp.property.Domain;
 import org.labkey.api.exp.property.DomainProperty;
 import org.labkey.api.exp.property.PropertyService;
+import org.labkey.api.query.AliasedColumn;
+import org.labkey.api.query.ExprColumn;
 import org.labkey.api.query.FilteredTable;
 import org.labkey.api.query.SchemaKey;
 import org.labkey.api.query.UserSchema;
 import org.labkey.api.security.User;
 import org.labkey.api.snd.SNDDomainKind;
+import org.labkey.api.study.StudyService;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
+
+import static org.labkey.api.query.ExprColumn.STR_TABLE_ALIAS;
 
 public class PackageUserSchema extends UserSchema
 {
@@ -88,6 +97,7 @@ public class PackageUserSchema extends UserSchema
         return new PackageTableInfo(this, eventData, description, packageId);
     }
 
+
     class PackageTableInfo extends FilteredTable<PackageUserSchema>
     {
         final int packageId;
@@ -105,9 +115,32 @@ public class PackageUserSchema extends UserSchema
                 addInClause(eventData.getColumn("SuperPkgId"), me.superPkgIds);
         }
 
+        /* TODO: duplicate code StudyUtils is not public (add to Study class?) */
+        public static SQLFragment sequenceNumFromDateSQL(SQLFragment dateSql)
+        {
+            // SqlDialect.getDatePart() should not convert SQLFragment to String
+            if (!dateSql.getParams().isEmpty())
+                throw new IllegalStateException();
+            // Returns a SQL statement that produces a single number from a date, in the form of YYYYMMDD.
+            SqlDialect dialect = StudyService.get().getStudySchema().getSqlDialect();
+            SQLFragment sql = new SQLFragment();
+            sql.append("CAST((10000 * ").append(dialect.getDatePart(Calendar.YEAR, dateSql)).append(") + ");
+            sql.append("(100 * ").append(dialect.getDatePart(Calendar.MONTH, dateSql)).append(") + ");
+            sql.append("(").append(dialect.getDatePart(Calendar.DAY_OF_MONTH, dateSql)).append(") AS NUMERIC(15,4))");
+            return sql;
+        }
+
         @Override
         protected void initializeColumns()
         {
+            TableInfo events = getSchema().getTable("Events");
+
+            addColumn(new AliasedColumn(this, "SubjectId", events.getColumn("SubjectId")));
+            addColumn(new AliasedColumn(this, "Date", events.getColumn("Date")));
+            var date = new SQLFragment(events.getColumn("Date").getValueSql(STR_TABLE_ALIAS));
+            var seqnum = sequenceNumFromDateSQL(date);
+            addColumn(new ExprColumn(this, "SequenceNum", seqnum, JdbcType.DECIMAL));
+
             wrapAllColumns(true);
 
             Package p = getPackage(packageId);
@@ -126,6 +159,18 @@ public class PackageUserSchema extends UserSchema
                     }
                 }
             }
+        }
+
+        @Override
+        public @NotNull SQLFragment getFromSQL(String alias)
+        {
+            TableInfo events = getSchema().getTable("Events");
+            return new SQLFragment("(SELECT events.SubjectId, events.Date, eventdata.*\n")
+            .append("FROM ").append(getFromTable().getFromSQL("eventdata"))
+            .append(" INNER JOIN ").append(events.getFromSQL("events"))
+            .append( " ON eventdata.eventid = events.eventid\n")
+            .append("WHERE events.Container=").appendValue(getContainer())
+            .append(") ").append(alias).append("\n");
         }
     }
 
