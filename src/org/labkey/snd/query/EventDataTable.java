@@ -18,10 +18,12 @@ package org.labkey.snd.query;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.labkey.api.data.BaseColumnInfo;
 import org.labkey.api.data.Container;
 import org.labkey.api.data.ContainerFilter;
 import org.labkey.api.data.DbSchema;
 import org.labkey.api.data.DbScope;
+import org.labkey.api.data.JdbcType;
 import org.labkey.api.data.SQLFragment;
 import org.labkey.api.data.SqlExecutor;
 import org.labkey.api.data.TableInfo;
@@ -66,11 +68,145 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
         super(schema, table, cf);
     }
 
+    public void addColumns()
+    {
+        super.addColumns();
+
+        BaseColumnInfo objectid = new BaseColumnInfo("ObjectId", this, JdbcType.INTEGER)
+        {
+            @Override
+            public SQLFragment getValueSql(String tableAliasName)
+            {
+                return new SQLFragment(tableAliasName).append(".").append("ObjectId");
+            }
+        };
+        addColumn(objectid);
+    }
+
+    @Override
+    public @NotNull SQLFragment getFromSQL(String alias)
+    {
+        SQLFragment table = super.getFromSQL("_evnt_data_");
+        SQLFragment join = new SQLFragment("(SELECT _evnt_data_.*, ObjectId FROM ")
+                .append(table).append(" INNER JOIN exp.Object ON _evnt_data_.ObjectURI = Object.ObjectURI").append(") ").append(alias);
+        return join;
+    }
+
     @Override
     public boolean hasPermission(@NotNull UserPrincipal user, @NotNull Class<? extends Permission> perm)
     {
         return getContainer().hasPermission(user, SNDViewerPermission.class, getUserSchema().getContextualRoles());
     }
+
+/* This code implements method ".attribtues()".  Probably not useful given the packages schema.
+    Map<String, PropertyDescriptor> attributes = null;
+
+    Map<String, PropertyDescriptor> getAttributes()
+    {
+        Set<String> ambiguiousShortNames = new CaseInsensitiveHashSet();
+        if (null == attributes)
+        {
+            // CONSIDER: cache for Packages?
+            Map<Integer,String> packages = new HashMap<>();
+            new SqlSelector(SNDSchema.getInstance().getSchema(),
+                    new SQLFragment("SELECT PkgId, Description FROM snd.Pkgs WHERE Container = ").appendValue(getContainer())
+            ).fillValueMap(packages);
+
+            Map<String, PropertyDescriptor> map = new CaseInsensitiveHashMap<>();
+            UserSchema userSchema = getUserSchema();
+            Container c = userSchema.getContainer();
+            // urn:lsid:labkey.com:package-snd.Folder-13:Package-820
+            List<? extends Domain> list = PropertyService.get().getDomains(userSchema.getContainer(), userSchema.getUser(), false)
+                    .stream().filter(d -> d.getTypeURI().contains(":package-snd.Folder-" + c.getRowId() + ":Package-"))
+                    .toList();
+
+            for (var d : list)
+            {
+                d.getProperties().forEach(dp ->
+                {
+                    PropertyDescriptor pd = dp.getPropertyDescriptor();
+                    String uri = dp.getPropertyURI();
+                    String domainName = d.getName();
+                    if (domainName.startsWith("Package-"))
+                    {
+                        try
+                        {
+                            var id = Integer.parseInt(domainName.substring("Package-".length()));
+                            var s = packages.get(id);
+                            if (null != s)
+                                domainName = s;
+                        }
+                        catch (NumberFormatException ignore)
+                        {
+                            // pass
+                        }
+                    }
+                    String domainColumn = domainName + "." + dp.getName();
+                    String column = dp.getName();
+                    if (null != map.put(uri,pd))
+                        ambiguiousShortNames.add(uri);
+                    if (null != map.put(domainColumn,pd))
+                        ambiguiousShortNames.add(domainColumn);
+                    if (null != map.put(column,pd))
+                        ambiguiousShortNames.add(column);
+                });
+            }
+            for (String name : ambiguiousShortNames)
+                map.remove(name);
+            attributes = Collections.unmodifiableMap(map);
+        }
+        return attributes;
+    }
+
+    MethodInfo attributeMethod = new AbstractTableMethodInfo(JdbcType.OTHER)
+    {
+        @Override
+        public JdbcType getJdbcType(JdbcType[] args)
+        {
+            // UNDONE: would be nice to have the actual arguments to inspect
+            return super.getJdbcType(args);
+        }
+
+        @Override
+        public SQLFragment getSQL(String tableAlias, DbSchema schema, SQLFragment[] arguments)
+        {
+            ColumnInfo objectId = getColumn("ObjectId");
+            if (null == objectId || arguments.length != 1)
+            {
+                return new SQLFragment(" NULL ");
+            }
+            try
+            {
+                String attributeName = QueryService.get().toSimpleString(arguments[0]);
+                var attributes = getAttributes();
+                var pd = attributes.get(attributeName);
+                if (null == pd)
+                    return new SQLFragment(" 'not found' ");
+                PropertyColumn pc = new PropertyColumn(pd, objectId, getUserSchema().getContainer(), getUserSchema().getUser(), false);
+                pc.setParentIsObjectId(true);
+                return pc.getValueSql(tableAlias);
+            }
+            catch (IllegalArgumentException x)
+            {
+                throw new QueryParseException("Constant string literal expected for attribute() method", x, -1, -1);
+            }
+        }
+    };
+
+    @Override
+    public MethodInfo getMethod(String name)
+    {
+        if ("Attribute".equalsIgnoreCase(name))
+            return attributeMethod;
+        return super.getMethod(name);
+    }
+
+    @Override
+    public Set<FieldKey> getMethodRequiredFieldKeys()
+    {
+        return Set.of(new FieldKey(null, "ObjectId"));
+    }
+*/
 
     @Override
     public QueryUpdateService getUpdateService()
