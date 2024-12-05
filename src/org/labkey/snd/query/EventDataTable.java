@@ -70,8 +70,6 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
 
     public void addColumns()
     {
-        super.addColumns();
-
         BaseColumnInfo objectid = new BaseColumnInfo("ObjectId", this, JdbcType.INTEGER)
         {
             @Override
@@ -80,7 +78,12 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
                 return new SQLFragment(tableAliasName).append(".").append("ObjectId");
             }
         };
+        objectid.setHidden(true);
+        objectid.setFk(new BaseColumnInfo.SchemaForeignKey(objectid, "exp", "Object", "ObjectId", false));
+        // SimpleTableSchema.SimpleTable.wrapColumn() is weird. It calls addColumn() which is not the usual pattern.
+        fixupWrappedColumn(objectid, objectid);
         addColumn(objectid);
+        super.addColumns();
     }
 
     @Override
