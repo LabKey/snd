@@ -110,9 +110,9 @@ public class PackageUserSchema extends UserSchema
 
             var me = getPackage(packageId);
             if (null == me || me.superPkgIds.isEmpty())
-                addCondition(new SimpleFilter(new SimpleFilter.SQLClause(new SQLFragment("(0=1)"))));
+                ((FilteredTable<?>)getRealTable()).addCondition(new SimpleFilter(new SimpleFilter.SQLClause(new SQLFragment("(0=1)"))));
             else
-                addInClause(eventData.getColumn("SuperPkgId"), me.superPkgIds);
+                ((FilteredTable<?>)getRealTable()).addInClause(eventData.getColumn("SuperPkgId"), me.superPkgIds);
         }
 
         /* TODO: duplicate code StudyUtils is not public (add to Study class?) */
@@ -137,6 +137,7 @@ public class PackageUserSchema extends UserSchema
 
             addColumn(new AliasedColumn(this, "SubjectId", events.getColumn("SubjectId")));
             addColumn(new AliasedColumn(this, "Date", events.getColumn("Date")));
+            addColumn(new AliasedColumn(this, "QcState", events.getColumn("QcState")));
             var date = new SQLFragment(events.getColumn("Date").getValueSql(STR_TABLE_ALIAS));
             var seqnum = sequenceNumFromDateSQL(date);
             addColumn(new ExprColumn(this, "SequenceNum", seqnum, JdbcType.DECIMAL));
@@ -165,7 +166,7 @@ public class PackageUserSchema extends UserSchema
         public @NotNull SQLFragment getFromSQL(String alias)
         {
             TableInfo events = getSchema().getTable("Events");
-            return new SQLFragment("(SELECT events.SubjectId, events.Date, eventdata.*\n")
+            return new SQLFragment("(SELECT events.SubjectId, events.Date, events.QcState, eventdata.*\n")
             .append("FROM ").append(getFromTable().getFromSQL("eventdata"))
             .append(" INNER JOIN ").append(events.getFromSQL("events"))
             .append( " ON eventdata.eventid = events.eventid\n")
