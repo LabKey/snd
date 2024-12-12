@@ -72,7 +72,7 @@ public class SNDUserSchema extends SimpleUserSchema implements UserSchema.HasCon
     {
         if (_restricted)
             return Set.of();
-        return Set.of(PackageUserSchema.SCHEMA_NAME);
+        return Set.of(PackageUserSchema.SCHEMA_NAME, CategoryUserSchema.SCHEMA_NAME);
     }
 
     @Override
@@ -80,8 +80,10 @@ public class SNDUserSchema extends SimpleUserSchema implements UserSchema.HasCon
     {
         if (_restricted)
             return null;
-        if ("Packages".equalsIgnoreCase(name))
+        if (PackageUserSchema.SCHEMA_NAME.equalsIgnoreCase(name))
             return new PackageUserSchema(this);
+        if (CategoryUserSchema.SCHEMA_NAME.equalsIgnoreCase(name))
+            return new CategoryUserSchema(this);
         return super.getSchema(name);
     }
 
