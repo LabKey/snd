@@ -54,7 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
+public class EventDataTable extends AbstractSNDTableInfo
 {
     /**
      * Create the simple table.
@@ -63,9 +63,9 @@ public class EventDataTable extends SimpleUserSchema.SimpleTable<SNDUserSchema>
      * @param schema
      * @param table
      */
-    public EventDataTable(SNDUserSchema schema, TableInfo table, ContainerFilter cf)
+    public EventDataTable(SNDUserSchema schema, TableInfo table)
     {
-        super(schema, table, cf);
+        super(schema, table);
     }
 
     public void addColumns()

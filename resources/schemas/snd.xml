@@ -236,8 +236,16 @@
         <deleteUrl></deleteUrl>
         <columns>
             <column columnName="EventDataId"/>
-            <column columnName="EventId"/>
-            <column columnName="SuperPkgId"/>
+            <column columnName="EventId">
+                <displayColumnFactory>
+                    <className>NOLOOKUP</className>
+                </displayColumnFactory>
+            </column>
+            <column columnName="SuperPkgId">
+                <displayColumnFactory>
+                    <className>NOLOOKUP</className>
+                </displayColumnFactory>
+            </column>
             <column columnName="ParentEventDataId"/>
             <column columnName="SortOrder"/>
             <column columnName="ObjectURI">
