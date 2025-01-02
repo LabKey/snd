@@ -14,41 +14,6 @@
  * limitations under the License.
  */
 
-/* snd-17.20-17.30.sql */
-
-EXEC core.fn_dropifexists 'CodedEvents','codedprocs','TABLE';
-GO
-
-EXEC core.fn_dropifexists 'EventNotes','codedprocs','TABLE';
-GO
-
-EXEC core.fn_dropifexists 'EventsCache','codedprocs','TABLE';
-GO
-
-EXEC core.fn_dropifexists 'PkgCategoryJunction','codedprocs','TABLE';
-GO
-
-EXEC core.fn_dropifexists 'ProjectItems','codedprocs','TABLE';
-GO
-
-EXEC core.fn_dropifexists 'SuperPkgs','codedprocs','TABLE';
-GO
-
-EXEC core.fn_dropifexists 'PkgCategories','codedprocs','TABLE';
-GO
-
-EXEC core.fn_dropifexists 'Pkgs','codedprocs','TABLE';
-GO
-
-EXEC core.fn_dropifexists 'Events','codedprocs','TABLE';
-GO
-
-EXEC core.fn_dropifexists 'Projects','codedprocs','TABLE';
-GO
-
-EXEC core.fn_dropifexists NULL,'codedprocs','SCHEMA';
-GO
-
 CREATE SCHEMA snd;
 GO
 
@@ -498,8 +463,6 @@ ALTER TABLE snd.Lookups ADD CONSTRAINT PK_SND_LOOKUPS PRIMARY KEY (LookupId)
 
 CREATE UNIQUE INDEX IDX_SND_LOOKUPS_LOOKUPSETID_VALUE ON snd.Lookups(LookupSetId, Value)
 
-/* snd-17.30-18.10.sql */
-
 EXEC core.fn_dropifexists 'Projects', 'snd', 'CONSTRAINT', 'IDX_SND_PROJECTS_CONTAINER';
 EXEC core.fn_dropifexists 'Projects', 'snd', 'CONSTRAINT', 'IDX_SND_PROJECTS_OBJECTID';
 EXEC core.fn_dropifexists 'ProjectItems', 'snd', 'CONSTRAINT', 'FK_SND_PROJECTITEMS_PARENTOBJECTID';
@@ -773,8 +736,6 @@ ALTER TABLE snd.EventData DROP COLUMN Created;
 ALTER TABLE snd.EventData DROP COLUMN CreatedBy;
 GO
 
-/* snd-18.10-18.20.sql */
-
 sp_rename 'snd.Events.ParticipantId', 'SubjectId', 'COLUMN';
 
 /*==============================================================*/
@@ -977,18 +938,6 @@ GO
 ALTER TABLE snd.EventsCache CHECK CONSTRAINT FK_EventsCache_EventId
 GO
 
-/* 21.xxx SQL scripts */
-
-UPDATE exp.PropertyValidator SET TypeURI = 'urn:lsid:labkey.com:PropertyValidator:textlength'
-WHERE TypeURI = 'urn:lsid:labkey.com:PropertyValidator:length'
-  AND PropertyId IN (
-    SELECT PropertyId
-    FROM exp.PropertyDescriptor
-    WHERE PropertyURI LIKE '%:package-snd%Package%'
-  )
-
-GO
-
 ALTER TRIGGER snd.ti_after_Events ON snd.Events FOR INSERT AS
 BEGIN
     SET NOCOUNT ON;
@@ -998,4 +947,105 @@ SET QcState = (SELECT TOP(1) q.rowId FROM core.DataStates AS q WHERE q.Label = '
              INNER JOIN snd.Events AS e ON i.EventId = e.EventId
 WHERE i.QcState IS NULL
 END
+GO
+
+ALTER TRIGGER snd.ti_after_Events ON snd.Events FOR INSERT AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE
+        @Container ENTITYID
+
+    SELECT @Container = INSERTED.[Container] FROM INSERTED
+UPDATE snd.Events
+SET QcState = (SELECT TOP(1) q.rowId FROM core.DataStates AS q WHERE q.Label = 'Completed' AND q.Container = @Container ORDER BY q.rowId)
+    FROM INSERTED AS i
+             INNER JOIN snd.Events AS e ON i.EventId = e.EventId
+WHERE i.QcState IS NULL
+END
+GO
+
+CREATE UNIQUE INDEX IDX_LookupSets_SetName
+ON snd.LookupSets (SetName)
+
+ALTER TABLE snd.EventData ADD SortOrder INTEGER NULL;
+
+EXEC core.fn_dropifexists 'fGetAllSuperPkgs', 'snd', 'function';
+go
+
+CREATE FUNCTION snd.fGetAllSuperPkgs
+()
+RETURNS @expandedSuperPackages TABLE
+(
+    TopLevelPkgId INTEGER NOT NULL,
+    SuperPkgId INTEGER NOT NULL,
+    ParentSuperPkgId INTEGER NULL,
+    PkgId INTEGER NOT NULL,
+    TreePath VARCHAR(MAX) NOT NULL,
+    SuperPkgPath INTEGER NOT NULL,
+    SortOrder INTEGER NULL,
+    Required INTEGER NULL,
+    DESCRIPTION VARCHAR(MAX) NOT NULL,
+    Narrative VARCHAR(MAX) NOT NULL,
+    Active INTEGER NOT NULL,
+    Repeatable INTEGER NOT NULL,
+    Level INTEGER NOT NULL
+)
+AS
+BEGIN
+    DECLARE @loopCursor CURSOR;
+    DECLARE @topLevelPkgId INTEGER;
+
+    SET @loopCursor = CURSOR LOCAL FOR
+SELECT PkgId AS topLevelPackageId
+FROM snd.SuperPkgs AS tl
+WHERE ParentSuperPkgId IS NULL
+    FOR READ ONLY;
+
+OPEN @loopCursor;
+FETCH @loopCursor
+    INTO @topLevelPkgId;
+
+WHILE (@@FETCH_STATUS = 0)
+BEGIN
+INSERT INTO @expandedSuperPackages
+(
+    TopLevelPkgId,
+    SuperPkgId,
+    ParentSuperPkgId,
+    PkgId,
+    TreePath,
+    SuperPkgPath,
+    SortOrder,
+    Required,
+    DESCRIPTION,
+    Narrative,
+    Active,
+    Repeatable,
+    Level
+)
+    (SELECT TopLevelPkgId,
+            SuperPkgId,
+            ParentSuperPkgId,
+            PkgId,
+            TreePath,
+            SuperPkgPath,
+            SortOrder,
+            Required,
+            Description,
+            Narrative,
+            Active,
+            Repeatable,
+            Level
+     FROM snd.fGetSuperPkg(@topLevelPkgId) );
+
+FETCH NEXT FROM @loopCursor
+    INTO @topLevelPkgId;
+
+END; -- WHILE LOOP
+
+CLOSE @loopCursor;
+DEALLOCATE @loopCursor;
+
+       RETURN;
+END;
 GO
