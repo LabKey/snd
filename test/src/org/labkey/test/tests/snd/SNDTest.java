@@ -107,6 +107,7 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
     private static final int TEST_CATEGORY_ID2 = 51;
     private static final int TEST_CATEGORY_ID3 = 52;
     private static final int TEST_CATEGORY_ID4 = 53;
+    private static final int TEST_CATEGORY_ID5 = 54;
     private static final int TEST_SUPER_PKG_START_ID1 = 130;
     private static final int TEST_SUPER_PKG_START_ID2 = 140;
     private static final int TEST_SUPER_PKG_START_ID3 = 150;
@@ -556,6 +557,11 @@ public class SNDTest extends BaseWebDriverTest implements SqlserverOnlyTest
         "				},{                                 \n"+
         "				'CategoryId':  " + TEST_CATEGORY_ID4 + ",\n"+
         "				'Description':  'Vitals',           \n"+
+        "				'Active': true,                     \n"+
+        "				'Comment': 'This is vitals'         \n"+
+        "				},{                                 \n"+
+        "				'CategoryId':  " + TEST_CATEGORY_ID5 + ",\n"+
+        "				'Description':  'Sodium',           \n"+
         "				'Active': true,                     \n"+
         "				'Comment': 'This is vitals'         \n"+
         "			}],                                     \n"+
